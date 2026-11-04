@@ -9,16 +9,17 @@
     <nav aria-label="Hauptnavigation">
       <button class="nav active" data-view="dashboard"><span>◈</span> Übersicht</button>
       <button class="nav" data-view="research"><span>◎</span> URL-Recherche</button>
+      <button class="nav" data-view="finder"><span>⌖</span> Lead-Finder <small class="nav-new">NEU</small></button>
       <button class="nav" data-view="workspace"><span>◉</span> Mein Sales-Tag</button>
       <button class="nav" data-view="quotes"><span>€</span> Angebote & Preise</button>
-      <button class="nav" data-view="accounting"><span>§</span> Rechnungen & Buchhaltung <small class="nav-new">NEU</small></button>
+      <button class="nav" data-view="accounting"><span>§</span> Rechnungen & Buchhaltung</button>
       <button class="nav" data-view="leads"><span>▦</span> Leads & Signale</button>
       <button class="nav" data-view="pipeline"><span>⤳</span> Deal-Pipeline</button>
       <button class="nav" data-view="studio"><span>✧</span> KI-Studio</button>
       <button class="nav" data-view="tasks"><span>☑</span> Aufgaben <small id="dueBadge"></small></button>
       <button class="nav" data-view="playbook"><span>▤</span> Sales-Playbook</button>
     </nav>
-    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.0 · Sales & Buchhaltung</small></div>
+    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.1 · Lead-Finder, Sales & Buchhaltung</small></div>
   </aside>
   <main class="main">
     <header class="topbar"><div class="breadcrumb">SALES <span>/</span> <span id="sectionBreadcrumb">Übersicht</span></div><div class="top-actions"><div class="date-chip" id="today"></div><button class="btn btn-primary" id="newLeadBtn">＋ Neuer Lead</button></div></header>
@@ -137,6 +138,41 @@
   <section class="panel sales-section"><span class="eyebrow">02 / KUNDENVORSCHAU</span><h2>Was dein Kunde sieht</h2><div id="quoteCustomer" class="quote-preview"><p class="muted">Wähle dein Paket und klicke auf Berechnen.</p></div><div class="divider"></div><h3>Interner Deckungsbeitrag</h3><div id="quoteInternal" class="quote-internal">Nur für dich sichtbar.</div><div class="legal-foot"><b>Grundsatz:</b> Keine versteckten Zusatzgebühren. Lieferumfang, Ausschlüsse, Steuerstatus und Gesamtpreis werden vor dem Versand sichtbar. Stunden und interne Kalkulation sind nicht Teil des Kundenangebots.</div></section>
  </div>
  <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">03 / ANGEBOTSVERLAUF</span><h2>Gespeicherte Angebote</h2></div><button type="button" class="text-button" id="quoteRefresh">Aktualisieren ↻</button></div><div id="quoteHistory" class="sales-list"></div><div id="quoteSaved" class="quote-preview"></div></section>
+</div>
+<div class="content hidden" id="viewFinder">
+ <div class="eyebrow">NEUE KUNDEN FINDEN · OFFENE QUELLEN</div>
+ <div class="page-title"><div><h1>Firmen finden, die passen.</h1><p>Durchsuche offen lizenzierte Quellen nach Unternehmen und Ausschreibungen in deiner Region. Treffer prüfst du einzeln und übernimmst sie bewusst ins CRM – ohne Personendaten, ohne Kontaktversand.</p></div><span class="pill">Fund ≠ Kontakterlaubnis</span></div>
+ <div class="lf-sources" id="lfSources"></div>
+ <div class="sales-cols lf-grid">
+  <section class="panel sales-section"><span class="eyebrow">01 / SUCHEN</span><h2 id="lfFormTitle">Quelle wählen</h2>
+   <form id="lfForm" class="sales-form">
+    <div class="lf-field" data-for="wikidata osm gleif"><label>Ort / Stadt *<input name="place" maxlength="80" placeholder="z. B. Stuttgart"></label></div>
+    <div class="lf-field" data-for="wikidata"><label>Branchen-Stichwort (optional)<input name="keyword" maxlength="60" placeholder="z. B. Maschinenbau"></label></div>
+    <div class="lf-field" data-for="gleif"><label>Stichwort im Firmennamen (optional)<input name="gleif_keyword" maxlength="60" placeholder="z. B. Technik"></label></div>
+    <div class="lf-field" data-for="wikidata"><label>Mindestens Mitarbeitende (optional)<input name="min_employees" type="number" min="0" step="1" placeholder="z. B. 20"></label></div>
+    <div class="lf-field" data-for="osm"><label>Kategorie<select name="category" id="lfCategory"></select></label></div>
+    <div class="lf-field" data-for="ted"><label>Leistungsgruppe (CPV)<select name="preset" id="lfPreset"></select></label></div>
+    <div class="lf-field" data-for="ted"><label>Veröffentlicht in den letzten … Tagen<input name="days" type="number" min="1" max="180" value="30"></label></div>
+    <div class="lf-field" data-for="wikidata osm"><label class="quote-addon"><input type="checkbox" name="legal_entities_only" checked><span>Nur Firmen mit Rechtsform (GmbH, AG, KG …)<small>Filtert Einzelunternehmen heraus, deren Name oft eine Person ist – datensparsam nach DSGVO.</small></span></label></div>
+    <div class="lf-field" data-for="wikidata osm gleif ted"><label>Max. Treffer<input name="limit" type="number" min="1" max="200" value="50"></label></div>
+    <button type="submit" class="btn btn-primary" id="lfSubmit" disabled>Suche starten ↗</button>
+   </form>
+   <div id="lfStatus" class="audit-status" role="status" aria-live="polite">Wähle oben eine Quelle.</div>
+  </section>
+  <section class="panel sales-section"><span class="eyebrow">SO BLEIBT ES SAUBER</span><h2>Vom Fund zum Gespräch</h2>
+   <div class="research-note-steps"><div><b>01</b> Treffer prüfen, passende übernehmen – Rechtsstatus startet als „unbekannt“.</div><div><b>02</b> Website per URL-Recherche prüfen und einen echten Anlass belegen.</div><div><b>03</b> Zulässigen Kanal wählen: Brief, persönliche Empfehlung, Messe – oder bei Ausschreibungen die Vergabeplattform.</div><div><b>04</b> Werbe-E-Mails nur mit Einwilligung; B2B-Anrufe nur bei belegbarem, mutmaßlichem Interesse.</div></div>
+   <p class="muted">Gespeichert werden nur Unternehmensdaten aus der Quelle samt Lizenzhinweis. Keine E-Mail-Adressen, Telefonnummern oder Personennamen.</p>
+  </section>
+ </div>
+ <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">02 / PRÜFEN & ÜBERNEHMEN</span><h2 id="lfResultTitle">Treffer</h2></div><div class="acc-btn-group"><button type="button" class="btn btn-ghost" id="lfImportSelected" disabled>Ausgewählte übernehmen</button></div></div>
+  <div id="lfAttribution" class="muted"></div>
+  <div class="table-wrap"><table class="lf-table"><thead><tr><th><input type="checkbox" id="lfSelectAll" aria-label="Alle neuen auswählen"></th><th>UNTERNEHMEN</th><th>ORT</th><th>BRANCHE / SIGNAL</th><th>QUELLE</th><th>AKTION</th></tr></thead><tbody id="lfRows"><tr><td colspan="6" class="empty">Noch keine Suche.</td></tr></tbody></table></div>
+ </section>
+ <div class="sales-cols">
+  <section class="panel sales-section"><span class="eyebrow">VERLAUF</span><h2>Letzte Suchläufe</h2><div id="lfRuns" class="sales-list"></div></section>
+  <section class="panel sales-section"><span class="eyebrow">NUR MANUELL</span><h2>Weitere Quellen – bewusst nicht automatisiert</h2><p class="muted">Diese Quellen sind wertvoll, dürfen aber nicht oder nur eingeschränkt automatisch ausgelesen werden. Links öffnen sich mit deinem Ort/Stichwort.</p><div id="lfManual" class="sales-list"></div></section>
+ </div>
+ <div class="legal-foot"><b>Rechtlicher Rahmen (keine Rechtsberatung):</b> Öffentliche Auffindbarkeit ist keine Einwilligung. § 7 UWG: Werbe-E-Mails brauchen vorherige ausdrückliche Einwilligung – auch B2B; Telefonwerbung gegenüber Unternehmen nur bei mutmaßlicher Einwilligung; Briefwerbung ist grundsätzlich zulässig, solange kein Widerspruch vorliegt. Sobald du Personendaten ergänzt, gelten Art. 6 Abs. 1 lit. f und die Informationspflicht nach Art. 14 DSGVO. Details: docs/LEADQUELLEN_V11.md.</div>
 </div>
 <div class="content hidden" id="viewAccounting">
  <div class="eyebrow">RECHNUNGEN · ZAHLUNGEN · AUSGABEN · STEUER</div>
@@ -321,4 +357,5 @@
 <script src="/app.js" defer></script>
 <script src="/workspace.js" defer></script>
 <script src="/accounting.js" defer></script>
+<script src="/leadfinder.js" defer></script>
 </body></html>

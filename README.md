@@ -1,4 +1,14 @@
-# SignalDesk v1.0 – Sales, Angebote & Buchhaltung (lokal)
+# SignalDesk v1.1 – Lead-Finder, Sales, Angebote & Buchhaltung (lokal)
+
+**Neu in v1.1 – Lead-Finder:** Neue Firmen und öffentliche Ausschreibungen aus offen lizenzierten Quellen finden: Wikidata (CC0), OpenStreetMap (ODbL), GLEIF (CC0) und EU-Ausschreibungen auf TED. Treffer prüfst du einzeln, Dubletten werden erkannt, und Übernahmen landen mit Quelle und Lizenz als Lead in Phase „Recherche“. Gespeichert werden nur Firmendaten, keine Personen, E-Mails oder Telefonnummern. Register, Branchenbücher und soziale Netzwerke sind mit Ampel und Begründung als manuelle Links eingebunden.
+
+→ Welche Quellen sind erlaubt und welche Kontaktwege zulässig? [`docs/LEADQUELLEN_V11.md`](docs/LEADQUELLEN_V11.md)
+
+**Hinweis:** Die Quellen-Adapter folgen den dokumentierten API-Formaten, konnten in der Entwicklungsumgebung aber nicht live abgefragt werden. Bitte beim ersten Start je Quelle eine Testsuche machen.
+
+---
+
+## v1.0 – Sales, Angebote & Buchhaltung
 
 **Neu in v1.0:** Der Weg vom angenommenen Angebot bis zum Zahlungseingang ist jetzt im Tool: Rechnungen mit Pflichtangaben nach § 14 UStG, lückenlose Nummern, GoBD-Festschreibung mit Storno statt Löschen, Zahlungen, Mahnwesen, Ausgaben inkl. Reverse Charge, **E-Rechnung (XRechnung) erzeugen und empfangen**, UStVA-/EÜR-Vorbereitung, CSV-Exporte für die Steuerberatung und Backups per Knopfdruck.
 
@@ -14,7 +24,7 @@
 
 **Wichtig:** Keine Steuerberatung. Erzeugte XRechnungen vor dem ersten Kundenversand mit dem [KoSIT-Validator](https://github.com/itplr-kosit/validator) prüfen; UStVA-Werte sind eine Vorbereitung und müssen vor der Übermittlung geprüft werden.
 
-**Tests:** `python -m unittest discover -s tests -q` (95 Tests).
+**Tests:** `python -m unittest discover -s tests -q` (105 Tests).
 
 ---
 

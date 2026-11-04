@@ -38,6 +38,7 @@ Legende: ✅ in v1.0 umgesetzt · 🟡 teilweise / vereinfacht · ⬜ offen
 | „Angenommen, aber nicht berechnet“-Liste | Verhindert vergessene Umsätze | ✅ |
 | Mahnwesen (Zahlungserinnerung → 1. Mahnung → letzte Mahnung, § 288 BGB Zinsen + 40 € Pauschale) | Cashflow | ✅ als Entwurf + Wiedervorlage, kein Versand |
 | Vertriebskennzahlen (Annahmequote, Ø Auftragswert, Umsatz je Kontaktweg) | Lernen, welche Kanäle wirklich zahlen | ✅ Basis |
+| Automatische Suche nach neuen Firmen und Ausschreibungen aus offenen Quellen | Pipeline füllen ohne Datenhändler | ✅ v1.1 Lead-Finder (siehe LEADQUELLEN_V11.md) |
 | Win/Loss-Gründe als Pflichtfeld bei „verloren“ | Bessere Angebote | ⬜ |
 | Nachkalkulation (Ist-Stunden vs. kalkulierte Stunden je Festpreisprojekt) | Für Festpreisgeschäft entscheidend: Lohnen sich die Pakete? | ⬜ **nächster großer Hebel** |
 | Projekt-/Delivery-Tracking nach Auftrag (Meilensteine, Abnahme) | Abnahme ist Voraussetzung für Schlussrechnung | ⬜ |

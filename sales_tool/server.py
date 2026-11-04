@@ -24,6 +24,7 @@ from .sales_workspace import (
     make_proposal, proposal_rows, proposal_detail, customer_markdown, create_mail_draft,
 )
 from .accounting_api import route_accounting, route_print
+from .lead_finder import route_lead_finder
 from .model import STAGES, INDUSTRIES, SIGNALS, OFFERS, PERMISSIONS, CONTACT_ROUTES, as_lead, connect, init_db, stats, discovery_summary
 
 ROOT = Path(__file__).resolve().parent
@@ -140,7 +141,7 @@ def validate(fields: dict, partial=False):
 
 def make_handler(db_path):
     class Handler(BaseHTTPRequestHandler):
-        server_version = "SignalDesk/1.0"
+        server_version = "SignalDesk/1.1"
 
         def _conn(self):
             return connect(db_path)
@@ -214,6 +215,8 @@ def make_handler(db_path):
                 return self._send(200,{'id':0,'status':'done','lead_id':None,'demo':True,'result':demo_report()})
             with self._conn() as conn:
                 if route_accounting(self, conn, method, route, query, db_path):
+                    return
+                if route_lead_finder(self, conn, method, route, query):
                     return
                 if route == '/api/workspace/catalog' and method == 'GET':
                     return self._send(200, {'packages':PACKAGES,'addons':ADDONS,'call_outcomes':CALL_OUTCOMES,
@@ -603,7 +606,7 @@ def make_handler(db_path):
                 return self._error("Nur Lesezugriff", 405)
             mapping = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
                        "/style.css": ("style.css", "text/css"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-                       "/accounting.js": ("accounting.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+                       "/accounting.js": ("accounting.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
             if route not in mapping:
                 return self._error("Datei nicht gefunden", 404)
             path, mime = mapping[route]

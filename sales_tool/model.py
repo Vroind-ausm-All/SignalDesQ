@@ -24,7 +24,7 @@ OFFERS = {
     "brand": {"title": "Brand & Design-System", "price_from": 3500, "price_to": 7000, "period": "2–4 Wochen", "outcome": "Konsequenter Markenauftritt mit wiederverwendbaren Komponenten"},
 }
 PERMISSIONS = ("unbekannt", "opt_in", "bestandskunde_pruefen", "telefon_einzelfall", "nicht_kontaktieren")
-CONTACT_ROUTES = ("unbekannt", "persoenliche_empfehlung", "inbound", "veranstaltung", "netzwerk", "brief", "sonstiges")
+CONTACT_ROUTES = ("unbekannt", "persoenliche_empfehlung", "inbound", "veranstaltung", "netzwerk", "brief", "ausschreibung", "sonstiges")
 
 
 def score_lead(lead: dict) -> tuple[int, list[str]]:
@@ -204,9 +204,11 @@ def init_db(conn: sqlite3.Connection):
     from .sales_workspace import init_workspace
     from .accounting import init_accounting
     from .einvoice import init_einvoice
+    from .lead_finder import init_lead_finder
     init_workspace(conn)
     init_accounting(conn)
     init_einvoice(conn)
+    init_lead_finder(conn)
     conn.commit()
 
 
