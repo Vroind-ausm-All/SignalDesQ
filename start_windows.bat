@@ -1,9 +1,3 @@
 @echo off
-setlocal
-cd /d "%~dp0"
-if exist ".venv\Scripts\python.exe" (
-  .venv\Scripts\python.exe -m sales_tool
-) else (
-  echo .venv fehlt. Bitte zuerst setup_windows.bat starten.
-  pause
-)
+rem Kompatibilitaet: frueherer Startweg. Neu: SignalDesk_starten.bat (richtet alles selbst ein).
+call "%~dp0SignalDesk_starten.bat" %*
