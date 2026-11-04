@@ -205,10 +205,14 @@ def init_db(conn: sqlite3.Connection):
     from .accounting import init_accounting
     from .einvoice import init_einvoice
     from .lead_finder import init_lead_finder
+    from .company_data import init_company_data
+    from .imprint_batch import init_imprint_batch
     init_workspace(conn)
     init_accounting(conn)
     init_einvoice(conn)
     init_lead_finder(conn)
+    init_company_data(conn)
+    init_imprint_batch(conn)
     conn.commit()
 
 

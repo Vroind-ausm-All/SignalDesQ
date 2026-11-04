@@ -43,7 +43,12 @@
 ## V1.2 – Ein-Klick-Start (implementiert)
 - [x] Doppelklick-Start mit automatischer Einrichtung, Desktop-Verknüpfung und Browserstart
 
-## V1.3 – nächste sinnvolle Schritte (siehe docs/GAP_ANALYSE_V10.md)
+## V1.3 – Phase 1 Datenbasis (implementiert)
+- [x] Impressum-Extraktor, Batch mit Prüfwarteschlange, Feldbelege, Sperrliste, Datenschutz-Nachweise, Backup vor Migration
+
+## Weiter gemäß docs/MASTERPLAN_V2.md (Phase 2–6)
+
+## V1.4 – nächste sinnvolle Schritte (siehe docs/GAP_ANALYSE_V10.md)
 - [ ] Signierte Windows-Installationsdatei (.exe) ohne vorinstalliertes Python
 - [ ] Live-Test der Quellen-Adapter und ggf. Feldanpassungen (TED-Feldnamen)
 - [ ] Gespeicherte Suchprofile („jeden Montag: neue Ausschreibungen Web/Design“) mit Wiedervorlage

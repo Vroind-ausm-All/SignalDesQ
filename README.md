@@ -20,6 +20,16 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.3 – Datenbasis: Impressumsprüfung, Feldbelege, Sperrliste
+
+Neuer Bereich **„Datenprüfung“**: Bis zu 100 Firmendomains (Liste oder CSV) prüfen. SignalDesk findet das Impressum, liest Firmenname, Rechtsform, Anschrift, Handelsregister, USt-IdNr. (mit Prüfziffer), allgemeine Kontaktwege und vertretungsberechtigte Personen. Jeder Wert erscheint mit **wörtlichem Beleg**; übernommen wird nur, was du bestätigst. Aufträge lassen sich pausieren und fortsetzen, auch nach einem Neustart.
+- **Sperrliste:** Widersprüche gelten für alle Importwege und bleiben, auch wenn der Lead gelöscht wird.
+- **Feldbelege** im Lead („Firmendaten & Belege“) mit Prüfstatus je Feld. **Datenschutz-Nachweise** und Art.-14-Textbaustein für übernommene Personen.
+- **Automatische Sicherung** der Datenbank vor jedem Schema-Update.
+- Phasenplan: [`docs/MASTERPLAN_V2.md`](docs/MASTERPLAN_V2.md) · Sprint-Bericht: [`docs/BERICHT_PHASE1.md`](docs/BERICHT_PHASE1.md)
+
+**Hinweis:** Mit fiktiven Testseiten geprüft; der Live-Test mit echten Websites steht noch aus.
+
 ## v1.1 – Lead-Finder
 
 **Neu in v1.1 – Lead-Finder:** Neue Firmen und öffentliche Ausschreibungen aus offen lizenzierten Quellen finden: Wikidata (CC0), OpenStreetMap (ODbL), GLEIF (CC0) und EU-Ausschreibungen auf TED. Treffer prüfst du einzeln, Dubletten werden erkannt, und Übernahmen landen mit Quelle und Lizenz als Lead in Phase „Recherche“. Gespeichert werden nur Firmendaten, keine Personen, E-Mails oder Telefonnummern. Register, Branchenbücher und soziale Netzwerke sind mit Ampel und Begründung als manuelle Links eingebunden.
@@ -46,7 +56,7 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 **Wichtig:** Keine Steuerberatung. Erzeugte XRechnungen vor dem ersten Kundenversand mit dem [KoSIT-Validator](https://github.com/itplr-kosit/validator) prüfen; UStVA-Werte sind eine Vorbereitung und müssen vor der Übermittlung geprüft werden.
 
-**Tests:** `python -m unittest discover -s tests -q` (115 Tests).
+**Tests:** `python -m unittest discover -s tests -q` (138 Tests).
 
 ---
 

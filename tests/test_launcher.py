@@ -101,6 +101,22 @@ class BootstrapTests(unittest.TestCase):
                 self.assertTrue(os.access(ROOT / name, os.X_OK), name)
 
 
+class MigrationBackupTests(unittest.TestCase):
+    def test_backup_only_for_older_existing_database(self):
+        import sqlite3
+        from sales_tool.server import SCHEMA_VERSION, backup_before_migration
+        with tempfile.TemporaryDirectory() as tmp:
+            db = Path(tmp) / 'akquise.sqlite3'
+            self.assertIsNone(backup_before_migration(db))  # neue Installation
+            with sqlite3.connect(db) as raw:
+                raw.execute('CREATE TABLE leads (id INTEGER)')
+            path = backup_before_migration(db)  # alte Version (user_version 0)
+            self.assertTrue(path and Path(path).exists())
+            with sqlite3.connect(db) as raw:
+                raw.execute(f'PRAGMA user_version = {SCHEMA_VERSION}')
+            self.assertIsNone(backup_before_migration(db))
+
+
 class PortTests(unittest.TestCase):
     def test_bind_server_skips_busy_port(self):
         blocker = socket.socket()
