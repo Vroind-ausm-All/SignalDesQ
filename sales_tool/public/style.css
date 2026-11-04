@@ -164,3 +164,15 @@
 .lf-table .acc-btn-group{margin:0}.lf-done{opacity:.7}
 @media(max-width:1100px){.lf-sources{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.lf-sources{grid-template-columns:1fr}}
+
+/* v1.3 Datenprüfung */
+.dc-bar{width:100%;margin-top:8px}.dc-progress{margin:6px 0 14px}.dc-progress small{display:block;margin-top:6px;color:var(--muted);font-size:12px}
+.dc-items{display:grid;gap:12px;margin-top:10px}
+.dc-item{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff}.dc-item-muted{background:rgba(140,165,170,.06)}
+.dc-item-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}.dc-item-head small{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+.dc-table td small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.dc-excerpt{font-style:italic;overflow-wrap:anywhere}
+.dc-q{font-size:10px;font-weight:800;padding:2px 7px;border-radius:12px;background:#edf3f0;color:#506b67}.dc-q.hoch{background:#e1f7eb;color:#1d7a58}.dc-q.niedrig{background:#fff4dc;color:#946510}
+.dc-entities,.dc-persons{margin:10px 0;font-size:13px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+.dc-entities label,.dc-inline{display:inline-flex;gap:6px;align-items:center;font-size:12px}
+.dc-company{margin:10px 0}.dc-facts-details summary{cursor:pointer;font-weight:700;font-size:13px;margin:8px 0}
+.dc-facts-details select{padding:6px;border-radius:7px;border:1px solid #d4e2da;flex-shrink:0}

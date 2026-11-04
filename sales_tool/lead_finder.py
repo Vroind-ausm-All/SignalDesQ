@@ -481,13 +481,15 @@ def run_search(conn, data):
         seen.add(key)
         dup = domains.get(normalize_domain(item.get('website'))) if item.get('website') else None
         dup = dup or names.get(normalize_name(name))
+        from .company_data import check_suppressed
+        blocked = bool(check_suppressed(conn, website=item.get('website', ''), name=name))
         cols = {'run_id': run_id, 'source': source, 'external_id': str(item.get('external_id', ''))[:120], 'name': name[:200],
                 'website': item.get('website', ''), 'street': item.get('street', ''), 'zip': item.get('zip', ''),
                 'city': item.get('city', ''), 'country': item.get('country', 'DE'), 'industry': item.get('industry', ''),
                 'employees': int(item.get('employees') or 0), 'legal_form': legal, 'register_id': item.get('register_id', ''),
                 'signal_type': item.get('signal_type', 'kein_signal'), 'signal_note': item.get('signal_note', ''),
                 'signal_date': item.get('signal_date', ''), 'source_url': item.get('source_url', ''), 'license': license_text,
-                'status': 'dublette' if dup else 'neu', 'duplicate_lead_id': dup}
+                'status': 'gesperrt' if blocked else ('dublette' if dup else 'neu'), 'duplicate_lead_id': dup}
         conn.execute(f"INSERT INTO discovery_candidates ({','.join(cols)}) VALUES ({','.join('?' for _ in cols)})", tuple(cols.values()))
         stored += 1
         if stored >= _limit(params.get('limit'), 50 if source == 'ted' else 100):
@@ -540,6 +542,10 @@ def review_candidate(conn, candidate_id, decision):
         conn.execute("UPDATE discovery_candidates SET status='verworfen' WHERE id=?", (candidate_id,))
         conn.commit()
         return {'status': 'verworfen'}
+    if cand['status'] == 'gesperrt':
+        raise ValueError('Firma steht auf der Sperrliste – keine Übernahme.')
+    from .company_data import assert_not_suppressed
+    assert_not_suppressed(conn, website=cand['website'], name=cand['name'])
     if cand['status'] == 'dublette' or cand['duplicate_lead_id']:
         raise ValueError('Firma ist bereits als Lead vorhanden – dort ergänzen statt doppelt anlegen.')
     names, domains = _known_leads(conn)

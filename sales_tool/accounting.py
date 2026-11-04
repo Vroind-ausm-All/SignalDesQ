@@ -740,7 +740,7 @@ def buyer_defaults(conn, lead_id):
     if lead_id in (None, ''):
         return {}
     lead_id = _int_id(lead_id, 'Lead-ID')
-    lead = conn.execute('SELECT company, contact_name, location FROM leads WHERE id=?', (lead_id,)).fetchone()
+    lead = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
     if not lead:
         raise LookupError('Lead nicht gefunden.')
     last = conn.execute('SELECT * FROM invoices WHERE lead_id=? AND kind<>\'storno\' ORDER BY id DESC LIMIT 1', (lead_id,)).fetchone()
@@ -748,8 +748,11 @@ def buyer_defaults(conn, lead_id):
             'buyer_vat_id', 'buyer_reference', 'buyer_email')
     if last:
         return {k: last[k] for k in keys}
-    return {'buyer_name': lead['company'], 'buyer_contact': lead['contact_name'] or '', 'buyer_city': lead['location'] or '',
-            'buyer_country': 'DE'}
+    keys_of = lambda k: lead[k] if k in lead.keys() and lead[k] else ''
+    return {'buyer_name': keys_of('legal_name') or lead['company'], 'buyer_contact': lead['contact_name'] or '',
+            'buyer_street': keys_of('street'), 'buyer_zip': keys_of('zip'),
+            'buyer_city': keys_of('city') or (lead['location'] or ''), 'buyer_country': 'DE', 'buyer_vat_id': keys_of('vat_id'),
+            'buyer_email': ''}
 
 
 # ---------------------------------------------------------------- Zahlungen & Mahnwesen

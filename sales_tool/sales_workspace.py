@@ -158,6 +158,8 @@ def create_call(conn, data):
     cur=conn.execute('INSERT INTO calls(lead_id,outcome,notes,legal_note,callback_date) VALUES (?,?,?,?,?)',(lead['id'],outcome,notes,legal,callback))
     if outcome=='widerspruch':
         conn.execute("UPDATE leads SET permission='nicht_kontaktieren',stage='gesperrt',next_step='',next_date='',updated_at=datetime('now') WHERE id=?",(lead['id'],))
+        from .company_data import suppress_lead
+        suppress_lead(conn,lead['id'],'Widerspruch im Gespräch')
     elif outcome=='rueckruf_vereinbart':
         conn.execute('INSERT INTO tasks (lead_id,title,due_date) VALUES (?,?,?)',(lead['id'],'Vereinbarten Rückruf prüfen: '+notes[:100],callback))
     conn.commit()

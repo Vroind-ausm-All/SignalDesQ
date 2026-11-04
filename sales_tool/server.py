@@ -25,6 +25,8 @@ from .sales_workspace import (
 )
 from .accounting_api import route_accounting, route_print
 from .lead_finder import route_lead_finder
+from .imprint_batch import route_imprint, route_company_data, recover_batches
+from .company_data import check_suppressed, suppress_lead
 from .model import STAGES, INDUSTRIES, SIGNALS, OFFERS, PERMISSIONS, CONTACT_ROUTES, as_lead, connect, init_db, stats, discovery_summary
 
 ROOT = Path(__file__).resolve().parent
@@ -86,6 +88,9 @@ def import_leads(conn, payload):
             if identity in known or url_identity and url_identity in known:
                 results["duplicates"] += 1
                 continue
+            if check_suppressed(conn, website=d.get("website", ""), name=d["company"]):
+                results["suppressed"] = results.get("suppressed", 0) + 1
+                continue
             cols = ",".join(d)
             vals = ",".join("?" for _ in d)
             conn.execute(f"INSERT INTO leads ({cols}) VALUES ({vals})", tuple(d.values()))
@@ -141,7 +146,7 @@ def validate(fields: dict, partial=False):
 
 def make_handler(db_path):
     class Handler(BaseHTTPRequestHandler):
-        server_version = "SignalDesk/1.2"
+        server_version = "SignalDesk/1.3"
 
         def _conn(self):
             return connect(db_path)
@@ -217,6 +222,8 @@ def make_handler(db_path):
                 if route_accounting(self, conn, method, route, query, db_path):
                     return
                 if route_lead_finder(self, conn, method, route, query):
+                    return
+                if route_imprint(self, conn, method, route, query, db_path) or route_company_data(self, conn, method, route, query):
                     return
                 if route == '/api/workspace/catalog' and method == 'GET':
                     return self._send(200, {'packages':PACKAGES,'addons':ADDONS,'call_outcomes':CALL_OUTCOMES,
@@ -375,9 +382,14 @@ def make_handler(db_path):
                             data["stage"] = "gesperrt"
                         elif data.get("stage") == "gesperrt":
                             data["permission"] = "nicht_kontaktieren"
+                        hits = check_suppressed(conn, website=data.get("website", ""), name=data["company"])
+                        if hits and data.get("stage") != "gesperrt":
+                            return self._error("Diese Firma steht auf der Sperrliste (" + ", ".join(h["kind"] + " „" + h["display"] + "“" for h in hits) + "). Widerspruch bleibt bestehen – kein neuer Lead.", 409)
                         cols = ", ".join(data)
                         placeholders = ", ".join("?" for _ in data)
                         cursor = conn.execute(f"INSERT INTO leads ({cols}) VALUES ({placeholders})", tuple(data.values()))
+                        if data.get("stage") == "gesperrt":
+                            suppress_lead(conn, cursor.lastrowid)
                         row = conn.execute("SELECT * FROM leads WHERE id = ?", (cursor.lastrowid,)).fetchone()
                         conn.commit()
                         return self._send(201, as_lead(row))
@@ -505,6 +517,8 @@ def make_handler(db_path):
                     if method == "DELETE":
                         if conn.execute("SELECT 1 FROM invoices WHERE lead_id=? LIMIT 1", (ident,)).fetchone():
                             return self._error("Lead hat Rechnungen. Wegen Aufbewahrungspflichten (GoBD/AO, 8–10 Jahre) nicht löschbar – stattdessen auf 'verloren' setzen bzw. sperren.", 409)
+                        if row["stage"] == "gesperrt" or row["permission"] == "nicht_kontaktieren":
+                            suppress_lead(conn, ident, "Gesperrter Lead gelöscht – Sperre bleibt")
                         conn.execute("DELETE FROM leads WHERE id = ?", (ident,))
                         conn.commit()
                         return self._send(200, {"deleted": True})
@@ -518,6 +532,8 @@ def make_handler(db_path):
                             data["permission"] = "nicht_kontaktieren"
                         set_clause = ", ".join(f"{key} = ?" for key in data)
                         conn.execute(f"UPDATE leads SET {set_clause}, updated_at=datetime('now') WHERE id = ?", (*data.values(), ident))
+                        if data.get("stage") == "gesperrt":
+                            suppress_lead(conn, ident)
                         conn.commit()
                         return self._send(200, as_lead(conn.execute("SELECT * FROM leads WHERE id = ?", (ident,)).fetchone()))
                 brief_match = re.fullmatch(r"/api/leads/(\d+)/brief", route)
@@ -606,7 +622,7 @@ def make_handler(db_path):
                 return self._error("Nur Lesezugriff", 405)
             mapping = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
                        "/style.css": ("style.css", "text/css"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-                       "/accounting.js": ("accounting.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+                       "/accounting.js": ("accounting.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
             if route not in mapping:
                 return self._error("Datei nicht gefunden", 404)
             path, mime = mapping[route]
@@ -652,6 +668,21 @@ def make_handler(db_path):
                 super().log_message(fmt, *args)
 
     return Handler
+
+
+SCHEMA_VERSION = 13  # v1.3 – bei Schemaänderungen erhöhen
+
+
+def backup_before_migration(db):
+    """Sichert eine bestehende Datenbank automatisch, bevor ein neueres Schema ergänzt wird."""
+    if not Path(db).exists() or Path(db).stat().st_size == 0:
+        return None
+    with sqlite3.connect(str(db)) as raw:
+        version = raw.execute("PRAGMA user_version").fetchone()[0]
+    if version >= SCHEMA_VERSION:
+        return None
+    from .accounting_api import create_backup
+    return create_backup(db)["path"]
 
 
 def running_instance(port, timeout=1.5):
@@ -704,12 +735,17 @@ def main():
         return
     db = Path(args.db).expanduser().resolve()
     db.parent.mkdir(parents=True, exist_ok=True)
+    backup = backup_before_migration(db)
+    if backup:
+        print(f"Datenbank-Update erkannt – Sicherung angelegt: {backup}")
     with connect(db) as conn:
         init_db(conn)
+        conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
         conn.execute("""UPDATE analysis_runs SET status='failed',error='Analyse durch Neustart unterbrochen.',
                         finished_at=datetime('now') WHERE status IN ('queued','running')""")
         conn.execute("""UPDATE quick_scans SET status='failed',error='Recherche durch Neustart unterbrochen.',
                         finished_at=datetime('now') WHERE status IN ('queued','running')""")
+        recover_batches(conn)
         conn.commit()
     server, port = bind_server(make_handler(db), args.port)
     url = f"http://127.0.0.1:{port}"
