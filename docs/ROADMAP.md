@@ -36,7 +36,18 @@
 - [x] XRechnung-Export und E-Rechnungs-Empfang mit Archivierung
 - [x] Angebotsnummern, Bindefrist, Angebot → Rechnung
 
-## V1.1 – nächste sinnvolle Schritte (siehe docs/GAP_ANALYSE_V10.md)
+## V1.1 – Lead-Finder (implementiert)
+- [x] Offene Quellen: Wikidata, OpenStreetMap, GLEIF, TED-Ausschreibungen
+- [x] Quellen-Ampel mit manuellen Links, Fair-Use-Limits, Dublettenprüfung, datensparsame Übernahme
+
+## V1.2 – Ein-Klick-Start (implementiert)
+- [x] Doppelklick-Start mit automatischer Einrichtung, Desktop-Verknüpfung und Browserstart
+
+## V1.3 – nächste sinnvolle Schritte (siehe docs/GAP_ANALYSE_V10.md)
+- [ ] Signierte Windows-Installationsdatei (.exe) ohne vorinstalliertes Python
+- [ ] Live-Test der Quellen-Adapter und ggf. Feldanpassungen (TED-Feldnamen)
+- [ ] Gespeicherte Suchprofile („jeden Montag: neue Ausschreibungen Web/Design“) mit Wiedervorlage
+- [ ] Lizenzierter Anbieter als optionaler Adapter (North Data o. Ä., eigener API-Key)
 - [ ] Bankumsatz-Import (CSV/CAMT.053) und Abgleich mit offenen Posten
 - [ ] Nachkalkulation: Ist-Zeit je Festpreisprojekt vs. Kalkulation
 - [ ] Belegupload mit Hash und unveränderbarer Ablage

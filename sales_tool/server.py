@@ -24,6 +24,7 @@ from .sales_workspace import (
     make_proposal, proposal_rows, proposal_detail, customer_markdown, create_mail_draft,
 )
 from .accounting_api import route_accounting, route_print
+from .lead_finder import route_lead_finder
 from .model import STAGES, INDUSTRIES, SIGNALS, OFFERS, PERMISSIONS, CONTACT_ROUTES, as_lead, connect, init_db, stats, discovery_summary
 
 ROOT = Path(__file__).resolve().parent
@@ -140,7 +141,7 @@ def validate(fields: dict, partial=False):
 
 def make_handler(db_path):
     class Handler(BaseHTTPRequestHandler):
-        server_version = "SignalDesk/1.0"
+        server_version = "SignalDesk/1.2"
 
         def _conn(self):
             return connect(db_path)
@@ -214,6 +215,8 @@ def make_handler(db_path):
                 return self._send(200,{'id':0,'status':'done','lead_id':None,'demo':True,'result':demo_report()})
             with self._conn() as conn:
                 if route_accounting(self, conn, method, route, query, db_path):
+                    return
+                if route_lead_finder(self, conn, method, route, query):
                     return
                 if route == '/api/workspace/catalog' and method == 'GET':
                     return self._send(200, {'packages':PACKAGES,'addons':ADDONS,'call_outcomes':CALL_OUTCOMES,
@@ -603,7 +606,7 @@ def make_handler(db_path):
                 return self._error("Nur Lesezugriff", 405)
             mapping = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
                        "/style.css": ("style.css", "text/css"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-                       "/accounting.js": ("accounting.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+                       "/accounting.js": ("accounting.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
             if route not in mapping:
                 return self._error("Datei nicht gefunden", 404)
             path, mime = mapping[route]
@@ -651,11 +654,54 @@ def make_handler(db_path):
     return Handler
 
 
+def running_instance(port, timeout=1.5):
+    """True, wenn auf dem Port bereits SignalDesk antwortet."""
+    from urllib.request import urlopen
+    try:
+        with urlopen(f"http://127.0.0.1:{port}/api/config", timeout=timeout) as resp:
+            return resp.headers.get("Server", "").startswith("SignalDesk/")
+    except (OSError, ValueError):
+        return False
+
+
+def bind_server(handler, port, attempts=20):
+    """Bindet 127.0.0.1:port oder den nächsten freien Port. Gibt (server, port) zurück."""
+    last_error = None
+    for candidate in range(port, port + attempts):
+        try:
+            return ThreadingHTTPServer(("127.0.0.1", candidate), handler), candidate
+        except OSError as exc:
+            last_error = exc
+    raise OSError(f"Kein freier Port zwischen {port} und {port + attempts - 1}: {last_error}")
+
+
+def open_browser_later(url, delay=0.8):
+    import threading
+    import webbrowser
+
+    def _open():
+        try:
+            webbrowser.open(url, new=2)
+        except Exception:  # Browser-Start ist Komfort, kein Muss
+            pass
+    timer = threading.Timer(delay, _open)
+    timer.daemon = True
+    timer.start()
+    return timer
+
+
 def main():
     parser = argparse.ArgumentParser(description="Lokales Akquise-Tool (nur localhost, nicht öffentlich hosten)")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--db", default=str(Path.home() / ".akquise-tool" / "akquise.sqlite3"))
+    parser.add_argument("--open-browser", action="store_true", help="Benutzeroberfläche nach dem Start im Standardbrowser öffnen")
     args = parser.parse_args()
+    if running_instance(args.port):
+        url = f"http://127.0.0.1:{args.port}"
+        print(f"SignalDesk läuft bereits: {url}")
+        if args.open_browser:
+            open_browser_later(url, delay=0).join()
+        return
     db = Path(args.db).expanduser().resolve()
     db.parent.mkdir(parents=True, exist_ok=True)
     with connect(db) as conn:
@@ -665,8 +711,14 @@ def main():
         conn.execute("""UPDATE quick_scans SET status='failed',error='Recherche durch Neustart unterbrochen.',
                         finished_at=datetime('now') WHERE status IN ('queued','running')""")
         conn.commit()
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(db))
-    print(f"Akquise-Tool: http://127.0.0.1:{args.port}  |  SQLite: {db}")
+    server, port = bind_server(make_handler(db), args.port)
+    url = f"http://127.0.0.1:{port}"
+    if port != args.port:
+        print(f"Port {args.port} ist belegt – weiche auf {port} aus.")
+    print(f"SignalDesk läuft: {url}  |  Daten: {db}")
+    print("Dieses Fenster offen lassen, solange du SignalDesk nutzt. Beenden: Fenster schließen oder Strg+C.")
+    if args.open_browser:
+        open_browser_later(url)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
