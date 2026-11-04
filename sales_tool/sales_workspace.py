@@ -60,6 +60,7 @@ CALL_OUTCOMES = ('erreicht','rueckruf_vereinbart','mailbox','nicht_erreicht','ke
 MEETING_STATUSES = ('geplant','bestaetigt','erledigt','abgesagt')
 QUOTE_STATUSES = ('entwurf','gesendet_manuell','angenommen','abgelehnt')
 DRAFT_TYPES = ('nach_gespraech','terminbestaetigung','angebot_begleiten','rueckfrage')
+OFFER_VALID_DAYS = 30
 
 
 def init_workspace(conn):
@@ -96,6 +97,11 @@ def init_workspace(conn):
       CREATE INDEX IF NOT EXISTS idx_proposals_lead ON proposals(lead_id);
       CREATE INDEX IF NOT EXISTS idx_mail_lead ON mail_drafts(lead_id);
     ''')
+    # v1.0: Angebotsnummer und Bindefrist (schonende Migration).
+    cols={r[1] for r in conn.execute('PRAGMA table_info(proposals)')}
+    for name in ('number','valid_until'):
+        if name not in cols:
+            conn.execute(f"ALTER TABLE proposals ADD COLUMN {name} TEXT DEFAULT ''")
     conn.commit()
 
 
@@ -254,31 +260,43 @@ def make_proposal(conn,data):
     lead=_lead(conn,data['lead_id'])
     payload={k:v for k,v in data.items() if k!='lead_id'}
     proposal=quote_preview(payload)
-    proposal['customer']['customer_company']=lead['company']
-    cur=conn.execute('INSERT INTO proposals(lead_id,internal_json,customer_json) VALUES (?,?,?)',(
-        lead['id'],json.dumps(proposal['internal'],ensure_ascii=False),json.dumps(proposal['customer'],ensure_ascii=False)))
+    from .accounting import _next_number
+    issued=dt.date.today()
+    number=_next_number(conn,'AN',issued.year)
+    valid_until=(issued+dt.timedelta(days=OFFER_VALID_DAYS)).isoformat()
+    proposal['customer'].update({'customer_company':lead['company'],'offer_number':number,
+                                 'offer_date':issued.isoformat(),'valid_until':valid_until})
+    cur=conn.execute('INSERT INTO proposals(lead_id,internal_json,customer_json,number,valid_until) VALUES (?,?,?,?,?)',(
+        lead['id'],json.dumps(proposal['internal'],ensure_ascii=False),json.dumps(proposal['customer'],ensure_ascii=False),number,valid_until))
     conn.commit()
-    return {'id':cur.lastrowid,'status':'entwurf',**proposal}
+    return {'id':cur.lastrowid,'status':'entwurf','number':number,**proposal}
 
 
 def proposal_rows(conn):
     return [{'id':r['id'],'lead_id':r['lead_id'],'company':r['company'],'status':r['status'],
+             'number':r['number'] or f"#{r['id']}",'valid_until':r['valid_until'] or '',
+             'expired':bool(r['valid_until'] and r['status'] in ('entwurf','gesendet_manuell') and r['valid_until']<dt.date.today().isoformat()),
              'project_label':json.loads(r['customer_json'])['project_label'],
-             'net_eur':json.loads(r['customer_json'])['net_eur'],'created_at':r['created_at']}
+             'net_eur':json.loads(r['customer_json'])['net_eur'],'created_at':r['created_at'],
+             'invoiced':bool(conn.execute("SELECT 1 FROM invoices WHERE proposal_id=? AND kind<>'storno' AND status<>'storniert' LIMIT 1",(r['id'],)).fetchone())}
             for r in conn.execute('SELECT p.*,l.company FROM proposals p JOIN leads l ON l.id=p.lead_id ORDER BY p.id DESC LIMIT 100')]
 
 
 def proposal_detail(conn,ident,customer_only=False):
     row=conn.execute('SELECT * FROM proposals WHERE id=?',(ident,)).fetchone()
     if not row: raise ValueError('Angebot nicht gefunden.')
-    result={'id':row['id'],'status':row['status'],'customer':json.loads(row['customer_json'])}
+    result={'id':row['id'],'status':row['status'],'number':row['number'] or f"#{row['id']}",'lead_id':row['lead_id'],
+            'customer':json.loads(row['customer_json'])}
     if not customer_only: result['internal']=json.loads(row['internal_json'])
     return result
 
 
 def customer_markdown(customer):
     def safe(s): return re.sub(r'[\r\n]+',' ',str(s)).strip()
-    lines=[f"# Angebot: {safe(customer['project_label'])}",f"**An:** {safe(customer.get('customer_company',''))}",'',
+    lines=[f"# Angebot: {safe(customer['project_label'])}",f"**An:** {safe(customer.get('customer_company',''))}"]
+    if customer.get('offer_number'):
+        lines.append(f"**Angebotsnummer:** {safe(customer['offer_number'])} · **Datum:** {safe(customer.get('offer_date',''))} · **Gültig bis:** {safe(customer.get('valid_until',''))}")
+    lines+=['',
            '## Ziel und Ergebnis',safe(customer['goal']),'','## Enthaltene Leistungen']
     lines += ['- '+safe(x) for x in customer['included']]
     lines += ['','## Nicht enthalten']+['- '+safe(x) for x in customer['excluded']]

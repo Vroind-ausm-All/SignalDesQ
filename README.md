@@ -1,3 +1,23 @@
+# SignalDesk v1.0 – Sales, Angebote & Buchhaltung (lokal)
+
+**Neu in v1.0:** Der Weg vom angenommenen Angebot bis zum Zahlungseingang ist jetzt im Tool: Rechnungen mit Pflichtangaben nach § 14 UStG, lückenlose Nummern, GoBD-Festschreibung mit Storno statt Löschen, Zahlungen, Mahnwesen, Ausgaben inkl. Reverse Charge, **E-Rechnung (XRechnung) erzeugen und empfangen**, UStVA-/EÜR-Vorbereitung, CSV-Exporte für die Steuerberatung und Backups per Knopfdruck.
+
+- Menü **„Rechnungen & Buchhaltung“** → zuerst **Stammdaten & Sicherung** ausfüllen.
+- Angebot auf **„angenommen“** setzen → Lead wird „Gewonnen“ → Abschlags-, Schluss- oder Monatsrechnung mit einem Klick.
+- Festgeschriebene Rechnungen sind unveränderbar, Korrektur per Stornorechnung. Leads mit Rechnungen sind nicht löschbar (Aufbewahrungspflicht).
+- Nichts wird automatisch versendet oder an ELSTER/DATEV übermittelt.
+
+**Was fehlt noch / was ist Pflicht?** → [`docs/GAP_ANALYSE_V10.md`](docs/GAP_ANALYSE_V10.md)
+**Bedienung, Regeln & API** → [`docs/BUCHHALTUNG_V10.md`](docs/BUCHHALTUNG_V10.md)
+
+**Update von v0.9:** Vorher `%USERPROFILE%\.akquise-tool\akquise.sqlite3` sichern. Neue Tabellen und Spalten werden beim Start schonend ergänzt; bestehende Daten bleiben erhalten.
+
+**Wichtig:** Keine Steuerberatung. Erzeugte XRechnungen vor dem ersten Kundenversand mit dem [KoSIT-Validator](https://github.com/itplr-kosit/validator) prüfen; UStVA-Werte sind eine Vorbereitung und müssen vor der Übermittlung geprüft werden.
+
+**Tests:** `python -m unittest discover -s tests -q` (95 Tests).
+
+---
+
 # SignalDesk v0.9 – Sales Workspace & transparente Festpreisangebote
 
 **Neu:** Die bestehende v0.8 Website- und Entscheider-Recherche ist jetzt mit einer vollständigen **lokalen Vertriebsarbeitsoberfläche** verbunden: Tagescockpit, manuelles Telefonprotokoll, Terminverwaltung mit .ics-Export, gespeicherte Mailentwürfe, automatische interne Wiedervorlagen und Produktpakete mit Kundendokumenten.

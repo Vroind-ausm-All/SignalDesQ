@@ -30,10 +30,26 @@
 - [ ] ggf. CRM-Integration über offizielle APIs mit Consent-/Opt-out-Synchronisation
 - [ ] Separates Multi-User-Produkt mit Login, Rollen, Verschlüsselung, Backups, TLS, Limits, Datenschutz-/Sicherheitsanalyse
 
+## V1.0 – Rechnungen & Buchhaltung (implementiert)
+- [x] Rechnungen nach § 14 UStG, lückenlose Nummern, GoBD-Festschreibung, Storno, Änderungsprotokoll
+- [x] Zahlungen, Mahnwesen, Ausgaben inkl. § 13b, UStVA-/EÜR-Vorbereitung, CSV-Exporte, Backup
+- [x] XRechnung-Export und E-Rechnungs-Empfang mit Archivierung
+- [x] Angebotsnummern, Bindefrist, Angebot → Rechnung
+
+## V1.1 – nächste sinnvolle Schritte (siehe docs/GAP_ANALYSE_V10.md)
+- [ ] Bankumsatz-Import (CSV/CAMT.053) und Abgleich mit offenen Posten
+- [ ] Nachkalkulation: Ist-Zeit je Festpreisprojekt vs. Kalkulation
+- [ ] Belegupload mit Hash und unveränderbarer Ablage
+- [ ] Vorlage Verfahrensdokumentation (GoBD)
+- [ ] GiroCode auf Rechnungen, ZUGFeRD-PDF
+- [ ] DATEV-EXTF-Export nach Testimport mit der Steuerberatung
+- [ ] Win/Loss-Grund beim Status „verloren“
+
 ## Absichtlich kein Feature
 - Massenhafte Kalt-E-Mails, LinkedIn-Bots, gekaufte unqualifizierte Leadlisten oder WhatsApp-Spam
 - Blindes Kopieren eines Wettbewerber-Templates oder dessen Markenauftritt
 - KI-Bewertung, die ihr eigenes Ergebnis ohne Quellenbeleg als Fakt ausgibt
+- Direkte ELSTER-Übermittlung und automatischer Rechnungs-/Mahnungsversand
 
 ## Definition of Done für ein mögliches kommerzielles Release
 - mindestens 30 anonymisiert ausgewertete echte Leads, ein klarer ICP, messbarer Delivery-Nutzen

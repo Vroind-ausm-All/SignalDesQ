@@ -23,6 +23,7 @@ from .sales_workspace import (
     daily_view, call_permission, create_call, create_meeting, quote_preview,
     make_proposal, proposal_rows, proposal_detail, customer_markdown, create_mail_draft,
 )
+from .accounting_api import route_accounting, route_print
 from .model import STAGES, INDUSTRIES, SIGNALS, OFFERS, PERMISSIONS, CONTACT_ROUTES, as_lead, connect, init_db, stats, discovery_summary
 
 ROOT = Path(__file__).resolve().parent
@@ -139,7 +140,7 @@ def validate(fields: dict, partial=False):
 
 def make_handler(db_path):
     class Handler(BaseHTTPRequestHandler):
-        server_version = "SignalDesk/0.9"
+        server_version = "SignalDesk/1.0"
 
         def _conn(self):
             return connect(db_path)
@@ -158,11 +159,26 @@ def make_handler(db_path):
         def _error(self, msg, status=400):
             self._send(status, {"error": msg})
 
-        def _body(self):
+        def _send_raw(self, status, data, mime, filename=None, extra_headers=None):
+            self.send_response(status)
+            self.send_header("Content-Type", mime + "; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'")
+            if filename:
+                safe = re.sub(r'[^A-Za-z0-9._-]+', '_', filename)[:150]
+                self.send_header("Content-Disposition", f'attachment; filename="{safe}"')
+            for key, value in (extra_headers or {}).items():
+                self.send_header(key, value)
+            self.end_headers()
+            self.wfile.write(data)
+
+        def _body(self, max_len=65536):
             if self.headers.get("Content-Type", "").split(";")[0].strip() != "application/json":
                 raise ValueError("Nur application/json erlaubt.")
             length = int(self.headers.get("Content-Length", "0"))
-            if length <= 0 or length > 65536:
+            if length <= 0 or length > max_len:
                 raise ValueError("Ungültige Anfragegröße.")
             try:
                 return json.loads(self.rfile.read(length))
@@ -184,6 +200,8 @@ def make_handler(db_path):
             route = urlparse(self.path).path
             query = parse_qs(urlparse(self.path).query)
             if not route.startswith("/api/"):
+                if method == "GET" and route_print(self, route, db_path, connect):
+                    return
                 return self._static(route, method)
             if route == "/api/config" and method == "GET":
                 return self._send(200, {"stages": STAGES, "industries": INDUSTRIES, "signals": SIGNALS,
@@ -195,6 +213,8 @@ def make_handler(db_path):
             if route == '/api/research/demo' and method == 'GET':
                 return self._send(200,{'id':0,'status':'done','lead_id':None,'demo':True,'result':demo_report()})
             with self._conn() as conn:
+                if route_accounting(self, conn, method, route, query, db_path):
+                    return
                 if route == '/api/workspace/catalog' and method == 'GET':
                     return self._send(200, {'packages':PACKAGES,'addons':ADDONS,'call_outcomes':CALL_OUTCOMES,
                                              'meeting_statuses':MEETING_STATUSES,'quote_statuses':QUOTE_STATUSES,
@@ -228,6 +248,12 @@ def make_handler(db_path):
                                 return self._error('Steuerstatus noch offen: Angebot nicht als gesendet/angenommen markieren.')
                         prev=conn.execute('SELECT status,lead_id FROM proposals WHERE id=?',(ident,)).fetchone()
                         conn.execute("UPDATE proposals SET status=?,updated_at=datetime('now') WHERE id=?",(body['status'],ident))
+                        if body['status']=='angenommen' and prev['status']!='angenommen':
+                            lead_row=conn.execute('SELECT stage FROM leads WHERE id=?',(prev['lead_id'],)).fetchone()
+                            if lead_row and lead_row['stage'] not in ('gesperrt','gewonnen'):
+                                conn.execute("UPDATE leads SET stage='gewonnen',updated_at=datetime('now') WHERE id=?",(prev['lead_id'],))
+                            conn.execute('INSERT INTO activities(lead_id,activity_type,detail) VALUES (?,?,?)',
+                                         (prev['lead_id'],'abschluss','Angebot #'+str(ident)+' als angenommen dokumentiert. Nächster Schritt: Rechnung/Abschlag erstellen.'))
                         if body['status']=='gesendet_manuell' and prev['status']!='gesendet_manuell':
                             from datetime import timedelta
                             followup=(date.today()+timedelta(days=7)).isoformat()
@@ -474,6 +500,8 @@ def make_handler(db_path):
                     if method == "GET":
                         return self._send(200, as_lead(row))
                     if method == "DELETE":
+                        if conn.execute("SELECT 1 FROM invoices WHERE lead_id=? LIMIT 1", (ident,)).fetchone():
+                            return self._error("Lead hat Rechnungen. Wegen Aufbewahrungspflichten (GoBD/AO, 8–10 Jahre) nicht löschbar – stattdessen auf 'verloren' setzen bzw. sperren.", 409)
                         conn.execute("DELETE FROM leads WHERE id = ?", (ident,))
                         conn.commit()
                         return self._send(200, {"deleted": True})
@@ -574,7 +602,8 @@ def make_handler(db_path):
             if method != "GET":
                 return self._error("Nur Lesezugriff", 405)
             mapping = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
-                       "/style.css": ("style.css", "text/css"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml")}
+                       "/style.css": ("style.css", "text/css"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
+                       "/accounting.js": ("accounting.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
             if route not in mapping:
                 return self._error("Datei nicht gefunden", 404)
             path, mime = mapping[route]
@@ -601,10 +630,14 @@ def make_handler(db_path):
         def _run(self, method):
             try:
                 self._routes(method)
+            except KeyError as exc:
+                self._error("Pflichtfeld fehlt: " + str(exc), 400)
+            except LookupError as exc:
+                self._error(str(exc).strip("'\"") or "Nicht gefunden", 404)
             except (ValueError, TypeError, OverflowError) as exc:
                 self._error(str(exc), 400)
-            except sqlite3.IntegrityError:
-                self._error("Ungültiger Datensatz", 400)
+            except sqlite3.IntegrityError as exc:
+                self._error(str(exc) or "Ungültiger Datensatz", 400)
             except BrokenPipeError:
                 pass
             except Exception as exc:

@@ -1,7 +1,7 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-echo SignalDesk v0.9 - Windows Setup
+echo SignalDesk v1.0 - Windows Setup
 where py >nul 2>nul
 if errorlevel 1 (
   echo Python Launcher 'py' fehlt. Installiere Python 3.10 oder neuer.

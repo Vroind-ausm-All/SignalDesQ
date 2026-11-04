@@ -202,7 +202,11 @@ def init_db(conn: sqlite3.Connection):
         if name not in contact_columns:
             conn.execute(f"ALTER TABLE decision_contacts ADD COLUMN {name} {sql_type}")
     from .sales_workspace import init_workspace
+    from .accounting import init_accounting
+    from .einvoice import init_einvoice
     init_workspace(conn)
+    init_accounting(conn)
+    init_einvoice(conn)
     conn.commit()
 
 
