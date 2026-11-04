@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0c1d25"><title>SignalDesk · Akquise Cockpit</title><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/style.css" defer></head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">↗</div><div><b>SignalDesk</b><small>Akquise Cockpit / 2026</small></div></div>
+    <div class="side-kicker">WORKSPACE</div>
+    <nav aria-label="Hauptnavigation">
+      <button class="nav active" data-view="dashboard"><span>◈</span> Übersicht</button>
+      <button class="nav" data-view="research"><span>◎</span> URL-Recherche</button>
+      <button class="nav" data-view="workspace"><span>◉</span> Mein Sales-Tag</button>
+      <button class="nav" data-view="quotes"><span>€</span> Angebote & Preise</button>
+      <button class="nav" data-view="accounting"><span>§</span> Rechnungen & Buchhaltung <small class="nav-new">NEU</small></button>
+      <button class="nav" data-view="leads"><span>▦</span> Leads & Signale</button>
+      <button class="nav" data-view="pipeline"><span>⤳</span> Deal-Pipeline</button>
+      <button class="nav" data-view="studio"><span>✧</span> KI-Studio</button>
+      <button class="nav" data-view="tasks"><span>☑</span> Aufgaben <small id="dueBadge"></small></button>
+      <button class="nav" data-view="playbook"><span>▤</span> Sales-Playbook</button>
+    </nav>
+    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.0 · Sales & Buchhaltung</small></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><div class="breadcrumb">SALES <span>/</span> <span id="sectionBreadcrumb">Übersicht</span></div><div class="top-actions"><div class="date-chip" id="today"></div><button class="btn btn-primary" id="newLeadBtn">＋ Neuer Lead</button></div></header>
+    <div class="content" id="viewDashboard">
+      <div class="eyebrow">DEIN VERTRIEBS-SYSTEM</div><div class="hero"><div><h1>Gute Kunden.<br><em>Im richtigen Moment.</em></h1><p>Qualifizierte Signale erkennen, passende Angebote formulieren und jeden nächsten Schritt im Blick behalten.</p><button type="button" class="btn btn-primary hero-cta" data-go="research">Website jetzt recherchieren ↗</button></div><div class="hero-arrow">↗</div></div>
+      <div class="kpi-grid">
+        <div class="kpi"><span>ALLE LEADS</span><strong id="kpiTotal">–</strong><small>In deiner Pipeline</small></div>
+        <div class="kpi"><span>A-PRIORITÄT</span><strong id="kpiPriority">–</strong><small>Score ≥ 65, ungeblockt</small></div>
+        <div class="kpi"><span>ÜBERFÄLLIG / HEUTE</span><strong id="kpiDue">–</strong><small>Offene Wiedervorlagen</small></div>
+        <div class="kpi"><span>OFFENES POTENZIAL</span><strong id="kpiValue">–</strong><small>Ungewichtete Budgetannahmen</small></div>
+      </div>
+      <div class="section-heading"><div><span class="eyebrow">DEAL FLOW</span><h2>Deine Pipeline</h2></div><button class="text-button" data-go="leads">Alle Leads anzeigen ↗</button></div>
+      <div class="stages" id="stageSummary"></div>
+      <div class="two-cols"><section class="panel"><div class="panel-header"><h3>Priorisierte Chancen</h3><span class="muted">Top 5 nach Fit & Anlass</span></div><div id="topLeads" class="compact-list"></div></section><section class="panel"><div class="panel-header"><h3>Nächste Schritte</h3><button class="text-button" data-go="tasks">Aufgaben ↗</button></div><div id="homeTasks" class="compact-list"></div></section></div>
+      <div class="legal-foot"><b>Wichtig:</b> Der Score ist eine nachvollziehbare Heuristik, keine Kaufwahrscheinlichkeit. Öffentlich sichtbare Signale sind keine Einwilligung zur Werbeansprache.</div>
+    </div>
+
+    <div class="content hidden" id="viewResearch">
+      <div class="eyebrow">RECHERCHE · ENTSCHEIDER · BEDARF</div>
+      <div class="page-title"><div><h1>Eine URL. Ein Überblick.</h1><p>Du gibst die Website ein. SignalDesk sammelt belegte Beobachtungen, öffentliche Geschäftskontakte und Fragen fürs Erstgespräch.</p></div><span class="pill">Kein Nachrichtenversand</span></div>
+      <div class="research-grid">
+        <section class="panel research-form-panel">
+          <div class="studio-section-head"><div><span class="eyebrow">01 / RECHERCHIEREN</span><h2>Unternehmen untersuchen</h2></div><span class="audit-chip">bis zu 5 Seiten</span></div>
+          <form id="researchForm">
+            <label class="research-url-label">Unternehmenswebsite
+              <input type="url" id="researchUrl" placeholder="https://beispiel-unternehmen.de" autocomplete="url" required maxlength="1800" inputmode="url">
+            </label>
+            <div class="research-form-row">
+              <label>Analysemodus
+                <select id="researchProvider"><option value="rules">Sofort starten · Regeln ohne KI</option><option value="ollama">Lokale KI · Ollama</option></select>
+              </label>
+              <label>Modell <input id="researchModel" value="qwen3:8b" disabled maxlength="80" spellcheck="false"></label>
+              <button class="btn btn-primary research-submit" type="submit" id="researchStart">Recherche starten ↗</button>
+            </div>
+          </form>
+          <button type="button" class="btn btn-ghost" id="researchDemo">Fiktiven Beispielbericht ansehen ↗</button>
+          <div id="researchStatus" class="audit-status" role="status" aria-live="polite">Trage oben eine Website ein. Keine CRM-Anlage vor deiner Bestätigung.</div>
+        </section>
+        <aside class="panel research-note"><span class="eyebrow">SO FUNKTIONIERT'S</span><div class="research-note-steps"><div><b>01</b> Website und ausgewählte Unterseiten lesen</div><div><b>02</b> Beobachtungen und Kontaktquellen belegen</div><div><b>03</b> Entscheider-Rollen und Gesprächsfragen vorschlagen</div><div><b>04</b> Nach Prüfung ins CRM übernehmen</div></div><p>Personen sind Recherchekandidaten, keine bestätigten Entscheider. Gefundene Nummern sind keine Einwilligung für Werbeanrufe.</p></aside>
+      </div>
+      <section class="panel research-report" id="researchReport" aria-live="polite"><div class="research-welcome"><div class="research-welcome-icon">◎</div><h2>Dein Recherchebericht erscheint hier</h2><p>Die Ergebnisse zeigen nur öffentlich belegte Daten. Aussagen über Kaufinteresse, Budget oder unbeobachtete Schwachstellen werden nicht erfunden.</p></div></section>
+      <section class="panel research-history"><div class="studio-section-head"><div><span class="eyebrow">VERLAUF</span><h2>Gespeicherte Recherchen</h2></div><button type="button" class="text-button" id="researchRefresh">Aktualisieren ↻</button></div><div id="researchHistory" class="research-history-list"><span class="muted">Noch keine Recherchen.</span></div></section>
+    </div>
+    <div class="content hidden" id="viewLeads"><div class="eyebrow">RESEARCH → DISCOVERY → ABSCHLUSS</div><div class="page-title"><div><h1>Leads & Signale</h1><p>Belege statt Bauchgefühl. Jeder Lead hat Quelle, Angebot und nächsten Schritt.</p></div><button class="btn btn-primary" id="newLeadBtn2">＋ Lead hinzufügen</button></div><div class="toolbar"><input id="leadSearch" class="search" placeholder="⌕   Firma, Signal oder Notiz suchen…"><select id="stageFilter" aria-label="Status filtern"><option value="">Alle Phasen</option></select><button id="resetFilter" class="btn btn-ghost">Zurücksetzen</button><label class="import-label btn btn-ghost">CSV importieren<input type="file" id="csvImport" accept=".csv,text/csv" hidden></label></div><div class="panel table-wrap"><table><thead><tr><th>UNTERNEHMEN</th><th>KAUFSIGNAL</th><th>ANGEBOT</th><th>STATUS</th><th>PRIORITÄT</th><th> </th></tr></thead><tbody id="leadRows"></tbody></table></div><div class="inline-info">Priorisierung berücksichtigt Branche, Mitarbeiterzahl, Signal, Aktualität, Quellenbeleg, Budgethypothese und Angebotsfit. Blockierte Kontakte haben automatisch Score 0.</div></div>
+    <div class="content hidden" id="viewPipeline">
+      <div class="eyebrow">VON DER ERSTEN IDEE ZUM ERSTEN AUFTRAG</div>
+      <div class="page-title"><div><h1>Deal-Pipeline</h1><p>Jede Firma hat einen Status. Verschiebe sie bewusst und halte den nächsten Schritt fest.</p></div><button class="btn btn-primary" id="pipelineNewLead">＋ Lead anlegen</button></div>
+      <div class="pipeline-summary" id="pipelineSummary"></div>
+      <div class="pipeline-board" id="pipelineBoard"></div>
+      <div class="legal-foot"><b>Hinweis:</b> Eine Pipeline-Phase dokumentiert deine interne Arbeit – sie bedeutet nicht, dass die Firma einer Kontaktaufnahme zugestimmt hat. Kontaktberechtigungen werden getrennt verwaltet.</div>
+    </div>
+    <div class="content hidden" id="viewStudio">
+      <div class="eyebrow">LOKALE KI · NACHVOLLZIEHBARE ERGEBNISSE</div>
+      <div class="page-title studio-title"><div><h1>KI-Studio <span class="soft-star">✳</span></h1><p>Teste deine Modellverbindung, prüfe einen Beispieltext und analysiere anschließend echte Firmenwebsites.</p></div><button type="button" class="btn btn-ghost" id="refreshAiHealth">↻ Verbindung prüfen</button></div>
+      <div class="studio-grid">
+        <section class="panel studio-main">
+          <div class="studio-section-head"><div><span class="eyebrow">01 / SCHNITTSTELLE TESTEN</span><h2>Analyse-Labor</h2></div><span class="pill" id="demoTag">Keine CRM-Speicherung</span></div>
+          <div class="studio-health" id="aiHealth" role="status" aria-live="polite"><div class="health-dot waiting"></div><div><b>Ollama wird geprüft…</b><small>Dein lokaler KI-Dienst</small></div></div>
+          <p class="studio-hint">Du kannst hier ohne Website-Crawler einen selbst eingefügten Text analysieren. Der Regelmodus funktioniert auch ohne Ollama.</p>
+          <form id="aiDemoForm" class="ai-demo-form">
+            <label>Website-Text für den Probelauf<textarea id="demoText" name="text" rows="7" required minlength="80" maxlength="12000" placeholder="Füge einen öffentlichen Website-Text ein oder lade das fiktive Beispiel…"></textarea></label>
+            <div class="ai-actions-row"><button type="button" class="btn btn-ghost" id="insertDemo">Fiktives Beispiel laden</button><span id="demoCharacters" class="muted">0 Zeichen · 80 erforderlich</span></div>
+            <div class="studio-controls"><label>Analysemodus<select id="demoProvider"><option value="rules">Regelmodus (ohne KI)</option><option value="ollama">Ollama (lokale KI)</option></select></label><label>KI-Modell<input id="demoModel" value="qwen3:8b" maxlength="80" spellcheck="false"></label><button id="runDemo" class="btn btn-primary" type="submit">Analyse starten ↗</button></div>
+          </form>
+          <div id="demoResult" class="studio-result" aria-live="polite"><div class="studio-empty"><div class="studio-empty-icon">✧</div><b>Deine Analyse erscheint hier.</b><p>Starte mit dem fiktiven Beispiel. Danach kannst du einen eigenen Website-Text einfügen.</p></div></div>
+        </section>
+        <aside class="studio-side">
+          <section class="panel studio-side-card"><span class="eyebrow">DEIN LOKALER KI-STACK</span><h3>Bereit für echte Projekte</h3><div class="studio-steps"><div><span>01</span><div><b>Ollama verbinden</b><small>Modell lokal starten, keine Cloud-API nötig.</small></div></div><div><span>02</span><div><b>Testtext prüfen</b><small>Beobachtung, Hypothese und Gesprächsfrage sehen.</small></div></div><div><span>03</span><div><b>Firma auswählen</b><small>Website-Crawl starten und Quellen prüfen.</small></div></div><div><span>04</span><div><b>Bedarf abklären</b><small>Erst dann Angebot und nächsten Schritt planen.</small></div></div></div></section>
+          <section class="panel studio-side-card studio-tip"><span class="eyebrow">VERANTWORTUNGSVOLL AKQUIRIEREN</span><h3>Keine erfundenen Leads.</h3><p>KI-Ergebnisse sind Hypothesen. Erst deine Prüfung und ein Kundengespräch machen daraus eine belastbare Bedarfsanalyse.</p></section>
+        </aside>
+      </div>
+      <section class="panel studio-live"><div class="studio-section-head"><div><span class="eyebrow">02 / ECHTE RECHERCHE</span><h2>Website eines Leads untersuchen</h2></div></div>
+        <p class="muted">Wähle ein bereits erfasstes Unternehmen mit Website. Öffentliche Seiten werden lokal gelesen, Befunde später im CRM manuell freigegeben.</p>
+        <div class="studio-controls studio-live-controls"><label>Unternehmen<select id="studioLead"><option value="">Erst einen Lead erfassen</option></select></label><label>Modus<select id="studioProvider"><option value="rules">Regelmodus</option><option value="ollama">Ollama</option></select></label><button type="button" class="btn btn-primary" id="studioStart">Website prüfen ↗</button></div>
+        <div id="studioLiveStatus" class="studio-live-status muted" role="status"></div>
+      </section>
+      <section class="panel studio-archive"><div class="studio-section-head"><div><span class="eyebrow">03 / ERGEBNISSE & NACHVERFOLGUNG</span><h2>Analyseverlauf</h2></div><button type="button" class="text-button" id="refreshArchive">Aktualisieren ↻</button></div><div id="studioArchive" class="archive-list"><div class="empty">Noch keine echten Firmenanalysen gespeichert.</div></div></section>
+    </div>
+    <div class="content hidden" id="viewWorkspace">
+  <div class="eyebrow">DEIN TÄGLICHER VERTRIEBSARBEITSPLATZ</div>
+  <div class="page-title"><div><h1>Heute Kunden gewinnen.</h1><p>Recherchieren, Gespräche vorbereiten, Rückrufe und Termine verwalten – auch komplett offline.</p></div><span class="pill">Keine automatische Kontaktaufnahme</span></div>
+  <div class="sales-metrics"><div class="panel"><small>Offene Aufgaben & Schritte heute</small><strong id="wsDue">–</strong></div><div class="panel"><small>Geplante Termine</small><strong id="wsMeetingsCount">–</strong></div><div class="panel"><small>Gespräche dokumentiert</small><strong id="wsCallsCount">–</strong></div></div>
+  <div class="sales-cols">
+    <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">PRIORITÄTEN</span><h2>Als Nächstes</h2></div><button type="button" class="text-button" id="wsRefresh">Aktualisieren ↻</button></div><div id="wsAgenda" class="sales-list"></div><div class="legal-foot">Nur dokumentierte, rechtlich zulässige Kontakte ansprechen. Ein Bedarfssignal ersetzt keine Telefon- oder E-Mail-Berechtigung.</div></section>
+    <section class="panel sales-section"><span class="eyebrow">TELEFON / MANUELLES LOG</span><h2>Call-Arbeitsplatz</h2><p class="muted">Keine automatische Anwahl, keine Aufzeichnung. Erst Rechtsgrundlage für den konkreten Anruf prüfen; Gesprächsergebnis nach dem Gespräch protokollieren.</p>
+      <form id="wsCallForm" class="sales-form"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><div id="wsCallPermission" class="sales-banner">Bitte einen Lead auswählen.</div>
+      <label>Gesprächsergebnis<select name="outcome"><option value="erreicht">Gespräch geführt</option><option value="rueckruf_vereinbart">Rückruf ausdrücklich vereinbart</option><option value="termin_vereinbart">Termin vereinbart</option><option value="nicht_erreicht">Nicht erreicht</option><option value="mailbox">Mailbox</option><option value="kein_bedarf">Kein Bedarf</option><option value="widerspruch">Kontaktaufnahme untersagt</option></select></label>
+      <label>Notizen / konkrete Vereinbarung<textarea name="notes" rows="3" maxlength="2000" placeholder="Wörtliche Aussage, Ergebnis, Absprachen"></textarea></label>
+      <label>Kontakt-Rechtsprüfung / Dokumentation<input name="legal_note" maxlength="1000" placeholder="Grundlage für den erfolgten Anruf (falls zutreffend)"></label>
+      <label>Vereinbarter Rückruf am<input type="date" name="callback_date"></label><button class="btn btn-primary" type="submit">Gespräch dokumentieren</button></form></section>
+  </div>
+  <div class="sales-cols">
+    <section class="panel sales-section"><span class="eyebrow">TERMINE</span><h2>Discovery & Projektgespräche</h2><form id="wsMeetingForm" class="sales-form"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><label>Termintitel<input name="title" required maxlength="180" placeholder="Bedarfsgespräch"></label><div class="sales-row"><label>Datum & Uhrzeit<input name="starts_at" type="datetime-local" required></label><label>Dauer<select name="duration_min"><option value="30">30 Min</option><option value="45">45 Min</option><option value="60">60 Min</option><option value="90">90 Min</option></select></label></div><label>Ort / Link<input name="location" maxlength="300" placeholder="Telefon, Online, Büro"></label><label>Agenda<input name="notes" maxlength="2000" placeholder="Welche Fragen klären wir?"></label><button type="submit" class="btn btn-primary">Termin speichern</button></form><div id="wsMeetings" class="sales-list"></div></section>
+    <section class="panel sales-section"><span class="eyebrow">MAIL · VORBEREITEN, NICHT SENDEN</span><h2>Mail-Assistent</h2><p class="muted">Entwürfe für bereits vereinbarte Kommunikation. Ohne Mail-Anbieter gibt es keinen Versand; Werbeeinwilligung separat prüfen.</p><form class="sales-form" id="wsMailForm"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><label>Anlass<select name="draft_type"><option value="nach_gespraech">Nach einem Gespräch</option><option value="terminbestaetigung">Terminbestätigung</option><option value="angebot_begleiten">Angebot begleiten</option><option value="rueckfrage">Vereinbarte Rückfrage</option></select></label><label>Dokumentierte Gesprächsvereinbarung / Kontaktanlass<textarea name="contact_basis" rows="2" required maxlength="500" placeholder="z. B. am 17.10. um schriftliche Zusammenfassung gebeten"></textarea></label><button type="submit" class="btn btn-primary">Entwurf erstellen</button></form><div id="wsMailPreview" class="sales-mail-preview"></div><div class="sales-subhead">Letzte gespeicherte Entwürfe</div><div id="wsMailHistory" class="sales-list"></div></section>
+  </div>
+  <section class="panel sales-section"><span class="eyebrow">PROTOKOLL</span><h2>Letzte Anruf-Ergebnisse</h2><div id="wsRecentCalls" class="sales-list"></div></section>
+</div>
+<div class="content hidden" id="viewQuotes">
+ <div class="eyebrow">SCOPE TRANSPARENT · FESTPREIS STATT STUNDENVERKAUF</div><div class="page-title"><div><h1>Eine Lösung. Ein Festpreis.</h1><p>Leistungsbausteine automatisch zusammenstellen. Interne Aufwände bleiben intern; Kunden erhalten einen vollständigen, klaren Festpreis und genaue Liefergegenstände.</p></div><span class="pill">Verkauf von Ergebnissen</span></div>
+ <div class="sales-cols quote-grid">
+  <section class="panel sales-section"><span class="eyebrow">01 / PAKET KONFIGURIEREN</span><h2>Angebot erstellen</h2>
+    <form id="quoteForm" class="sales-form">
+      <label>Interessent / Unternehmen<select name="lead_id" class="sales-lead-select" required></select></label>
+      <label>Lösungspaket<select id="quotePackage" name="package" required></select></label>
+      <label>Projekttitel<input name="project_label" maxlength="140" placeholder="z. B. Digitale Kundenanfragen vereinfachen"></label>
+      <label>Ergebnisversprechen / Kundenziel<textarea name="customer_goal" rows="2" maxlength="500" placeholder="Konkretes, realistisch erreichbares Ergebnis"></textarea></label>
+      <div><b>Zusätzliche Leistungsbausteine</b><div id="quoteAddons" class="quote-addons"></div></div>
+      <label>Voraussetzungen / Abhängigkeiten<textarea name="assumptions" maxlength="1000" rows="2" placeholder="z. B. Kunde liefert Texte/Assets bis zum Kick-off"></textarea></label>
+      <div class="sales-subhead">Nur interne Kalkulation – nicht im Kundendokument</div>
+      <div class="sales-row"><label>Interner Verrechnungskostensatz (€ / h)<input name="cost_rate_eur" type="number" min="15" max="250" step="1" value="55"></label><label>Risikopuffer (%)<input name="risk_pct" type="number" min="0" max="60" value="15"></label></div>
+      <div class="sales-row"><label>Ziel-Deckungsbeitrag (%)<input name="target_margin_pct" type="number" min="10" max="75" value="35"></label><label>Festpreis manuell setzen (€ netto, optional)<input name="custom_price_eur" type="number" min="100" max="1000000" step="50" placeholder="Automatischer Vorschlag"></label></div>
+      <label>Umsatzsteuerstatus<select name="tax_mode"><option value="offen">Noch offen – Entwurf, nicht versenden</option><option value="regel_19">Regulär mit 19 % USt.</option><option value="kleinunternehmer">§ 19 UStG (nur falls wirklich anwendbar)</option></select></label>
+      <button class="btn btn-primary" type="button" id="quoteCalculate">Festpreis & Umfang berechnen</button><button class="btn btn-ghost" type="submit">Angebot als Entwurf speichern</button>
+    </form>
+  </section>
+  <section class="panel sales-section"><span class="eyebrow">02 / KUNDENVORSCHAU</span><h2>Was dein Kunde sieht</h2><div id="quoteCustomer" class="quote-preview"><p class="muted">Wähle dein Paket und klicke auf Berechnen.</p></div><div class="divider"></div><h3>Interner Deckungsbeitrag</h3><div id="quoteInternal" class="quote-internal">Nur für dich sichtbar.</div><div class="legal-foot"><b>Grundsatz:</b> Keine versteckten Zusatzgebühren. Lieferumfang, Ausschlüsse, Steuerstatus und Gesamtpreis werden vor dem Versand sichtbar. Stunden und interne Kalkulation sind nicht Teil des Kundenangebots.</div></section>
+ </div>
+ <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">03 / ANGEBOTSVERLAUF</span><h2>Gespeicherte Angebote</h2></div><button type="button" class="text-button" id="quoteRefresh">Aktualisieren ↻</button></div><div id="quoteHistory" class="sales-list"></div><div id="quoteSaved" class="quote-preview"></div></section>
+</div>
+<div class="content hidden" id="viewAccounting">
+ <div class="eyebrow">RECHNUNGEN · ZAHLUNGEN · AUSGABEN · STEUER</div>
+ <div class="page-title"><div><h1>Vom Auftrag zum Zahlungseingang.</h1><p>Rechnungen mit Pflichtangaben, lückenloser Nummer und E-Rechnung (XRechnung). Festgeschriebene Rechnungen sind unveränderbar – Korrektur nur per Storno.</p></div><span class="pill">Kein Versand · keine ELSTER-Übermittlung</span></div>
+ <div class="acc-tabs" role="tablist" aria-label="Buchhaltung">
+  <button type="button" class="acc-tab active" data-acc-tab="overview" role="tab">Übersicht</button>
+  <button type="button" class="acc-tab" data-acc-tab="invoices" role="tab">Rechnungen</button>
+  <button type="button" class="acc-tab" data-acc-tab="expenses" role="tab">Ausgaben & E-Rechnungen</button>
+  <button type="button" class="acc-tab" data-acc-tab="report" role="tab">Auswertung & Export</button>
+  <button type="button" class="acc-tab" data-acc-tab="settings" role="tab">Stammdaten & Sicherung</button>
+ </div>
+
+ <section class="acc-pane" data-acc-pane="overview">
+  <div id="accWarnings"></div>
+  <div class="kpi-grid acc-kpis">
+   <div class="kpi"><span>OFFENE FORDERUNGEN</span><strong id="accOpen">–</strong><small id="accOpenCount">–</small></div>
+   <div class="kpi"><span>ÜBERFÄLLIG</span><strong id="accOverdue">–</strong><small id="accOverdueCount">–</small></div>
+   <div class="kpi"><span>ZAHLUNGSEINGANG LFD. JAHR</span><strong id="accPaidYear">–</strong><small id="accInvoicedYear">–</small></div>
+   <div class="kpi"><span>USt-ZAHLLAST QUARTAL</span><strong id="accQuarter">–</strong><small id="accQuarterRange">Vorbereitung, keine Anmeldung</small></div>
+  </div>
+  <div class="sales-cols">
+   <section class="panel sales-section"><span class="eyebrow">MAHNWESEN</span><h2>Überfällige Rechnungen</h2><div id="accOverdueList" class="sales-list"></div></section>
+   <section class="panel sales-section"><span class="eyebrow">AUFTRAG → RECHNUNG</span><h2>Angenommen, noch nicht berechnet</h2><div id="accUnbilled" class="sales-list"></div></section>
+  </div>
+  <section class="panel sales-section"><span class="eyebrow">12 MONATE</span><h2>Berechnet (netto) und Zahlungseingang</h2><div id="accMonths" class="acc-bars" aria-label="Monatsumsätze"></div><div class="acc-legend"><span class="acc-dot inv"></span> Berechnet netto <span class="acc-dot paid"></span> Zahlungseingang brutto</div></section>
+ </section>
+
+ <section class="acc-pane hidden" data-acc-pane="invoices">
+  <div class="toolbar"><select id="accInvoiceFilter" aria-label="Status filtern"><option value="">Alle Rechnungen</option><option value="entwurf">Entwürfe</option><option value="offen">Offen</option><option value="teilbezahlt">Teilbezahlt</option><option value="bezahlt">Bezahlt</option><option value="storniert">Storniert</option></select><button type="button" class="btn btn-primary" id="accNewInvoice">＋ Neue Rechnung</button></div>
+  <div class="panel table-wrap"><table><thead><tr><th>NUMMER</th><th>KUNDE</th><th>DATUM / FÄLLIG</th><th>BRUTTO</th><th>OFFEN</th><th>STATUS</th></tr></thead><tbody id="accInvoiceRows"></tbody></table></div>
+  <section class="panel sales-section hidden" id="accEditor">
+   <div class="studio-section-head"><div><span class="eyebrow" id="accEditorKicker">ENTWURF</span><h2 id="accEditorTitle">Neue Rechnung</h2></div><button type="button" class="text-button" id="accEditorClose">Schließen ✕</button></div>
+   <form id="accInvoiceForm" class="sales-form">
+    <div class="sales-row"><label>Lead / Kunde (optional)<select name="lead_id" id="accLeadSelect"></select></label><label>Rechnungsart<select name="kind"><option value="rechnung">Rechnung</option><option value="abschlag">Abschlagsrechnung</option><option value="schluss">Schlussrechnung</option></select></label></div>
+    <div class="sales-subhead">Rechnungsempfänger</div>
+    <div class="sales-row"><label>Firma / Name *<input name="buyer_name" maxlength="200" required></label><label>Ansprechperson<input name="buyer_contact" maxlength="160"></label></div>
+    <div class="sales-row"><label>Straße & Hausnummer *<input name="buyer_street" maxlength="200"></label><label>E-Mail (Rechnungsempfang)<input name="buyer_email" type="email" maxlength="200"></label></div>
+    <div class="acc-row3"><label>PLZ *<input name="buyer_zip" maxlength="10"></label><label>Ort *<input name="buyer_city" maxlength="120"></label><label>Land (ISO)<input name="buyer_country" maxlength="2" value="DE"></label></div>
+    <div class="sales-row"><label>USt-IdNr. Kunde<input name="buyer_vat_id" maxlength="20" placeholder="Pflicht bei Reverse Charge"></label><label>Käuferreferenz / Leitweg-ID / Bestellnr.<input name="buyer_reference" maxlength="100" placeholder="Für XRechnung (BT-10)"></label></div>
+    <div class="sales-subhead">Daten & Steuer</div>
+    <div class="acc-row3"><label>Rechnungsdatum<input name="issue_date" type="date"><small>leer = Tag der Festschreibung</small></label><label>Leistungsdatum / von *<input name="service_from" type="date"></label><label>Leistungszeitraum bis<input name="service_to" type="date"></label></div>
+    <div class="sales-row"><label>Steuerbehandlung<select name="tax_mode" id="accTaxMode"><option value="regel">Regelbesteuerung (USt. ausweisen)</option><option value="kleinunternehmer">Kleinunternehmer § 19 UStG</option><option value="reverse_charge">Reverse Charge (EU-Geschäftskunde)</option></select></label><label>Zahlungsziel (Tage)<input name="payment_days" type="number" min="0" max="120" step="1"></label></div>
+    <label>Einleitungstext<textarea name="intro_text" rows="2" maxlength="1000" placeholder="z. B. Vielen Dank für Ihren Auftrag. Wir berechnen Ihnen folgende Leistungen:"></textarea></label>
+    <div class="sales-subhead">Positionen</div>
+    <div class="acc-lines-wrap"><table class="acc-lines"><thead><tr><th>Beschreibung</th><th>Menge</th><th>Einheit</th><th>Einzelpreis € netto</th><th>USt.</th><th class="num">Netto</th><th></th></tr></thead><tbody id="accLines"></tbody></table></div>
+    <button type="button" class="btn btn-ghost" id="accAddLine">＋ Position</button>
+    <div id="accTotals" class="quote-total"></div>
+    <label>Schlusstext<textarea name="closing_text" rows="2" maxlength="1000" placeholder="z. B. Wir freuen uns auf die weitere Zusammenarbeit."></textarea></label>
+    <div id="accChecks"></div>
+    <div class="form-actions acc-actions"><button type="button" class="btn btn-danger hidden" id="accDeleteDraft">Entwurf löschen</button><button type="button" class="btn btn-ghost hidden" id="accPreview">Vorschau ↗</button><button type="submit" class="btn btn-ghost">Entwurf speichern</button><button type="button" class="btn btn-primary hidden" id="accFinalize">Festschreiben & Nummer vergeben</button></div>
+   </form>
+  </section>
+  <section class="panel sales-section hidden" id="accDetail"></section>
+ </section>
+
+ <section class="acc-pane hidden" data-acc-pane="expenses">
+  <div class="sales-cols">
+   <section class="panel sales-section"><span class="eyebrow">BELEG ERFASSEN</span><h2>Ausgabe buchen</h2>
+    <form id="accExpenseForm" class="sales-form">
+     <input type="hidden" name="document_id">
+     <div class="sales-row"><label>Belegdatum *<input name="expense_date" type="date" required></label><label>Bezahlt am<input name="paid_on" type="date"></label></div>
+     <div class="sales-row"><label>Lieferant *<input name="supplier" maxlength="200" required></label><label>Kategorie (SKR03-Vorschlag)<select name="category" id="accCategory"></select></label></div>
+     <label>Beschreibung<input name="description" maxlength="500"></label>
+     <div class="acc-row3"><label>Brutto €<input name="gross_eur" inputmode="decimal" placeholder="119,00"></label><label>USt.-Satz<select name="vat_rate"><option value="19">19 %</option><option value="7">7 %</option><option value="0">0 %</option></select></label><label>USt. € (optional)<input name="vat_eur" inputmode="decimal" placeholder="automatisch"></label></div>
+     <label class="quote-addon"><input type="checkbox" name="reverse_charge"><span>Reverse Charge § 13b (Rechnung ohne USt. aus dem EU-Ausland, z. B. Werbeplattform/SaaS)<small>Betrag oben ist dann der Nettobetrag. Die USt. schuldest du selbst.</small></span></label>
+     <div class="sales-row"><label>Belegnummer / Dateiname *<input name="receipt_ref" maxlength="200" placeholder="z. B. 2026-11-003_hosting.pdf"></label><label>Notiz<input name="note" maxlength="1000"></label></div>
+     <button type="submit" class="btn btn-primary">Ausgabe speichern</button>
+    </form>
+   </section>
+   <section class="panel sales-section"><span class="eyebrow">E-RECHNUNG EMPFANGEN</span><h2>XRechnung / ZUGFeRD einlesen</h2><p class="muted">Seit 2025 musst du E-Rechnungen empfangen und lesen können. Lade die XML-Datei (UBL oder CII; bei ZUGFeRD die eingebettete XML). Das Original wird unverändert archiviert, die Werte füllen das Formular vor.</p>
+    <label class="btn btn-ghost import-label">XML-Datei auswählen<input type="file" id="accEinvoiceFile" accept=".xml,application/xml,text/xml" hidden></label>
+    <div id="accEinvoiceResult" class="quote-preview"></div>
+    <div class="sales-subhead">Archivierte E-Rechnungen</div><div id="accDocuments" class="sales-list"></div>
+   </section>
+  </div>
+  <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">BELEGE</span><h2>Erfasste Ausgaben</h2></div><label class="acc-inline"><input type="checkbox" id="accShowCancelled"> Stornierte zeigen</label></div><div id="accExpenseList" class="sales-list"></div></section>
+ </section>
+
+ <section class="acc-pane hidden" data-acc-pane="report">
+  <section class="panel sales-section">
+   <form id="accReportForm" class="acc-report-form"><label>Zeitraum<select id="accPreset"><option value="month">Aktueller Monat</option><option value="prev_month">Vormonat</option><option value="quarter" selected>Aktuelles Quartal</option><option value="prev_quarter">Vorquartal</option><option value="year">Laufendes Jahr</option><option value="prev_year">Vorjahr</option><option value="custom">Frei wählen</option></select></label><label>Von<input type="date" name="from"></label><label>Bis<input type="date" name="to"></label><label>Versteuerung<select name="basis"><option value="">laut Stammdaten</option><option value="ist">Ist (Zahlungseingang)</option><option value="soll">Soll (Rechnungsdatum)</option></select></label><button type="submit" class="btn btn-primary">Auswerten</button></form>
+  </section>
+  <div class="sales-cols">
+   <section class="panel sales-section"><span class="eyebrow">USt-VORANMELDUNG · VORBEREITUNG</span><h2>Kennzahlen</h2><div id="accUstva"></div></section>
+   <section class="panel sales-section"><span class="eyebrow">EÜR · VEREINFACHT</span><h2>Einnahmen & Ausgaben</h2><div id="accEuer"></div></section>
+  </div>
+  <div class="sales-cols">
+   <section class="panel sales-section"><span class="eyebrow">VERTRIEB</span><h2>Vertriebskennzahlen</h2><div id="accSalesKpis"></div></section>
+   <section class="panel sales-section"><span class="eyebrow">STEUERBERATUNG</span><h2>Exporte (CSV, Excel-kompatibel)</h2><p class="muted">Semikolon-getrennt, deutsches Zahlenformat. Kontenvorschläge SKR03 – mit Steuerberatung abstimmen. Kein DATEV-Importformat.</p><div class="acc-export" id="accExports"></div></section>
+  </div>
+  <section class="panel sales-section"><span class="eyebrow">GoBD</span><h2>Änderungsprotokoll</h2><p class="muted">Unveränderbares Protokoll aller buchhalterisch relevanten Aktionen.</p><div id="accAudit" class="sales-list acc-audit"></div></section>
+ </section>
+
+ <section class="acc-pane hidden" data-acc-pane="settings">
+  <div class="sales-cols">
+   <section class="panel sales-section"><span class="eyebrow">DEIN UNTERNEHMEN</span><h2>Stammdaten für Rechnungen</h2>
+    <form id="accSettingsForm" class="sales-form">
+     <div class="sales-row"><label>Firmenname *<input name="company_name" maxlength="200"></label><label>Inhaber:in / Ansprechperson<input name="owner_name" maxlength="160"></label></div>
+     <label>Straße & Hausnummer *<input name="street" maxlength="200"></label>
+     <div class="acc-row3"><label>PLZ *<input name="zip" maxlength="10"></label><label>Ort *<input name="city" maxlength="120"></label><label>Land<input name="country" maxlength="2"></label></div>
+     <div class="sales-row"><label>Steuernummer<input name="tax_number" maxlength="40"></label><label>USt-IdNr.<input name="vat_id" maxlength="20"></label></div>
+     <div class="sales-row"><label>E-Mail *<input name="email" type="email" maxlength="200"></label><label>Telefon (für XRechnung)<input name="phone" maxlength="60"></label></div>
+     <label>Website<input name="website" maxlength="200"></label>
+     <div class="acc-row3"><label>IBAN *<input name="iban" maxlength="34"></label><label>BIC<input name="bic" maxlength="11"></label><label>Bank<input name="bank_name" maxlength="120"></label></div>
+     <div class="sales-subhead">Steuer & Nummernkreis</div>
+     <label class="quote-addon"><input type="checkbox" name="small_business"><span>Kleinunternehmer nach § 19 UStG<small>Seit 2025: Vorjahresumsatz ≤ 25.000 € und laufendes Jahr ≤ 100.000 € (netto). Nur aktivieren, wenn das für dich gilt.</small></span></label>
+     <div class="acc-row3"><label>Versteuerung<select name="tax_basis"><option value="ist">Ist-Versteuerung</option><option value="soll">Soll-Versteuerung</option></select></label><label>Zahlungsziel (Tage)<input name="payment_days" type="number" min="0" max="120"></label><label>Rechnungspräfix<input name="invoice_prefix" maxlength="8"></label></div>
+     <div class="sales-row"><label>Basiszinssatz % (Verzugszinsen)<input name="base_rate_pct" inputmode="decimal"><small>Ändert sich halbjährlich – aktuellen Wert bei der Bundesbank prüfen.</small></label><label>Fußzeile (optional)<input name="footer_note" maxlength="500" placeholder="z. B. Handelsregister, Geschäftsführung"></label></div>
+     <button type="submit" class="btn btn-primary">Stammdaten speichern</button>
+    </form>
+   </section>
+   <section class="panel sales-section"><span class="eyebrow">DATENSICHERUNG</span><h2>Backup</h2><p class="muted">SignalDesk speichert alles lokal in einer SQLite-Datei. Rechnungen und Belege musst du 8 Jahre, Bücher und Aufzeichnungen 10 Jahre aufbewahren. Ein Backup hier legt eine konsistente Kopie im Ordner <code>backups</code> neben der Datenbank an – kopiere sie zusätzlich auf ein externes Medium.</p>
+    <button type="button" class="btn btn-primary" id="accBackup">Backup jetzt erstellen</button>
+    <div id="accBackupInfo" class="sales-list"></div>
+    <div class="legal-foot"><b>Hinweis:</b> SignalDesk ersetzt keine Steuerberatung und keine Verfahrensdokumentation nach GoBD. Prüfe Rechnungsvorlagen, Steuerstatus und Aufbewahrung mit deiner Steuerberatung.</div>
+   </section>
+  </div>
+ </section>
+</div>
+    <div class="content hidden" id="viewTasks"><div class="eyebrow">FOCUS ON THE NEXT STEP</div><div class="page-title"><div><h1>Wiedervorlagen</h1><p>Kein Lead ohne eindeutigen nächsten Schritt.</p></div></div><section class="panel followups-panel"><div class="panel-header"><h3>Nächste Schritte aus deinen Lead-Profilen</h3><span class="muted">Zum Bearbeiten den Lead öffnen</span></div><div id="leadFollowups" class="tasks"></div></section><form id="taskForm" class="panel task-creator"><label>Neue Aufgabe<input name="title" required maxlength="250" placeholder="z. B. Angebot nach Gespräch überarbeiten"></label><label>Fällig am<input name="due_date" type="date"></label><button class="btn btn-primary" type="submit">Hinzufügen</button></form><div class="panel"><div class="panel-header"><h3>Aufgabenliste</h3><span class="muted">Erledigte bleiben für die Nachvollziehbarkeit sichtbar</span></div><div id="taskRows" class="tasks"></div></div></div>
+    <div class="content hidden" id="viewPlaybook"><div class="eyebrow">POSITIONIERUNG VOR AUTOMATION</div><div class="page-title"><div><h1>Dein Sales-Playbook</h1><p>Eine Angebotslogik für Grafikdesign, Web- und App-Entwicklung im B2B-Mittelstand.</p></div></div><div class="playbook-intro"><div class="eyebrow light">DEIN FOKUS 2026</div><h2>Du verkaufst keine Website.<br>Du verbesserst einen Geschäftsprozess.</h2><p>Priorisierte Zielgruppe: Industrie- und technische B2B-Dienstleister mit 20–200 Beschäftigten. Startregion DACH, am besten mit vorhandenen Kontakten.</p></div><h2 class="section-sub">Produktisierte Angebote</h2><div class="offer-cards" id="offerCards"></div><h2 class="section-sub">Deine ersten 30 Tage mit SignalDesk</h2>
+<div class="steps v08-plan">
+ <div><b>Woche 1 · Positionieren</b><p>Eine Zielbranche auswählen, ein 990–2.500-€-Pilotangebot festlegen, 2 Arbeitsproben veröffentlichen. Keine automatisierte Kaltansprache.</p></div>
+ <div><b>Woche 2 · Recherchieren</b><p>10 Unternehmen mit der URL-Recherche prüfen. Höchstens 3 belegte Hypothesen je Firma speichern, passende Entscheiderrollen recherchieren.</p></div>
+ <div><b>Woche 3 · Gespräche gewinnen</b><p>Persönliche Introductions und Branchenkontakte aktivieren. Nur nach Kanal-/Rechtsprüfung ansprechen; 3 Bedarfsfragen vorbereiten.</p></div>
+ <div><b>Woche 4 · Angebote testen</b><p>Bedarf, Entscheidung und Budgetstatus dokumentieren, konkrete Piloten anbieten, Absagen/Learnings und nächste Termine festhalten.</p></div>
+</div><p class="muted">Arbeitsplan, keine Erfolgsgarantie. Ergebnis messen: qualifizierte Gespräche, tatsächlich bestätigte Probleme, Angebote und bezahlte Aufträge.</p>
+<h2 class="section-sub">Qualifikation in 4 Schritten</h2><div class="steps"><div><b>01 · Anlass</b><p>Welches öffentlich verifizierbare Signal deutet auf Veränderung hin?</p></div><div><b>02 · Diagnose</b><p>Was kostet der aktuelle Engpass an Zeit, Leads oder Fehlern?</p></div><div><b>03 · Pilot</b><p>Welche kleine Lösung ist in 2–6 Wochen messbar?</p></div><div><b>04 · Delivery</b><p>Wer liefert was bis wann? Welcher KPI zeigt Nutzen?</p></div></div><div class="legal-foot"><b>Rechtliches:</b> Keine ungefragten Marketing-E-Mails oder Serien-DMs. Kontakt nur über zulässige Wege und mit dokumentierter Grundlage. Dieses Tool sendet grundsätzlich nichts automatisch. Details in docs/RECHTLICHES.md.</div></div>
+  </main>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><header><div><div class="eyebrow">LEAD INTELLIGENCE</div><h2 id="modalTitle">Neuer Lead</h2></div><button class="icon-close" id="closeModal" aria-label="Schließen">✕</button></header><div class="modal-body"><form id="leadForm"><input type="hidden" name="id"><div class="field-grid"><label class="field-wide">Firma <span>*</span><input name="company" required maxlength="200" placeholder="Beispiel GmbH"></label><label>Website<input name="website" type="url" placeholder="https://..."></label><label>Standort<input name="location" maxlength="160" placeholder="z. B. Stuttgart"></label><label>Kontaktrolle<input name="contact_role" maxlength="120" placeholder="z. B. Marketing / Inhaber"></label><label>Kontaktperson<input name="contact_name" maxlength="160" placeholder="Optional"></label><label>Branche<select name="industry" id="industrySelect"></select></label><label>Mitarbeitende (Schätzung)<input name="employees" type="number" min="0" step="1" placeholder="50"></label><label>Signaltyp<select name="signal_type" id="signalSelect"></select></label><label>Signaldatum<input name="signal_date" type="date"></label><label class="field-wide">Öffentliche Quelle / Beleg-URL<input name="signal_source" type="url" placeholder="https://unternehmen.de/news/..."></label><label class="field-wide">Signal-Beobachtung<textarea name="signal_note" rows="2" maxlength="2000" placeholder="Was ist faktisch erkennbar? Was ist bloß eine Hypothese?"></textarea></label><label>Passendes Angebot<select name="offer" id="offerSelect"></select></label><label>Geschätztes Projektbudget (€)<input name="estimated_budget" type="number" min="0" step="1" placeholder="8500"></label><label>Pipeline-Phase<select name="stage" id="stageSelect"></select></label><label>Wie kam der Kontakt zustande?<select name="contact_route" id="routeSelect"></select></label><label>Rechtsstatus Kontakt<select name="permission" id="permissionSelect"></select></label><label class="field-wide">Dokumentation Einwilligung / Rechtsprüfung<input name="permission_evidence" maxlength="500" placeholder="Datum, Quelle, Umfang – kein bloßes Bauchgefühl"></label><label class="field-wide">Notizen<textarea name="note" rows="2" maxlength="4000"></textarea></label><label>Nächster Schritt<input name="next_step" maxlength="500" placeholder="z. B. persönliches Intro erfragen"></label><label>Nächster Termin<input name="next_date" type="date"></label></div><div class="score-panel"><div><strong>Prioritätsscore</strong><span>keine Abschlusswahrscheinlichkeit</span></div><div id="modalScore">—</div></div><div id="scoreReasons" class="reasons"></div><div class="form-actions"><button type="button" id="deleteLeadBtn" class="btn btn-danger hidden">Lead löschen</button><button type="button" class="btn btn-ghost" id="cancelLead">Abbrechen</button><button type="submit" class="btn btn-primary">Lead speichern</button></div></form><div id="leadExtras" class="hidden"><div class="divider"></div>
+<section class="audit-panel contact-panel" aria-labelledby="contactTitle">
+  <div class="audit-title"><div><div class="eyebrow">BUYING COMMITTEE · B2B</div><h3 id="contactTitle">Entscheider & öffentliche Geschäftskontakte</h3></div><span class="audit-chip">Eigene Recherche · ohne Anbieter</span></div>
+  <p class="muted">Recherche ausschließlich auf öffentlichen Unternehmensseiten: Team, Kontakt, Impressum. Keine geratenen Telefonnummern, kein LinkedIn-Scraping, kein Kontaktversand. Ergebnisse vor CRM-Übernahme überprüfen.</p>
+  <div class="contact-actions"><button type="button" class="btn btn-primary" id="startContactResearch">🔎 Öffentliche Entscheider recherchieren</button></div>
+  <div id="contactResearchStatus" class="audit-status" role="status" aria-live="polite">Noch keine Recherche gestartet.</div>
+  <div id="contactResearchResults" class="contact-results"></div>
+  <div class="contact-hint" id="contactRoleHint"></div>
+  <div id="contactResults" class="contact-results"></div>
+  <form id="newContactForm" class="contact-create">
+    <div class="field-grid"><label>Name der Person *<input name="full_name" required maxlength="160" placeholder="Vorname Nachname"></label>
+      <label>Berufliche Funktion<input name="job_title" maxlength="160" placeholder="z. B. Head of Marketing"></label>
+      <label>Einordnung<select name="decision_role"><option value="unbekannt">Noch ungeklärt</option><option value="fachlich">Fachlich zuständig</option><option value="budget">Budgetverantwortlich</option><option value="entscheidung">Entscheidungsbefugt (bestätigt)</option></select></label>
+      <label>Öffentliche Quelle (HTTPS)<input name="source_url" type="url" placeholder="https://firma.de/team"></label>
+      <label class="field-wide">Berufliches LinkedIn-Profil (alternativ zur Quelle)<input name="linkedin_url" type="url" placeholder="https://www.linkedin.com/in/..."></label>
+      <label class="field-wide">Notiz<input name="note" maxlength="1000" placeholder="Warum ist diese Funktion für das Projekt relevant?"></label>
+    </div>
+    <button type="submit" class="btn btn-primary">＋ Person als Recherchekontakt speichern</button>
+  </form>
+</section>
+<div class="divider"></div>
+<section class="audit-panel" aria-labelledby="auditTitle">
+  <div class="audit-title"><div><div class="eyebrow">WEBSITE INTELLIGENCE</div><h3 id="auditTitle">Website- & KI-Bedarfsanalyse</h3></div><span class="audit-chip">Mit Quellenprüfung</span></div>
+  <p class="muted">Zuerst eine Website speichern, dann die Analyse starten. Nur öffentliche Seiten, maximal 5 Unterseiten. Keine automatische Kontaktaufnahme.</p>
+  <div class="audit-controls">
+    <label>Analysemodus<select id="analysisProvider"><option value="ollama">Ollama · lokale KI</option><option value="rules">Ohne KI · Regelmodus</option></select></label>
+    <label>Ollama-Modell<input id="analysisModel" value="qwen3:8b" maxlength="80" spellcheck="false"></label>
+    <button type="button" class="btn btn-primary" id="startAnalysis">Website analysieren ↗</button>
+  </div>
+  <div id="analysisStatus" class="audit-status" role="status" aria-live="polite">Bisher keine Analyse.</div>
+  <div id="analysisResults" class="audit-results"></div>
+</section>
+<div class="divider"></div>
+<h3>Bedarfsanalyse – Erstgespräch</h3>
+<p class="muted">Nur Aussagen aus dem Gespräch dokumentieren. Freie Notizfelder bitte ohne sensible, unnötige Angaben. Speichern aktualisiert nicht automatisch den Lead-Status.</p>
+<div class="discovery-progress" id="discoveryProgress">Noch keine Bedarfsanalyse</div>
+<form id="discoveryForm">
+  <div class="field-grid">
+    <label class="field-wide">1. Welches Problem wurde vom Interessenten bestätigt?<textarea name="problem" rows="2" maxlength="2000" placeholder="Nicht die eigene Vermutung, sondern die Kundenaussage"></textarea></label>
+    <label class="field-wide">2. Welche wirtschaftlichen / organisatorischen Auswirkungen hat es?<textarea name="impact" rows="2" maxlength="2000" placeholder="Zeitaufwand, entgangene Anfragen, Fehler – keine Zahl erfinden"></textarea></label>
+    <label class="field-wide">3. Wie wird das Problem bisher gelöst?<textarea name="current_solution" rows="2" maxlength="2000"></textarea></label>
+    <label class="field-wide">4. Was wäre ein gutes, messbares Ergebnis?<textarea name="desired_outcome" rows="2" maxlength="2000"></textarea></label>
+    <label>5. Wann müsste es gelöst sein?<input name="timing" maxlength="2000" placeholder="Zeitrahmen oder noch unklar"></label>
+    <label>6. Wer entscheidet und wer muss zustimmen?<input name="decision_process" maxlength="2000" placeholder="Entscheidungsweg"></label>
+    <label>Budgetstatus<select name="budget_status"><option value="offen">Noch offen</option><option value="budget_vorhanden">Budget vorhanden (bestätigt)</option><option value="freigabe_offen">Freigabe offen</option><option value="kein_budget">Aktuell kein Budget</option></select></label>
+    <label>Budgetdetails (optional)<input name="budget_note" maxlength="2000" placeholder="Nur tatsächlich genannte Angaben"></label>
+  </div>
+  <div class="form-actions"><button type="submit" class="btn btn-primary">Bedarfsanalyse speichern</button></div>
+</form>
+<div class="divider"></div><h3>Gesprächsvorbereitung · manueller Entwurf</h3><p class="muted">Nur für zulässige Kontaktwege; keine automatische Nachricht.</p><div class="draft" id="draftText"></div><button id="copyDraft" class="btn btn-ghost">Text kopieren</button> <button type="button" id="exportBrief" class="btn btn-ghost">↓ Bedarfsbriefing als Markdown</button><h3>Aktivitätsprotokoll</h3><form id="activityForm" class="activity-form"><select name="activity_type"><option value="notiz">Notiz</option><option value="anfrage">Anfrage (Inbound)</option><option value="gespraech">Gespräch</option><option value="angebot">Angebot</option><option value="einwand">Einwand</option><option value="abschluss">Abschluss</option><option value="widerspruch">Widerspruch</option></select><input name="detail" placeholder="Was wurde besprochen?" maxlength="2000"><button class="btn btn-ghost" type="submit">＋ Protokollieren</button></form><div id="activityRows" class="activities"></div></div></div></div></div>
+<script src="/app.js" defer></script>
+<script src="/workspace.js" defer></script>
+<script src="/accounting.js" defer></script>
+</body></html>
