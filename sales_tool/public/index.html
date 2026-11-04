@@ -10,7 +10,8 @@
       <button class="nav active" data-view="dashboard"><span>◈</span> Übersicht</button>
       <button class="nav" data-view="research"><span>◎</span> URL-Recherche</button>
       <button class="nav" data-view="finder"><span>⌖</span> Lead-Finder</button>
-      <button class="nav" data-view="datacheck"><span>✓</span> Datenprüfung <small class="nav-new">NEU</small></button>
+      <button class="nav" data-view="datacheck"><span>✓</span> Datenprüfung</button>
+      <button class="nav" data-view="scoring"><span>◐</span> Website-Scoring <small class="nav-new">NEU</small></button>
       <button class="nav" data-view="workspace"><span>◉</span> Mein Sales-Tag</button>
       <button class="nav" data-view="quotes"><span>€</span> Angebote & Preise</button>
       <button class="nav" data-view="accounting"><span>§</span> Rechnungen & Buchhaltung</button>
@@ -20,7 +21,7 @@
       <button class="nav" data-view="tasks"><span>☑</span> Aufgaben <small id="dueBadge"></small></button>
       <button class="nav" data-view="playbook"><span>▤</span> Sales-Playbook</button>
     </nav>
-    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.3 · Datenbasis, Sales & Buchhaltung</small></div>
+    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.4 · Website-Scoring, Sales & Buchhaltung</small></div>
   </aside>
   <main class="main">
     <header class="topbar"><div class="breadcrumb">SALES <span>/</span> <span id="sectionBreadcrumb">Übersicht</span></div><div class="top-actions"><div class="date-chip" id="today"></div><button class="btn btn-primary" id="newLeadBtn">＋ Neuer Lead</button></div></header>
@@ -201,6 +202,21 @@
   <section class="panel sales-section"><span class="eyebrow">DATENSCHUTZ</span><h2>Nachweise zu Personen</h2><p class="muted">Pro übernommener Person: Zweck, Rechtsgrundlage, Quelle und Löschfrist. Spätestens beim ersten Kontakt bzw. binnen eines Monats nach Art. 14 DSGVO informieren – der Textbaustein hilft dabei.</p><div id="dcPrivacy" class="sales-list"></div></section>
  </div>
 </div>
+<div class="content hidden" id="viewScoring">
+ <div class="eyebrow">WEBSITE-BEDARFS-SCORER v2 · GERENDERT · BELEGT</div>
+ <div class="page-title"><div><h1>Wo lohnt sich ein Gespräch?</h1><p>SignalDesk rendert die Website wie ein Browser (Desktop und Smartphone), misst Ladezeit, prüft Links und bewertet jede Rubrik mit Beleg. Fehlt ein Beleg, steht dort „unbekannt“ – nicht „schlecht“.</p></div><span class="pill">Keine Aussage über Kaufbereitschaft</span></div>
+ <div id="scRenderer"></div>
+ <div class="sales-cols">
+  <section class="panel sales-section"><span class="eyebrow">01 / BEWERTEN</span><h2>Leads auswählen</h2><p class="muted">Bis zu 20 Leads mit Website. Pro Firma werden Startseite und bis zu drei Unterseiten gelesen, nacheinander und schonend.</p>
+   <input class="search" id="scLeadSearch" placeholder="⌕  Firma suchen…"><div id="scLeadPicker" class="sc-picker"></div>
+   <button type="button" class="btn btn-primary" id="scStart" disabled>Ausgewählte bewerten ↗</button></section>
+  <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">02 / WARTESCHLANGE</span><h2>Laufende Bewertungen</h2></div><button type="button" class="text-button" id="scRefresh">Aktualisieren ↻</button></div><div id="scQueue" class="sales-list"></div></section>
+ </div>
+ <section class="panel sales-section"><span class="eyebrow">03 / PRIORISIERUNG</span><h2>Bewertete Firmen</h2><p class="muted">Höheres Potenzial = mehr öffentlich belegbarer Verbesserungsbedarf. Gesamtwert nur bei ausreichender Belegabdeckung.</p>
+  <div class="table-wrap"><table class="sc-rank"><thead><tr><th>FIRMA</th><th>GESAMT</th><th>DESIGN</th><th>WEB</th><th>PROZESS</th><th>PASSUNG</th><th>ANLASS</th><th>BELEGE</th><th>VERSION</th><th></th></tr></thead><tbody id="scRanking"></tbody></table></div></section>
+ <section class="panel sales-section hidden" id="scDetailPanel"><div class="studio-section-head"><div><span class="eyebrow">ERGEBNIS</span><h2 id="scDetailTitle">Bewertung</h2></div><button type="button" class="text-button" id="scDetailClose">Schließen ✕</button></div><div id="scDetail"></div></section>
+ <section class="panel sales-section"><details id="scConfigBox"><summary><b>Bewertungsraster & Gewichtung anpassen</b> <small class="muted">– jede Änderung erzeugt eine neue Bewertungsversion</small></summary><form id="scConfigForm" class="sales-form"></form></details></section>
+</div>
 <div class="content hidden" id="viewAccounting">
  <div class="eyebrow">RECHNUNGEN · ZAHLUNGEN · AUSGABEN · STEUER</div>
  <div class="page-title"><div><h1>Vom Auftrag zum Zahlungseingang.</h1><p>Rechnungen mit Pflichtangaben, lückenloser Nummer und E-Rechnung (XRechnung). Festgeschriebene Rechnungen sind unveränderbar – Korrektur nur per Storno.</p></div><span class="pill">Kein Versand · keine ELSTER-Übermittlung</span></div>
@@ -339,6 +355,12 @@
 </section>
 <div class="divider"></div>
 
+<section class="audit-panel" aria-labelledby="scoreTitle">
+  <div class="audit-title"><div><div class="eyebrow">WEBSITE-BEDARFS-SCORER v2</div><h3 id="scoreTitle">Website-Bewertung</h3></div><button type="button" class="btn btn-primary" id="leadScoreBtn">Website bewerten ↗</button></div>
+  <div id="leadScoreStatus" class="audit-status" role="status" aria-live="polite">Noch keine Bewertung.</div>
+  <div id="leadScoreResult"></div>
+</section>
+<div class="divider"></div>
 <section class="audit-panel contact-panel" aria-labelledby="contactTitle">
   <div class="audit-title"><div><div class="eyebrow">BUYING COMMITTEE · B2B</div><h3 id="contactTitle">Entscheider & öffentliche Geschäftskontakte</h3></div><span class="audit-chip">Eigene Recherche · ohne Anbieter</span></div>
   <p class="muted">Recherche ausschließlich auf öffentlichen Unternehmensseiten: Team, Kontakt, Impressum. Keine geratenen Telefonnummern, kein LinkedIn-Scraping, kein Kontaktversand. Ergebnisse vor CRM-Übernahme überprüfen.</p>
@@ -393,4 +415,5 @@
 <script src="/accounting.js" defer></script>
 <script src="/leadfinder.js" defer></script>
 <script src="/datacheck.js" defer></script>
+<script src="/scoring.js" defer></script>
 </body></html>

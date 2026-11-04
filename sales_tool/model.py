@@ -207,12 +207,14 @@ def init_db(conn: sqlite3.Connection):
     from .lead_finder import init_lead_finder
     from .company_data import init_company_data
     from .imprint_batch import init_imprint_batch
+    from .website_scorer import init_website_scorer
     init_workspace(conn)
     init_accounting(conn)
     init_einvoice(conn)
     init_lead_finder(conn)
     init_company_data(conn)
     init_imprint_batch(conn)
+    init_website_scorer(conn)
     conn.commit()
 
 
