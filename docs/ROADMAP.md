@@ -46,9 +46,12 @@
 ## V1.3 – Phase 1 Datenbasis (implementiert)
 - [x] Impressum-Extraktor, Batch mit Prüfwarteschlange, Feldbelege, Sperrliste, Datenschutz-Nachweise, Backup vor Migration
 
-## Weiter gemäß docs/MASTERPLAN_V2.md (Phase 2–6)
+## V1.4 – Phase 2 Website-Bedarfs-Scorer v2 (implementiert)
+- [x] Gerenderte Erfassung, Screenshots, 21 Rubriken, Teil-Scores, Bewertungsversionen
 
-## V1.4 – nächste sinnvolle Schritte (siehe docs/GAP_ANALYSE_V10.md)
+## Weiter gemäß docs/MASTERPLAN_V2.md (Phase 3–6)
+
+## Danach – weitere sinnvolle Schritte (siehe docs/GAP_ANALYSE_V10.md)
 - [ ] Signierte Windows-Installationsdatei (.exe) ohne vorinstalliertes Python
 - [ ] Live-Test der Quellen-Adapter und ggf. Feldanpassungen (TED-Feldnamen)
 - [ ] Gespeicherte Suchprofile („jeden Montag: neue Ausschreibungen Web/Design“) mit Wiedervorlage

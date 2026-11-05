@@ -20,6 +20,14 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.4 – Website-Bedarfs-Scorer v2
+
+Neuer Bereich **„Website-Scoring“**: SignalDesk rendert die Website mit Chromium auf dem Desktop und als Smartphone, speichert Screenshots, misst Ladezeit und Datenmenge, prüft interne Links und bewertet 21 Rubriken in drei Bereichen (Design & UX, Web & Conversion, Prozess & App). Jede Rubrik erhält „auffällig“, „ok“ oder „unbekannt“ mit Messwert und Fundstelle.
+- **Getrennte Werte** für Design, Web, Prozess, Passung, Projektanlass und Belegabdeckung. Der Gesamtwert (35/35/30, einstellbar) entsteht nur bei ausreichender Datenbasis, sonst „Datenlage unzureichend“.
+- **Pro Firma:** priorisierte Beobachtungen, Screenshots, Unsicherheiten, passende Pakete (unverbindlich), 3–5 Bedarfsfragen, nächster Schritt.
+- **Bewertungsraster konfigurierbar.** Jede Änderung ist eine eigene Version, damit Ergebnisse vergleichbar bleiben.
+- Sprint-Bericht: [`docs/BERICHT_PHASE2.md`](docs/BERICHT_PHASE2.md). Mit echtem Chromium gegen lokale Testseiten geprüft; der Test mit öffentlichen Websites steht noch aus.
+
 ## v1.3 – Datenbasis: Impressumsprüfung, Feldbelege, Sperrliste
 
 Neuer Bereich **„Datenprüfung“**: Bis zu 100 Firmendomains (Liste oder CSV) prüfen. SignalDesk findet das Impressum, liest Firmenname, Rechtsform, Anschrift, Handelsregister, USt-IdNr. (mit Prüfziffer), allgemeine Kontaktwege und vertretungsberechtigte Personen. Jeder Wert erscheint mit **wörtlichem Beleg**; übernommen wird nur, was du bestätigst. Aufträge lassen sich pausieren und fortsetzen, auch nach einem Neustart.
@@ -56,7 +64,7 @@ Neuer Bereich **„Datenprüfung“**: Bis zu 100 Firmendomains (Liste oder CSV)
 
 **Wichtig:** Keine Steuerberatung. Erzeugte XRechnungen vor dem ersten Kundenversand mit dem [KoSIT-Validator](https://github.com/itplr-kosit/validator) prüfen; UStVA-Werte sind eine Vorbereitung und müssen vor der Übermittlung geprüft werden.
 
-**Tests:** `python -m unittest discover -s tests -q` (138 Tests).
+**Tests:** `python -m unittest discover -s tests -q` (149 Tests).
 
 ---
 

@@ -46,11 +46,11 @@ Leitplanken für alle Phasen:
 
 **Abnahme:** Tests für verschiedene Impressumsformate (GmbH & Co. KG mit Komplementärin, UG, e.K., verschleierte E-Mail, englisches Imprint, PDF, fehlende Angaben), Batch mit fehlerhaften/unerreichbaren Sites, Pause/Fortsetzen, Dubletten (Domain/Name/Register), Sperrliste bei allen Importwegen, Übernahme ohne Überschreiben bestätigter Werte, Regression aller bisherigen Tests.
 
-### Phase 2 – Website-Bedarfs-Scorer v2 (Modul 3) ← nächster Schritt
+### Phase 2 – Website-Bedarfs-Scorer v2 (Modul 3) ✅ v1.4 – Bericht: `docs/BERICHT_PHASE2.md`
 Rubriken als Konfiguration; gerenderte Seiten und Screenshots (Desktop/Mobil) über Playwright; Ladezeit, defekte Links, Formulare und Kontaktwege; Teil-Scores Design/UX, Web/Conversion, Prozess/App, Passung, Signalaktualität, Belegabdeckung; Gewichtung 35/35/30 konfigurierbar; „Datenlage unzureichend“ statt Score; `score_versions` für Vergleichbarkeit; 3–5 Bedarfsfragen.
 **Abnahme:** reproduzierbare Scores, Scoring mit fehlenden Daten, keine Kaufbereitschafts-Aussagen.
 
-### Phase 3 – Buying Signals (Module 4, 5, 7)
+### Phase 3 – Buying Signals (Module 4, 5, 7) ← nächster Schritt
 Job-Signale von Karriereseiten der Firmen und per manuellem Import (keine Portal-Scraper); Registerereignisse per manuellem Import von Bekanntmachungen; Ereignishistorie je Firma ohne Doppelmeldung; Signal-Korrelation mit Pro/Contra, Veröffentlichungs- vs. Funddatum, Widersprüchen und fehlenden Belegen.
 **Abnahme:** alte Stellenanzeigen, doppelte Registerereignisse, widersprüchliche Signale.
 

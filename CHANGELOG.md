@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.0 – Phase 2: Website-Bedarfs-Scorer v2
+
+- Gerenderte Erfassung mit Chromium (Desktop + Smartphone, Unterseiten), Screenshots, Ladezeit, Datenmenge, Konsolenfehler, DOM-Messwerte; Linkprüfung interner Links.
+- Browser-seitiger SSRF-Schutz für alle Unterressourcen; keine fremde Hauptnavigation, keine Downloads.
+- 21 Rubriken in Design & UX, Web & Conversion, Prozess & App (Hypothesen); Bereich Kampagnen inaktiv mangels Katalogpaket.
+- Getrennte Teil-Scores, Passung, Anlass, Belegabdeckung; Gesamtwert nur bei ausreichender Datenbasis.
+- Konfigurierbares Raster mit Bewertungsversionen und Vergleich zur vorherigen Bewertung.
+- Ergebnis je Firma: Beobachtungen, Fundstellen, Screenshots, Unsicherheiten, Pakete, Bedarfsfragen, nächster Schritt.
+- Bereich „Website-Scoring“ und „Website-Bewertung“ im Lead-Dialog; HTML-Rückfall ohne Browser.
+- 149 Tests (11 neu, davon 2 mit echtem Chromium).
+
 ## 1.3.0 – Phase 1: Datenbasis
 
 - Masterplan v2 mit Gap-Analyse und Phasen (`docs/MASTERPLAN_V2.md`), Sprint-Bericht (`docs/BERICHT_PHASE1.md`).
