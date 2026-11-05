@@ -63,7 +63,9 @@ Angebots-Matching aus bestätigten Problemen (unverbindlich vor, Angebotsgrundla
 ### Phase 6 – Qualität & Skalierung ✅ v1.8 – Bericht: `docs/BERICHT_PHASE6.md`, Sicherheit: `docs/SICHERHEITSPRUEFUNG_V18.md`, Betrieb: `docs/BETRIEB_UND_TEAM.md`
 Datenaktualisierung und Änderungserkennung, wiederkehrende Rechercheaufgaben, Veraltungs-Kennzeichen, konfigurierbare Gewichte der Recherchepriorität, Last- und Fehlertests, Sicherheitsprüfung, Migrationstest, Dokumentation; Vorbereitung Team/Cloud (Login, Rollen, Verschlüsselung).
 
-### Danach – Live-Betrieb ← nächster Schritt
+### Danach – Live-Betrieb und Masterplan v3 ← nächster Schritt
+Nach dem ersten Praxis-Feedback geht es mit `docs/MASTERPLAN_V3.md` weiter (Sprint A ✅ v1.9).
+
 Alle sechs Phasen sind umgesetzt. Offen sind die Live-Tests durch den Nutzer:
 - Ein-Klick-Start unter Windows;
 - Lead-Finder-Quellen;

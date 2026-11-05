@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.9.0 – Sprint A: Struktur & Tagesablauf
+
+- Navigation nach Arbeitstag: Heute, Aufgaben · 1 Kunden finden · 2 Recherchieren · 3 Verkaufen · 4 Abrechnen · Erweitert (eingeklappt).
+- Neue Startseite „Heute“:
+  - Tagesplan in 6 Schritten mit Direktsprung;
+  - Wiedervorlage (Termine, Rückrufe, fällige Aufgaben, nächste Schritte, Nachfassen, Bindefristen, begonnene Bedarfsanalysen, offene Freigaben);
+  - offenes Potenzial aus kalkulierten Angeboten (Schätzungen getrennt);
+  - klickbare Pipeline mit nächster Aktion je Phase;
+  - Funktionsstatus („Was funktioniert gerade?“).
+- Pipeline-Ansicht: Aktion je Spalte und Karte (Kontakt aufnehmen, Termin vereinbaren, Angebot öffnen, Rechnung schreiben …) mit vorausgewählter Firma.
+- „Mein Sales-Tag“ heißt jetzt „Kontakt & Termine“, geordnet nach Freigeben → Kontakt aufnehmen → Termin vereinbaren.
+- Endpunkte `GET /api/today`, `GET /api/system/capabilities`. Schema unverändert.
+- 223 Tests (7 neu). Masterplan v3 (`docs/MASTERPLAN_V3.md`).
+
 ## 1.8.0 – Phase 6: Qualität & Skalierung
 
 - Bereich „Datenqualität & System“.

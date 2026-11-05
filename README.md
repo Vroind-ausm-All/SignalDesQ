@@ -20,6 +20,18 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.9 – Dein Arbeitstag von oben nach unten
+
+- **Navigation in der Reihenfolge des Arbeitstags:** Heute → Kunden finden → Recherchieren → Verkaufen → Abrechnen. Selten Genutztes liegt unter „Erweitert“.
+- **„Heute“** ist die neue Startseite:
+  - ein **Tagesplan** mit 6 Schritten und „Los“-Knöpfen;
+  - eine **Wiedervorlage** für alles Angefangene oder Fällige: Rückrufe, Aufgaben, Nachfassen, begonnene Bedarfsanalysen, Termine;
+  - das **offene Potenzial aus deinen kalkulierten Angeboten**, jede Zeile öffnet das Angebot;
+  - eine **klickbare Pipeline**: „Kontakt geprüft“ führt zu „Kontakt aufnehmen“, „Termin“ zu „Termine vereinbaren“;
+  - **„Was funktioniert gerade?“** zeigt, welche Funktion welche Voraussetzung braucht.
+- **„Kontakt & Termine“** führt der Reihe nach durch Freigeben → Kontakt aufnehmen → Termin vereinbaren.
+- Plan für die nächsten Schritte: [`docs/MASTERPLAN_V3.md`](docs/MASTERPLAN_V3.md). Sprint-Bericht: [`docs/BERICHT_SPRINT_A.md`](docs/BERICHT_SPRINT_A.md)
+
 ## v1.8 – Datenqualität, Sicherheit & Team-Vorbereitung
 
 Neuer Bereich **„Datenqualität & System“**:
