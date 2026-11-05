@@ -8,7 +8,7 @@
   const STATUS = {entwurf: 'Entwurf', gesendet_manuell: 'beim Kunden', angenommen: 'angenommen'};
   // Aktion je Pipeline-Phase für einen einzelnen Lead
   const LEAD_ACTION = {
-    recherche: {label: 'Recherchieren', view: 'center'}, qualifiziert: {label: 'Kontaktweg klären', view: 'lead'},
+    recherche: {label: 'Bericht erstellen', view: 'report'}, qualifiziert: {label: 'Kontaktweg klären', view: 'lead'},
     kontakt: {label: 'Kontakt aufnehmen', view: 'workspace', section: 'contact'}, antwort: {label: 'Termin vereinbaren', view: 'workspace', section: 'meeting'},
     termin: {label: 'Bedarf klären', view: 'lead'}, angebot: {label: 'Angebot öffnen', view: 'quotes'}, gewonnen: {label: 'Rechnung schreiben', view: 'quotes'},
   };
@@ -58,6 +58,7 @@
       if (lead) { selectLead('#quoteForm [name=lead_id]', lead); toast('Firma vorausgewählt – Paket wählen und Festpreis berechnen'); }
       return;
     }
+    if (a.view === 'report') return lead ? window.openReport(lead, {create: !a.open_only}) : switchView('center');
     if (a.view === 'center') {
       switchView('center');
       if (lead) setTimeout(() => $(`[data-rc-open="${lead}"]`)?.click(), 900);

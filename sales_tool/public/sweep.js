@@ -196,6 +196,12 @@
         if (!ids.length) return toast('Bitte Firmen auswählen', true);
         try {
           if (b.dataset.swBulk === 'websites') { const r = await api('/sweep-candidates/find-websites', 'POST', {ids: ids.slice(0, 200)}); toast(`${r.queued} Firmen in der Website-Suche. ${r.notice}`); }
+          else if (b.dataset.swBulk === 'bericht') {
+            const r = await api('/sweep-candidates/bulk', 'POST', {ids: ids.slice(0, 50), decision: 'uebernehmen'});
+            chosen.clear(); if (typeof reload === 'function') reload();
+            if (!r.lead_ids.length) { toast(r.errors[0] || 'Nichts übernommen', true); }
+            else { const q = await api('/reports', 'POST', {lead_ids: r.lead_ids}); toast(`${r.done} übernommen · ${q.queued.length} Firmen-Bericht(e) gestartet${q.skipped.length ? ` · ${q.skipped.length} ohne Website übersprungen` : ''}`); }
+          }
           else { const r = await api('/sweep-candidates/bulk', 'POST', {ids: ids.slice(0, 200), decision: b.dataset.swBulk}); toast(`${r.done} erledigt${r.errors.length ? ` · ${r.errors.length} Hinweise: ${r.errors[0]}` : ''}`); chosen.clear(); if (typeof reload === 'function') reload(); }
           loadList();
         } catch (err) { toast(err.message, true); }

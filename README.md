@@ -20,6 +20,14 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.11 – Firmen-Bericht mit einem Klick
+
+- **Firmen-Berichte:** Website eintragen oder Firmen auswählen → **„Bericht erstellen“**. In einem Durchgang prüft SignalDesk Impressum, Website-Bewertung, Website-Inhalte mit Ansprechpartnern, Karriereseite und Kaufsignale und schlägt passende Pakete vor (unverbindlich).
+- Der Bericht trennt **Fakten mit Fundstelle** von **Hypothesen**. Firmendaten und Ansprechpartner übernimmst du direkt im Bericht, danach geht es mit einem Klick an CRM oder Angebot.
+- Auch aus „Firmen finden“ („Übernehmen & Bericht erstellen“), dem Lead-Dialog und der Pipeline.
+- **Die URL-Recherche funktioniert jetzt auch ohne installierten Browser** (vorher: „Playwright fehlt“).
+- Sprint-Bericht: [`docs/BERICHT_SPRINT_C.md`](docs/BERICHT_SPRINT_C.md)
+
 ## v1.10 – Firmen finden mit einem Knopf
 
 - **Firmen finden → „Arbeitstag starten“:** Ort oder PLZ eingeben, Umkreis wählen (Standard 30 km), Branchen anklicken oder eigene Schlagwörter eintragen. SignalDesk fragt **GLEIF, Wikidata, OpenStreetMap und TED gleichzeitig** ab und führt die Treffer **ohne Dubletten** zusammen.

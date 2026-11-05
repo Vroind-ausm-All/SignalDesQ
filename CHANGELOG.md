@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.11.0 – Sprint C: Firmen-Bericht mit einem Klick
+
+- Ein Auftrag mit fünf Schritten: Impressum & Firmendaten → Website-Bewertung → Website-Inhalte & Ansprechpartner → Karriereseite & Kaufsignale → Verknüpfen & Pakete. Status je Schritt; ein Fehler stoppt die anderen nicht.
+- Berichtsseite mit Fakten (mit Fundstelle) getrennt von Interpretationen.
+  - Firmendaten übernehmen und Ansprechpartner prüfen direkt im Bericht.
+  - Pakete unverbindlich; Übergabe an CRM und Angebot.
+- Ein Klick von überall:
+  - Website eintragen (legt bei Bedarf den Lead an);
+  - Stapel „Berichte erstellen“ (bis 50);
+  - „Übernehmen & Bericht erstellen“ in Firmen finden;
+  - Lead-Dialog und Pipeline-Phase „Recherche“.
+- Rückfall ohne Browser für URL-Recherche, Entscheider-Recherche und Website-Analyse (vorher Abbruch mit „Playwright fehlt“).
+- Navigation: „Firmen-Berichte“ statt Research Center; URL-Recherche, Website-Scoring und Kaufsignale als Recherche-Details unter „Erweitert“.
+- Schema 19. 247 Tests (8 neu).
+
 ## 1.10.0 – Sprint B: Firmen finden, die wirklich funktionieren
 
 - „Arbeitstag starten“: Sammelsuche über GLEIF, Wikidata, OpenStreetMap und TED mit einem Knopf.

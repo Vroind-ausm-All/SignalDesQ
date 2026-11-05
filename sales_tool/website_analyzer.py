@@ -126,15 +126,17 @@ def crawl_site(url: str, purpose: str = "website") -> dict:
         raise CrawlError("Die Website untersagt diesen Abruf in robots.txt.")
     try:
         from playwright.sync_api import sync_playwright
-    except ImportError as exc:
-        raise CrawlError("Playwright fehlt. Installieren: pip install playwright; python -m playwright install chromium") from exc
+    except ImportError:
+        return light_crawl(initial, purpose)  # v1.11: ohne Browser weiterarbeiten statt abzubrechen
     pages, errors = [], []
     # Avoid parallel requests and third-party trackers/assets; no screenshots stored.
     with sync_playwright() as pw:
         try:
             browser = pw.chromium.launch(headless=True, executable_path=os.environ.get("SIGNALDESK_CHROMIUM_PATH") or None)
-        except Exception as exc:
-            raise CrawlError("Chromium fehlt. Ausführen: python -m playwright install chromium") from exc
+        except Exception:
+            browser = None
+        if browser is None:
+            return light_crawl(initial, purpose)
         try:
             context = browser.new_context(java_script_enabled=False, service_workers="block", accept_downloads=False,
                                           user_agent=AGENT, ignore_https_errors=False)
@@ -199,3 +201,39 @@ def crawl_site(url: str, purpose: str = "website") -> dict:
     if not pages:
         raise CrawlError("Keine nutzbaren öffentlichen Inhalte gefunden. " + "; ".join(errors[:2]))
     return {"source": initial, "pages": pages, "warnings": errors[:10]}
+
+
+def light_crawl(url: str, purpose: str = "website") -> dict:
+    """Rückfall ohne Browser (v1.11): bis zu fünf Seiten derselben Firma per HTTP lesen – mit robots.txt, SSRF-Schutz
+    und Größenlimit aus dem Impressums-Abruf. JavaScript-Inhalte fehlen; das steht in den Hinweisen."""
+    from . import imprint
+    pages, errors, queue, seen = [], [], [public_url(url)], set()
+    while queue and len(pages) < MAX_PAGES:
+        requested = queue.pop(0)
+        if requested in seen:
+            continue
+        seen.add(requested)
+        try:
+            final, ctype, data = imprint.FETCH(requested, pages[0]["url"] if pages else None)
+            if not same_company_host(url, final):
+                raise CrawlError("Weiterleitung zu einer anderen Domain blockiert.")
+            if "html" not in (ctype or "html"):
+                raise CrawlError("Keine HTML-Seite.")
+            raw = data.decode("utf-8", "replace")
+            text, links, _ = imprint.html_to_text(data)
+            clean = re.sub(r"\s+", " ", text).strip()[:MAX_TEXT]
+            if not clean:
+                raise CrawlError("Kein sichtbarer Seitentext.")
+            title = re.search(r"<title[^>]*>(.*?)</title>", raw, re.I | re.S)
+            headings = [re.sub(r"<[^>]+>|\s+", " ", h).strip() for h in re.findall(r"<h[1-3][^>]*>(.*?)</h[1-3]>", raw, re.I | re.S)][:25]
+            pages.append({"url": final, "title": re.sub(r"\s+", " ", title.group(1)).strip()[:220] if title else "",
+                          "text": clean, "raw_text": text[:MAX_TEXT] if purpose in ("contacts", "full") else "",
+                          "headings": [h for h in headings if h], "form_count": len(re.findall(r"<form\b", raw, re.I))})
+            if len(pages) == 1:
+                queue.extend(derive_links(final, links, purpose))
+        except Exception as exc:
+            errors.append(f"{requested}: {str(exc)[:160]}")
+    if not pages:
+        raise CrawlError("Keine nutzbaren öffentlichen Inhalte gefunden. " + "; ".join(errors[:2]))
+    return {"source": public_url(url), "pages": pages, "renderer": "html",
+            "warnings": ["Ohne Browser gelesen (kein JavaScript) – dynamische Inhalte können fehlen."] + errors[:9]}

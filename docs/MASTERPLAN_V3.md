@@ -47,13 +47,13 @@ Grundlage: Nutzer-Feedback nach dem ersten Praxiseinsatz (November 2026). Ausgan
 - **Sichtungsliste:** Website als Link in neuem Tab, Behalten oder Verwerfen per Klick bzw. Taste, „Behaltene analysieren“ als Stapel.
 - **Live-Test durch den Nutzer**, weil die Quellen in der Entwicklungsumgebung gesperrt sind.
 
-### Sprint C – Firmen-Bericht mit einem Klick ← nächster Schritt
+### Sprint C – Firmen-Bericht mit einem Klick ✅ v1.11 – Bericht: `docs/BERICHT_SPRINT_C.md`
 
 - Impressum, Website-Scoring, Kaufsignale, Entscheider und Hypothesen laufen in einem Auftrag.
 - Ergebnis ist ein Bericht pro Firma, auch für viele Firmen am Stück.
 - Die bisherigen Einzelbereiche bleiben als Detailansichten.
 
-### Sprint D – Angebote & Preise
+### Sprint D – Angebote & Preise ← nächster Schritt
 
 - **Leistungskatalog:** etwa 20 Leistungen in den Bereichen Strategie, Marke, Website/Shop, Sichtbarkeit, Barrierefreiheit (BFSG), Datenschutz-Check, Portal/App, Automatisierung/KI, Betreuung und Schulung.
 - **Größen S, M und L** mit Liefergegenständen.
