@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.0 – Phase 4: Research Command Center
+
+- Bereich „Research Center“ mit Einstiegskarten, Recherche-Trichter, laufenden Aufträgen aller Module und gemeinsamer Prüfliste.
+- Priorisierte Firmenübersicht: Recherchepriorität mit Grundlage, „Datenlage unzureichend“, Recherchestand in 7 Schritten, nächster Schritt, Filter und Suche.
+- Stapelaktionen für ausgewählte Firmen; Quellenansicht; Gesprächs-Dossier (Markdown/JSON); CSV-Export.
+- Übergabe an CRM (Phase, Aufgabe, Aktivität; gesperrte Leads ausgeschlossen) und Angebot vorbereiten mit unverbindlichem Paketvorschlag.
+- Navigation: Recherche-Werkzeuge unter „Research Center“ gruppiert, gemeinsame Unter-Navigation in jedem Recherche-Bereich.
+- 171 Tests (9 neu).
+
 ## 1.5.0 – Phase 3: Buying Signals
 
 - Registerereignisse per manuellem Import (Text/CSV): Neueintragung, Umbenennung, Geschäftsführer-/Prokurawechsel, Sitzverlegung, Strukturänderung, Auflösung als Gegenhinweis; Datenminimierung.

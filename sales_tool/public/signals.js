@@ -35,7 +35,7 @@
     try {
       const sum = await api('/signals/summary');
       $('#sgTotal').textContent = sum.total; $('#sgNew').textContent = sum.new; $('#sgUnassigned').textContent = sum.unassigned; $('#sgLeads').textContent = sum.leads.length;
-      $('#sgNavBadge').textContent = sum.new ? String(sum.new) : 'NEU';
+      $('#sgNavBadge').textContent = sum.new ? String(sum.new) : '';
       $('#sgJobLead').innerHTML = '<option value="">– Firma laut Text/Feld –</option>' + leads.filter(l => l.stage !== 'gesperrt').map(l => `<option value="${l.id}">${esc(l.company)}</option>`).join('');
       $('#sgLeadList').innerHTML = sum.leads.length ? sum.leads.map(l => `<div class="sales-item"><div><strong>${esc(l.company)}</strong><small>${l.signals} Signal(e)${l.new ? ` · ${l.new} neu` : ''} · ${l.hypotheses} Hypothese(n)</small></div><button type="button" class="btn btn-ghost" data-sg-corr="${l.id}">Verknüpfen</button></div>`).join('') : '<div class="empty">Noch keine zugeordneten Signale.</div>';
       $('#sgScans').innerHTML = sum.scans.length ? sum.scans.slice(0, 8).map(s => `<div class="sales-item"><div><strong>${esc(s.company)}</strong><small>${esc({queued: 'wartet', running: 'läuft …', done: `${s.found} neue Stellen-Signal(e)`, failed: 'Fehler: ' + s.error}[s.status] || s.status)} · ${esc(s.created_at)}</small></div></div>`).join('') : '';
