@@ -8,11 +8,14 @@
     <div class="side-kicker">WORKSPACE</div>
     <nav aria-label="Hauptnavigation">
       <button class="nav active" data-view="dashboard"><span>◈</span> Übersicht</button>
-      <button class="nav" data-view="research"><span>◎</span> URL-Recherche</button>
-      <button class="nav" data-view="finder"><span>⌖</span> Lead-Finder</button>
-      <button class="nav" data-view="datacheck"><span>✓</span> Datenprüfung</button>
-      <button class="nav" data-view="scoring"><span>◐</span> Website-Scoring</button>
-      <button class="nav" data-view="signals"><span>⚑</span> Kaufsignale <small class="nav-new" id="sgNavBadge">NEU</small></button>
+      <button class="nav" data-view="center"><span>⌘</span> Research Center <small class="nav-new" id="rcNavBadge">NEU</small></button>
+      <div class="nav-sub" aria-label="Recherche-Werkzeuge">
+        <button class="nav nav-child" data-view="finder">Firmen finden</button>
+        <button class="nav nav-child" data-view="datacheck">Datenprüfung</button>
+        <button class="nav nav-child" data-view="research">URL-Recherche</button>
+        <button class="nav nav-child" data-view="scoring">Website-Scoring</button>
+        <button class="nav nav-child" data-view="signals">Kaufsignale <small class="nav-new" id="sgNavBadge"></small></button>
+      </div>
       <button class="nav" data-view="workspace"><span>◉</span> Mein Sales-Tag</button>
       <button class="nav" data-view="quotes"><span>€</span> Angebote & Preise</button>
       <button class="nav" data-view="accounting"><span>§</span> Rechnungen & Buchhaltung</button>
@@ -22,7 +25,7 @@
       <button class="nav" data-view="tasks"><span>☑</span> Aufgaben <small id="dueBadge"></small></button>
       <button class="nav" data-view="playbook"><span>▤</span> Sales-Playbook</button>
     </nav>
-    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.5 · Kaufsignale, Sales & Buchhaltung</small></div>
+    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.6 · Research Center, Sales & Buchhaltung</small></div>
   </aside>
   <main class="main">
     <header class="topbar"><div class="breadcrumb">SALES <span>/</span> <span id="sectionBreadcrumb">Übersicht</span></div><div class="top-actions"><div class="date-chip" id="today"></div><button class="btn btn-primary" id="newLeadBtn">＋ Neuer Lead</button></div></header>
@@ -234,6 +237,30 @@
   <section class="panel sales-section"><span class="eyebrow">KORRELATION</span><h2>Hypothesen je Firma</h2><p class="muted">Verbindet Register-, Stellen-, Lead- und Website-Signale. Zeigt Gegenhinweise, Widersprüche und was zur Bestätigung fehlt.</p><div id="sgLeadList" class="sales-list"></div><div id="sgCorrelation"></div></section>
  </div>
 </div>
+<div class="content hidden" id="viewCenter">
+ <div class="eyebrow">RESEARCH COMMAND CENTER</div>
+ <div class="page-title"><div><h1>Von der Firma zum qualifizierten Gespräch.</h1><p>Alle Recherche-Schritte an einem Ort: finden, Daten prüfen, Website bewerten, Signale verknüpfen, Entscheider klären – und erst dann bewusst an CRM und Angebot übergeben.</p></div><span class="pill">Nichts wird automatisch versendet</span></div>
+ <div class="rc-start">
+  <button type="button" class="rc-start-card" data-go-view="finder"><b>① Firmen finden</b><small>Branche & Ort in offenen Quellen</small></button>
+  <button type="button" class="rc-start-card" data-go-view="datacheck"><b>② Domains & CSV prüfen</b><small>Impressum, Firmendaten, Sperrliste</small></button>
+  <button type="button" class="rc-start-card" data-go-view="research"><b>③ Einzelne Website</b><small>URL-Recherche mit Bericht</small></button>
+  <button type="button" class="rc-start-card" data-go-view="scoring"><b>④ Websites bewerten</b><small>Gerendert, mit Screenshots</small></button>
+  <button type="button" class="rc-start-card" data-go-view="signals"><b>⑤ Kaufsignale</b><small>Register, Stellen, Hypothesen</small></button>
+ </div>
+ <div class="rc-funnel" id="rcFunnel"></div>
+ <div class="sales-cols">
+  <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">FORTSCHRITT</span><h2>Laufende Aufträge</h2></div><button type="button" class="text-button" id="rcRefresh">Aktualisieren ↻</button></div><div id="rcJobs" class="sales-list"></div></section>
+  <section class="panel sales-section"><span class="eyebrow">PRÜFLISTE</span><h2>Wartet auf deine Entscheidung</h2><div id="rcReview" class="sales-list"></div></section>
+ </div>
+ <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">PRIORISIERTE FIRMENÜBERSICHT</span><h2>Wo lohnt sich der nächste Schritt?</h2></div><a class="btn btn-ghost" href="/api/research-center/export.csv" download>CSV exportieren ↓</a></div>
+  <p class="muted" id="rcNotice"></p>
+  <div class="toolbar rc-toolbar"><input class="search" id="rcSearch" placeholder="⌕  Firma suchen…"><select id="rcFilter" aria-label="Filter"><option value="">Alle offenen</option><option value="ready">Bereit fürs Gespräch</option><option value="insufficient">Datenlage unzureichend</option><option value="new">Mit neuen Signalen</option><option value="closed">Inkl. gewonnen/verloren/gesperrt</option></select></div>
+  <div class="acc-btn-group rc-bulk"><span class="muted" id="rcSelInfo">0 ausgewählt</span><button type="button" class="btn btn-ghost" data-rc-bulk="imprint" disabled>Impressum prüfen</button><button type="button" class="btn btn-ghost" data-rc-bulk="score" disabled>Websites bewerten</button><button type="button" class="btn btn-ghost" data-rc-bulk="career" disabled>Karriereseiten prüfen</button><button type="button" class="btn btn-ghost" data-rc-bulk="correlate" disabled>Signale verknüpfen</button></div>
+  <div class="table-wrap"><table class="rc-table"><thead><tr><th><input type="checkbox" id="rcAll" aria-label="Alle auswählen"></th><th>FIRMA</th><th>PRIORITÄT</th><th>RECHERCHESTAND</th><th>BEFUNDE</th><th>NÄCHSTER SCHRITT</th><th></th></tr></thead><tbody id="rcRows"></tbody></table></div></section>
+ <section class="panel sales-section hidden" id="rcDetail"><div class="studio-section-head"><div><span class="eyebrow">FIRMA</span><h2 id="rcDetailTitle"></h2></div><button type="button" class="text-button" id="rcDetailClose">Schließen ✕</button></div>
+  <div class="acc-tabs"><button type="button" class="acc-tab active" data-rc-tab="prep">Gesprächsvorbereitung</button><button type="button" class="acc-tab" data-rc-tab="sources">Quellen</button></div>
+  <div id="rcDetailBody"></div></section>
+</div>
 <div class="content hidden" id="viewAccounting">
  <div class="eyebrow">RECHNUNGEN · ZAHLUNGEN · AUSGABEN · STEUER</div>
  <div class="page-title"><div><h1>Vom Auftrag zum Zahlungseingang.</h1><p>Rechnungen mit Pflichtangaben, lückenloser Nummer und E-Rechnung (XRechnung). Festgeschriebene Rechnungen sind unveränderbar – Korrektur nur per Storno.</p></div><span class="pill">Kein Versand · keine ELSTER-Übermittlung</span></div>
@@ -439,4 +466,5 @@
 <script src="/datacheck.js" defer></script>
 <script src="/scoring.js" defer></script>
 <script src="/signals.js" defer></script>
+<script src="/center.js" defer></script>
 </body></html>

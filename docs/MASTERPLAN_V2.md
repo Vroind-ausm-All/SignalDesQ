@@ -54,10 +54,10 @@ Rubriken als Konfiguration; gerenderte Seiten und Screenshots (Desktop/Mobil) ü
 Job-Signale von Karriereseiten der Firmen und per manuellem Import (keine Portal-Scraper); Registerereignisse per manuellem Import von Bekanntmachungen; Ereignishistorie je Firma ohne Doppelmeldung; Signal-Korrelation mit Pro/Contra, Veröffentlichungs- vs. Funddatum, Widersprüchen und fehlenden Belegen.
 **Abnahme:** alte Stellenanzeigen, doppelte Registerereignisse, widersprüchliche Signale.
 
-### Phase 4 – Research Command Center (Oberfläche) ← nächster Schritt
+### Phase 4 – Research Command Center (Oberfläche) ✅ v1.6 – Bericht: `docs/BERICHT_PHASE4.md`
 Eine Arbeitsfläche für Suche, Batch-Aufträge mit Fortschritt, Prüflisten, priorisierte Firmen, Quellenansicht. URL-Recherche, Lead-Finder und Datenprüfung gehen darin auf. Alle Ergebnisse bearbeitbar, prüfbar, exportierbar.
 
-### Phase 5 – Sales-Integration (Module 6, 8, 10)
+### Phase 5 – Sales-Integration (Module 6, 8, 10) ← nächster Schritt
 Angebots-Matching aus bestätigten Problemen (unverbindlich vor, Angebotsgrundlage nach Bedarfsklärung); Paket „Automatisierungsprojekt“; Rechercheaufgaben automatisch; Kontaktbeschränkungen je Person; Übergabe an Angebot und CRM.
 
 ### Phase 6 – Qualität & Skalierung

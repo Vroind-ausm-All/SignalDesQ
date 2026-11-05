@@ -20,6 +20,16 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.6 – Research Command Center
+
+Neuer Bereich **„Research Center“** – eine Arbeitsfläche über alle Recherche-Werkzeuge (Firmen finden, Datenprüfung, URL-Recherche, Website-Scoring, Kaufsignale):
+- **Priorisierte Firmenübersicht** mit Recherchestand in 7 Schritten, Befunden, nächstem Schritt und einer transparenten **Recherchepriorität** (40/30/30 aus Website, Kaufsignalen und Lead-Fit; Grundlage aufklappbar). Ohne Website-Bewertung und Signale steht dort „Datenlage unzureichend“.
+- **Laufende Aufträge** aller Module mit Fortschritt und eine gemeinsame **Prüfliste** für alles, was auf deine Entscheidung wartet.
+- **Stapelaktionen:** Impressum prüfen, Websites bewerten, Karriereseiten prüfen, Signale verknüpfen.
+- **Gesprächsvorbereitung** je Firma (Fakten getrennt von Hypothesen, Fragen, unverbindliche Pakete) als Markdown/JSON, eine **Quellenansicht** und ein **CSV-Export**.
+- **Übergabe an CRM** (Phase „qualifiziert“ + Aufgabe, bei ungeklärtem Kontakt zuerst „Kontaktweg klären“) und **Angebot vorbereiten**.
+- Sprint-Bericht: [`docs/BERICHT_PHASE4.md`](docs/BERICHT_PHASE4.md)
+
 ## v1.5 – Kaufsignale: Register, Stellen, Hypothesen
 
 Neuer Bereich **„Kaufsignale“**:
@@ -74,7 +84,7 @@ Neuer Bereich **„Datenprüfung“**: Bis zu 100 Firmendomains (Liste oder CSV)
 
 **Wichtig:** Keine Steuerberatung. Erzeugte XRechnungen vor dem ersten Kundenversand mit dem [KoSIT-Validator](https://github.com/itplr-kosit/validator) prüfen; UStVA-Werte sind eine Vorbereitung und müssen vor der Übermittlung geprüft werden.
 
-**Tests:** `python -m unittest discover -s tests -q` (162 Tests).
+**Tests:** `python -m unittest discover -s tests -q` (171 Tests).
 
 ---
 
