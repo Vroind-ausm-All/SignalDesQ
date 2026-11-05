@@ -25,7 +25,7 @@
       <button class="nav" data-view="tasks"><span>☑</span> Aufgaben <small id="dueBadge"></small></button>
       <button class="nav" data-view="playbook"><span>▤</span> Sales-Playbook</button>
     </nav>
-    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.6 · Research Center, Sales & Buchhaltung</small></div>
+    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.7 · Research Center, Sales-Integration &amp; Buchhaltung</small></div>
   </aside>
   <main class="main">
     <header class="topbar"><div class="breadcrumb">SALES <span>/</span> <span id="sectionBreadcrumb">Übersicht</span></div><div class="top-actions"><div class="date-chip" id="today"></div><button class="btn btn-primary" id="newLeadBtn">＋ Neuer Lead</button></div></header>
@@ -116,6 +116,10 @@
       <label>Notizen / konkrete Vereinbarung<textarea name="notes" rows="3" maxlength="2000" placeholder="Wörtliche Aussage, Ergebnis, Absprachen"></textarea></label>
       <label>Kontakt-Rechtsprüfung / Dokumentation<input name="legal_note" maxlength="1000" placeholder="Grundlage für den erfolgten Anruf (falls zutreffend)"></label>
       <label>Vereinbarter Rückruf am<input type="date" name="callback_date"></label><button class="btn btn-primary" type="submit">Gespräch dokumentieren</button></form></section>
+  </div>
+  <div class="sales-cols">
+    <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">SALES ACTION CENTER</span><h2>Vorgeschlagene Aufgaben</h2></div><button type="button" class="text-button" id="siDayRefresh">Aktualisieren ↻</button></div><p class="muted">Aus Recherche, Bewertung, Signalen und Bedarfsklärung abgeleitet – nichts wird automatisch ausgeführt.</p><div id="siDaySuggestions" class="sales-list"></div></section>
+    <section class="panel sales-section"><span class="eyebrow">§ 7 UWG · DSGVO</span><h2>Kontaktaktionen – Freigabe</h2><p class="muted">Jede Kontaktaktion braucht eine eigene, dokumentierte Freigabe: Kanal, Rechtsgrundlage, Beschränkungen der Person. Ein hoher Score ist keine Erlaubnis.</p><div id="siPermissions" class="sales-list"></div></section>
   </div>
   <div class="sales-cols">
     <section class="panel sales-section"><span class="eyebrow">TERMINE</span><h2>Discovery & Projektgespräche</h2><form id="wsMeetingForm" class="sales-form"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><label>Termintitel<input name="title" required maxlength="180" placeholder="Bedarfsgespräch"></label><div class="sales-row"><label>Datum & Uhrzeit<input name="starts_at" type="datetime-local" required></label><label>Dauer<select name="duration_min"><option value="30">30 Min</option><option value="45">45 Min</option><option value="60">60 Min</option><option value="90">90 Min</option></select></label></div><label>Ort / Link<input name="location" maxlength="300" placeholder="Telefon, Online, Büro"></label><label>Agenda<input name="notes" maxlength="2000" placeholder="Welche Fragen klären wir?"></label><button type="submit" class="btn btn-primary">Termin speichern</button></form><div id="wsMeetings" class="sales-list"></div></section>
@@ -430,6 +434,13 @@
   </form>
 </section>
 <div class="divider"></div>
+<section class="audit-panel" aria-labelledby="siRolesTitle">
+  <div class="audit-title"><div><div class="eyebrow">DECISION MAKER v3</div><h3 id="siRolesTitle">Rollen, Befugnisse & Kontaktbeschränkungen</h3></div><span class="audit-chip">Funktion ≠ Befugnis</span></div>
+  <p class="muted">Fachliche Zuständigkeit, Budgetverantwortung und finale Entscheidung sind getrennte Fragen. „Bestätigt“ nur mit geprüfter Quelle bzw. nach Bestätigung im Gespräch. Kontaktbeschränkungen gelten für jede spätere Kontaktaktion.</p>
+  <div id="siRoleMap"></div>
+  <div id="siContacts" class="sales-list"></div>
+</section>
+<div class="divider"></div>
 <section class="audit-panel" aria-labelledby="auditTitle">
   <div class="audit-title"><div><div class="eyebrow">WEBSITE INTELLIGENCE</div><h3 id="auditTitle">Website- & KI-Bedarfsanalyse</h3></div><span class="audit-chip">Mit Quellenprüfung</span></div>
   <p class="muted">Zuerst eine Website speichern, dann die Analyse starten. Nur öffentliche Seiten, maximal 5 Unterseiten. Keine automatische Kontaktaufnahme.</p>
@@ -458,6 +469,18 @@
   </div>
   <div class="form-actions"><button type="submit" class="btn btn-primary">Bedarfsanalyse speichern</button></div>
 </form>
+<div class="divider"></div>
+<section class="audit-panel" aria-labelledby="siMatchTitle">
+  <div class="audit-title"><div><div class="eyebrow">OFFER MATCHING</div><h3 id="siMatchTitle">Passende Pakete aus dem Leistungskatalog</h3></div><button type="button" class="btn btn-primary" id="siMatchBtn">Pakete abgleichen ↻</button></div>
+  <div id="siMatchNotice" class="audit-status" role="status" aria-live="polite">Noch kein Abgleich.</div>
+  <div id="siMatchList" class="si-list"></div>
+</section>
+<div class="divider"></div>
+<section class="audit-panel" aria-labelledby="siSuggestTitle">
+  <div class="audit-title"><div><div class="eyebrow">SALES ACTION CENTER</div><h3 id="siSuggestTitle">Vorgeschlagene Aufgaben</h3></div><span class="audit-chip">Kein automatischer Versand</span></div>
+  <p class="muted">Aus Rechercheergebnissen abgeleitet. Übernehmen legt eine Aufgabe an; Kontaktaktionen brauchen danach eine eigene Freigabe.</p>
+  <div id="siSuggestions" class="sales-list"></div>
+</section>
 <div class="divider"></div><h3>Gesprächsvorbereitung · manueller Entwurf</h3><p class="muted">Nur für zulässige Kontaktwege; keine automatische Nachricht.</p><div class="draft" id="draftText"></div><button id="copyDraft" class="btn btn-ghost">Text kopieren</button> <button type="button" id="exportBrief" class="btn btn-ghost">↓ Bedarfsbriefing als Markdown</button><h3>Aktivitätsprotokoll</h3><form id="activityForm" class="activity-form"><select name="activity_type"><option value="notiz">Notiz</option><option value="anfrage">Anfrage (Inbound)</option><option value="gespraech">Gespräch</option><option value="angebot">Angebot</option><option value="einwand">Einwand</option><option value="abschluss">Abschluss</option><option value="widerspruch">Widerspruch</option></select><input name="detail" placeholder="Was wurde besprochen?" maxlength="2000"><button class="btn btn-ghost" type="submit">＋ Protokollieren</button></form><div id="activityRows" class="activities"></div></div></div></div></div>
 <script src="/app.js" defer></script>
 <script src="/workspace.js" defer></script>
@@ -467,4 +490,5 @@
 <script src="/scoring.js" defer></script>
 <script src="/signals.js" defer></script>
 <script src="/center.js" defer></script>
+<script src="/salesint.js" defer></script>
 </body></html>

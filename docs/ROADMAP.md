@@ -55,7 +55,10 @@
 ## V1.6 – Phase 4 Research Command Center (implementiert)
 - [x] Zentrale Arbeitsfläche, Priorisierung, Prüfliste, Quellen, Dossier, Übergabe
 
-## Weiter gemäß docs/MASTERPLAN_V2.md (Phase 5–6)
+## V1.7 – Phase 5 Sales-Integration (implementiert)
+- [x] Angebots-Matching aus bestätigten Problemen, Paket „Automatisierungsprojekt“, Entscheider v3 mit Kontaktbeschränkungen, Aufgabenvorschläge und Freigabe je Kontaktaktion
+
+## Weiter gemäß docs/MASTERPLAN_V2.md (Phase 6)
 
 ## Danach – weitere sinnvolle Schritte (siehe docs/GAP_ANALYSE_V10.md)
 - [ ] Signierte Windows-Installationsdatei (.exe) ohne vorinstalliertes Python

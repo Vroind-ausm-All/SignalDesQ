@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.7.0 – Phase 5: Sales-Integration
+
+- Angebots-Matching aus der Bedarfsanalyse mit wörtlichen Kundenzitaten; Recherche-Hinweise getrennt. Status „unverbindlich“ bzw. „Angebotsgrundlage“ (erst nach dokumentierter Bedarfsklärung); Budgethinweis; Übernahme ins Angebotsmodul.
+- Neues Paket „Automatisierungsprojekt – ein Prozess digital“. Kundendokument mit Liefergegenständen, Abnahmekriterien und möglichen Drittanbieterkosten.
+- Entscheider v3: fachlich / Budget / Entscheidung getrennt (unbekannt, vermutet, bestätigt) mit Prüfregeln, Rollenlandkarte je Thema mit Lücken, veröffentlichter Kontaktweg mit Fundstelle, Kontaktbeschränkungen je Person, Widerspruch → Sperrliste.
+- Sales Action Center: Aufgabenvorschläge aus Rechercheergebnissen (übernehmen/verwerfen), eigene Freigabe je Kontaktaktion mit Kanal- und Rechtsprüfung, Erledigen ohne Freigabe gesperrt, Audit-Log.
+- Schema-Version 16 (zwei neue Tabellen, zusätzliche Spalten in Kontakten und Aufgaben).
+- 187 Tests (16 neu).
+
 ## 1.6.0 – Phase 4: Research Command Center
 
 - Bereich „Research Center“ mit Einstiegskarten, Recherche-Trichter, laufenden Aufträgen aller Module und gemeinsamer Prüfliste.

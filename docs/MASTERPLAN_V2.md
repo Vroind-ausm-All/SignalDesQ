@@ -57,11 +57,11 @@ Job-Signale von Karriereseiten der Firmen und per manuellem Import (keine Portal
 ### Phase 4 – Research Command Center (Oberfläche) ✅ v1.6 – Bericht: `docs/BERICHT_PHASE4.md`
 Eine Arbeitsfläche für Suche, Batch-Aufträge mit Fortschritt, Prüflisten, priorisierte Firmen, Quellenansicht. URL-Recherche, Lead-Finder und Datenprüfung gehen darin auf. Alle Ergebnisse bearbeitbar, prüfbar, exportierbar.
 
-### Phase 5 – Sales-Integration (Module 6, 8, 10) ← nächster Schritt
+### Phase 5 – Sales-Integration (Module 6, 8, 10) ✅ v1.7 – Bericht: `docs/BERICHT_PHASE5.md`
 Angebots-Matching aus bestätigten Problemen (unverbindlich vor, Angebotsgrundlage nach Bedarfsklärung); Paket „Automatisierungsprojekt“; Rechercheaufgaben automatisch; Kontaktbeschränkungen je Person; Übergabe an Angebot und CRM.
 
-### Phase 6 – Qualität & Skalierung
-Datenaktualisierung und Änderungserkennung, wiederkehrende Rechercheaufgaben, Veraltungs-Kennzeichen, Last- und Fehlertests, Sicherheitsprüfung, Migrationstest, Dokumentation; Vorbereitung Team/Cloud (Login, Rollen, Verschlüsselung).
+### Phase 6 – Qualität & Skalierung ← nächster Schritt
+Datenaktualisierung und Änderungserkennung, wiederkehrende Rechercheaufgaben, Veraltungs-Kennzeichen, konfigurierbare Gewichte der Recherchepriorität, Last- und Fehlertests, Sicherheitsprüfung, Migrationstest, Dokumentation; Vorbereitung Team/Cloud (Login, Rollen, Verschlüsselung).
 
 ## Offene Entscheidungen
 - **Vertretungsberechtigte Personen speichern:** umgesetzt als abschaltbare Option (Standard: an) mit Datenschutz-Nachweis und Art.-14-Hinweis. Rechtliche Endabstimmung beim Nutzer.

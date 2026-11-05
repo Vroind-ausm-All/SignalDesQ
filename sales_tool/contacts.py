@@ -9,6 +9,7 @@ ROLE_SUGGESTIONS = {
     "conversion": ("Marketingleitung", "Geschäftsführung"),
     "brand": ("Marketingleitung / Brand Management", "Geschäftsführung"),
     "portal": ("IT- / Digitalisierungsleitung", "Operations-Leitung / Geschäftsführung"),
+    "automation": ("Operations-Leitung / Fachbereich", "IT- / Digitalisierungsleitung"),
 }
 ROLES = ("fachlich", "budget", "entscheidung", "unbekannt")
 

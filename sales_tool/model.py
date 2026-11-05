@@ -22,6 +22,7 @@ OFFERS = {
     "conversion": {"title": "Conversion- & Web-Sprint", "price_from": 4500, "price_to": 8500, "period": "3–4 Wochen", "outcome": "Messbare Anfragen-/Demo-Strecke mit Tracking"},
     "portal": {"title": "Kundenportal & Prozess-App", "price_from": 12000, "price_to": 30000, "period": "6–10 Wochen", "outcome": "Ein manueller Prozess als benutzbare Web-App"},
     "brand": {"title": "Brand & Design-System", "price_from": 3500, "price_to": 7000, "period": "2–4 Wochen", "outcome": "Konsequenter Markenauftritt mit wiederverwendbaren Komponenten"},
+    "automation": {"title": "Automatisierungsprojekt", "price_from": 6900, "price_to": 15000, "period": "4–6 Wochen", "outcome": "Ein manueller Ablauf läuft automatisiert und nachvollziehbar"},
 }
 PERMISSIONS = ("unbekannt", "opt_in", "bestandskunde_pruefen", "telefon_einzelfall", "nicht_kontaktieren")
 CONTACT_ROUTES = ("unbekannt", "persoenliche_empfehlung", "inbound", "veranstaltung", "netzwerk", "brief", "ausschreibung", "sonstiges")
@@ -63,7 +64,7 @@ def score_lead(lead: dict) -> tuple[int, list[str]]:
     score += b
     reasons.append(f"Budgethypothese +{b}")
     offer = lead.get("offer", "conversion")
-    if (offer == "portal" and signal == "prozessproblem") or (offer in ("conversion", "pilot") and signal in ("produktlaunch", "digitalprojekt")) or (offer == "brand" and signal == "produktlaunch"):
+    if (offer in ("portal", "automation") and signal == "prozessproblem") or (offer in ("conversion", "pilot") and signal in ("produktlaunch", "digitalprojekt")) or (offer == "brand" and signal == "produktlaunch"):
         score += 8
         reasons.append("Signal-Angebots-Passung +8")
     if lead.get("permission") == "nicht_kontaktieren" or lead.get("stage") == "gesperrt":
@@ -209,6 +210,7 @@ def init_db(conn: sqlite3.Connection):
     from .imprint_batch import init_imprint_batch
     from .website_scorer import init_website_scorer
     from .buying_signals import init_buying_signals
+    from .sales_integration import init_sales_integration
     init_workspace(conn)
     init_accounting(conn)
     init_einvoice(conn)
@@ -217,6 +219,7 @@ def init_db(conn: sqlite3.Connection):
     init_imprint_batch(conn)
     init_website_scorer(conn)
     init_buying_signals(conn)
+    init_sales_integration(conn)
     conn.commit()
 
 
