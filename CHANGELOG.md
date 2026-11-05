@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.8.0 – Phase 6: Qualität & Skalierung
+
+- Bereich „Datenqualität & System“.
+- Änderungserkennung (Impressum, Website, Register) mit Prüfpunkt, Übernahme nur nach Bestätigung.
+- Wiederkehrende Rechercheaufträge (Impressen, Websites, Karriereseiten, gespeicherte Lead-Finder-Suche, Datenqualität) mit Hintergrund-Thread; abschaltbar mit `--no-scheduler`.
+- Veraltungs-Kennzeichen je Datenart mit einstellbaren Fristen; Löschfristen für Personendaten mit Löschung nach Bestätigung (Löschnachweis ohne Namen).
+- Konfigurierbare Gewichte der Recherchepriorität.
+- Optionaler Login mit Rollen (admin, vertrieb, buchhaltung, lesen):
+  - scrypt-Passwörter, sichere Sitzungs-Cookies, Bremse gegen Fehlversuche;
+  - `--host` nur mit Login-Pflicht, `--allowed-host`, Notfallzugang `--reset-login`.
+- Verschlüsselte Sicherung (AES-256-GCM, optional `cryptography`).
+- Sicherheit:
+  - Host-Prüfung gegen DNS-Rebinding;
+  - `frame-ancestors`, `X-Frame-Options`, `Referrer-Policy`;
+  - Anfragekörper muss ein JSON-Objekt sein (vorher 500 bei Aufgaben und Aktivitäten);
+  - Widerspruch ohne Namen im Audit-Log.
+- Neue Indizes. `prepare_database()` für Sicherung und Migration.
+- Schema-Version 17.
+- Migrationstests mit echten Altdatenbanken aus v0.9, v1.2, v1.6. Last- und Nebenläufigkeitstests, Fehler-Fuzzing aller Routen.
+- 216 Tests (29 neu).
+
 ## 1.7.0 – Phase 5: Sales-Integration
 
 - Angebots-Matching aus der Bedarfsanalyse mit wörtlichen Kundenzitaten; Recherche-Hinweise getrennt. Status „unverbindlich“ bzw. „Angebotsgrundlage“ (erst nach dokumentierter Bedarfsklärung); Budgethinweis; Übernahme ins Angebotsmodul.

@@ -228,8 +228,12 @@ def add_fact(conn, lead_id, field, value, source_type, source_url='', excerpt=''
 
 def facts_for_lead(conn, lead_id):
     rows = [dict(r) for r in conn.execute('SELECT * FROM company_facts WHERE lead_id=? ORDER BY field, status, id DESC', (lead_id,))]
+    from .quality import stale_days, _age_days
+    limit = stale_days(conn)['facts']
     for r in rows:
         r['label'] = FACT_FIELDS.get(r['field'], r['field'])
+        age = _age_days(r['checked_at'])
+        r['stale'] = bool(r['status'] == 'bestaetigt' and age is not None and age > limit)  # Veraltungs-Kennzeichen (Phase 6)
     return rows
 
 

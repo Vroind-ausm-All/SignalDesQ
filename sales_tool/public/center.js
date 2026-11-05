@@ -55,7 +55,7 @@
         <td><b>${esc(r.company)}</b><small>${esc(r.website || 'keine Website')}${r.permission === 'nicht_kontaktieren' ? ' · <b class="late">gesperrt</b>' : ''}</small></td>
         <td>${r.priority === null ? '<span class="sc-unknown">Datenlage unzureichend</span>' : `<b class="rc-prio">${r.priority}</b>`}<details class="rc-basis"><summary>Grundlage</summary><small>${esc(r.priority_basis)}</small></details></td>
         <td><div class="rc-ready-bar"><div class="priority-bar"><i data-w="${r.readiness_pct}"></i></div><small>${r.readiness_pct} %</small></div><div class="rc-chips">${steps}</div></td>
-        <td class="rc-findings"><span>${web}${r.website_coverage !== null ? ` <small>Belege ${r.website_coverage} %</small>` : ''}</span><span>${sig}</span><span>${hyp}</span><span>Entscheider ${r.decision_checked}/${r.decision_makers} geprüft</span></td>
+        <td class="rc-findings"><span>${web}${r.website_coverage !== null ? ` <small>Belege ${r.website_coverage} %</small>` : ''}</span><span>${sig}</span><span>${hyp}</span><span>Entscheider ${r.decision_checked}/${r.decision_makers} geprüft</span>${(r.stale || []).length ? `<span class="rc-stale" title="${esc(r.stale.map(x => x.detail).join(' · '))}">veraltet: ${esc(r.stale.map(x => x.label).join(', '))}</span>` : ''}${r.changes_open ? `<span class="rc-new">${r.changes_open} Änderung(en) erkannt</span>` : ''}</td>
         <td><button type="button" class="text-button rc-next" data-rc-next="${r.lead_id}" data-view-target="${esc(r.next_step.view)}">${esc(r.next_step.label)} ↗</button></td>
         <td><button type="button" class="btn btn-ghost" data-rc-open="${r.lead_id}">Details</button></td></tr>`;
     }).join('') : '<tr><td colspan="7" class="empty">Keine Firmen in dieser Auswahl.</td></tr>';

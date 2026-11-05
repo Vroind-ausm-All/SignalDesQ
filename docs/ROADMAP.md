@@ -58,12 +58,16 @@
 ## V1.7 – Phase 5 Sales-Integration (implementiert)
 - [x] Angebots-Matching aus bestätigten Problemen, Paket „Automatisierungsprojekt“, Entscheider v3 mit Kontaktbeschränkungen, Aufgabenvorschläge und Freigabe je Kontaktaktion
 
-## Weiter gemäß docs/MASTERPLAN_V2.md (Phase 6)
+## V1.8 – Phase 6 Qualität & Skalierung (implementiert)
+- [x] Änderungserkennung, wiederkehrende Rechercheaufträge (inkl. gespeicherter Lead-Finder-Suchen), Veraltungs-Kennzeichen, Löschfristen, konfigurierbare Gewichte
+- [x] Last-, Fehler-, Sicherheits- und Migrationstests; Login mit Rollen, verschlüsselte Sicherungen
+
+## Weiter: Live-Betrieb (siehe docs/MASTERPLAN_V2.md)
 
 ## Danach – weitere sinnvolle Schritte (siehe docs/GAP_ANALYSE_V10.md)
 - [ ] Signierte Windows-Installationsdatei (.exe) ohne vorinstalliertes Python
 - [ ] Live-Test der Quellen-Adapter und ggf. Feldanpassungen (TED-Feldnamen)
-- [ ] Gespeicherte Suchprofile („jeden Montag: neue Ausschreibungen Web/Design“) mit Wiedervorlage
+- [x] Gespeicherte Suchprofile („jeden Montag: neue Ausschreibungen Web/Design“) – als wiederkehrender Auftrag in v1.8
 - [ ] Lizenzierter Anbieter als optionaler Adapter (North Data o. Ä., eigener API-Key)
 - [ ] Bankumsatz-Import (CSV/CAMT.053) und Abgleich mit offenen Posten
 - [ ] Nachkalkulation: Ist-Zeit je Festpreisprojekt vs. Kalkulation

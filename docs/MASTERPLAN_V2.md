@@ -60,8 +60,17 @@ Eine Arbeitsfläche für Suche, Batch-Aufträge mit Fortschritt, Prüflisten, pr
 ### Phase 5 – Sales-Integration (Module 6, 8, 10) ✅ v1.7 – Bericht: `docs/BERICHT_PHASE5.md`
 Angebots-Matching aus bestätigten Problemen (unverbindlich vor, Angebotsgrundlage nach Bedarfsklärung); Paket „Automatisierungsprojekt“; Rechercheaufgaben automatisch; Kontaktbeschränkungen je Person; Übergabe an Angebot und CRM.
 
-### Phase 6 – Qualität & Skalierung ← nächster Schritt
+### Phase 6 – Qualität & Skalierung ✅ v1.8 – Bericht: `docs/BERICHT_PHASE6.md`, Sicherheit: `docs/SICHERHEITSPRUEFUNG_V18.md`, Betrieb: `docs/BETRIEB_UND_TEAM.md`
 Datenaktualisierung und Änderungserkennung, wiederkehrende Rechercheaufgaben, Veraltungs-Kennzeichen, konfigurierbare Gewichte der Recherchepriorität, Last- und Fehlertests, Sicherheitsprüfung, Migrationstest, Dokumentation; Vorbereitung Team/Cloud (Login, Rollen, Verschlüsselung).
+
+### Danach – Live-Betrieb ← nächster Schritt
+Alle sechs Phasen sind umgesetzt. Offen sind die Live-Tests durch den Nutzer:
+- Ein-Klick-Start unter Windows;
+- Lead-Finder-Quellen;
+- Impressum-, Website- und Karriere-Recherche gegen echte Firmen;
+- ein Durchlauf der ganzen Kette mit 10–20 Zielfirmen bis zum Angebot.
+
+Cloud-/Mehrmandantenbetrieb erst bei konkretem Bedarf (siehe `docs/BETRIEB_UND_TEAM.md`).
 
 ## Offene Entscheidungen
 - **Vertretungsberechtigte Personen speichern:** umgesetzt als abschaltbare Option (Standard: an) mit Datenschutz-Nachweis und Art.-14-Hinweis. Rechtliche Endabstimmung beim Nutzer.

@@ -40,8 +40,10 @@ def _lead_rows(conn, include_closed=False):
     return [as_lead(r) for r in conn.execute(sql, () if include_closed else OPEN_STAGES)]
 
 
-def lead_status(conn, lead):
+def lead_status(conn, lead, weights=None, stale_cfg=None):
     from .buying_signals import signal_strength_for_scoring
+    from .quality import lead_staleness, priority_weights
+    weights = weights or priority_weights(conn)
     lid = lead['id']
     ws = conn.execute('''SELECT s.overall, s.potential, s.coverage, s.audit_id, v.hash, v.active, a.finished_at FROM website_scores s
                          JOIN website_audits a ON a.id=s.audit_id JOIN score_versions v ON v.id=s.version_id
@@ -78,7 +80,9 @@ def lead_status(conn, lead):
     if ws is not None:
         website_value = ws['overall'] if ws['overall'] is not None else None
     components = {'website': website_value, 'signal': signal_score, 'fit': lead['score']}
-    priority, basis = research_priority(components, ws, signal_basis)
+    priority, basis = research_priority(components, ws, signal_basis, weights)
+    lead_row = conn.execute('SELECT * FROM leads WHERE id=?', (lid,)).fetchone()
+    stale = lead_staleness(conn, lead_row, stale_cfg) if lead_row else []
     return {
         'lead_id': lid, 'company': lead['company'], 'website': lead.get('website', ''), 'stage': lead['stage'],
         'permission': lead.get('permission'), 'contact_route': lead.get('contact_route'), 'fit_score': lead['score'],
@@ -92,32 +96,39 @@ def lead_status(conn, lead):
         'decision_makers': dm['n'] or 0, 'decision_checked': dm['checked'] or 0, 'decision_confirmed': dm['confirmed'] or 0,
         'steps': steps, 'readiness_pct': round(100 * sum(steps.values()) / len(steps)), 'next_step': next_step,
         'priority': priority, 'priority_basis': basis,
+        'stale': [{'kind': x['kind'], 'label': x['label'], 'detail': x['detail']} for x in stale],
+        'changes_open': conn.execute("SELECT COUNT(*) FROM change_events WHERE lead_id=? AND status='offen'", (lid,)).fetchone()[0],
     }
 
 
-def research_priority(components, ws, signal_basis):
-    """Transparente Recherchepriorität (keine Kaufwahrscheinlichkeit)."""
+def research_priority(components, ws, signal_basis, weights=None):
+    """Transparente Recherchepriorität (keine Kaufwahrscheinlichkeit). Gewichte sind einstellbar (Phase 6)."""
+    weights = weights or PRIORITY_WEIGHTS
     if components['website'] is None and components['signal'] is None:
         reason = 'Datenlage unzureichend: weder belastbare Website-Bewertung noch Kaufsignale.'
         if ws is not None and ws['overall'] is None:
             reason = 'Datenlage unzureichend: Website-Bewertung ohne ausreichende Belege, keine Kaufsignale.'
         return None, reason
     known = {k: v for k, v in components.items() if v is not None}
-    total_w = sum(PRIORITY_WEIGHTS[k] for k in known)
-    value = round(sum(PRIORITY_WEIGHTS[k] * v for k, v in known.items()) / total_w)
+    total_w = sum(weights[k] for k in known)
+    if not total_w:
+        return None, 'Datenlage unzureichend für die eingestellte Gewichtung (vorhandene Werte haben das Gewicht 0).'
+    value = round(sum(weights[k] * v for k, v in known.items()) / total_w)
     parts = [f"Website {components['website'] if components['website'] is not None else 'unbekannt'}",
              f"Kaufsignale {components['signal'] if components['signal'] is not None else 'unbekannt'}",
              f"Lead-Fit {components['fit']}"]
     missing = [k for k, v in components.items() if v is None]
     note = f" · ohne {', '.join({'website': 'Website', 'signal': 'Signale'}[m] for m in missing)} (Gewichte neu verteilt)" if missing else ''
-    return value, f"Gewichtung {PRIORITY_WEIGHTS['website']}/{PRIORITY_WEIGHTS['signal']}/{PRIORITY_WEIGHTS['fit']}: " + ', '.join(parts) + note + (f' · {signal_basis}' if signal_basis else '')
+    return value, f"Gewichtung {weights['website']}/{weights['signal']}/{weights['fit']}: " + ', '.join(parts) + note + (f' · {signal_basis}' if signal_basis else '')
 
 
 def overview(conn, include_closed=False):
-    rows = [lead_status(conn, l) for l in _lead_rows(conn, include_closed)]
+    from .quality import priority_weights, stale_days
+    weights, cfg = priority_weights(conn), stale_days(conn)
+    rows = [lead_status(conn, l, weights, cfg) for l in _lead_rows(conn, include_closed)]
     rows.sort(key=lambda r: (r['priority'] is None, -(r['priority'] or 0), -r['readiness_pct'], r['company'].lower()))
     funnel = {k: sum(1 for r in rows if r['steps'][k]) for k in STEP_LABELS}
-    return {'leads': rows, 'funnel': funnel, 'step_labels': STEP_LABELS, 'weights': PRIORITY_WEIGHTS,
+    return {'leads': rows, 'funnel': funnel, 'step_labels': STEP_LABELS, 'weights': weights, 'stale_leads': sum(1 for r in rows if r['stale']),
             'ready': sum(1 for r in rows if r['next_step']['step'] == 'ready'),
             'insufficient': sum(1 for r in rows if r['priority'] is None),
             'notice': 'Recherchepriorität = wo sich weitere Recherche und ein Gesprächsversuch am ehesten lohnen. Keine Kaufwahrscheinlichkeit, kein Budget, keine Kontakterlaubnis.'}
@@ -178,6 +189,8 @@ def review_queue(conn):
         {'key': 'website_hypotheses', 'label': 'KI-/Regel-Befunde der URL-Recherche freigeben', 'count': q("SELECT COUNT(*) FROM findings WHERE review_status='ungeprueft'"), 'view': 'studio'},
         {'key': 'privacy', 'label': 'Art.-14-Information überfällig', 'count': q("""SELECT COUNT(*) FROM privacy_records WHERE art14_informed_at=''
                      AND collected_at <= datetime('now','-30 day')"""), 'view': 'datacheck'},
+        {'key': 'changes', 'label': 'Erkannte Änderungen prüfen (Impressum, Website, Register)', 'count': q("SELECT COUNT(*) FROM change_events WHERE status='offen'"), 'view': 'quality'},
+        {'key': 'retention', 'label': 'Löschfrist für Personendaten abgelaufen', 'count': q("SELECT COUNT(*) FROM privacy_records WHERE retention_until<>'' AND retention_until < date('now')"), 'view': 'quality'},
     ]
     return {'items': items, 'total': sum(i['count'] for i in items)}
 

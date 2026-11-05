@@ -31,6 +31,9 @@ from .website_scorer import route_scoring, recover_audits
 from .buying_signals import route_signals, recover_scans
 from .research_center import route_center
 from .sales_integration import route_sales_integration, can_complete_task
+from .quality import route_quality, start_scheduler
+from . import auth
+from .backup_crypto import create_encrypted_backup, available as crypto_available
 from .model import STAGES, INDUSTRIES, SIGNALS, OFFERS, PERMISSIONS, CONTACT_ROUTES, as_lead, connect, init_db, stats, discovery_summary
 
 ROOT = Path(__file__).resolve().parent
@@ -148,21 +151,48 @@ def validate(fields: dict, partial=False):
     return out
 
 
-def make_handler(db_path):
+STATIC_FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
+    "/style.css": ("style.css", "text/css"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
+    "/accounting.js": ("accounting.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+
+LOOPBACK_HOSTS = frozenset({'127.0.0.1', 'localhost', '::1'})
+CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+
+
+def _host_name(host_header):
+    host = (host_header or '').strip().lower()
+    if host.startswith('['):
+        return host[1:host.find(']')] if ']' in host else ''
+    return host.rsplit(':', 1)[0] if host.count(':') == 1 else host
+
+
+def make_handler(db_path, allowed_hosts=None):
+    hosts = LOOPBACK_HOSTS | {h.lower() for h in (allowed_hosts or ())}
+
     class Handler(BaseHTTPRequestHandler):
-        server_version = "SignalDesk/1.7"
+        server_version = "SignalDesk/1.8"
+        user = None
+
+        def _security_headers(self):
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("Content-Security-Policy", CSP)
+            self.send_header("X-Frame-Options", "DENY")
+            self.send_header("Referrer-Policy", "no-referrer")
+            self.send_header("Cross-Origin-Opener-Policy", "same-origin")
+            self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
 
         def _conn(self):
             return connect(db_path)
 
-        def _send(self, status, payload):
+        def _send(self, status, payload, extra_headers=None):
             data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
             self.send_response(status)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(data)))
             self.send_header("Cache-Control", "no-store")
-            self.send_header("X-Content-Type-Options", "nosniff")
-            self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'")
+            self._security_headers()
+            for key, value in (extra_headers or {}).items():
+                self.send_header(key, value)
             self.end_headers()
             self.wfile.write(data)
 
@@ -174,8 +204,7 @@ def make_handler(db_path):
             self.send_header("Content-Type", mime if mime.startswith("image/") else mime + "; charset=utf-8")
             self.send_header("Content-Length", str(len(data)))
             self.send_header("Cache-Control", "no-store")
-            self.send_header("X-Content-Type-Options", "nosniff")
-            self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'")
+            self._security_headers()
             if filename:
                 safe = re.sub(r'[^A-Za-z0-9._-]+', '_', filename)[:150]
                 self.send_header("Content-Disposition", f'attachment; filename="{safe}"')
@@ -187,13 +216,19 @@ def make_handler(db_path):
         def _body(self, max_len=65536):
             if self.headers.get("Content-Type", "").split(";")[0].strip() != "application/json":
                 raise ValueError("Nur application/json erlaubt.")
-            length = int(self.headers.get("Content-Length", "0"))
+            raw_len = self.headers.get("Content-Length", "0")
+            if not raw_len.isdigit():
+                raise ValueError("Ungültige Anfragegröße.")
+            length = int(raw_len)
             if length <= 0 or length > max_len:
                 raise ValueError("Ungültige Anfragegröße.")
             try:
-                return json.loads(self.rfile.read(length))
-            except json.JSONDecodeError as exc:
+                data = json.loads(self.rfile.read(length))
+            except (json.JSONDecodeError, UnicodeDecodeError, RecursionError) as exc:
                 raise ValueError("Ungültiges JSON.") from exc
+            if not isinstance(data, dict):
+                raise ValueError("Erwartet wird ein JSON-Objekt.")
+            return data
 
         def _same_origin(self):
             origin = self.headers.get("Origin")
@@ -204,11 +239,48 @@ def make_handler(db_path):
                     return False
             return True
 
+        def _host_ok(self):
+            # Schutz vor DNS-Rebinding: nur bekannte Hostnamen beantworten.
+            if _host_name(self.headers.get("Host", "")) not in hosts:
+                self._error("Unbekannter Host – SignalDesk antwortet nur unter 127.0.0.1/localhost bzw. freigegebenen Namen.", 421)
+                return False
+            return True
+
+        def _guard(self, method, route):
+            """Login-Pflicht und Rollenrechte (nur wenn der Login eingeschaltet ist)."""
+            static = route in STATIC_FILES
+            with self._conn() as conn:
+                self.user = auth.session_user(conn, self.headers.get("Cookie", ""))
+                required = auth.auth_required(conn)
+            if not required or static or (method, route) in auth.PUBLIC_API:
+                return True
+            if not self.user:
+                self._send(401, {"error": "Bitte anmelden.", "auth_required": True})
+                return False
+            if not auth.allowed(self.user["role"], method, route):
+                self._error("Für deine Rolle nicht freigegeben.", 403)
+                return False
+            return True
+
         def _routes(self, method):
+            if not self._host_ok():
+                return
             if method != "GET" and not self._same_origin():
                 return
             route = urlparse(self.path).path
             query = parse_qs(urlparse(self.path).query)
+            if not self._guard(method, route):
+                return
+            if route.startswith("/api/auth/"):
+                with self._conn() as conn:
+                    if auth.route_auth(self, conn, method, route, self.user):
+                        return
+                return self._error("Endpunkt nicht gefunden", 404)
+            if route == "/api/backup/encrypted" and method == "POST":
+                return self._send(201, create_encrypted_backup(db_path, self._body()))
+            if route == "/api/system/security" and method == "GET":
+                with self._conn() as conn:
+                    return self._send(200, security_status(conn, hosts, self.headers.get("Host", "")))
             if not route.startswith("/api/"):
                 if method == "GET" and route_print(self, route, db_path, connect):
                     return
@@ -236,6 +308,8 @@ def make_handler(db_path):
                 if route_center(self, conn, method, route, query):
                     return
                 if route_sales_integration(self, conn, method, route, query):
+                    return
+                if route_quality(self, conn, method, route, query, db_path):
                     return
                 if route == '/api/workspace/catalog' and method == 'GET':
                     return self._send(200, {'packages':PACKAGES,'addons':ADDONS,'call_outcomes':CALL_OUTCOMES,
@@ -636,9 +710,7 @@ def make_handler(db_path):
         def _static(self, route, method):
             if method != "GET":
                 return self._error("Nur Lesezugriff", 405)
-            mapping = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
-                       "/style.css": ("style.css", "text/css"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-                       "/accounting.js": ("accounting.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+            mapping = STATIC_FILES
             if route not in mapping:
                 return self._error("Datei nicht gefunden", 404)
             path, mime = mapping[route]
@@ -646,8 +718,7 @@ def make_handler(db_path):
             self.send_response(200)
             self.send_header("Content-Type", mime + "; charset=utf-8")
             self.send_header("Content-Length", str(len(payload)))
-            self.send_header("X-Content-Type-Options", "nosniff")
-            self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'")
+            self._security_headers()
             self.end_headers()
             self.wfile.write(payload)
 
@@ -665,6 +736,12 @@ def make_handler(db_path):
         def _run(self, method):
             try:
                 self._routes(method)
+            except auth.NotLoggedIn as exc:
+                self._send(401, {"error": str(exc), "auth_required": True})
+            except auth.Throttled as exc:
+                self._error(str(exc), 429)
+            except PermissionError as exc:
+                self._error(str(exc), 403)
             except KeyError as exc:
                 self._error("Pflichtfeld fehlt: " + str(exc), 400)
             except LookupError as exc:
@@ -686,7 +763,7 @@ def make_handler(db_path):
     return Handler
 
 
-SCHEMA_VERSION = 16  # v1.7 – bei Schemaänderungen erhöhen
+SCHEMA_VERSION = 17  # v1.8 – bei Schemaänderungen erhöhen
 
 
 def backup_before_migration(db):
@@ -701,6 +778,52 @@ def backup_before_migration(db):
     return create_backup(db)["path"]
 
 
+def prepare_database(db):
+    """Sicherung vor Schema-Update, Migration aller Module, Wiederaufnahme unterbrochener Aufträge. Gibt den Sicherungspfad zurück."""
+    backup = backup_before_migration(db)
+    with connect(db) as conn:
+        init_db(conn)
+        conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
+        conn.execute("""UPDATE analysis_runs SET status='failed',error='Analyse durch Neustart unterbrochen.',
+                        finished_at=datetime('now') WHERE status IN ('queued','running')""")
+        conn.execute("""UPDATE quick_scans SET status='failed',error='Recherche durch Neustart unterbrochen.',
+                        finished_at=datetime('now') WHERE status IN ('queued','running')""")
+        recover_batches(conn)
+        recover_audits(conn)
+        recover_scans(conn)
+        conn.commit()
+    return backup
+
+
+def security_status(conn, hosts, host_header=''):
+    """Selbstauskunft für die Oberfläche: welche Schutzmaßnahmen aktiv sind und was für Team-Betrieb fehlt."""
+    required = auth.auth_required(conn)
+    team_host = sorted(h for h in hosts if h not in LOOPBACK_HOSTS)
+    checks = [
+        {'key': 'host', 'ok': True, 'label': 'Host-Prüfung gegen DNS-Rebinding', 'detail': 'Erlaubt: ' + ', '.join(sorted(hosts))},
+        {'key': 'origin', 'ok': True, 'label': 'Schreibende Anfragen nur von SignalDesk selbst (Origin-Prüfung, nur JSON)', 'detail': ''},
+        {'key': 'headers', 'ok': True, 'label': 'Sicherheits-Header (CSP ohne Inline-Skripte, kein Einbetten, kein Referrer)', 'detail': ''},
+        {'key': 'auth', 'ok': required or not team_host, 'label': 'Login-Pflicht' if required else 'Ohne Login (lokaler Einzelplatz)',
+         'detail': 'Rollen: ' + ', '.join(auth.ROLES) if required else 'Für Team-Betrieb Login einschalten.'},
+        {'key': 'crypto', 'ok': crypto_available(), 'label': 'Verschlüsselte Sicherung verfügbar' if crypto_available() else 'Verschlüsselte Sicherung nicht verfügbar',
+         'detail': '' if crypto_available() else 'Optional: pip install -r requirements-team.txt'},
+        {'key': 'tls', 'ok': not team_host, 'label': 'Transportverschlüsselung', 'detail': 'Lokal nicht nötig (127.0.0.1).' if not team_host else
+         'Im Netzwerk nur hinter einem TLS-Proxy (HTTPS) betreiben – SignalDesk selbst spricht nur HTTP.'},
+    ]
+    return {'checks': checks, 'auth_required': required, 'users': conn.execute('SELECT COUNT(*) FROM users WHERE active=1').fetchone()[0],
+            'schema_version': SCHEMA_VERSION, 'server_version': 'SignalDesk/1.8'}
+
+
+def reset_login(conn):
+    """Notfallzugang für den lokalen Rechner: schaltet die Login-Pflicht aus und beendet alle Sitzungen."""
+    from .quality import put_setting
+    from .company_data import _audit
+    put_setting(conn, 'auth_required', False)
+    conn.execute('DELETE FROM sessions')
+    _audit(conn, 'auth', 0, 'login_pflicht_notfall_aus', 'Kommandozeile --reset-login')
+    conn.commit()
+
+
 def running_instance(port, timeout=1.5):
     """True, wenn auf dem Port bereits SignalDesk antwortet."""
     from urllib.request import urlopen
@@ -711,12 +834,12 @@ def running_instance(port, timeout=1.5):
         return False
 
 
-def bind_server(handler, port, attempts=20):
-    """Bindet 127.0.0.1:port oder den nächsten freien Port. Gibt (server, port) zurück."""
+def bind_server(handler, port, attempts=20, host="127.0.0.1"):
+    """Bindet host:port oder den nächsten freien Port. Gibt (server, port) zurück."""
     last_error = None
     for candidate in range(port, port + attempts):
         try:
-            return ThreadingHTTPServer(("127.0.0.1", candidate), handler), candidate
+            return ThreadingHTTPServer((host, candidate), handler), candidate
         except OSError as exc:
             last_error = exc
     raise OSError(f"Kein freier Port zwischen {port} und {port + attempts - 1}: {last_error}")
@@ -742,7 +865,18 @@ def main():
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--db", default=str(Path.home() / ".akquise-tool" / "akquise.sqlite3"))
     parser.add_argument("--open-browser", action="store_true", help="Benutzeroberfläche nach dem Start im Standardbrowser öffnen")
+    parser.add_argument("--host", default="127.0.0.1", help="Bind-Adresse. Andere als 127.0.0.1 nur mit eingeschaltetem Login (Team-Betrieb hinter TLS-Proxy)")
+    parser.add_argument("--allowed-host", action="append", default=[], help="Zusätzlich erlaubter Hostname (z. B. signaldesk.firma.intern)")
+    parser.add_argument("--no-scheduler", action="store_true", help="Wiederkehrende Rechercheaufträge nicht automatisch ausführen")
+    parser.add_argument("--reset-login", action="store_true", help="Notfall: Login-Pflicht ausschalten (z. B. wenn die Administration ausgesperrt ist) und beenden")
     args = parser.parse_args()
+    if args.reset_login:
+        db = Path(args.db).expanduser().resolve()
+        prepare_database(db)
+        with connect(db) as conn:
+            reset_login(conn)
+        print("Login-Pflicht ausgeschaltet. SignalDesk normal starten und unter „Datenqualität & System“ Passwörter neu setzen.")
+        return
     if running_instance(args.port):
         url = f"http://127.0.0.1:{args.port}"
         print(f"SignalDesk läuft bereits: {url}")
@@ -751,21 +885,20 @@ def main():
         return
     db = Path(args.db).expanduser().resolve()
     db.parent.mkdir(parents=True, exist_ok=True)
-    backup = backup_before_migration(db)
+    backup = prepare_database(db)
     if backup:
         print(f"Datenbank-Update erkannt – Sicherung angelegt: {backup}")
-    with connect(db) as conn:
-        init_db(conn)
-        conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
-        conn.execute("""UPDATE analysis_runs SET status='failed',error='Analyse durch Neustart unterbrochen.',
-                        finished_at=datetime('now') WHERE status IN ('queued','running')""")
-        conn.execute("""UPDATE quick_scans SET status='failed',error='Recherche durch Neustart unterbrochen.',
-                        finished_at=datetime('now') WHERE status IN ('queued','running')""")
-        recover_batches(conn)
-        recover_audits(conn)
-        recover_scans(conn)
-        conn.commit()
-    server, port = bind_server(make_handler(db), args.port)
+    allowed_hosts = set(args.allowed_host)
+    if args.host not in ("127.0.0.1", "localhost", "::1"):
+        with connect(db) as conn:
+            if not (auth.auth_required(conn) and auth.has_users(conn)):
+                raise SystemExit("Abbruch: Betrieb im Netzwerk nur mit eingeschaltetem Login. Zuerst lokal starten, Administration anlegen und Login einschalten.")
+        print("Hinweis: SignalDesk spricht nur HTTP. Im Netzwerk unbedingt hinter einem TLS-Proxy (HTTPS) betreiben.")
+        if args.host not in ("0.0.0.0", "::"):
+            allowed_hosts.add(args.host)
+    server, port = bind_server(make_handler(db, allowed_hosts), args.port, host=args.host)
+    if not args.no_scheduler:
+        start_scheduler(db)
     url = f"http://127.0.0.1:{port}"
     if port != args.port:
         print(f"Port {args.port} ist belegt – weiche auf {port} aus.")
