@@ -54,7 +54,7 @@ class FakeFetch:
     def __init__(self):
         self.calls = []
 
-    def __call__(self, url, ua, data=None, content_type=None, accept='application/json'):
+    def __call__(self, url, ua, data=None, content_type=None, accept='application/json', timeout=None):
         self.calls.append({'url': url, 'ua': ua, 'data': data})
         if 'wikidata' in url:
             return WIKIDATA
@@ -83,16 +83,18 @@ class LeadFinderTests(unittest.TestCase):
         self.tmp.cleanup()
 
     def test_wikidata_merges_rows_and_drops_unlabeled(self):
-        run = lf.run_search(self.conn, {'source': 'wikidata', 'place': 'Stuttgart', 'keyword': 'maschinen'})
+        run = lf.run_search(self.conn, {'source': 'wikidata', 'place': 'Stuttgart'})
         names = [c['name'] for c in run['candidates']]
         self.assertEqual(sorted(names), ['Beispiel Software AG', 'Muster Maschinenbau GmbH'])
+        filtered = lf.run_search(self.conn, {'source': 'wikidata', 'place': 'Stuttgart', 'keyword': 'maschinen'})
+        self.assertEqual([c['name'] for c in filtered['candidates']], ['Muster Maschinenbau GmbH'], 'Stichwort wird lokal gefiltert (v1.10)')
         muster = next(c for c in run['candidates'] if c['name'].startswith('Muster'))
         self.assertEqual(muster['employees'], 180)
         self.assertIn('Automatisierungstechnik', muster['industry'])
         self.assertEqual(muster['license'], 'CC0 1.0')
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.fake.calls[0]['url']).query)['query'][0]
         self.assertIn('"Stuttgart"@de', query)
-        self.assertIn('maschinen', query)
+        self.assertNotIn('P279*', query, 'keine teure transitive Klassensuche mehr (Ursache für HTTP 502)')
         self.assertTrue(self.fake.calls[0]['ua'].startswith('SignalDesk/'))
 
     def test_osm_minimises_personal_data_and_dedupes(self):

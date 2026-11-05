@@ -213,6 +213,8 @@ def init_db(conn: sqlite3.Connection):
     from .sales_integration import init_sales_integration
     from .quality import init_quality
     from .auth import init_auth
+    from .area import init_area
+    from .sweep import init_sweep
     init_workspace(conn)
     init_accounting(conn)
     init_einvoice(conn)
@@ -224,6 +226,8 @@ def init_db(conn: sqlite3.Connection):
     init_sales_integration(conn)
     init_quality(conn)
     init_auth(conn)
+    init_area(conn)
+    init_sweep(conn)
     conn.commit()
 
 

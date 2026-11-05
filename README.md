@@ -20,6 +20,15 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.10 – Firmen finden mit einem Knopf
+
+- **Firmen finden → „Arbeitstag starten“:** Ort oder PLZ eingeben, Umkreis wählen (Standard 30 km), Branchen anklicken oder eigene Schlagwörter eintragen. SignalDesk fragt **GLEIF, Wikidata, OpenStreetMap und TED gleichzeitig** ab und führt die Treffer **ohne Dubletten** zusammen.
+- **Durchklicken:** Jede Firma mit Website-Link (neuer Tab), Quelle, Entfernung und Registernummer. Übernehmen oder verwerfen per Klick oder Taste (**b**/**v**, **o** öffnet die Website). Verworfene Firmen kommen nicht wieder.
+- **Website-Suche mit Nachweis:** Für Firmen ohne Website prüft SignalDesk naheliegende Domains über das Impressum. „Belegt“ heißt: Die Registernummer stimmt überein.
+- **Große Firmenlisten importieren** (bis 60 MB), z. B. einen GLEIF-Export.
+- Die Fehler bei GLEIF (HTTP 400), Wikidata (HTTP 502) und OpenStreetMap (Zeitüberschreitung) sind behoben.
+- Sprint-Bericht: [`docs/BERICHT_SPRINT_B.md`](docs/BERICHT_SPRINT_B.md)
+
 ## v1.9 – Dein Arbeitstag von oben nach unten
 
 - **Navigation in der Reihenfolge des Arbeitstags:** Heute → Kunden finden → Recherchieren → Verkaufen → Abrechnen. Selten Genutztes liegt unter „Erweitert“.

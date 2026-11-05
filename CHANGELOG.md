@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.10.0 – Sprint B: Firmen finden, die wirklich funktionieren
+
+- „Arbeitstag starten“: Sammelsuche über GLEIF, Wikidata, OpenStreetMap und TED mit einem Knopf.
+  - Eingabe: Ort oder PLZ + Umkreis (Standard 30 km), 65 Branchen zum Anklicken, eigene Schlagwörter.
+  - Fortschritt je Quelle; fällt eine Quelle aus, laufen die anderen weiter.
+- Quellen repariert:
+  - GLEIF mit Fallback-Kette bei HTTP 400 und seitenweiser Abfrage je Gemeinde;
+  - Wikidata mit leichter Abfrage und Wiederholversuch bei 502;
+  - OpenStreetMap mit drei Ausweichservern und 90 s Zeitlimit.
+- Dubletten vermeiden: Zusammenführen über LEI, Registernummer + Ort, Domain und Name + Ort. Bekannte Leads, Sperrliste und verworfene Firmen erscheinen nicht erneut.
+- Sichtung zum Durchklicken: Website in neuem Tab, Quellen-Links, Übernehmen und Verwerfen (auch per Taste und als Stapel), Filter und Sortierung, Gebiete & Suchläufe.
+- Website-Suche mit Nachweis: Domain-Vorschläge, Prüfung über das Impressum („belegt“ bei gleicher Registernummer), allgemeine Kontaktwege aus dem Impressum.
+- Großer Import bis 60 MB: GLEIF-Export und eigene Listen. Filter für aktive und operative Firmen sowie die PLZ-Region; Weiterleitung aus der Datenprüfung.
+- Schema-Version 18. 239 Tests (16 neu).
+
 ## 1.9.0 – Sprint A: Struktur & Tagesablauf
 
 - Navigation nach Arbeitstag: Heute, Aufgaben · 1 Kunden finden · 2 Recherchieren · 3 Verkaufen · 4 Abrechnen · Erweitert (eingeklappt).

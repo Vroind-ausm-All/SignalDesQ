@@ -31,7 +31,7 @@
         <button class="nav" data-view="playbook"><span>▤</span> Sales-Playbook</button>
       </details>
     </nav>
-    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.9 · Arbeitstag von oben nach unten</small><div id="authBar" class="auth-bar hidden"></div></div>
+    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.10 · Arbeitstag von oben nach unten</small><div id="authBar" class="auth-bar hidden"></div></div>
   </aside>
   <main class="main">
     <header class="topbar"><div class="breadcrumb">SALES <span>/</span> <span id="sectionBreadcrumb">Heute</span></div><div class="top-actions"><div class="date-chip" id="today"></div><button class="btn btn-primary" id="newLeadBtn">＋ Neuer Lead</button></div></header>
@@ -160,7 +160,43 @@
 <div class="content hidden" id="viewFinder">
  <div class="eyebrow">NEUE KUNDEN FINDEN · OFFENE QUELLEN</div>
  <div class="page-title"><div><h1>Firmen finden, die passen.</h1><p>Durchsuche offen lizenzierte Quellen nach Unternehmen und Ausschreibungen in deiner Region. Treffer prüfst du einzeln und übernimmst sie bewusst ins CRM – ohne Personendaten, ohne Kontaktversand.</p></div><span class="pill">Fund ≠ Kontakterlaubnis</span></div>
- <div class="lf-sources" id="lfSources"></div>
+ <section class="panel sw-start" aria-labelledby="swTitle">
+  <div class="studio-section-head"><div><span class="eyebrow">ARBEITSTAG STARTEN · ALLE QUELLEN AUF EINMAL</span><h2 id="swTitle">Wo und wen suchst du heute?</h2></div><span class="audit-chip">GLEIF · Wikidata · OpenStreetMap · TED</span></div>
+  <form id="swForm" class="sw-form">
+    <div class="sw-row">
+      <label>Ort oder PLZ<input name="place" required maxlength="80" placeholder="z. B. 70173 oder Stuttgart" autocomplete="postal-code"></label>
+      <label>Umkreis<select name="radius_km"><option value="5">5 km</option><option value="10">10 km</option><option value="20">20 km</option><option value="30" selected>30 km</option><option value="50">50 km</option><option value="75">75 km</option></select></label>
+      <label class="sw-kw">Eigene Schlagwörter (optional, durch Komma)<input name="keywords" maxlength="400" placeholder="z. B. Manufaktur, Weingut, Präzision"></label>
+    </div>
+    <div class="sw-ind"><div class="sw-ind-head"><b>Branchen</b> <span class="muted" id="swIndCount">alle Branchen</span><input type="search" id="swIndSearch" placeholder="Branche suchen …" aria-label="Branche suchen"><button type="button" class="text-button" id="swIndClear">Auswahl leeren</button></div>
+      <div id="swIndustries" class="sw-ind-groups"></div><p class="muted" id="swIndNotice"></p></div>
+    <div class="sw-row sw-opts">
+      <fieldset><legend>Quellen</legend><label><input type="checkbox" name="src" value="gleif" checked> GLEIF (amtl. Firmendaten)</label><label><input type="checkbox" name="src" value="wikidata" checked> Wikidata</label><label><input type="checkbox" name="src" value="osm" checked> OpenStreetMap</label><label><input type="checkbox" name="src" value="ted" checked> TED-Ausschreibungen</label></fieldset>
+      <fieldset><legend>Filter</legend><label><input type="checkbox" name="operative" checked> Nur operative Firmen (ohne Holding, Verwaltung, Fonds)</label><label><input type="checkbox" name="include_sole"> Auch Einzelunternehmen ohne Rechtsform</label></fieldset>
+    </div>
+    <div class="sw-actions"><button type="submit" class="btn btn-primary sw-go" id="swGo">▶ Arbeitstag starten – alle Quellen abfragen</button>
+      <label class="btn btn-ghost sw-import">⇪ Firmenliste / GLEIF-Export importieren<input type="file" id="swFile" accept=".csv,text/csv" hidden></label>
+      <span class="muted">Große Dateien (bis 60 MB) möglich. Dubletten werden automatisch zusammengeführt.</span></div>
+  </form>
+  <div id="swProgress" class="sw-progress hidden" role="status" aria-live="polite"></div>
+</section>
+<section class="panel sw-review" id="swReview" aria-labelledby="swReviewTitle">
+  <div class="studio-section-head"><div><span class="eyebrow">SICHTEN · DURCHKLICKEN</span><h2 id="swReviewTitle">Gefundene Firmen</h2></div><span class="muted" id="swCounts"></span></div>
+  <div class="sw-toolbar">
+    <select id="swStatus" aria-label="Status"><option value="neu">Neu zu sichten</option><option value="uebernommen">Übernommen</option><option value="verworfen">Verworfen</option><option value="dublette">Schon als Lead vorhanden</option><option value="alle">Alle</option></select>
+    <select id="swSweep" aria-label="Suchlauf"><option value="">Alle Suchläufe & Importe</option></select>
+    <select id="swWeb" aria-label="Website"><option value="">mit & ohne Website</option><option value="1">nur mit Website</option><option value="0">nur ohne Website</option></select>
+    <select id="swSort" aria-label="Sortierung"><option value="distanz">Nach Entfernung</option><option value="quellen">Mehrere Quellen zuerst</option><option value="website">Mit Website zuerst</option><option value="name">Nach Name</option></select>
+    <input type="search" id="swQ" placeholder="Name, Ort, PLZ …" aria-label="Suche">
+  </div>
+  <div class="sw-bulk"><label><input type="checkbox" id="swAll"> alle auf dieser Seite</label><button type="button" class="btn btn-ghost" data-sw-bulk="websites">Websites suchen (Nachweis per Impressum)</button><button type="button" class="btn btn-primary" data-sw-bulk="uebernehmen">Ausgewählte übernehmen</button><button type="button" class="btn btn-ghost" data-sw-bulk="verwerfen">Ausgewählte verwerfen</button>
+    <span class="muted sw-keys">Tastatur: ↑/↓ bzw. j/k · <b>o</b> Website öffnen · <b>b</b> übernehmen · <b>v</b> verwerfen</span></div>
+  <div id="swList" class="sw-list" tabindex="0"></div>
+  <div class="sw-pager"><button type="button" class="btn btn-ghost" id="swPrev">← zurück</button><span id="swPage" class="muted"></span><button type="button" class="btn btn-ghost" id="swNext">weiter →</button></div>
+  <div class="sales-subhead">Deine Gebiete & Suchläufe</div><div id="swHistory" class="sales-list"></div>
+</section>
+<details class="panel lf-expert"><summary><b>Einzelne Quelle gezielt abfragen</b> <span class="muted">für Fortgeschrittene</span></summary>
+<div class="lf-sources" id="lfSources"></div>
  <div class="sales-cols lf-grid">
   <section class="panel sales-section"><span class="eyebrow">01 / SUCHEN</span><h2 id="lfFormTitle">Quelle wählen</h2>
    <form id="lfForm" class="sales-form">
@@ -190,6 +226,7 @@
   <section class="panel sales-section"><span class="eyebrow">VERLAUF</span><h2>Letzte Suchläufe</h2><div id="lfRuns" class="sales-list"></div></section>
   <section class="panel sales-section"><span class="eyebrow">NUR MANUELL</span><h2>Weitere Quellen – bewusst nicht automatisiert</h2><p class="muted">Diese Quellen sind wertvoll, dürfen aber nicht oder nur eingeschränkt automatisch ausgelesen werden. Links öffnen sich mit deinem Ort/Stichwort.</p><div id="lfManual" class="sales-list"></div></section>
  </div>
+</details>
  <div class="legal-foot"><b>Rechtlicher Rahmen (keine Rechtsberatung):</b> Öffentliche Auffindbarkeit ist keine Einwilligung. § 7 UWG: Werbe-E-Mails brauchen vorherige ausdrückliche Einwilligung – auch B2B; Telefonwerbung gegenüber Unternehmen nur bei mutmaßlicher Einwilligung; Briefwerbung ist grundsätzlich zulässig, solange kein Widerspruch vorliegt. Sobald du Personendaten ergänzt, gelten Art. 6 Abs. 1 lit. f und die Informationspflicht nach Art. 14 DSGVO. Details: docs/LEADQUELLEN_V11.md.</div>
 </div>
 <div class="content hidden" id="viewDatacheck">
@@ -541,4 +578,5 @@
 <script src="/salesint.js" defer></script>
 <script src="/quality.js" defer></script>
 <script src="/today.js" defer></script>
+<script src="/sweep.js" defer></script>
 </body></html>

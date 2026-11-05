@@ -35,7 +35,7 @@ Grundlage: Nutzer-Feedback nach dem ersten Praxiseinsatz (November 2026). Ausgan
 - **Klickbare Pipeline:** jede Phase und jede Karte mit der nächsten Aktion.
 - **„Kontakt & Termine“** in der Reihenfolge Freigeben → Kontakt aufnehmen → Termin vereinbaren.
 
-### Sprint B – Firmen finden, die wirklich funktionieren ← nächster Schritt
+### Sprint B – Firmen finden, die wirklich funktionieren ✅ v1.10 – Bericht: `docs/BERICHT_SPRINT_B.md`
 
 - **Quellen reparieren:**
   - GLEIF: seitenweise Abfrage und Fehlertext anzeigen. Dafür wird der Wortlaut der Fehlermeldung des Nutzers gebraucht.
@@ -47,7 +47,7 @@ Grundlage: Nutzer-Feedback nach dem ersten Praxiseinsatz (November 2026). Ausgan
 - **Sichtungsliste:** Website als Link in neuem Tab, Behalten oder Verwerfen per Klick bzw. Taste, „Behaltene analysieren“ als Stapel.
 - **Live-Test durch den Nutzer**, weil die Quellen in der Entwicklungsumgebung gesperrt sind.
 
-### Sprint C – Firmen-Bericht mit einem Klick
+### Sprint C – Firmen-Bericht mit einem Klick ← nächster Schritt
 
 - Impressum, Website-Scoring, Kaufsignale, Entscheider und Hypothesen laufen in einem Auftrag.
 - Ergebnis ist ein Bericht pro Firma, auch für viele Firmen am Stück.
@@ -58,7 +58,25 @@ Grundlage: Nutzer-Feedback nach dem ersten Praxiseinsatz (November 2026). Ausgan
 - **Leistungskatalog:** etwa 20 Leistungen in den Bereichen Strategie, Marke, Website/Shop, Sichtbarkeit, Barrierefreiheit (BFSG), Datenschutz-Check, Portal/App, Automatisierung/KI, Betreuung und Schulung.
 - **Größen S, M und L** mit Liefergegenständen.
 - **Nachvollziehbarer Preis:** Aufwand × Satz + Puffer + Fremdkosten = Festpreis. Die Aufschlüsselung bleibt intern; der Kunde sieht Leistungen und Festpreis.
-- **Voraussetzung:** echtes Leistungsangebot und interner Stundensatz des Nutzers. Es werden keine Leistungen oder Preise erfunden.
+- **Angaben des Nutzers (November 2026):**
+  - **Leistungen:**
+    - handgestaltete Kunst
+    - Texten
+    - Webdesign
+    - Grafikdesign
+    - Print- und Web-Angebote
+    - Logogestaltung
+    - Individualsoftware zur Verbesserung des Arbeitsalltags
+    - Anbindung an verschiedene Shops
+    - Aufbau eigener Webshops
+    - professionelle Fotografie und Videografie
+    - Werbung und SEO-/GEO-Optimierung
+    - KI-Chatbot-Integration
+    - Telefon-Sprachbot-Integration
+    - Webseiten-Analyse mit Handlungsbedarf
+  - **Kalkulation:**
+    - mindestens 66 €/h Zielverdienst (über 13 Jahre Erfahrung);
+    - teils Festpreise, dazu Anreise und Tagespauschale als eigene Positionen.
 
 ## Leitplanken (unverändert)
 

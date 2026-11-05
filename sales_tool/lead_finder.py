@@ -147,13 +147,13 @@ def _user_agent(conn):
     return f'SignalDesk/{__version__} (lokales B2B-Recherchetool{"; " + contact if contact else ""})'
 
 
-def _http(url, user_agent, data=None, content_type=None, accept='application/json'):
+def _http(url, user_agent, data=None, content_type=None, accept='application/json', timeout=None):
     headers = {'User-Agent': user_agent, 'Accept': accept}
     if content_type:
         headers['Content-Type'] = content_type
     req = urllib.request.Request(url, data=data, headers=headers, method='POST' if data is not None else 'GET')
     try:
-        with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+        with urllib.request.urlopen(req, timeout=timeout or TIMEOUT) as resp:
             raw = resp.read(8_000_001)
             if len(raw) > 8_000_000:
                 raise SourceError('Antwort zu groß – Suche bitte eingrenzen.')
@@ -170,6 +170,7 @@ def _http(url, user_agent, data=None, content_type=None, accept='application/jso
 
 
 FETCH = _http  # in Tests ersetzbar
+SLEEP = __import__('time').sleep
 
 
 # ---------------------------------------------------------------- Normalisierung
@@ -231,24 +232,36 @@ def _limit(value, default=100):
 # ---------------------------------------------------------------- Quellen
 
 def wikidata_query(city, keyword='', min_employees=0, limit=100):
-    industry = ''
-    if keyword:
-        kw = keyword.lower().replace('"', '')
-        industry = f'''?company wdt:P452 ?ind . ?ind rdfs:label ?indLabelDe .
-          FILTER(LANG(?indLabelDe) = "de" && CONTAINS(LCASE(?indLabelDe), "{kw}"))'''
+    """Leichte Abfrage (v1.10): keine transitive Klassensuche mehr (führte zu Zeitüberschreitung/HTTP 502).
+    Personen werden ausgeschlossen, Branchen-Stichwort wird lokal gefiltert."""
     employees = f'FILTER(BOUND(?employees) && ?employees >= {int(min_employees)})' if min_employees else ''
     city = city.replace('"', '')
-    return f'''SELECT ?company ?companyLabel ?website ?employees ?industryLabel ?hqLabel WHERE {{
-  ?hq rdfs:label "{city}"@de .
-  ?company wdt:P159 ?hq ; wdt:P17 wd:Q183 ; wdt:P31/wdt:P279* wd:Q4830453 .
+    return f'''SELECT ?company ?companyLabel ?website ?employees ?industryLabel ?hqLabel ?lei WHERE {{
+  {{ SELECT ?hq WHERE {{ ?hq rdfs:label "{city}"@de ; wdt:P17 wd:Q183 ; wdt:P625 [] . }} LIMIT 3 }}
+  ?company wdt:P159 ?hq .
+  FILTER NOT EXISTS {{ ?company wdt:P31 wd:Q5 }}
   FILTER NOT EXISTS {{ ?company wdt:P576 ?dissolved }}
   OPTIONAL {{ ?company wdt:P856 ?website }}
   OPTIONAL {{ ?company wdt:P1128 ?employees }}
   OPTIONAL {{ ?company wdt:P452 ?industry }}
-  {industry}
+  OPTIONAL {{ ?company wdt:P1278 ?lei }}
   {employees}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "de,en". }}
-}} LIMIT {int(limit) * 3}'''
+}} LIMIT {int(limit) * 4}'''
+
+
+def wikidata_sparql(query, ua, retries=1):
+    """SPARQL-Abfrage mit einem Wiederholversuch bei Überlastung (HTTP 502/503/504)."""
+    url = 'https://query.wikidata.org/sparql?' + urllib.parse.urlencode({'query': query, 'format': 'json'})
+    for attempt in range(retries + 1):
+        try:
+            return FETCH(url, ua, accept='application/sparql-results+json')
+        except SourceError as exc:
+            if attempt >= retries or not re.search(r'HTTP 50[234]|nicht erreichbar|timed out', str(exc)):
+                if re.search(r'HTTP 50[234]', str(exc)):
+                    raise SourceError('Wikidata ist gerade überlastet (HTTP 502/503/504). Bitte in einigen Minuten erneut versuchen.') from exc
+                raise
+            SLEEP(3)
 
 
 def search_wikidata(params, ua):
@@ -259,8 +272,7 @@ def search_wikidata(params, ua):
         raise ValueError('Mindestgröße: ganze Zahl ≥ 0.')
     limit = _limit(params.get('limit'))
     query = wikidata_query(city, keyword, min_emp, limit)
-    url = 'https://query.wikidata.org/sparql?' + urllib.parse.urlencode({'query': query, 'format': 'json'})
-    data = FETCH(url, ua, accept='application/sparql-results+json')
+    data = wikidata_sparql(query, ua)
     merged = {}
     for b in data.get('results', {}).get('bindings', []):
         qid = b.get('company', {}).get('value', '').rsplit('/', 1)[-1]
@@ -268,7 +280,7 @@ def search_wikidata(params, ua):
             continue
         item = merged.setdefault(qid, {
             'external_id': qid, 'name': b.get('companyLabel', {}).get('value', ''), 'website': '',
-            'city': b.get('hqLabel', {}).get('value', city), 'industry': '', 'employees': 0,
+            'city': b.get('hqLabel', {}).get('value', city), 'industry': '', 'employees': 0, 'lei': b.get('lei', {}).get('value', ''),
             'source_url': f'https://www.wikidata.org/wiki/{qid}'})
         if not item['website'] and b.get('website'):
             item['website'] = clean_website(b['website']['value'])
@@ -281,6 +293,9 @@ def search_wikidata(params, ua):
         if label and label not in item['industry'] and not re.fullmatch(r'Q\d+', label):
             item['industry'] = (item['industry'] + ', ' + label).strip(', ')[:200]
     items = [i for i in merged.values() if i['name'] and not re.fullmatch(r'Q\d+', i['name'])]
+    if keyword:
+        kw = keyword.casefold()
+        items = [i for i in items if kw in (i['industry'] + ' ' + i['name']).casefold()]
     return items[:limit]
 
 
@@ -291,8 +306,24 @@ def overpass_query(city, category, limit):
         sel = f'["{key}"="{value}"]' if value else f'["{key}"]'
         parts.append(f'nwr{sel}["name"]["website"](area.a);')
         parts.append(f'nwr{sel}["name"]["contact:website"](area.a);')
-    return (f'[out:json][timeout:25];\narea["boundary"="administrative"]["name"="{city}"]["admin_level"~"^(4|5|6|7|8)$"]->.a;\n'
+    return (f'[out:json][timeout:60];\narea["boundary"="administrative"]["name"="{city}"]["admin_level"~"^(4|5|6|7|8)$"]->.a;\n'
             f'(\n  {chr(10).join(parts)}\n);\nout center tags {int(limit) * 3};')
+
+
+OVERPASS_SERVERS = ('https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter',
+                    'https://overpass.kumi.systems/api/interpreter')
+
+
+def overpass(query, ua):
+    """Overpass-Abfrage mit Ausweichservern (v1.10) – der Hauptserver ist häufig überlastet."""
+    errors = []
+    for server in OVERPASS_SERVERS:
+        try:
+            return FETCH(server, ua, data=urllib.parse.urlencode({'data': query}).encode(),
+                         content_type='application/x-www-form-urlencoded', timeout=90)
+        except SourceError as exc:
+            errors.append(f"{urllib.parse.urlsplit(server).hostname}: {exc}")
+    raise SourceError('Alle OpenStreetMap-Server überlastet oder nicht erreichbar – bitte später erneut versuchen. (' + ' | '.join(errors)[:400] + ')')
 
 
 def search_osm(params, ua):
@@ -302,8 +333,7 @@ def search_osm(params, ua):
         raise ValueError('Unbekannte Kategorie.')
     limit = _limit(params.get('limit'))
     query = overpass_query(city, category, limit)
-    data = FETCH('https://overpass-api.de/api/interpreter', ua, data=urllib.parse.urlencode({'data': query}).encode(),
-                 content_type='application/x-www-form-urlencoded')
+    data = overpass(query, ua)
     items = []
     for el in data.get('elements', []):
         tags = el.get('tags', {})
@@ -321,33 +351,75 @@ def search_osm(params, ua):
     return items[:limit * 3]
 
 
-def search_gleif(params, ua):
-    city = _place(params.get('place'))
-    keyword = _keyword(params.get('keyword'))
-    limit = _limit(params.get('limit'))
-    query = {'filter[entity.legalAddress.country]': 'DE', 'filter[entity.legalAddress.city]': city,
-             'filter[entity.status]': 'ACTIVE', 'page[size]': min(limit, 200), 'page[number]': 1}
-    if keyword:
-        query['filter[fulltext]'] = keyword
-    data = FETCH('https://api.gleif.org/api/v1/lei-records?' + urllib.parse.urlencode(query), ua, accept='application/vnd.api+json')
+GLEIF_URL = 'https://api.gleif.org/api/v1/lei-records?'
+
+
+def gleif_page(ua, city='', postcode='', keyword='', page=1, size=200, attempt_from=0):
+    """Eine Seite GLEIF-Datensätze. Lehnt die API eine Filterkombination ab (HTTP 400 „Filter should contain only
+    allowed values“), wird mit weniger Filtern erneut gefragt; der Rest wird lokal gefiltert."""
+    base = {'page[size]': size, 'page[number]': page}
+    place = {'filter[entity.legalAddress.postalCode]': postcode} if postcode else {'filter[entity.legalAddress.city]': city}
+    attempts = [
+        {**place, 'filter[entity.legalAddress.country]': 'DE', 'filter[entity.status]': 'ACTIVE'},
+        {**place, 'filter[entity.legalAddress.country]': 'DE'},
+        dict(place),
+        {'filter[fulltext]': (postcode or city)},
+    ]
+    last = None
+    for idx, filters in enumerate(attempts):
+        if idx < attempt_from:
+            continue
+        q = {**filters, **base}
+        if keyword:
+            q['filter[fulltext]'] = (q.get('filter[fulltext]', '') + ' ' + keyword).strip()
+        try:
+            data = FETCH(GLEIF_URL + urllib.parse.urlencode(q), ua, accept='application/vnd.api+json')
+            data['_filters'] = sorted(filters)
+            data['_attempt'] = idx
+            return data
+        except SourceError as exc:
+            last = exc
+            if 'HTTP 400' not in str(exc):
+                raise
+    raise last
+
+
+def gleif_items(data, city='', postcode=''):
     items = []
     for rec in data.get('data', []):
         attr = rec.get('attributes', {})
         entity = attr.get('entity', {})
+        if (entity.get('status') or 'ACTIVE') != 'ACTIVE':
+            continue
         if entity.get('category') not in (None, '', 'GENERAL', 'BRANCH'):
             continue  # Fonds, Einzelpersonen etc. auslassen
         addr = entity.get('legalAddress', {}) or {}
+        if (addr.get('country') or 'DE') != 'DE':
+            continue
+        if postcode and (addr.get('postalCode') or '') != postcode:
+            continue
+        if city and not postcode and (addr.get('city') or '').casefold() != city.casefold():
+            continue
         name = (entity.get('legalName') or {}).get('name', '')
         lei = attr.get('lei') or rec.get('id', '')
         register = entity.get('registeredAs') or ''
+        ra = (entity.get('registeredAt') or {}).get('id', '')
         items.append({
-            'external_id': lei, 'name': name[:200], 'street': ' '.join(addr.get('addressLines') or [])[:200],
+            'external_id': lei, 'lei': lei, 'name': name[:200], 'street': ' '.join(addr.get('addressLines') or [])[:200],
             'zip': (addr.get('postalCode') or '')[:10], 'city': (addr.get('city') or city)[:120],
-            'country': (addr.get('country') or 'DE')[:2], 'register_id': register[:60],
+            'country': (addr.get('country') or 'DE')[:2], 'register_id': register[:60], 'register_authority': ra,
             'legal_form': legal_form_of(name),
             'signal_note': f"Initiale LEI-Registrierung {(attr.get('registration') or {}).get('initialRegistrationDate', '')[:10]}".strip(),
             'source_url': f'https://search.gleif.org/#/record/{lei}'})
     return items
+
+
+def search_gleif(params, ua):
+    city = _place(params.get('place'))
+    keyword = _keyword(params.get('keyword'))
+    limit = _limit(params.get('limit'))
+    data = gleif_page(ua, city=city, keyword=keyword, size=min(limit, 200))
+    return gleif_items(data, city=city)
 
 
 def ted_query(cpvs, since):
