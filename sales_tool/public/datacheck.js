@@ -132,7 +132,12 @@
       const file = e.target.files[0];
       e.target.value = '';
       if (!file) return;
-      if (file.size > 300000) return toast('CSV zu groß (max. 300 KB)', true);
+      const head = await file.slice(0, 2000).text();
+      if (/"?LEI"?[,;]"?Entity\.LegalName/.test(head) || file.size > 300000) {
+        // GLEIF-Export oder große Firmenliste: als Firmenliste importieren (Sichtung unter „Firmen finden“)
+        toast('Große Firmenliste erkannt – wird unter „Firmen finden“ zum Sichten importiert');
+        return window.importCompanyFile ? window.importCompanyFile(file) : toast('Import nicht verfügbar', true);
+      }
       csvText = await file.text();
       $('#dcCsvInfo').textContent = `${file.name}: ${Math.max(0, csvText.trim().split(/\r?\n/).length - 1)} Zeilen geladen – wird beim Start mitgeschickt.`;
     });

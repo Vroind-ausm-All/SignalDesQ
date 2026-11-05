@@ -5,43 +5,49 @@
 <div class="layout">
   <aside class="sidebar">
     <div class="brand"><div class="brand-mark">↗</div><div><b>SignalDesk</b><small>Akquise Cockpit / 2026</small></div></div>
-    <div class="side-kicker">WORKSPACE</div>
-    <nav aria-label="Hauptnavigation">
-      <button class="nav active" data-view="dashboard"><span>◈</span> Übersicht</button>
-      <button class="nav" data-view="center"><span>⌘</span> Research Center <small class="nav-new" id="rcNavBadge">NEU</small></button>
+        <nav aria-label="Hauptnavigation">
+      <button class="nav active" data-view="dashboard"><span>◈</span> Heute <small class="nav-new" id="tdNavBadge"></small></button>
+      <button class="nav" data-view="tasks"><span>☑</span> Aufgaben <small id="dueBadge"></small></button>
+      <div class="nav-group">1 · Kunden finden</div>
+      <button class="nav" data-view="finder"><span>⌕</span> Firmen finden</button>
+      <button class="nav" data-view="datacheck"><span>⇪</span> Import &amp; Prüfung</button>
+      <div class="nav-group">2 · Recherchieren</div>
+      <button class="nav" data-view="center"><span>⌘</span> Research Center <small class="nav-new" id="rcNavBadge"></small></button>
       <div class="nav-sub" aria-label="Recherche-Werkzeuge">
-        <button class="nav nav-child" data-view="finder">Firmen finden</button>
-        <button class="nav nav-child" data-view="datacheck">Datenprüfung</button>
         <button class="nav nav-child" data-view="research">URL-Recherche</button>
         <button class="nav nav-child" data-view="scoring">Website-Scoring</button>
         <button class="nav nav-child" data-view="signals">Kaufsignale <small class="nav-new" id="sgNavBadge"></small></button>
       </div>
-      <button class="nav" data-view="workspace"><span>◉</span> Mein Sales-Tag</button>
+      <div class="nav-group">3 · Verkaufen</div>
+      <button class="nav" data-view="leads"><span>▦</span> Leads</button>
+      <button class="nav" data-view="pipeline"><span>⤳</span> Pipeline</button>
+      <button class="nav" data-view="workspace"><span>◉</span> Kontakt & Termine</button>
       <button class="nav" data-view="quotes"><span>€</span> Angebote & Preise</button>
-      <button class="nav" data-view="accounting"><span>§</span> Rechnungen & Buchhaltung</button>
-      <button class="nav" data-view="leads"><span>▦</span> Leads & Signale</button>
-      <button class="nav" data-view="pipeline"><span>⤳</span> Deal-Pipeline</button>
-      <button class="nav" data-view="studio"><span>✧</span> KI-Studio</button>
-      <button class="nav" data-view="tasks"><span>☑</span> Aufgaben <small id="dueBadge"></small></button>
-      <button class="nav" data-view="playbook"><span>▤</span> Sales-Playbook</button>
-      <button class="nav" data-view="quality"><span>⚙</span> Datenqualität & System <small class="nav-new" id="qNavBadge"></small></button>
+      <div class="nav-group">4 · Abrechnen</div>
+      <button class="nav" data-view="accounting"><span>§</span> Rechnungen &amp; Buchhaltung</button>
+      <details class="nav-more"><summary class="nav-group">Erweitert</summary>
+        <button class="nav" data-view="quality"><span>⚙</span> Datenqualität & System <small class="nav-new" id="qNavBadge"></small></button>
+        <button class="nav" data-view="studio"><span>✧</span> KI-Studio <small class="nav-cap" id="aiNavBadge"></small></button>
+        <button class="nav" data-view="playbook"><span>▤</span> Sales-Playbook</button>
+      </details>
     </nav>
-    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.8 · Research, Sales, Buchhaltung &amp; Datenqualität</small><div id="authBar" class="auth-bar hidden"></div></div>
+    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.10 · Arbeitstag von oben nach unten</small><div id="authBar" class="auth-bar hidden"></div></div>
   </aside>
   <main class="main">
-    <header class="topbar"><div class="breadcrumb">SALES <span>/</span> <span id="sectionBreadcrumb">Übersicht</span></div><div class="top-actions"><div class="date-chip" id="today"></div><button class="btn btn-primary" id="newLeadBtn">＋ Neuer Lead</button></div></header>
+    <header class="topbar"><div class="breadcrumb">SALES <span>/</span> <span id="sectionBreadcrumb">Heute</span></div><div class="top-actions"><div class="date-chip" id="today"></div><button class="btn btn-primary" id="newLeadBtn">＋ Neuer Lead</button></div></header>
     <div class="content" id="viewDashboard">
-      <div class="eyebrow">DEIN VERTRIEBS-SYSTEM</div><div class="hero"><div><h1>Gute Kunden.<br><em>Im richtigen Moment.</em></h1><p>Qualifizierte Signale erkennen, passende Angebote formulieren und jeden nächsten Schritt im Blick behalten.</p><button type="button" class="btn btn-primary hero-cta" data-go="research">Website jetzt recherchieren ↗</button></div><div class="hero-arrow">↗</div></div>
-      <div class="kpi-grid">
-        <div class="kpi"><span>ALLE LEADS</span><strong id="kpiTotal">–</strong><small>In deiner Pipeline</small></div>
-        <div class="kpi"><span>A-PRIORITÄT</span><strong id="kpiPriority">–</strong><small>Score ≥ 65, ungeblockt</small></div>
-        <div class="kpi"><span>ÜBERFÄLLIG / HEUTE</span><strong id="kpiDue">–</strong><small>Offene Wiedervorlagen</small></div>
-        <div class="kpi"><span>OFFENES POTENZIAL</span><strong id="kpiValue">–</strong><small>Ungewichtete Budgetannahmen</small></div>
+      <div class="eyebrow" id="tdGreeting">DEIN ARBEITSTAG</div>
+      <div class="page-title td-title"><div><h1>Heute.</h1><p>Von oben nach unten: erst Zugesagtes und Termine, dann Angebote und Freigaben, danach Recherche und neue Firmen. Jeder Punkt führt direkt zur passenden Stelle.</p></div><button class="btn btn-primary" id="tdNext">Nächster Schritt →</button></div>
+      <section class="panel td-plan" aria-labelledby="tdPlanTitle"><div class="panel-header"><h3 id="tdPlanTitle">Tagesplan</h3><span class="muted" id="tdPlanState"></span></div><ol class="td-steps" id="tdSteps"></ol></section>
+      <div class="td-cols">
+        <section class="panel" id="wiedervorlage" aria-labelledby="tdWvTitle"><div class="panel-header"><h3 id="tdWvTitle">Wiedervorlage</h3><span class="muted" id="tdWvCount"></span></div><div class="td-list" id="tdWv"></div></section>
+        <section class="panel" aria-labelledby="tdPotTitle"><div class="panel-header"><h3 id="tdPotTitle">Offenes Potenzial</h3><button class="text-button" data-go="quotes">Angebote ↗</button></div>
+          <div class="td-pot-kpis" id="tdPotKpis"></div><div class="td-list" id="tdPot"></div><p class="muted td-note" id="tdPotNote"></p></section>
       </div>
-      <div class="section-heading"><div><span class="eyebrow">DEAL FLOW</span><h2>Deine Pipeline</h2></div><button class="text-button" data-go="leads">Alle Leads anzeigen ↗</button></div>
-      <div class="stages" id="stageSummary"></div>
-      <div class="two-cols"><section class="panel"><div class="panel-header"><h3>Priorisierte Chancen</h3><span class="muted">Top 5 nach Fit & Anlass</span></div><div id="topLeads" class="compact-list"></div></section><section class="panel"><div class="panel-header"><h3>Nächste Schritte</h3><button class="text-button" data-go="tasks">Aufgaben ↗</button></div><div id="homeTasks" class="compact-list"></div></section></div>
-      <div class="legal-foot"><b>Wichtig:</b> Der Score ist eine nachvollziehbare Heuristik, keine Kaufwahrscheinlichkeit. Öffentlich sichtbare Signale sind keine Einwilligung zur Werbeansprache.</div>
+      <div class="section-heading"><div><span class="eyebrow">DEAL FLOW · KLICKBAR</span><h2>Pipeline – was steht an?</h2></div><button class="text-button" data-go="pipeline">Pipeline öffnen ↗</button></div>
+      <div class="td-stages" id="tdStages"></div>
+      <details class="panel td-status"><summary><b>Was funktioniert gerade?</b> <span class="muted" id="tdStatusSummary"></span></summary><div class="td-list" id="tdStatus"></div></details>
+      <div class="legal-foot"><b>Wichtig:</b> Scores und Prioritäten sind nachvollziehbare Arbeitshilfen, keine Kaufwahrscheinlichkeit. Ein öffentlich sichtbares Signal ist keine Einwilligung zur Werbeansprache – jede Kontaktaktion braucht eine eigene Freigabe.</div>
     </div>
 
     <div class="content hidden" id="viewResearch">
@@ -106,25 +112,26 @@
       <section class="panel studio-archive"><div class="studio-section-head"><div><span class="eyebrow">03 / ERGEBNISSE & NACHVERFOLGUNG</span><h2>Analyseverlauf</h2></div><button type="button" class="text-button" id="refreshArchive">Aktualisieren ↻</button></div><div id="studioArchive" class="archive-list"><div class="empty">Noch keine echten Firmenanalysen gespeichert.</div></div></section>
     </div>
     <div class="content hidden" id="viewWorkspace">
-  <div class="eyebrow">DEIN TÄGLICHER VERTRIEBSARBEITSPLATZ</div>
-  <div class="page-title"><div><h1>Heute Kunden gewinnen.</h1><p>Recherchieren, Gespräche vorbereiten, Rückrufe und Termine verwalten – auch komplett offline.</p></div><span class="pill">Keine automatische Kontaktaufnahme</span></div>
+  <div class="eyebrow">3 · VERKAUFEN</div>
+  <div class="page-title"><div><h1>Kontakt & Termine.</h1><p>In dieser Reihenfolge: Kontaktaktion freigeben, Kontakt aufnehmen und dokumentieren, Termin vereinbaren. Nichts wird automatisch versendet oder angerufen.</p></div><span class="pill">Keine automatische Kontaktaufnahme</span></div>
+  <nav class="ws-steps" aria-label="Abschnitte"><a href="#permissions">1 · Freigeben</a><a href="#contact">2 · Kontakt aufnehmen</a><a href="#meeting">3 · Termin vereinbaren</a><a href="#suggestions">Vorschläge</a></nav>
   <div class="sales-metrics"><div class="panel"><small>Offene Aufgaben & Schritte heute</small><strong id="wsDue">–</strong></div><div class="panel"><small>Geplante Termine</small><strong id="wsMeetingsCount">–</strong></div><div class="panel"><small>Gespräche dokumentiert</small><strong id="wsCallsCount">–</strong></div></div>
   <div class="sales-cols">
-    <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">PRIORITÄTEN</span><h2>Als Nächstes</h2></div><button type="button" class="text-button" id="wsRefresh">Aktualisieren ↻</button></div><div id="wsAgenda" class="sales-list"></div><div class="legal-foot">Nur dokumentierte, rechtlich zulässige Kontakte ansprechen. Ein Bedarfssignal ersetzt keine Telefon- oder E-Mail-Berechtigung.</div></section>
+    <section class="panel sales-section" id="permissions"><span class="eyebrow">§ 7 UWG · DSGVO</span><h2>Kontaktaktionen – Freigabe</h2><p class="muted">Jede Kontaktaktion braucht eine eigene, dokumentierte Freigabe: Kanal, Rechtsgrundlage, Beschränkungen der Person. Ein hoher Score ist keine Erlaubnis.</p><div id="siPermissions" class="sales-list"></div></section>
+    <section class="panel sales-section" id="suggestions"><div class="studio-section-head"><div><span class="eyebrow">SALES ACTION CENTER</span><h2>Vorgeschlagene Aufgaben</h2></div><button type="button" class="text-button" id="siDayRefresh">Aktualisieren ↻</button></div><p class="muted">Aus Recherche, Bewertung, Signalen und Bedarfsklärung abgeleitet – nichts wird automatisch ausgeführt.</p><div id="siDaySuggestions" class="sales-list"></div></section>
+  </div>
+  <div class="sales-cols" id="contact">
     <section class="panel sales-section"><span class="eyebrow">TELEFON / MANUELLES LOG</span><h2>Call-Arbeitsplatz</h2><p class="muted">Keine automatische Anwahl, keine Aufzeichnung. Erst Rechtsgrundlage für den konkreten Anruf prüfen; Gesprächsergebnis nach dem Gespräch protokollieren.</p>
       <form id="wsCallForm" class="sales-form"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><div id="wsCallPermission" class="sales-banner">Bitte einen Lead auswählen.</div>
       <label>Gesprächsergebnis<select name="outcome"><option value="erreicht">Gespräch geführt</option><option value="rueckruf_vereinbart">Rückruf ausdrücklich vereinbart</option><option value="termin_vereinbart">Termin vereinbart</option><option value="nicht_erreicht">Nicht erreicht</option><option value="mailbox">Mailbox</option><option value="kein_bedarf">Kein Bedarf</option><option value="widerspruch">Kontaktaufnahme untersagt</option></select></label>
       <label>Notizen / konkrete Vereinbarung<textarea name="notes" rows="3" maxlength="2000" placeholder="Wörtliche Aussage, Ergebnis, Absprachen"></textarea></label>
       <label>Kontakt-Rechtsprüfung / Dokumentation<input name="legal_note" maxlength="1000" placeholder="Grundlage für den erfolgten Anruf (falls zutreffend)"></label>
       <label>Vereinbarter Rückruf am<input type="date" name="callback_date"></label><button class="btn btn-primary" type="submit">Gespräch dokumentieren</button></form></section>
-  </div>
-  <div class="sales-cols">
-    <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">SALES ACTION CENTER</span><h2>Vorgeschlagene Aufgaben</h2></div><button type="button" class="text-button" id="siDayRefresh">Aktualisieren ↻</button></div><p class="muted">Aus Recherche, Bewertung, Signalen und Bedarfsklärung abgeleitet – nichts wird automatisch ausgeführt.</p><div id="siDaySuggestions" class="sales-list"></div></section>
-    <section class="panel sales-section"><span class="eyebrow">§ 7 UWG · DSGVO</span><h2>Kontaktaktionen – Freigabe</h2><p class="muted">Jede Kontaktaktion braucht eine eigene, dokumentierte Freigabe: Kanal, Rechtsgrundlage, Beschränkungen der Person. Ein hoher Score ist keine Erlaubnis.</p><div id="siPermissions" class="sales-list"></div></section>
-  </div>
-  <div class="sales-cols">
-    <section class="panel sales-section"><span class="eyebrow">TERMINE</span><h2>Discovery & Projektgespräche</h2><form id="wsMeetingForm" class="sales-form"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><label>Termintitel<input name="title" required maxlength="180" placeholder="Bedarfsgespräch"></label><div class="sales-row"><label>Datum & Uhrzeit<input name="starts_at" type="datetime-local" required></label><label>Dauer<select name="duration_min"><option value="30">30 Min</option><option value="45">45 Min</option><option value="60">60 Min</option><option value="90">90 Min</option></select></label></div><label>Ort / Link<input name="location" maxlength="300" placeholder="Telefon, Online, Büro"></label><label>Agenda<input name="notes" maxlength="2000" placeholder="Welche Fragen klären wir?"></label><button type="submit" class="btn btn-primary">Termin speichern</button></form><div id="wsMeetings" class="sales-list"></div></section>
     <section class="panel sales-section"><span class="eyebrow">MAIL · VORBEREITEN, NICHT SENDEN</span><h2>Mail-Assistent</h2><p class="muted">Entwürfe für bereits vereinbarte Kommunikation. Ohne Mail-Anbieter gibt es keinen Versand; Werbeeinwilligung separat prüfen.</p><form class="sales-form" id="wsMailForm"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><label>Anlass<select name="draft_type"><option value="nach_gespraech">Nach einem Gespräch</option><option value="terminbestaetigung">Terminbestätigung</option><option value="angebot_begleiten">Angebot begleiten</option><option value="rueckfrage">Vereinbarte Rückfrage</option></select></label><label>Dokumentierte Gesprächsvereinbarung / Kontaktanlass<textarea name="contact_basis" rows="2" required maxlength="500" placeholder="z. B. am 17.10. um schriftliche Zusammenfassung gebeten"></textarea></label><button type="submit" class="btn btn-primary">Entwurf erstellen</button></form><div id="wsMailPreview" class="sales-mail-preview"></div><div class="sales-subhead">Letzte gespeicherte Entwürfe</div><div id="wsMailHistory" class="sales-list"></div></section>
+  </div>
+  <div class="sales-cols">
+    <section class="panel sales-section" id="meeting"><span class="eyebrow">TERMINE</span><h2>Discovery & Projektgespräche</h2><form id="wsMeetingForm" class="sales-form"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><label>Termintitel<input name="title" required maxlength="180" placeholder="Bedarfsgespräch"></label><div class="sales-row"><label>Datum & Uhrzeit<input name="starts_at" type="datetime-local" required></label><label>Dauer<select name="duration_min"><option value="30">30 Min</option><option value="45">45 Min</option><option value="60">60 Min</option><option value="90">90 Min</option></select></label></div><label>Ort / Link<input name="location" maxlength="300" placeholder="Telefon, Online, Büro"></label><label>Agenda<input name="notes" maxlength="2000" placeholder="Welche Fragen klären wir?"></label><button type="submit" class="btn btn-primary">Termin speichern</button></form><div id="wsMeetings" class="sales-list"></div></section>
+    <section class="panel sales-section" id="agenda"><div class="studio-section-head"><div><span class="eyebrow">PRIORITÄTEN</span><h2>Als Nächstes</h2></div><button type="button" class="text-button" id="wsRefresh">Aktualisieren ↻</button></div><div id="wsAgenda" class="sales-list"></div><div class="legal-foot">Nur dokumentierte, rechtlich zulässige Kontakte ansprechen. Ein Bedarfssignal ersetzt keine Telefon- oder E-Mail-Berechtigung.</div></section>
   </div>
   <section class="panel sales-section"><span class="eyebrow">PROTOKOLL</span><h2>Letzte Anruf-Ergebnisse</h2><div id="wsRecentCalls" class="sales-list"></div></section>
 </div>
@@ -153,7 +160,43 @@
 <div class="content hidden" id="viewFinder">
  <div class="eyebrow">NEUE KUNDEN FINDEN · OFFENE QUELLEN</div>
  <div class="page-title"><div><h1>Firmen finden, die passen.</h1><p>Durchsuche offen lizenzierte Quellen nach Unternehmen und Ausschreibungen in deiner Region. Treffer prüfst du einzeln und übernimmst sie bewusst ins CRM – ohne Personendaten, ohne Kontaktversand.</p></div><span class="pill">Fund ≠ Kontakterlaubnis</span></div>
- <div class="lf-sources" id="lfSources"></div>
+ <section class="panel sw-start" aria-labelledby="swTitle">
+  <div class="studio-section-head"><div><span class="eyebrow">ARBEITSTAG STARTEN · ALLE QUELLEN AUF EINMAL</span><h2 id="swTitle">Wo und wen suchst du heute?</h2></div><span class="audit-chip">GLEIF · Wikidata · OpenStreetMap · TED</span></div>
+  <form id="swForm" class="sw-form">
+    <div class="sw-row">
+      <label>Ort oder PLZ<input name="place" required maxlength="80" placeholder="z. B. 70173 oder Stuttgart" autocomplete="postal-code"></label>
+      <label>Umkreis<select name="radius_km"><option value="5">5 km</option><option value="10">10 km</option><option value="20">20 km</option><option value="30" selected>30 km</option><option value="50">50 km</option><option value="75">75 km</option></select></label>
+      <label class="sw-kw">Eigene Schlagwörter (optional, durch Komma)<input name="keywords" maxlength="400" placeholder="z. B. Manufaktur, Weingut, Präzision"></label>
+    </div>
+    <div class="sw-ind"><div class="sw-ind-head"><b>Branchen</b> <span class="muted" id="swIndCount">alle Branchen</span><input type="search" id="swIndSearch" placeholder="Branche suchen …" aria-label="Branche suchen"><button type="button" class="text-button" id="swIndClear">Auswahl leeren</button></div>
+      <div id="swIndustries" class="sw-ind-groups"></div><p class="muted" id="swIndNotice"></p></div>
+    <div class="sw-row sw-opts">
+      <fieldset><legend>Quellen</legend><label><input type="checkbox" name="src" value="gleif" checked> GLEIF (amtl. Firmendaten)</label><label><input type="checkbox" name="src" value="wikidata" checked> Wikidata</label><label><input type="checkbox" name="src" value="osm" checked> OpenStreetMap</label><label><input type="checkbox" name="src" value="ted" checked> TED-Ausschreibungen</label></fieldset>
+      <fieldset><legend>Filter</legend><label><input type="checkbox" name="operative" checked> Nur operative Firmen (ohne Holding, Verwaltung, Fonds)</label><label><input type="checkbox" name="include_sole"> Auch Einzelunternehmen ohne Rechtsform</label></fieldset>
+    </div>
+    <div class="sw-actions"><button type="submit" class="btn btn-primary sw-go" id="swGo">▶ Arbeitstag starten – alle Quellen abfragen</button>
+      <label class="btn btn-ghost sw-import">⇪ Firmenliste / GLEIF-Export importieren<input type="file" id="swFile" accept=".csv,text/csv" hidden></label>
+      <span class="muted">Große Dateien (bis 60 MB) möglich. Dubletten werden automatisch zusammengeführt.</span></div>
+  </form>
+  <div id="swProgress" class="sw-progress hidden" role="status" aria-live="polite"></div>
+</section>
+<section class="panel sw-review" id="swReview" aria-labelledby="swReviewTitle">
+  <div class="studio-section-head"><div><span class="eyebrow">SICHTEN · DURCHKLICKEN</span><h2 id="swReviewTitle">Gefundene Firmen</h2></div><span class="muted" id="swCounts"></span></div>
+  <div class="sw-toolbar">
+    <select id="swStatus" aria-label="Status"><option value="neu">Neu zu sichten</option><option value="uebernommen">Übernommen</option><option value="verworfen">Verworfen</option><option value="dublette">Schon als Lead vorhanden</option><option value="alle">Alle</option></select>
+    <select id="swSweep" aria-label="Suchlauf"><option value="">Alle Suchläufe & Importe</option></select>
+    <select id="swWeb" aria-label="Website"><option value="">mit & ohne Website</option><option value="1">nur mit Website</option><option value="0">nur ohne Website</option></select>
+    <select id="swSort" aria-label="Sortierung"><option value="distanz">Nach Entfernung</option><option value="quellen">Mehrere Quellen zuerst</option><option value="website">Mit Website zuerst</option><option value="name">Nach Name</option></select>
+    <input type="search" id="swQ" placeholder="Name, Ort, PLZ …" aria-label="Suche">
+  </div>
+  <div class="sw-bulk"><label><input type="checkbox" id="swAll"> alle auf dieser Seite</label><button type="button" class="btn btn-ghost" data-sw-bulk="websites">Websites suchen (Nachweis per Impressum)</button><button type="button" class="btn btn-primary" data-sw-bulk="uebernehmen">Ausgewählte übernehmen</button><button type="button" class="btn btn-ghost" data-sw-bulk="verwerfen">Ausgewählte verwerfen</button>
+    <span class="muted sw-keys">Tastatur: ↑/↓ bzw. j/k · <b>o</b> Website öffnen · <b>b</b> übernehmen · <b>v</b> verwerfen</span></div>
+  <div id="swList" class="sw-list" tabindex="0"></div>
+  <div class="sw-pager"><button type="button" class="btn btn-ghost" id="swPrev">← zurück</button><span id="swPage" class="muted"></span><button type="button" class="btn btn-ghost" id="swNext">weiter →</button></div>
+  <div class="sales-subhead">Deine Gebiete & Suchläufe</div><div id="swHistory" class="sales-list"></div>
+</section>
+<details class="panel lf-expert"><summary><b>Einzelne Quelle gezielt abfragen</b> <span class="muted">für Fortgeschrittene</span></summary>
+<div class="lf-sources" id="lfSources"></div>
  <div class="sales-cols lf-grid">
   <section class="panel sales-section"><span class="eyebrow">01 / SUCHEN</span><h2 id="lfFormTitle">Quelle wählen</h2>
    <form id="lfForm" class="sales-form">
@@ -183,6 +226,7 @@
   <section class="panel sales-section"><span class="eyebrow">VERLAUF</span><h2>Letzte Suchläufe</h2><div id="lfRuns" class="sales-list"></div></section>
   <section class="panel sales-section"><span class="eyebrow">NUR MANUELL</span><h2>Weitere Quellen – bewusst nicht automatisiert</h2><p class="muted">Diese Quellen sind wertvoll, dürfen aber nicht oder nur eingeschränkt automatisch ausgelesen werden. Links öffnen sich mit deinem Ort/Stichwort.</p><div id="lfManual" class="sales-list"></div></section>
  </div>
+</details>
  <div class="legal-foot"><b>Rechtlicher Rahmen (keine Rechtsberatung):</b> Öffentliche Auffindbarkeit ist keine Einwilligung. § 7 UWG: Werbe-E-Mails brauchen vorherige ausdrückliche Einwilligung – auch B2B; Telefonwerbung gegenüber Unternehmen nur bei mutmaßlicher Einwilligung; Briefwerbung ist grundsätzlich zulässig, solange kein Widerspruch vorliegt. Sobald du Personendaten ergänzt, gelten Art. 6 Abs. 1 lit. f und die Informationspflicht nach Art. 14 DSGVO. Details: docs/LEADQUELLEN_V11.md.</div>
 </div>
 <div class="content hidden" id="viewDatacheck">
@@ -533,4 +577,6 @@
 <script src="/center.js" defer></script>
 <script src="/salesint.js" defer></script>
 <script src="/quality.js" defer></script>
+<script src="/today.js" defer></script>
+<script src="/sweep.js" defer></script>
 </body></html>

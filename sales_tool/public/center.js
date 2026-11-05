@@ -2,17 +2,21 @@
 // v1.6 Research Command Center: Übersicht über alle Recherche-Schritte, Prüfliste, Quellen, Dossier und Übergabe.
 (function () {
   const esc = v => escapeHTML(String(v ?? ''));
-  const RESEARCH_VIEWS = [['center', 'Übersicht'], ['finder', 'Firmen finden'], ['datacheck', 'Datenprüfung'], ['research', 'URL-Recherche'], ['scoring', 'Website-Scoring'], ['signals', 'Kaufsignale']];
+  // Sprint A: zwei Gruppen im Tagesablauf – „Kunden finden“ und „Recherchieren“
+  const FIND_VIEWS = [['finder', 'Firmen finden'], ['datacheck', 'Import & Prüfung']];
+  const RESEARCH_VIEWS = [['center', 'Research Center'], ['research', 'URL-Recherche'], ['scoring', 'Website-Scoring'], ['signals', 'Kaufsignale']];
   const STEP_SHORT = {website: 'Web', imprint: 'Impressum', scored: 'Bewertet', signals: 'Signale', hypotheses: 'Verknüpft', decision: 'Entscheider', channel: 'Kontaktweg'};
   const STATUS = {queued: 'wartet', running: 'läuft', paused: 'pausiert', done: 'fertig', failed: 'Fehler', cancelled: 'abgebrochen'};
   let data = null, selected = new Set(), pollTimer = null, detailLead = null, detailTab = 'prep';
 
   // ------------------------------------------------------------ gemeinsame Unter-Navigation der Recherche-Bereiche
   function injectSubnav() {
-    for (const [view] of RESEARCH_VIEWS) {
-      const el = $('#view' + view[0].toUpperCase() + view.slice(1));
-      if (!el || el.querySelector('.rc-subnav')) continue;
-      el.insertAdjacentHTML('afterbegin', `<nav class="rc-subnav" aria-label="Research Center">${RESEARCH_VIEWS.map(([v, l]) => `<button type="button" data-rc-sub="${v}">${esc(l)}</button>`).join('')}</nav>`);
+    for (const group of [FIND_VIEWS, RESEARCH_VIEWS]) {
+      for (const [view] of group) {
+        const el = $('#view' + view[0].toUpperCase() + view.slice(1));
+        if (!el || el.querySelector('.rc-subnav')) continue;
+        el.insertAdjacentHTML('afterbegin', `<nav class="rc-subnav" aria-label="${group === FIND_VIEWS ? 'Kunden finden' : 'Recherchieren'}">${group.map(([v, l]) => `<button type="button" data-rc-sub="${v}">${esc(l)}</button>`).join('')}</nav>`);
+      }
     }
   }
   window.markResearchSubnav = function (view) {
