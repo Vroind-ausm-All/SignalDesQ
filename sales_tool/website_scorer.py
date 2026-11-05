@@ -584,6 +584,9 @@ def _size_fit(employees):
 
 
 def _signal_score(lead):
+    bs = lead.get('_buying_signal')  # Phase 3: echte, datierte Kaufsignale haben Vorrang vor dem manuellen Lead-Feld
+    if bs and bs[0] is not None:
+        return bs
     if (lead.get('signal_type') or 'kein_signal') == 'kein_signal':
         return None, 'Kein dokumentierter Projektanlass – unbekannt, nicht schlecht.'
     if not lead.get('signal_date'):
@@ -815,6 +818,8 @@ def run_audit(db_path, audit_id):
     with connect(db_path) as conn:
         audit = conn.execute('SELECT * FROM website_audits WHERE id=?', (audit_id,)).fetchone()
         lead = dict(conn.execute('SELECT * FROM leads WHERE id=?', (audit['lead_id'],)).fetchone())
+        from .buying_signals import signal_strength_for_scoring
+        lead['_buying_signal'] = signal_strength_for_scoring(conn, lead['id'])
         version_id, cfg = active_version(conn)
     try:
         if playwright_available():

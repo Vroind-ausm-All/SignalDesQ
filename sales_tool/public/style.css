@@ -196,3 +196,18 @@
 .sc-rank td small{display:block;color:var(--muted);font-size:11px;overflow-wrap:anywhere}
 #scConfigBox summary{cursor:pointer}
 @media(max-width:900px){.sc-grid{grid-template-columns:1fr}.sc-shots img{width:140px;height:95px}}
+
+/* v1.5 Kaufsignale */
+.sg-kpis{margin-bottom:16px}.sg-pane{margin-bottom:18px}.sg-cols{align-items:start}
+.sg-feed,.sg-timeline{display:grid;gap:10px;margin-top:10px}
+.sg-card,.sg-hyp{border:1px solid var(--line);border-radius:12px;padding:13px;background:#fff;font-size:13px}
+.sg-card.sg-new{border-color:#9fd8c6}.sg-card.sg-contra{background:#fffafa}
+.sg-card small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.sg-card .acc-btn-group small{display:inline;margin:0}
+.sg-evidence{font-style:italic;color:#405a5f;margin:8px 0;overflow-wrap:anywhere}
+.sg-two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:6px 0}.sg-two ul,.sg-two ol{margin:4px 0;padding-left:18px}
+.sg-kind{font-size:10px;font-weight:800;padding:2px 7px;border-radius:12px;background:#edf0fb;color:#4d5f9a}
+.sg-kind.job{background:#e8f6f1;color:#1d7a58}.sg-kind.website{background:#fff4dc;color:#946510}.sg-kind.manual{background:#f1eefc;color:#6a4fa8}
+.sg-hyp{margin-top:12px;background:rgba(13,148,136,.04)}.sg-hyp .eyebrow{margin-bottom:4px}
+.sg-strength{font-size:11px;font-weight:800;padding:3px 9px;border-radius:12px;white-space:nowrap;background:#fff4dc;color:#946510}
+.sg-strength.stark{background:#e1f7eb;color:#1d7a58}
+@media(max-width:800px){.sg-two{grid-template-columns:1fr}}

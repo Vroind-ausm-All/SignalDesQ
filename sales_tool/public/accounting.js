@@ -20,8 +20,8 @@
 
   function showTab(tab) {
     currentTab = tab;
-    $$('.acc-tab').forEach(b => { b.classList.toggle('active', b.dataset.accTab === tab); b.setAttribute('aria-selected', b.dataset.accTab === tab); });
-    $$('.acc-pane').forEach(p => p.classList.toggle('hidden', p.dataset.accPane !== tab));
+    $$('#viewAccounting .acc-tab').forEach(b => { b.classList.toggle('active', b.dataset.accTab === tab); b.setAttribute('aria-selected', b.dataset.accTab === tab); });
+    $$('#viewAccounting .acc-pane').forEach(p => p.classList.toggle('hidden', p.dataset.accPane !== tab));
     ({overview: loadOverview, invoices: loadInvoices, expenses: loadExpenses, report: loadReport, settings: loadSettings})[tab]();
   }
 
@@ -323,7 +323,7 @@
   // ------------------------------------------------------------ Events
   function init() {
     if (!$('#viewAccounting')) return;
-    $$('.acc-tab').forEach(b => b.addEventListener('click', () => showTab(b.dataset.accTab)));
+    $$('#viewAccounting .acc-tab').forEach(b => b.addEventListener('click', () => showTab(b.dataset.accTab)));
     $('#accInvoiceFilter').addEventListener('change', loadInvoices);
     $('#accNewInvoice').addEventListener('click', () => openEditor(null));
     $('#accEditorClose').addEventListener('click', () => { $('#accEditor').classList.add('hidden'); editingId = null; });

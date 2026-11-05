@@ -28,6 +28,7 @@ from .lead_finder import route_lead_finder
 from .imprint_batch import route_imprint, route_company_data, recover_batches
 from .company_data import check_suppressed, suppress_lead
 from .website_scorer import route_scoring, recover_audits
+from .buying_signals import route_signals, recover_scans
 from .model import STAGES, INDUSTRIES, SIGNALS, OFFERS, PERMISSIONS, CONTACT_ROUTES, as_lead, connect, init_db, stats, discovery_summary
 
 ROOT = Path(__file__).resolve().parent
@@ -147,7 +148,7 @@ def validate(fields: dict, partial=False):
 
 def make_handler(db_path):
     class Handler(BaseHTTPRequestHandler):
-        server_version = "SignalDesk/1.4"
+        server_version = "SignalDesk/1.5"
 
         def _conn(self):
             return connect(db_path)
@@ -227,6 +228,8 @@ def make_handler(db_path):
                 if route_imprint(self, conn, method, route, query, db_path) or route_company_data(self, conn, method, route, query):
                     return
                 if route_scoring(self, conn, method, route, query, db_path):
+                    return
+                if route_signals(self, conn, method, route, query, db_path):
                     return
                 if route == '/api/workspace/catalog' and method == 'GET':
                     return self._send(200, {'packages':PACKAGES,'addons':ADDONS,'call_outcomes':CALL_OUTCOMES,
@@ -625,7 +628,7 @@ def make_handler(db_path):
                 return self._error("Nur Lesezugriff", 405)
             mapping = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
                        "/style.css": ("style.css", "text/css"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-                       "/accounting.js": ("accounting.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+                       "/accounting.js": ("accounting.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
             if route not in mapping:
                 return self._error("Datei nicht gefunden", 404)
             path, mime = mapping[route]
@@ -673,7 +676,7 @@ def make_handler(db_path):
     return Handler
 
 
-SCHEMA_VERSION = 14  # v1.4 – bei Schemaänderungen erhöhen
+SCHEMA_VERSION = 15  # v1.5 – bei Schemaänderungen erhöhen
 
 
 def backup_before_migration(db):
@@ -750,6 +753,7 @@ def main():
                         finished_at=datetime('now') WHERE status IN ('queued','running')""")
         recover_batches(conn)
         recover_audits(conn)
+        recover_scans(conn)
         conn.commit()
     server, port = bind_server(make_handler(db), args.port)
     url = f"http://127.0.0.1:{port}"
