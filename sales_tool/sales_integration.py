@@ -287,7 +287,7 @@ def update_contact_roles(conn, contact_id, data):
             add_suppression(conn, 'email', channel, f"Widerspruch {c['full_name']}", c['lead_id'])
         conn.execute("""UPDATE tasks SET permission_status='abgelehnt', permission_basis='Widerspruch der Person' WHERE contact_id=? AND done=0
                         AND permission_status IN ('zu_pruefen','freigegeben')""", (contact_id,))
-        _audit(conn, 'contact', contact_id, 'widerspruch', c['full_name'])
+        _audit(conn, 'contact', contact_id, 'widerspruch', f"Lead {c['lead_id']}: Widerspruch eingetragen")  # ohne Namen: Audit-Log ist unveränderbar
     conn.commit()
     return contact_view(conn.execute('SELECT * FROM decision_contacts WHERE id=?', (contact_id,)).fetchone())
 

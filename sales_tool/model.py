@@ -211,6 +211,8 @@ def init_db(conn: sqlite3.Connection):
     from .website_scorer import init_website_scorer
     from .buying_signals import init_buying_signals
     from .sales_integration import init_sales_integration
+    from .quality import init_quality
+    from .auth import init_auth
     init_workspace(conn)
     init_accounting(conn)
     init_einvoice(conn)
@@ -220,6 +222,8 @@ def init_db(conn: sqlite3.Connection):
     init_website_scorer(conn)
     init_buying_signals(conn)
     init_sales_integration(conn)
+    init_quality(conn)
+    init_auth(conn)
     conn.commit()
 
 

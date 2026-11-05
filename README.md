@@ -20,6 +20,17 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.8 – Datenqualität, Sicherheit & Team-Vorbereitung
+
+Neuer Bereich **„Datenqualität & System“**:
+- **Änderungen erkennen:** Ein neu ausgelesenes Impressum, eine neue Website-Bewertung oder eine Registerbekanntmachung wird mit den vorhandenen Daten verglichen. Jede Abweichung wird zum Prüfpunkt; übernommen wird nur nach deiner Bestätigung.
+- **Wiederkehrende Aufträge:** Impressen, Websites und Karriereseiten werden regelmäßig neu geprüft, gespeicherte Firmensuchen wiederholt. Alles läuft über die bestehenden Schutzmechanismen, ohne Kontaktaufnahme.
+- **Veraltungs-Kennzeichen** mit einstellbaren Fristen und **Löschfristen für Personendaten** (Löschen auf Klick, Löschnachweis ohne Namen).
+- **Gewichte der Recherchepriorität** sind einstellbar.
+- **Team-Vorbereitung:** Optionaler Login mit Rollen (admin, vertrieb, buchhaltung, lesen) und **verschlüsselte Sicherungen** (`pip install -r requirements-team.txt`). Wie man SignalDesk sicher im Team betreibt, steht in [`docs/BETRIEB_UND_TEAM.md`](docs/BETRIEB_UND_TEAM.md).
+- **Sicherheitsprüfung** mit behobenen Befunden (u. a. Schutz vor DNS-Rebinding und Einbetten): [`docs/SICHERHEITSPRUEFUNG_V18.md`](docs/SICHERHEITSPRUEFUNG_V18.md). Der Migrationstest läuft mit echten Altdatenbanken ab v0.9.
+- Sprint-Bericht: [`docs/BERICHT_PHASE6.md`](docs/BERICHT_PHASE6.md)
+
 ## v1.7 – Sales-Integration
 
 - **Angebots-Matching:** Pakete aus dem Leistungskatalog werden aus den **bestätigten Aussagen der Bedarfsanalyse** abgeleitet, mit wörtlichem Zitat. Hinweise aus Recherche und Website-Bewertung stehen getrennt daneben. Vor der dokumentierten Bedarfsklärung ist jede Empfehlung **unverbindlich**, danach kann sie mit einem Klick als **Angebotsgrundlage** ins Angebotsmodul übernommen werden.

@@ -1,0 +1,3 @@
+# Optional für SignalDesk ab v1.8: verschlüsselte Datensicherungen (AES-256-GCM).
+# Ohne dieses Paket funktionieren alle anderen Funktionen inkl. Login; nur die verschlüsselte Sicherung fehlt.
+cryptography>=42,<47

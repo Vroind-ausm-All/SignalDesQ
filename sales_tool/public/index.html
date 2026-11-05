@@ -24,8 +24,9 @@
       <button class="nav" data-view="studio"><span>✧</span> KI-Studio</button>
       <button class="nav" data-view="tasks"><span>☑</span> Aufgaben <small id="dueBadge"></small></button>
       <button class="nav" data-view="playbook"><span>▤</span> Sales-Playbook</button>
+      <button class="nav" data-view="quality"><span>⚙</span> Datenqualität & System <small class="nav-new" id="qNavBadge"></small></button>
     </nav>
-    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.7 · Research Center, Sales-Integration &amp; Buchhaltung</small></div>
+    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.8 · Research, Sales, Buchhaltung &amp; Datenqualität</small><div id="authBar" class="auth-bar hidden"></div></div>
   </aside>
   <main class="main">
     <header class="topbar"><div class="breadcrumb">SALES <span>/</span> <span id="sectionBreadcrumb">Übersicht</span></div><div class="top-actions"><div class="date-chip" id="today"></div><button class="btn btn-primary" id="newLeadBtn">＋ Neuer Lead</button></div></header>
@@ -392,9 +393,49 @@
  <div><b>Woche 4 · Angebote testen</b><p>Bedarf, Entscheidung und Budgetstatus dokumentieren, konkrete Piloten anbieten, Absagen/Learnings und nächste Termine festhalten.</p></div>
 </div><p class="muted">Arbeitsplan, keine Erfolgsgarantie. Ergebnis messen: qualifizierte Gespräche, tatsächlich bestätigte Probleme, Angebote und bezahlte Aufträge.</p>
 <h2 class="section-sub">Qualifikation in 4 Schritten</h2><div class="steps"><div><b>01 · Anlass</b><p>Welches öffentlich verifizierbare Signal deutet auf Veränderung hin?</p></div><div><b>02 · Diagnose</b><p>Was kostet der aktuelle Engpass an Zeit, Leads oder Fehlern?</p></div><div><b>03 · Pilot</b><p>Welche kleine Lösung ist in 2–6 Wochen messbar?</p></div><div><b>04 · Delivery</b><p>Wer liefert was bis wann? Welcher KPI zeigt Nutzen?</p></div></div><div class="legal-foot"><b>Rechtliches:</b> Keine ungefragten Marketing-E-Mails oder Serien-DMs. Kontakt nur über zulässige Wege und mit dokumentierter Grundlage. Dieses Tool sendet grundsätzlich nichts automatisch. Details in docs/RECHTLICHES.md.</div></div>
+<div class="content hidden" id="viewQuality">
+ <div class="eyebrow">QUALITÄT & SKALIERUNG</div>
+ <div class="page-title"><div><h1>Daten aktuell halten.</h1><p>Veraltete Daten erkennen, Änderungen prüfen, Recherchen regelmäßig wiederholen – und SignalDesk für den Team-Betrieb absichern. Nichts wird ohne deine Bestätigung überschrieben oder gelöscht.</p></div><span class="pill">Prüfen statt überschreiben</span></div>
+ <div class="sales-metrics q-metrics" id="qMetrics"></div>
+ <div class="sales-cols">
+  <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">ÄNDERUNGSERKENNUNG</span><h2>Erkannte Änderungen</h2></div><button type="button" class="btn btn-ghost" id="qDetect">Jetzt prüfen ↻</button></div>
+   <p class="muted">Vergleicht neu ausgelesene Impressen mit den übernommenen Firmendaten, neue Website-Bewertungen mit der vorigen und Registerbekanntmachungen mit den Firmendaten.</p>
+   <div id="qChanges" class="sales-list"></div></section>
+  <section class="panel sales-section"><span class="eyebrow">VERALTUNGS-KENNZEICHEN</span><h2>Veraltete Daten</h2><p class="muted" id="qStaleNotice"></p><div id="qStale" class="sales-list"></div>
+   <div class="sales-subhead">Abgelaufene Löschfristen (Personendaten)</div><div id="qPrivacy" class="sales-list"></div></section>
+ </div>
+ <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">WIEDERKEHRENDE RECHERCHE</span><h2>Aufträge nach Zeitplan</h2></div></div>
+  <p class="muted" id="qJobsNotice"></p>
+  <form id="qJobForm" class="sales-form q-jobform">
+   <div class="sales-row q-row3"><label>Auftrag<select name="kind" id="qJobKind"></select></label><label>Bezeichnung<input name="label" maxlength="120" placeholder="z. B. Impressen Stuttgart monatlich"></label><label>Alle … Tage<input name="interval_days" type="number" min="1" max="365" value="30" required></label></div>
+   <div class="sales-row q-row3 q-limit"><label>Höchstens … Firmen je Lauf<input name="limit" type="number" min="1" max="50" value="20"></label></div>
+   <div class="sales-row q-row3 q-finder hidden"><label>Quelle<select name="source"><option value="wikidata">Wikidata</option><option value="osm">OpenStreetMap</option><option value="gleif">GLEIF</option><option value="ted">TED-Ausschreibungen</option></select></label><label>Ort / Stadt<input name="place" maxlength="80" placeholder="z. B. Stuttgart"></label><label>Stichwort / CPV-Gruppe<input name="keyword" maxlength="60" placeholder="optional"></label></div>
+   <button type="submit" class="btn btn-primary">Auftrag anlegen</button>
+  </form>
+  <div id="qJobs" class="sales-list"></div>
+ </section>
+ <div class="sales-cols">
+  <section class="panel sales-section"><span class="eyebrow">EINSTELLUNGEN</span><h2>Gewichte & Fristen</h2>
+   <form id="qSettingsForm" class="sales-form">
+    <div class="sales-subhead">Recherchepriorität (Summe 100)</div>
+    <div class="sales-row q-row3"><label>Website<input name="w_website" type="number" min="0" max="100" required></label><label>Kaufsignale<input name="w_signal" type="number" min="0" max="100" required></label><label>Lead-Fit<input name="w_fit" type="number" min="0" max="100" required></label></div>
+    <div class="sales-subhead">Als veraltet markieren nach … Tagen</div>
+    <div class="sales-row q-row3" id="qStaleInputs"></div>
+    <button type="submit" class="btn btn-primary">Einstellungen speichern</button>
+   </form></section>
+  <section class="panel sales-section"><span class="eyebrow">TEAM & SICHERHEIT</span><h2>Zugang, Rollen, Backups</h2>
+   <div id="qSecurity" class="sales-list"></div>
+   <div class="sales-subhead">Login & Benutzer</div><div id="qAuth"></div>
+   <div class="sales-subhead">Datensicherung</div>
+   <div class="acc-btn-group"><button type="button" class="btn btn-ghost" id="qBackup">Sicherung jetzt anlegen</button></div>
+   <form id="qEncForm" class="sales-form"><label>Verschlüsselte Sicherung – Passwort (mind. 12 Zeichen, wird nicht gespeichert)<input name="password" type="password" minlength="12" maxlength="200" autocomplete="new-password" required></label><button type="submit" class="btn btn-ghost">Verschlüsselt sichern</button></form>
+  </section>
+ </div>
+</div>
   </main>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="loginOverlay" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="loginTitle"><div class="modal login-modal"><header><div><div class="eyebrow">SIGNALDESK · TEAM</div><h2 id="loginTitle">Anmelden</h2></div></header><div class="modal-body"><form id="loginForm" class="sales-form"><label>Benutzername<input name="username" autocomplete="username" required maxlength="40"></label><label>Passwort<input name="password" type="password" autocomplete="current-password" required maxlength="200"></label><div id="loginError" class="sales-banner hidden" role="alert"></div><button type="submit" class="btn btn-primary">Anmelden</button></form><p class="muted">Der Login wurde von deiner Administration eingeschaltet. Passwort vergessen? Die Administration kann es zurücksetzen.</p></div></div></div>
 <div id="modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><header><div><div class="eyebrow">LEAD INTELLIGENCE</div><h2 id="modalTitle">Neuer Lead</h2></div><button class="icon-close" id="closeModal" aria-label="Schließen">✕</button></header><div class="modal-body"><form id="leadForm"><input type="hidden" name="id"><div class="field-grid"><label class="field-wide">Firma <span>*</span><input name="company" required maxlength="200" placeholder="Beispiel GmbH"></label><label>Website<input name="website" type="url" placeholder="https://..."></label><label>Standort<input name="location" maxlength="160" placeholder="z. B. Stuttgart"></label><label>Kontaktrolle<input name="contact_role" maxlength="120" placeholder="z. B. Marketing / Inhaber"></label><label>Kontaktperson<input name="contact_name" maxlength="160" placeholder="Optional"></label><label>Branche<select name="industry" id="industrySelect"></select></label><label>Mitarbeitende (Schätzung)<input name="employees" type="number" min="0" step="1" placeholder="50"></label><label>Signaltyp<select name="signal_type" id="signalSelect"></select></label><label>Signaldatum<input name="signal_date" type="date"></label><label class="field-wide">Öffentliche Quelle / Beleg-URL<input name="signal_source" type="url" placeholder="https://unternehmen.de/news/..."></label><label class="field-wide">Signal-Beobachtung<textarea name="signal_note" rows="2" maxlength="2000" placeholder="Was ist faktisch erkennbar? Was ist bloß eine Hypothese?"></textarea></label><label>Passendes Angebot<select name="offer" id="offerSelect"></select></label><label>Geschätztes Projektbudget (€)<input name="estimated_budget" type="number" min="0" step="1" placeholder="8500"></label><label>Pipeline-Phase<select name="stage" id="stageSelect"></select></label><label>Wie kam der Kontakt zustande?<select name="contact_route" id="routeSelect"></select></label><label>Rechtsstatus Kontakt<select name="permission" id="permissionSelect"></select></label><label class="field-wide">Dokumentation Einwilligung / Rechtsprüfung<input name="permission_evidence" maxlength="500" placeholder="Datum, Quelle, Umfang – kein bloßes Bauchgefühl"></label><label class="field-wide">Notizen<textarea name="note" rows="2" maxlength="4000"></textarea></label><label>Nächster Schritt<input name="next_step" maxlength="500" placeholder="z. B. persönliches Intro erfragen"></label><label>Nächster Termin<input name="next_date" type="date"></label></div><div class="score-panel"><div><strong>Prioritätsscore</strong><span>keine Abschlusswahrscheinlichkeit</span></div><div id="modalScore">—</div></div><div id="scoreReasons" class="reasons"></div><div class="form-actions"><button type="button" id="deleteLeadBtn" class="btn btn-danger hidden">Lead löschen</button><button type="button" class="btn btn-ghost" id="cancelLead">Abbrechen</button><button type="submit" class="btn btn-primary">Lead speichern</button></div></form><div id="leadExtras" class="hidden"><div class="divider"></div>
 <section class="audit-panel" aria-labelledby="factsTitle">
   <div class="audit-title"><div><div class="eyebrow">FIRMENDATEN · BELEGE</div><h3 id="factsTitle">Firmendaten & Belege</h3></div><button type="button" class="btn btn-primary" id="leadImprintBtn">Impressum prüfen ↗</button></div>
@@ -491,4 +532,5 @@
 <script src="/signals.js" defer></script>
 <script src="/center.js" defer></script>
 <script src="/salesint.js" defer></script>
+<script src="/quality.js" defer></script>
 </body></html>
