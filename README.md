@@ -20,6 +20,14 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.7 – Sales-Integration
+
+- **Angebots-Matching:** Pakete aus dem Leistungskatalog werden aus den **bestätigten Aussagen der Bedarfsanalyse** abgeleitet, mit wörtlichem Zitat. Hinweise aus Recherche und Website-Bewertung stehen getrennt daneben. Vor der dokumentierten Bedarfsklärung ist jede Empfehlung **unverbindlich**, danach kann sie mit einem Klick als **Angebotsgrundlage** ins Angebotsmodul übernommen werden.
+- **Neues Paket „Automatisierungsprojekt“.** Das Kundenangebot zeigt jetzt auch Liefergegenstände, Abnahmekriterien und mögliche Drittanbieterkosten.
+- **Entscheider v3:** Fachliche Zuständigkeit, Budget und finale Entscheidung werden je Person getrennt geführt (unbekannt / vermutet / bestätigt). Dazu kommen eine Rollenlandkarte mit Lücken, ein veröffentlichter Kontaktweg mit Fundstelle und **Kontaktbeschränkungen** (keine Anrufe, nur Brief, Widerspruch …).
+- **Sales Action Center:** Aufgabenvorschläge aus deinen Rechercheergebnissen. **Jede Kontaktaktion braucht eine eigene, dokumentierte Freigabe** (Kanal, Rechtsgrundlage, Beschränkungen der Person) und lässt sich vorher nicht abhaken. Versendet wird nichts.
+- Sprint-Bericht: [`docs/BERICHT_PHASE5.md`](docs/BERICHT_PHASE5.md)
+
 ## v1.6 – Research Command Center
 
 Neuer Bereich **„Research Center“** – eine Arbeitsfläche über alle Recherche-Werkzeuge (Firmen finden, Datenprüfung, URL-Recherche, Website-Scoring, Kaufsignale):

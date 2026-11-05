@@ -49,6 +49,37 @@ PACKAGES = {
         'hours': 238, 'external_cost_eur': 850, 'revision_rounds': 2,
     },
 }
+PACKAGES['automation'] = {
+    'title': 'Automatisierungsprojekt – ein Prozess digital', 'outcome': 'Ein klar abgegrenzter manueller Ablauf läuft automatisiert, nachvollziehbar und mit weniger Doppelerfassung.',
+    'weeks': '4–6 Wochen', 'minimum_eur': 6900,
+    'included': ['Prozessaufnahme-Workshop mit den beteiligten Personen', 'Ist-/Soll-Ablauf mit Datenfluss und Zuständigkeiten',
+                 'Umsetzung der Automatisierung für einen definierten Prozess (z. B. Formular → System, Excel → Datenbank, Benachrichtigungen)',
+                 'Fehler- und Ausnahmebehandlung', 'Test mit echten, freigegebenen Beispieldaten', 'Dokumentation und Übergabe'],
+    'excluded': ['Weitere Prozesse oder Abteilungen', 'Anpassungen am ERP/CRM durch dessen Hersteller', 'Lizenzkosten von Drittsystemen', '24/7-Betrieb und SLA'],
+    'hours': 96, 'external_cost_eur': 300, 'revision_rounds': 2,
+}
+# Kundenseitige Angebotsstruktur (Master-Prompt Modul 8): Liefergegenstände, Abnahmekriterien, Drittanbieter-/Folgekosten
+PACKAGE_DETAILS = {
+    'pilot': {'deliverables': ['Kurzaudit des Anfragewegs (PDF)', 'Umgesetzte Verbesserung auf der bestehenden Website', 'Übergabeprotokoll'],
+              'acceptance': ['Der verbesserte Anfrageweg funktioniert auf Desktop und Smartphone', 'Testanfrage kommt beim vereinbarten Empfänger an'],
+              'third_party': ['Keine, sofern bestehende Systeme (Website, Formular-Tool) genutzt werden.']},
+    'conversion': {'deliverables': ['Konzept und UX-Entwürfe für bis zu 4 Kernseiten', 'Umgesetzte, responsive Seiten', 'Anfrageformular inkl. Bestätigung', 'Tracking-Plan und eingerichtetes Basis-Tracking', 'Einweisung (60 Min.)'],
+                   'acceptance': ['Seiten entsprechen den freigegebenen Entwürfen', 'Formular und Tracking sind getestet', 'Darstellung auf aktuellen Browsern und Smartphones geprüft'],
+                   'third_party': ['Hosting/CMS-Lizenz, falls neu erforderlich: ca. 10–40 € pro Monat, Vertrag direkt mit dem Anbieter.', 'Bildlizenzen nach Bedarf.']},
+    'brand': {'deliverables': ['Visuelle Leitidee', 'Überarbeitetes Logo/Identität im vereinbarten Umfang', 'Farb- und Typografie-Definition', 'Digitales Styleguide-Paket', '3 Vorlagen'],
+              'acceptance': ['Freigabe der Leitidee', 'Styleguide und Vorlagen vollständig in den vereinbarten Formaten geliefert'],
+              'third_party': ['Schriftlizenzen und Bildrechte nach Bedarf, direkt beim Rechteinhaber.', 'Markenrechtliche Prüfung durch eine Kanzlei (nicht enthalten).']},
+    'care': {'deliverables': ['Monatlicher Kurzreport', 'Eine dokumentierte Optimierung pro Monat', '30-Minuten-Review'],
+             'acceptance': ['Report und Änderungsprotokoll liegen bis zum vereinbarten Termin vor'],
+             'third_party': ['Hosting, Domains und Lizenzen bleiben beim Kunden bzw. dessen Anbietern.']},
+    'portal': {'deliverables': ['UX-Prototyp', 'Lauffähiges MVP mit Anmeldung, Rollen und einem Kernprozess', 'Testprotokoll', 'Technische Dokumentation', 'Übergabe-Workshop'],
+               'acceptance': ['Der vereinbarte Kernprozess ist mit Testdaten vollständig durchführbar', 'Rollen und Rechte entsprechen dem Konzept', 'Abnahmetest gemeinsam bestanden'],
+               'third_party': ['Hosting/Server: ca. 30–150 € pro Monat je nach Nutzung, Vertrag direkt mit dem Anbieter.', 'Optional: Wartungsvertrag nach dem Go-live (separates Angebot).']},
+    'automation': {'deliverables': ['Prozessdokumentation Ist/Soll', 'Eingerichtete Automatisierung für einen Prozess', 'Testprotokoll mit Beispieldaten', 'Betriebsdokumentation'],
+                   'acceptance': ['Der vereinbarte Prozess läuft mit Testdaten ohne manuellen Zwischenschritt', 'Ausnahmen werden wie vereinbart gemeldet'],
+                   'third_party': ['Automatisierungsplattform oder Schnittstellen-Lizenzen: je nach Volumen ca. 0–100 € pro Monat, direkt beim Anbieter.']},
+}
+
 ADDONS = {
     'copy': {'title':'Texte für bis zu 3 Kernseiten', 'included':'Redaktion/Überarbeitung von maximal drei Webseitentexten', 'hours':12, 'external_cost_eur':0, 'price_floor':700},
     'analytics': {'title':'Messkonzept & Dashboard', 'included':'Ereignismessung und ein einfaches Reporting-Dashboard', 'hours':15, 'external_cost_eur':50, 'price_floor':950},
@@ -185,7 +216,7 @@ def create_meeting(conn,data):
 def daily_view(conn):
     today=dt.date.today().isoformat()
     leads=conn.execute("SELECT id,company,stage,permission,permission_evidence,offer,next_step,next_date FROM leads WHERE stage NOT IN ('gewonnen','verloren','gesperrt') ORDER BY next_date='' ,next_date,id LIMIT 100").fetchall()
-    todos=[dict(r) for r in conn.execute('''SELECT t.id,t.title,t.due_date,t.lead_id,l.company FROM tasks t LEFT JOIN leads l ON l.id=t.lead_id WHERE t.done=0 AND (l.id IS NULL OR l.stage!='gesperrt') ORDER BY (t.due_date=''),t.due_date,t.id LIMIT 80''')]
+    todos=[dict(r) for r in conn.execute('''SELECT t.id,t.title,t.due_date,t.lead_id,t.action_type,t.permission_status,t.channel,t.permission_basis,l.company FROM tasks t LEFT JOIN leads l ON l.id=t.lead_id WHERE t.done=0 AND (l.id IS NULL OR l.stage!='gesperrt') ORDER BY (t.due_date=''),t.due_date,t.id LIMIT 80''')]
     meetings=[dict(r) for r in conn.execute('''SELECT m.*,l.company FROM meetings m JOIN leads l ON l.id=m.lead_id WHERE m.status IN ('geplant','bestaetigt') ORDER BY m.starts_at LIMIT 80''')]
     lead_steps=[{'id':r['id'],'company':r['company'],'next_step':r['next_step'],'next_date':r['next_date']} for r in leads if r['next_step']]
     proposals=[dict(r) for r in conn.execute("SELECT p.id,p.lead_id,p.status,l.company,p.created_at FROM proposals p JOIN leads l ON l.id=p.lead_id ORDER BY p.id DESC LIMIT 50")]
@@ -239,9 +270,12 @@ def quote_preview(data):
         tax=Decimal(0)
         tax_note='Umsatzsteuerstatus offen – Angebot vor Versand steuerlich vervollständigen'
     included=plan['included']+[ADDONS[x]['included'] for x in raw]
+    details=PACKAGE_DETAILS.get(key,{})
     customer={
         'project_label':label,'package':key,'package_title':plan['title'],'goal':goal,
         'included':included,'excluded':list(plan['excluded']),'assumptions':assumptions,
+        'deliverables':list(details.get('deliverables',[]))+[ADDONS[x]['title'] for x in raw],
+        'acceptance_criteria':list(details.get('acceptance',[])),'third_party_costs':list(details.get('third_party',[])),
         'weeks':plan['weeks'],'billing':plan.get('billing','einmalig'),'revision_rounds':plan['revision_rounds'],
         'net_eur':float(final),'vat_eur':float(tax),'total_eur':float(final+tax),'tax_mode':mode,'tax_note':tax_note,
         'payment_plan':('Monatliche Zahlung im Voraus; Vertragslaufzeit und Kündigungsfristen ausdrücklich vereinbaren.' if plan.get('billing')=='monatlich' else '40 % bei Beauftragung, 60 % nach vereinbarter Abnahme (Vorschlag, anpassen)'),
@@ -301,11 +335,15 @@ def customer_markdown(customer):
     lines+=['',
            '## Ziel und Ergebnis',safe(customer['goal']),'','## Enthaltene Leistungen']
     lines += ['- '+safe(x) for x in customer['included']]
+    if customer.get('deliverables'): lines += ['','## Liefergegenstände']+['- '+safe(x) for x in customer['deliverables']]
     lines += ['','## Nicht enthalten']+['- '+safe(x) for x in customer['excluded']]
     if customer.get('assumptions'): lines+=['','## Voraussetzungen',safe(customer['assumptions'])]
     lines += ['','## Umfang und Abnahme',f"- Geplanter Zeitraum: {safe(customer['weeks'])}",
               f"- Korrekturschleifen: {customer['revision_rounds']}",
-              '- Abnahme anhand der genannten Liefergegenstände nach gemeinsamer Prüfung.','',
+              '- Abnahme anhand der genannten Liefergegenstände nach gemeinsamer Prüfung.']
+    if customer.get('acceptance_criteria'): lines += ['','## Abnahmekriterien']+['- '+safe(x) for x in customer['acceptance_criteria']]
+    if customer.get('third_party_costs'): lines += ['','## Mögliche Drittanbieter- und Folgekosten (nicht im Festpreis)']+['- '+safe(x) for x in customer['third_party_costs']]
+    lines += ['',
               '## Festpreis',f"**{customer['net_eur']:.2f} EUR netto{' pro Monat' if customer.get('billing')=='monatlich' else ''}**",safe(customer['tax_note'])]
     if customer['tax_mode']!='offen': lines.append(f"**Gesamtbetrag: {customer['total_eur']:.2f} EUR{' pro Monat' if customer.get('billing')=='monatlich' else ''}**")
     lines += ['', '## Zahlung und Änderungen',safe(customer['payment_plan']),safe(customer['change_requests']),
