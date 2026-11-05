@@ -50,11 +50,11 @@ Leitplanken für alle Phasen:
 Rubriken als Konfiguration; gerenderte Seiten und Screenshots (Desktop/Mobil) über Playwright; Ladezeit, defekte Links, Formulare und Kontaktwege; Teil-Scores Design/UX, Web/Conversion, Prozess/App, Passung, Signalaktualität, Belegabdeckung; Gewichtung 35/35/30 konfigurierbar; „Datenlage unzureichend“ statt Score; `score_versions` für Vergleichbarkeit; 3–5 Bedarfsfragen.
 **Abnahme:** reproduzierbare Scores, Scoring mit fehlenden Daten, keine Kaufbereitschafts-Aussagen.
 
-### Phase 3 – Buying Signals (Module 4, 5, 7) ← nächster Schritt
+### Phase 3 – Buying Signals (Module 4, 5, 7) ✅ v1.5 – Bericht: `docs/BERICHT_PHASE3.md`
 Job-Signale von Karriereseiten der Firmen und per manuellem Import (keine Portal-Scraper); Registerereignisse per manuellem Import von Bekanntmachungen; Ereignishistorie je Firma ohne Doppelmeldung; Signal-Korrelation mit Pro/Contra, Veröffentlichungs- vs. Funddatum, Widersprüchen und fehlenden Belegen.
 **Abnahme:** alte Stellenanzeigen, doppelte Registerereignisse, widersprüchliche Signale.
 
-### Phase 4 – Research Command Center (Oberfläche)
+### Phase 4 – Research Command Center (Oberfläche) ← nächster Schritt
 Eine Arbeitsfläche für Suche, Batch-Aufträge mit Fortschritt, Prüflisten, priorisierte Firmen, Quellenansicht. URL-Recherche, Lead-Finder und Datenprüfung gehen darin auf. Alle Ergebnisse bearbeitbar, prüfbar, exportierbar.
 
 ### Phase 5 – Sales-Integration (Module 6, 8, 10)

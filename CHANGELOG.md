@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.0 – Phase 3: Buying Signals
+
+- Registerereignisse per manuellem Import (Text/CSV): Neueintragung, Umbenennung, Geschäftsführer-/Prokurawechsel, Sitzverlegung, Strukturänderung, Auflösung als Gegenhinweis; Datenminimierung.
+- Job-Signale aus Karriereseiten (eigene Domain, schema.org-JobPosting), Personio-XML-Feed und manuellem Import; Bereiche Prozess, Web & Marketing, Software mit Pro/Contra, Alter und Ablaufdatum.
+- Dubletten per Schlüssel und quellenübergreifende Zusammenführung; Veröffentlichungs- vs. Funddatum; Neu-Markierung; Aktualitätsgewichtung ohne Löschen.
+- Signal-Korrelation mit Hypothesen, Stärke, Gegenhinweisen, Widersprüchen, fehlenden Bestätigungen, Fragen und Paketen.
+- Website-Scoring: Projektanlass aus echten Signalen; Übernahme bestätigter Signale in den Lead.
+- Bereich „Kaufsignale“ und „Kaufsignale & Hypothesen“ im Lead-Dialog.
+- Fix: Tab-Steuerung der Buchhaltung reagierte auf alle Tabs der Seite.
+- 162 Tests (13 neu).
+
 ## 1.4.0 – Phase 2: Website-Bedarfs-Scorer v2
 
 - Gerenderte Erfassung mit Chromium (Desktop + Smartphone, Unterseiten), Screenshots, Ladezeit, Datenmenge, Konsolenfehler, DOM-Messwerte; Linkprüfung interner Links.

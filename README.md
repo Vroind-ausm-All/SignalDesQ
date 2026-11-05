@@ -20,6 +20,16 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.5 – Kaufsignale: Register, Stellen, Hypothesen
+
+Neuer Bereich **„Kaufsignale“**:
+- **Registerbekanntmachungen** (Neueintragung, Umbenennung, Geschäftsführerwechsel, Sitzverlegung, Strukturänderung, Auflösung) werden per Einfügen oder CSV importiert. Es gibt keinen Register-Scraper, Geburtsdaten werden entfernt.
+- **Stellenanzeigen** kommen von der Karriereseite der Firma (inkl. schema.org-Stellendaten), aus dem offiziellen Personio-Feed oder per manuellem Import, nicht von Jobportalen. Jede Stelle erhält Pro- **und** Contra-Deutung (z. B. „Inhouse statt Agentur“).
+- **Signal-Korrelation** pro Firma: Register-, Stellen- und Website-Signale werden zu Hypothesen („Möglicherweise …“) mit Stärke, Gegenhinweisen, Widersprüchen, fehlenden Bestätigungen und Gesprächsfragen verknüpft. Korrelation ist keine Kausalität.
+- Dubletten über Quellen hinweg werden zusammengeführt. Alte Signale zählen weniger, gelöscht wird nichts.
+- Der **Projektanlass** im Website-Scoring nutzt jetzt echte, datierte Signale.
+- Sprint-Bericht: [`docs/BERICHT_PHASE3.md`](docs/BERICHT_PHASE3.md). Mit fiktiven Testdaten geprüft; der Live-Test mit echten Karriereseiten und Bekanntmachungen steht noch aus.
+
 ## v1.4 – Website-Bedarfs-Scorer v2
 
 Neuer Bereich **„Website-Scoring“**: SignalDesk rendert die Website mit Chromium auf dem Desktop und als Smartphone, speichert Screenshots, misst Ladezeit und Datenmenge, prüft interne Links und bewertet 21 Rubriken in drei Bereichen (Design & UX, Web & Conversion, Prozess & App). Jede Rubrik erhält „auffällig“, „ok“ oder „unbekannt“ mit Messwert und Fundstelle.
@@ -64,7 +74,7 @@ Neuer Bereich **„Datenprüfung“**: Bis zu 100 Firmendomains (Liste oder CSV)
 
 **Wichtig:** Keine Steuerberatung. Erzeugte XRechnungen vor dem ersten Kundenversand mit dem [KoSIT-Validator](https://github.com/itplr-kosit/validator) prüfen; UStVA-Werte sind eine Vorbereitung und müssen vor der Übermittlung geprüft werden.
 
-**Tests:** `python -m unittest discover -s tests -q` (149 Tests).
+**Tests:** `python -m unittest discover -s tests -q` (162 Tests).
 
 ---
 

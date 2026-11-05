@@ -208,6 +208,7 @@ def init_db(conn: sqlite3.Connection):
     from .company_data import init_company_data
     from .imprint_batch import init_imprint_batch
     from .website_scorer import init_website_scorer
+    from .buying_signals import init_buying_signals
     init_workspace(conn)
     init_accounting(conn)
     init_einvoice(conn)
@@ -215,6 +216,7 @@ def init_db(conn: sqlite3.Connection):
     init_company_data(conn)
     init_imprint_batch(conn)
     init_website_scorer(conn)
+    init_buying_signals(conn)
     conn.commit()
 
 
