@@ -156,7 +156,9 @@ def quote_draft(conn, rec_id):
     assumptions = '; '.join(x for x in (f"Zeitrahmen laut Gespräch: {disc['timing']}" if disc.get('timing') else '',
                                         f"Entscheidungsweg: {disc['decision_process']}" if disc.get('decision_process') else '',
                                         f"Bisherige Lösung: {disc['current_solution']}" if disc.get('current_solution') else '') if x)
+    from .pricing import TEMPLATES
     return {'lead_id': rec['lead_id'], 'package': rec['package'], 'project_label': PACKAGES[rec['package']]['title'],
+            'positions': TEMPLATES.get(rec['package'], []),
             'customer_goal': (disc.get('desired_outcome') or PACKAGES[rec['package']]['outcome'])[:500], 'assumptions': assumptions[:1000],
             'notice': 'Aus der dokumentierten Bedarfsklärung vorbelegt. Leistungsumfang, Festpreis und Steuerstatus vor dem Versand prüfen.'}
 

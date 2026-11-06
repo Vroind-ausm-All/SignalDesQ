@@ -20,6 +20,14 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.12 – Angebote & Preise, nachvollziehbar
+
+- **Leistungskatalog mit 26 Leistungen** aus deinem Angebot, meist in drei Größen (Basis, Standard, Umfangreich): von Logo, Webdesign und Webshop über Foto und Video, SEO und GEO bis zum KI-Chatbot und Telefon-Sprachbot. Dazu kommen **Tagespauschale** und **Anreise** als eigene Positionen.
+- **Festpreise, die du nachvollziehen kannst:** Je Position siehst du Aufwand × 66 €/h + Puffer + enthaltene Fremdkosten = Festpreis und deinen effektiven Stundenlohn. Liegt eine Position darunter, gibt es eine Warnung. Stundensatz, Tagespauschale und Katalogwerte stellst du selbst ein.
+- **Angebot aus Positionen zusammenstellen** oder eine Vorlage laden. Der Kunde sieht Positionen, Leistungen und Festpreise, aber keine Stunden. Kosten Dritter stehen ausdrücklich „nicht im Festpreis“.
+- Die **Rechnung** übernimmt die Positionen einzeln; laufende Leistungen rechnest du per Monatsrechnung ab.
+- Sprint-Bericht: [`docs/BERICHT_SPRINT_D.md`](docs/BERICHT_SPRINT_D.md)
+
 ## v1.11 – Firmen-Bericht mit einem Klick
 
 - **Firmen-Berichte:** Website eintragen oder Firmen auswählen → **„Bericht erstellen“**. In einem Durchgang prüft SignalDesk Impressum, Website-Bewertung, Website-Inhalte mit Ansprechpartnern, Karriereseite und Kaufsignale und schlägt passende Pakete vor (unverbindlich).

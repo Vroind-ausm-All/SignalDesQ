@@ -53,7 +53,7 @@ Grundlage: Nutzer-Feedback nach dem ersten Praxiseinsatz (November 2026). Ausgan
 - Ergebnis ist ein Bericht pro Firma, auch für viele Firmen am Stück.
 - Die bisherigen Einzelbereiche bleiben als Detailansichten.
 
-### Sprint D – Angebote & Preise ← nächster Schritt
+### Sprint D – Angebote & Preise ✅ v1.12 – Bericht: `docs/BERICHT_SPRINT_D.md`
 
 - **Leistungskatalog:** etwa 20 Leistungen in den Bereichen Strategie, Marke, Website/Shop, Sichtbarkeit, Barrierefreiheit (BFSG), Datenschutz-Check, Portal/App, Automatisierung/KI, Betreuung und Schulung.
 - **Größen S, M und L** mit Liefergegenständen.
@@ -77,6 +77,12 @@ Grundlage: Nutzer-Feedback nach dem ersten Praxiseinsatz (November 2026). Ausgan
   - **Kalkulation:**
     - mindestens 66 €/h Zielverdienst (über 13 Jahre Erfahrung);
     - teils Festpreise, dazu Anreise und Tagespauschale als eigene Positionen.
+
+## Danach ← nächster Schritt
+Masterplan v3 ist damit umgesetzt. Als Nächstes steht der Live-Test der ganzen Kette beim Nutzer an:
+- Firmen finden → Bericht → Kontakt → Termin → Angebot → Rechnung;
+- Katalogwerte an die eigene Erfahrung anpassen;
+- Rückmeldung als Grundlage für die nächste Runde.
 
 ## Leitplanken (unverändert)
 

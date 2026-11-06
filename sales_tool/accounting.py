@@ -700,15 +700,27 @@ def invoice_from_proposal(conn, data):
     if customer.get('tax_mode') == 'kleinunternehmer' and not settings['small_business']:
         raise ValueError('Angebot wurde nach § 19 UStG erstellt, Stammdaten sehen Regelbesteuerung vor – bitte klären.')
     mode = data.get('mode', 'voll')
-    if mode not in ('voll', 'abschlag', 'schluss'):
-        raise ValueError('Modus: voll, abschlag oder schluss.')
+    if mode not in ('voll', 'abschlag', 'schluss', 'monat'):
+        raise ValueError('Modus: voll, abschlag, schluss oder monat.')
+    positions = customer.get('positions') or []
+    if mode == 'monat' and not any(p['billing'] == 'monatlich' for p in positions):
+        raise ValueError('Das Angebot enthält keine monatlichen Positionen.')
+    if positions and customer.get('billing') == 'gemischt' and mode != 'monat':
+        customer = {**customer, 'net_eur': customer['once_net_eur'], 'billing': 'einmalig'}
     net_total = cents(customer['net_eur'], 'Angebotspreis')
     title = customer.get('project_label') or customer.get('package_title') or 'Leistung laut Angebot'
     ref = customer.get('offer_number') or f'#{pid}'
     monthly = customer.get('billing') == 'monatlich'
     lines = []
     kind = 'rechnung'
-    if mode == 'voll':
+    if mode == 'monat' or (mode == 'voll' and positions):
+        # Sprint D: Positionen aus dem Baukasten einzeln übernehmen (einmalig bzw. Monatsleistungen)
+        want = 'monatlich' if mode == 'monat' or monthly else 'einmalig'
+        for n, p in enumerate((p for p in positions if p['billing'] == want), 1):
+            lines.append({'description': f"{p['title']} – {p['scope']} (Angebot {ref}, Pos. {positions.index(p) + 1})"[:500],
+                          'quantity': 1, 'unit': 'monat' if want == 'monatlich' else 'pauschal', 'unit_price_cents': cents(p['price_eur'], 'Positionspreis'),
+                          'vat_rate': 19})
+    elif mode == 'voll':
         lines.append({'description': f"{title} – Festpreis gemäß Angebot {ref}" + (' (Monatspauschale)' if monthly else ''),
                       'quantity': 1, 'unit': 'monat' if monthly else 'pauschal', 'unit_price_cents': net_total, 'vat_rate': 19})
     elif mode == 'abschlag':

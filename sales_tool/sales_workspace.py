@@ -295,7 +295,11 @@ def make_proposal(conn,data):
     if not isinstance(data,dict) or 'lead_id' not in data: raise ValueError('Lead-ID fehlt.')
     lead=_lead(conn,data['lead_id'])
     payload={k:v for k,v in data.items() if k!='lead_id'}
-    proposal=quote_preview(payload)
+    if 'positions' in payload:  # Sprint D: Baukasten mit einzelnen Positionen
+        from .pricing import build_quote
+        proposal=build_quote(conn,payload)
+    else:
+        proposal=quote_preview(payload)
     from .accounting import _next_number
     issued=dt.date.today()
     number=_next_number(conn,'AN',issued.year)
@@ -333,8 +337,21 @@ def customer_markdown(customer):
     if customer.get('offer_number'):
         lines.append(f"**Angebotsnummer:** {safe(customer['offer_number'])} · **Datum:** {safe(customer.get('offer_date',''))} · **Gültig bis:** {safe(customer.get('valid_until',''))}")
     lines+=['',
-           '## Ziel und Ergebnis',safe(customer['goal']),'','## Enthaltene Leistungen']
-    lines += ['- '+safe(x) for x in customer['included']]
+           '## Ziel und Ergebnis',safe(customer['goal'])]
+    if customer.get('positions'):
+        money=lambda v: f"{v:,.2f} €".replace(',','X').replace('.',',').replace('X','.')
+        lines+=['','## Leistungen und Festpreise','','| Pos. | Leistung | Umfang | Festpreis netto |','|---|---|---|---|']
+        for n,pos in enumerate(customer['positions'],1):
+            lines.append(f"| {n} | {safe(pos['title'])} | {safe(pos['scope'])}{' · '+safe(pos['note']) if pos.get('note') else ''} | {money(pos['price_eur'])}{' / Monat' if pos['billing']=='monatlich' else ''} |")
+        if customer.get('once_net_eur'): lines.append(f"| | **Summe einmalig** | | **{money(customer['once_net_eur'])}** |")
+        if customer.get('monthly_net_eur'): lines.append(f"| | **Summe monatlich** | | **{money(customer['monthly_net_eur'])} / Monat** |")
+        lines+=['','## Was enthalten ist']
+        for n,pos in enumerate(customer['positions'],1):
+            details=[x for x in pos.get('included',[])]
+            lines.append(f"- **Pos. {n} {safe(pos['title'])}:** {safe(pos['description'])}" + (' Enthalten: '+'; '.join(safe(x) for x in details)+'.' if details else ''))
+    else:
+        lines+=['','## Enthaltene Leistungen']
+        lines += ['- '+safe(x) for x in customer['included']]
     if customer.get('deliverables'): lines += ['','## Liefergegenstände']+['- '+safe(x) for x in customer['deliverables']]
     lines += ['','## Nicht enthalten']+['- '+safe(x) for x in customer['excluded']]
     if customer.get('assumptions'): lines+=['','## Voraussetzungen',safe(customer['assumptions'])]
@@ -343,9 +360,14 @@ def customer_markdown(customer):
               '- Abnahme anhand der genannten Liefergegenstände nach gemeinsamer Prüfung.']
     if customer.get('acceptance_criteria'): lines += ['','## Abnahmekriterien']+['- '+safe(x) for x in customer['acceptance_criteria']]
     if customer.get('third_party_costs'): lines += ['','## Mögliche Drittanbieter- und Folgekosten (nicht im Festpreis)']+['- '+safe(x) for x in customer['third_party_costs']]
-    lines += ['',
-              '## Festpreis',f"**{customer['net_eur']:.2f} EUR netto{' pro Monat' if customer.get('billing')=='monatlich' else ''}**",safe(customer['tax_note'])]
-    if customer['tax_mode']!='offen': lines.append(f"**Gesamtbetrag: {customer['total_eur']:.2f} EUR{' pro Monat' if customer.get('billing')=='monatlich' else ''}**")
+    if customer.get('billing')=='gemischt':
+        lines += ['','## Festpreis',f"**{customer['once_net_eur']:.2f} EUR netto einmalig** und **{customer['monthly_net_eur']:.2f} EUR netto pro Monat**",safe(customer['tax_note'])]
+        if customer['tax_mode']=='regel_19':
+            lines.append(f"**Gesamtbetrag einmalig: {customer['once_net_eur']*1.19:.2f} EUR · monatlich: {customer['monthly_net_eur']*1.19:.2f} EUR**")
+    else:
+        lines += ['',
+                  '## Festpreis',f"**{customer['net_eur']:.2f} EUR netto{' pro Monat' if customer.get('billing')=='monatlich' else ''}**",safe(customer['tax_note'])]
+        if customer['tax_mode']!='offen': lines.append(f"**Gesamtbetrag: {customer['total_eur']:.2f} EUR{' pro Monat' if customer.get('billing')=='monatlich' else ''}**")
     lines += ['', '## Zahlung und Änderungen',safe(customer['payment_plan']),safe(customer['change_requests']),
               '', '## Hinweise',safe(customer['guarantee']),
               'Dieses Dokument ist ein Angebotsentwurf. Kundendaten, Fristen, Vertrags- und Steuerangaben vor Versand prüfen.']

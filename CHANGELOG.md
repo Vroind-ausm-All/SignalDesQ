@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.12.0 – Sprint D: Angebote & Preise
+
+- Leistungskatalog mit 26 Leistungen in 8 Bereichen, basierend auf deinem Angebot:
+  - Kunst, Texte, Web- und Grafikdesign, Print, Logo;
+  - Individualsoftware, Shop-Anbindung, Webshop;
+  - Foto und Video, Werbung, SEO und GEO;
+  - KI-Chatbot, Telefon-Sprachbot, Website-Analyse;
+  - Workshops, Betreuung, Tagespauschale, Anreise, Leistung nach Aufwand.
+
+  Meist in den Größen Basis, Standard und Umfangreich.
+- Nachvollziehbare Festpreise:
+  - Preis = Aufwand × Stundensatz + Puffer + enthaltene Fremdkosten.
+  - Intern siehst du die vollständige Herleitung mit effektivem Stundenlohn und eine Warnung unter dem Mindestverdienst.
+  - Kalkulationsgrundlagen sind einstellbar: 66 €/h, Tagespauschale, km-Satz, Fahrzeitanteil, Rundung.
+  - Eigene Katalogwerte oder feste Preise lassen sich je Umfang hinterlegen.
+- Angebots-Baukasten mit Positionen und Vorlagen. Die bisherigen Pakete sind jetzt Vorlagen; die passende lädt beim Wählen der Firma bzw. aus der Recherche.
+- Kundendokument:
+  - Positionstabelle mit getrennten Summen für einmalig und monatlich;
+  - Kosten Dritter als „nicht im Festpreis“;
+  - keine Stunden oder Sätze.
+- Rechnung mit einer Zeile je Position; Monatsrechnung für laufende Positionen.
+- 257 Tests (10 neu).
+
 ## 1.11.0 – Sprint C: Firmen-Bericht mit einem Klick
 
 - Ein Auftrag mit fünf Schritten: Impressum & Firmendaten → Website-Bewertung → Website-Inhalte & Ansprechpartner → Karriereseite & Kaufsignale → Verknüpfen & Pakete. Status je Schritt; ein Fehler stoppt die anderen nicht.
