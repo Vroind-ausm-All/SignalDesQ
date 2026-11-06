@@ -1,0 +1,23 @@
+{
+ "pages_with_nav": 58,
+ "pages_with_footer": 17,
+ "pages_with_h1": 60,
+ "results": {
+  "stdlib": {
+   "pages": 69,
+   "nav_removed": 58,
+   "footer_removed": 17,
+   "heading_kept": 60,
+   "empty": 1,
+   "ms": 16.4
+  },
+  "trafilatura": {
+   "pages": 69,
+   "nav_removed": 58,
+   "footer_removed": 17,
+   "heading_kept": 48,
+   "empty": 1,
+   "ms": 377.6
+  }
+ }
+}

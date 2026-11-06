@@ -10,3 +10,9 @@ orjson==3.13.0            # MPL-2.0 AND (Apache-2.0 OR MIT)
 tld==0.13.2               # MPL-1.1 OR GPL-2.0-only OR LGPL-2.1-or-later
 w3lib==2.6.0              # BSD-3-Clause
 typing_extensions==4.16.0 # PSF-2.0
+
+# Optional ab v1.16: Trafilatura als Haupttext-Leser (Schalter „Haupttext“). Im Testgelände 23× langsamer als der
+# eingebaute Leser und verlor 12 von 60 Hauptüberschriften – daher nicht Standard. Lizenz Apache-2.0.
+trafilatura==2.3.1        # Apache-2.0 (zieht htmldate, justext, courlan, lxml_html_clean, charset_normalizer, dateparser, urllib3, certifi nach)
+# extruct (Plan: strukturierte Daten) ließ sich unter Python 3.13 nicht installieren (Abhängigkeit jstyleson baut nicht);
+# SignalDesk liest JSON-LD/Microdata/OpenGraph deshalb mit einer eigenen Implementierung (research/extractors/structured.py).

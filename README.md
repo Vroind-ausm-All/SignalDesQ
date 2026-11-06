@@ -20,6 +20,13 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.16 – Belege und Recherche-Aufträge (Masterplan 2.0, Sprint 2 + 3)
+
+- **Nur belegte Angaben:** Jede Firmenangabe muss wörtlich in der abgerufenen Seite stehen, sonst bleibt das Feld leer. Telefonnummern, E-Mails oder Ansprechpartner werden nie erfunden.
+- **Strukturierte Angaben** (z. B. Telefon, Adresse und Stellenanzeigen, die Firmen für Suchmaschinen hinterlegen) erscheinen im Firmen-Bericht als ungeprüfte Belege.
+- **Recherche-Aufträge laufen im Hintergrund und überstehen einen Neustart.** Du kannst sie pausieren, fortsetzen, abbrechen und Fehlgeschlagenes erneut starten. Fortschritt und Fehler siehst du je Firma.
+- Bericht: [`docs/BERICHT_SPRINT_S2_S3.md`](docs/BERICHT_SPRINT_S2_S3.md)
+
 ## v1.15 – Sicherer Website-Abruf (Masterplan 2.0, Sprint 0 + 1)
 
 - **Neuer Abruf für Firmen-Websites:** Er verbindet sich nur mit der geprüften Adresse und prüft Weiterleitungen einzeln. robots.txt wird nach dem aktuellen Standard beachtet, und Größen- und Zeitgrenzen schützen vor kaputten oder bösartigen Seiten. Auf 33 Testseiten stimmen jetzt 99 % der Impressumsangaben (vorher 80 %), bei deutlich weniger Anfragen.

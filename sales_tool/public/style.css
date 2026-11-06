@@ -398,3 +398,15 @@
 .sw-suggest{display:inline-flex;gap:8px;margin-left:6px}.sw-suggest .text-button{font-size:12px}
 .rt-row{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:12px}.rt-row label{display:grid;grid-template-columns:150px minmax(0,1fr);align-items:center;gap:10px}
 @media(max-width:600px){.rt-row label{grid-template-columns:1fr}}
+.rp-ev{display:block;color:var(--muted);font-size:11px;margin-top:2px;overflow-wrap:anywhere}
+/* v1.16 — Recherche-Aufträge (Sprint 3) */
+.jb-panel{display:flex;flex-direction:column;gap:10px;margin:8px 0 14px}.jb-meta{font-size:12px}
+.jb-section{padding:18px 22px;margin:14px 0}
+.jb-job{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff}
+.jb-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.jb-head small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.jb-bar{height:6px;border-radius:6px;background:#edf1ed;margin:10px 0 6px;overflow:hidden}.jb-bar i{display:block;height:100%;background:var(--teal);transition:width .3s}
+.jb-job.paused .jb-bar i{background:#d9ab51}.jb-job.partial .jb-bar i,.jb-job.failed .jb-bar i{background:#c98a3a}
+.jb-btns{display:flex;flex-wrap:wrap;gap:12px}.jb-btns .text-button{font-size:12px}
+.jb-tasks{margin-top:10px;border-top:1px solid #edf1ed;padding-top:8px;display:flex;flex-direction:column;gap:4px;max-height:320px;overflow:auto}
+.jb-task{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;font-size:13px;padding:4px 0;border-bottom:1px dashed #edf1ed}
+.jb-task small{grid-column:1/-1;color:var(--muted);font-size:11px;overflow-wrap:anywhere}

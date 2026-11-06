@@ -18,11 +18,13 @@ import threading
 from . import buying_signals as bs
 from . import website_analyzer as wa
 from . import website_scorer as ws
+from .research import jobs
 from .company_data import find_duplicate, normalize_domain, check_suppressed
 
 STEPS = (('impressum', 'Impressum & Firmendaten'), ('website', 'Website-Bewertung'), ('inhalte', 'Website-Inhalte & Ansprechpartner'),
          ('signale', 'Karriereseite & Kaufsignale'), ('verknuepfen', 'Signale verknüpfen & passende Pakete'))
 MAX_BATCH = 50
+_LAST = {}
 _WORKER = {'thread': None}
 _LOCK = threading.Lock()
 
@@ -40,7 +42,9 @@ def init_report(conn):
 
 
 def recover_reports(conn):
+    """Neustart: laufende Berichte wieder einreihen; Berichte ohne Auftragsschritt (ältere Versionen) übernehmen."""
     conn.execute("UPDATE company_reports SET status='queued', started_at='' WHERE status='running'")
+    adopt_queued_reports(conn)
 
 
 # ---------------------------------------------------------------- Aufträge anlegen
@@ -92,37 +96,77 @@ def create_reports(conn, data, db_path, start=True):
             cur = conn.execute('INSERT INTO company_reports(lead_id, steps_json) VALUES (?,?)', (lid, json.dumps(steps, ensure_ascii=False)))
             queued.append({'report_id': cur.lastrowid, 'lead_id': lid})
     conn.commit()
-    if queued and start:
-        _ensure_worker(db_path)
-    return {'queued': queued, 'skipped': skipped, 'created_lead': created_lead}
+    job = _report_job(conn, [q['report_id'] for q in queued], db_path, start) if queued else None
+    return {'queued': queued, 'skipped': skipped, 'created_lead': created_lead, 'job_id': job['id'] if job else None}
 
 
-def _ensure_worker(db_path):
-    with _LOCK:
-        t = _WORKER['thread']
-        if t and t.is_alive():
-            return
-        t = threading.Thread(target=_worker, args=(db_path,), daemon=True, name='company-reports')
-        _WORKER['thread'] = t
-        t.start()
+def _report_job(conn, rids, db_path, start):
+    """v1.16 (Sprint 3): ein persistenter Auftrag, ein Schritt je Firma; je Website-Domain höchstens ein Schritt gleichzeitig."""
+    rows = conn.execute(f'''SELECT r.id, l.company, l.website FROM company_reports r JOIN leads l ON l.id=r.lead_id
+                            WHERE r.id IN ({','.join('?' * len(rids))})''', rids).fetchall()
+    tasks = [{'key': f'report:{r["id"]}', 'kind': 'report', 'label': r['company'][:120], 'domain': normalize_domain(r['website']) or '',
+              'payload': {'report_id': r['id']}, 'max_attempts': 2} for r in rows]
+    job, _ = jobs.submit(conn, 'report', f'Firmen-Berichte ({len(tasks)} Firma/Firmen)' if len(tasks) != 1 else f'Firmen-Bericht: {rows[0]["company"]}'[:200],
+                         tasks, db_path=db_path, start=start, priority=4)
+    _LAST['db'] = db_path
+    return job
+
+
+def adopt_queued_reports(conn, db_path=None, start=False):
+    rows = [r['id'] for r in conn.execute("""SELECT r.id FROM company_reports r WHERE r.status='queued' AND NOT EXISTS (
+        SELECT 1 FROM research_tasks t WHERE t.kind='report' AND t.task_key='report:' || r.id AND t.status IN ('queued','running'))""")]
+    for i in range(0, len(rows), MAX_BATCH):
+        _report_job(conn, rows[i:i + MAX_BATCH], db_path, start)
+    return len(rows)
+
+
+@jobs.handler('report')
+def _job_report(db_path, payload, ctx):
+    from .model import connect
+    rid = payload['report_id']
+    with connect(db_path) as conn:
+        row = conn.execute('SELECT status FROM company_reports WHERE id=?', (rid,)).fetchone()
+        if not row or row['status'] not in ('queued', 'running'):
+            raise jobs.Skip('Bericht ist nicht mehr offen.')
+        conn.execute("UPDATE company_reports SET status='running', started_at=datetime('now') WHERE id=?", (rid,))
+        conn.commit()
+    run_report(db_path, rid)
+    with connect(db_path) as conn:
+        r = conn.execute('SELECT status, steps_json FROM company_reports WHERE id=?', (rid,)).fetchone()
+    steps = json.loads(r['steps_json'] or '{}')
+    failed = [v.get('label', k) for k, v in steps.items() if v.get('status') == 'fehler']
+    out = {'status': r['status'], 'failed_steps': failed}
+    if r['status'] != 'fertig' or failed:  # Schritt mit Fehler (z. B. HTTP 403) → im Auftrag sichtbar und erneut ausführbar
+        out.update(_status='failed', _error='Bericht unvollständig: ' + ', '.join(failed))
+    return out
+
+
+@jobs.handler('report:retry')
+def _job_report_retry(conn, job_id):
+    """„Fehlgeschlagene erneut“: betroffene Berichte wieder einreihen (Schritte laufen idempotent erneut)."""
+    for t in conn.execute("SELECT payload_json FROM research_tasks WHERE job_id=? AND status='queued'", (job_id,)).fetchall():
+        rid = json.loads(t['payload_json'])['report_id']
+        steps = {k: {'label': v, 'status': 'wartet'} for k, v in STEPS}
+        conn.execute("UPDATE company_reports SET status='queued', started_at='', finished_at='', steps_json=? WHERE id=? AND status<>'running'",
+                     (json.dumps(steps, ensure_ascii=False), rid))
+
+
+@jobs.handler('report:cancel')
+def _job_report_cancel(conn, payload):
+    conn.execute("UPDATE company_reports SET status='abgebrochen', finished_at=datetime('now') WHERE id=? AND status='queued'", (payload['report_id'],))
 
 
 def _worker(db_path):
+    """Kompatibel zu früher: Berichte synchron abarbeiten (Tests, Werkzeuge) – jetzt über die Auftragsverwaltung."""
     from .model import connect
-    while True:
-        with connect(db_path) as conn:
-            row = conn.execute("SELECT id FROM company_reports WHERE status='queued' ORDER BY id LIMIT 1").fetchone()
-            if not row:
-                return
-            conn.execute("UPDATE company_reports SET status='running', started_at=datetime('now') WHERE id=?", (row['id'],))
-            conn.commit()
-        run_report(db_path, row['id'])
+    with connect(db_path) as conn:
+        adopt_queued_reports(conn, db_path, start=False)
+    jobs.run_until_idle(db_path, kinds=('report',))
 
 
 def wait_idle(timeout=120):
-    t = _WORKER['thread']
-    if t:
-        t.join(timeout)
+    if _LAST.get('db'):
+        jobs.wait_idle(_LAST['db'], timeout, kinds=('report',))
 
 
 # ---------------------------------------------------------------- Ausführung
@@ -157,6 +201,17 @@ def _step_impressum(conn, db_path, lead):
         auto_note = f" · {len(r['applied'])} automatisch übernommen" + (f", {len(r['kept_existing'])} vorhandene Werte behalten" if r['kept_existing'] else '')
     except ValueError as exc:
         auto_note = f' · nicht übernommen: {exc}'
+    # v1.16 (Sprint 2): strukturierte Angaben der Website (JSON-LD/Microdata) als UNGEPRÜFTE Fakten mit Beleg
+    from .company_data import add_fact
+    structured = json.loads(row['result_json']).get('structured') or {}
+    n_struct = 0
+    for ev in structured.get('evidence', [])[:20]:
+        if add_fact(conn, lead['id'], ev['field'], ev['value'], 'website_strukturiert', ev['source_url'], ev['evidence'], ev['method'],
+                    'mittel', 'ungeprueft'):
+            n_struct += 1
+    conn.commit()
+    if n_struct:
+        auto_note += f' · {n_struct} strukturierte Angaben der Website als Beleg gespeichert'
     legal = (fields.get('legal_name') or {}).get('value')
     if legal and lead['company'] == normalize_domain(lead['website']):
         # Platzhalter aus „Bericht für Website“ durch den Namen laut Impressum ersetzen (kein bestätigter Registerwert)
@@ -290,7 +345,11 @@ def report_view(conn, rid=None, lead_id=None):
         if it and it['result_json']:
             res = json.loads(it['result_json'])
             out['imprint'] = {'item_id': it['id'], 'review_status': it['review_status'], 'status': it['status'], 'url': res.get('imprint_url'),
-                              'fields': {k: {'value': v.get('value'), 'excerpt': v.get('excerpt', '')} for k, v in (res.get('fields') or {}).items() if v and v.get('value')},
+                              'fields': {k: {'value': v.get('value'), 'excerpt': v.get('excerpt', ''),
+                                             'method': (v.get('evidence') or {}).get('method', ''), 'checked_at': (v.get('evidence') or {}).get('checked_at', '')}
+                                         for k, v in (res.get('fields') or {}).items() if v and v.get('value')},
+                              'structured': {'organizations': (res.get('structured') or {}).get('organizations', [])[:2],
+                                             'evidence': (res.get('structured') or {}).get('evidence', [])[:12]},
                               'representatives': [r.get('name') for r in res.get('representatives', []) if r.get('name')][:5],
                               'warnings': res.get('warnings', [])[:4]}
     if refs.get('audit'):

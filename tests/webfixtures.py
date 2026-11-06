@@ -96,6 +96,7 @@ class FixtureServer:
 
         self.httpd = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
         self.httpd.daemon_threads = True
+        self.httpd.handle_error = lambda *a: None  # z. B. TLS-Versuche gegen den HTTP-Testserver: kein Log-Rauschen
         self.port = self.httpd.server_address[1]
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
 

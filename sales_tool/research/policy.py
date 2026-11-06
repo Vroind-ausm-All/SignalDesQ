@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass, field
 from urllib.parse import unquote, urlsplit
 
-AGENT = 'SignalDeskResearch/1.15 (+public company data research; single pages, no bulk crawling)'  # nur ASCII in Kopfzeilen
+AGENT = 'SignalDeskResearch/1.16 (+public company data research; single pages, no bulk crawling)'  # nur ASCII in Kopfzeilen
 AGENT_TOKEN = 'signaldeskresearch'
 
 HTML_TYPES = ('text/html', 'application/xhtml+xml')

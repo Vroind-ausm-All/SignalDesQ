@@ -28,6 +28,7 @@ import unicodedata
 from . import area as ar
 from . import industries as ind
 from . import lead_finder as lf
+from .research import jobs
 from . import legal_forms as lfm
 from .company_data import check_suppressed, normalize_domain, normalize_name
 
@@ -77,8 +78,15 @@ for _key, _title in (('gleif_csv', 'GLEIF-Export (CSV-Import)'), ('liste', 'Eige
 
 
 def recover_sweeps(conn):
-    conn.execute("UPDATE sweeps SET status='abgebrochen', finished_at=datetime('now') WHERE status IN ('queued','running')")
-    conn.execute("UPDATE discovery_candidates SET website_status='' WHERE website_status='laeuft'")
+    """v1.16: Suchen mit persistentem Auftrag laufen nach einem Neustart weiter; nur alte Suchen ohne Auftrag gelten als abgebrochen."""
+    for r in conn.execute("SELECT id FROM sweeps WHERE status IN ('queued','running')").fetchall():
+        job = conn.execute("SELECT status FROM research_jobs WHERE job_key=? ORDER BY id DESC LIMIT 1", (f'sweep:{r["id"]}',)).fetchone()
+        if job and job['status'] in jobs.JOB_ACTIVE:
+            conn.execute("UPDATE sweeps SET status='queued' WHERE id=?", (r['id'],))
+        else:
+            conn.execute("UPDATE sweeps SET status='abgebrochen', finished_at=datetime('now') WHERE id=?", (r['id'],))
+    conn.execute("UPDATE discovery_candidates SET website_status='wartet' WHERE website_status='laeuft'")
+    adopt_waiting_websites(conn)
 
 
 # ---------------------------------------------------------------- Schlüssel & Zusammenführen
@@ -281,11 +289,44 @@ def start_sweep(conn, data, db_path, start=True):
                        (label[:200], json.dumps(p, ensure_ascii=False), json.dumps(progress, ensure_ascii=False)))
     conn.commit()
     sid = cur.lastrowid
-    if start:
-        t = threading.Thread(target=run_sweep, args=(db_path, sid), daemon=True, name=f'sweep-{sid}')
-        _THREADS[sid] = t
-        t.start()
+    # v1.16 (Sprint 3): persistenter Auftrag – je Quelle ein Schritt, danach Abschluss. Gleiche „Domain“ = nacheinander,
+    # damit sich die Quellen derselben Suche nicht beim Zusammenführen überholen. Übersteht einen Neustart.
+    tasks = [{'key': f'source:{s}', 'kind': 'sweep_source', 'label': SWEEP_SOURCES[s], 'domain': f'sweep-{sid}',
+              'payload': {'sid': sid, 'source': s}, 'max_attempts': 1} for s in p['sources']]
+    tasks.append({'key': 'finish', 'kind': 'sweep_finish', 'label': 'Abschluss & Website-Suche', 'domain': f'sweep-{sid}',
+                  'payload': {'sid': sid}, 'max_attempts': 2})
+    job, _ = jobs.submit(conn, 'sweep', f'Sammelsuche {label}', tasks, job_key=f'sweep:{sid}', params={'sid': sid},
+                         priority=3, db_path=db_path, start=start)
+    _THREADS[sid] = jobs.JobWaiter(db_path, job['id'])
     return sweep_detail(conn, sid)
+
+
+def _sweep_job(conn, sid):
+    return conn.execute("SELECT * FROM research_jobs WHERE job_key=? ORDER BY id DESC LIMIT 1", (f'sweep:{sid}',)).fetchone()
+
+
+@jobs.handler('sweep_source')
+def _job_source(db_path, payload, ctx):
+    from .model import connect
+    run_sweep(db_path, payload['sid'], only=[payload['source']], finalize=False)
+    with connect(db_path) as conn:
+        prog = json.loads(conn.execute('SELECT progress_json FROM sweeps WHERE id=?', (payload['sid'],)).fetchone()['progress_json'])
+    st = prog.get(payload['source'], {})
+    if st.get('status') == 'fehler':
+        return {'_status': 'failed', '_error': st.get('error', 'Quelle fehlgeschlagen')}
+    return {k: st.get(k) for k in ('new', 'merged', 'known', 'filtered')}
+
+
+@jobs.handler('sweep_finish')
+def _job_finish(db_path, payload, ctx):
+    from .model import connect
+    with connect(db_path) as conn:
+        return _finalize_sweep(conn, payload['sid'], db_path)
+
+
+@jobs.handler('sweep_source:cancel')
+def _job_source_cancel(conn, payload):
+    conn.execute("UPDATE sweeps SET status='abgebrochen', finished_at=datetime('now') WHERE id=? AND status IN ('queued','running')", (payload['sid'],))
 
 
 def _progress(conn, sid, source, **kw):
@@ -317,7 +358,7 @@ AUTO_WEBSITES = 200      # nach der Suche automatisch Websites suchen (Anzahl Fi
 AUTO_WEB_START = True    # in Tests ausgeschaltet
 
 
-def run_sweep(db_path, sid, only=None):
+def run_sweep(db_path, sid, only=None, finalize=True):
     from .model import connect
     with connect(db_path) as conn:
         sw = conn.execute('SELECT * FROM sweeps WHERE id=?', (sid,)).fetchone()
@@ -367,21 +408,34 @@ def run_sweep(db_path, sid, only=None):
                     _finish_run(conn, run_id, error=f'Unerwarteter Fehler: {exc.__class__.__name__}')
                     _progress(conn, sid, source, status='fehler', error=f'Unerwarteter Fehler: {exc.__class__.__name__}')
                     break
-        if ctx.get('_leis'):
-            found = _websites_by_lei(conn, ctx['_leis'], ua)
-            if found:
-                gp = json.loads(conn.execute('SELECT progress_json FROM sweeps WHERE id=?', (sid,)).fetchone()['progress_json']).get('gleif', {})
-                _progress(conn, sid, 'gleif', detail=(gp.get('detail', '') + f', {found} Websites über Wikidata (LEI)').strip(', '))
-        prog = json.loads(conn.execute('SELECT progress_json FROM sweeps WHERE id=?', (sid,)).fetchone()['progress_json'])
-        ok = any(v.get('status') == 'fertig' for k, v in prog.items() if not k.startswith('_'))
-        if ok and p.get('find_websites', True):
-            ids = [r['id'] for r in conn.execute("""SELECT id FROM discovery_candidates WHERE sweep_id=? AND status='neu' AND website=''
-                                                    AND website_status='' AND source<>'ted' ORDER BY distance_km IS NULL, distance_km LIMIT ?""", (sid, AUTO_WEBSITES))]
-            if ids:
-                q = queue_websites(conn, {'ids': ids}, db_path, start=AUTO_WEB_START)
-                _progress(conn, sid, '_web', queued=q['queued'])
-        conn.execute("UPDATE sweeps SET status=?, finished_at=datetime('now') WHERE id=?", ('fertig' if ok else 'fehler', sid))
-        conn.commit()
+        if finalize:
+            _finalize_sweep(conn, sid, db_path)
+
+
+def _finalize_sweep(conn, sid, db_path):
+    """Abschluss einer Sammelsuche (idempotent): Websites über LEI ergänzen, Website-Suche einplanen, Status setzen."""
+    sw = conn.execute('SELECT * FROM sweeps WHERE id=?', (sid,)).fetchone()
+    p = json.loads(sw['params_json'])
+    prog = json.loads(sw['progress_json'])
+    if 'gleif' in p['sources'] and prog.get('gleif', {}).get('status') == 'fertig' and not prog.get('_lei'):
+        leis = [r['lei'] for r in conn.execute("SELECT lei FROM discovery_candidates WHERE sweep_id=? AND lei<>'' AND website='' ORDER BY id", (sid,))]
+        found = _websites_by_lei(conn, leis, lf._user_agent(conn)) if leis else 0
+        _progress(conn, sid, '_lei', checked=len(leis), found=found)
+        if found:
+            gp = prog.get('gleif', {})
+            _progress(conn, sid, 'gleif', detail=(gp.get('detail', '') + f', {found} Websites über Wikidata (LEI)').strip(', '))
+    prog = json.loads(conn.execute('SELECT progress_json FROM sweeps WHERE id=?', (sid,)).fetchone()['progress_json'])
+    ok = any(v.get('status') == 'fertig' for k, v in prog.items() if not k.startswith('_'))
+    queued = 0
+    if ok and p.get('find_websites', True):
+        ids = [r['id'] for r in conn.execute("""SELECT id FROM discovery_candidates WHERE sweep_id=? AND status='neu' AND website=''
+                                                AND website_status='' AND source<>'ted' ORDER BY distance_km IS NULL, distance_km LIMIT ?""", (sid, AUTO_WEBSITES))]
+        if ids:
+            queued = queue_websites(conn, {'ids': ids}, db_path, start=AUTO_WEB_START)['queued']
+            _progress(conn, sid, '_web', queued=queued + (prog.get('_web') or {}).get('queued', 0))
+    conn.execute("UPDATE sweeps SET status=?, finished_at=datetime('now') WHERE id=?", ('fertig' if ok else 'fehler', sid))
+    conn.commit()
+    return {'status': 'fertig' if ok else 'fehler', 'websites_queued': queued}
 
 
 def retry_sweep(conn, sid, db_path, start=True):
@@ -394,7 +448,19 @@ def retry_sweep(conn, sid, db_path, start=True):
     failed = [k for k, v in prog.items() if not k.startswith('_') and v.get('status') == 'fehler']
     if not failed:
         raise ValueError('Keine fehlgeschlagene Quelle in dieser Suche.')
-    if start:
+    job = _sweep_job(conn, sid)
+    if job:
+        keys = [f'source:{s}' for s in failed] + ['finish']
+        conn.execute(f"""UPDATE research_tasks SET status='queued', attempts=0, next_attempt_at=0, last_error='', note='erneut angefordert'
+                         WHERE job_id=? AND task_key IN ({','.join('?' * len(keys))})""", (job['id'], *keys))
+        conn.execute("UPDATE research_jobs SET status='queued', finished_at='' WHERE id=?", (job['id'],))
+        conn.execute("UPDATE sweeps SET status='queued', finished_at='' WHERE id=?", (sid,))
+        jobs._refresh(conn, job['id'])
+        conn.commit()
+        if start:
+            jobs.ensure_workers(db_path)
+            _THREADS[sid] = jobs.JobWaiter(db_path, job['id'])
+    elif start:
         t = threading.Thread(target=run_sweep, args=(db_path, sid, failed), daemon=True, name=f'sweep-retry-{sid}')
         _THREADS[sid] = t
         t.start()
@@ -428,7 +494,6 @@ def _run_gleif(conn, sid, run_id, ctx, area, ua, index):
                 break
         places_done += 1
         _progress(conn, sid, 'gleif', status='läuft', detail=f'{places_done}/{len(area["places"])} Orte', **total)
-    ctx['_leis'] = leis  # Websites per LEI erst am Ende der Suche ergänzen (Wikidata-Firmenabfrage hat Vorrang)
     return total, f'{places_done} Orte, {requests} Abfragen{filters_note}'
 
 
@@ -935,47 +1000,78 @@ def queue_websites(conn, data, db_path, start=True):
     if not isinstance(data, dict) or set(data) != {'ids'} or not isinstance(data['ids'], list) or not 1 <= len(data['ids']) <= 200:
         raise ValueError('Erwartet: {ids: [...]} (1–200).')
     ids = [i for i in data['ids'] if isinstance(i, int) and not isinstance(i, bool)]
-    n = 0
+    marked = []
     for cid in ids:
-        n += conn.execute("""UPDATE discovery_candidates SET website_status='wartet' WHERE id=? AND status='neu'
-                             AND website_status IN ('', 'quelle', 'nicht_gefunden', 'nicht_bestaetigt')""", (cid,)).rowcount
+        if conn.execute("""UPDATE discovery_candidates SET website_status='wartet' WHERE id=? AND status='neu'
+                           AND website_status IN ('', 'quelle', 'nicht_gefunden', 'nicht_bestaetigt', 'abgelehnt')""", (cid,)).rowcount:
+            marked.append(cid)
     conn.commit()
-    if n and start:
-        _ensure_web_worker(db_path)
-    return {'queued': n, 'notice': 'Die Website-Suche läuft im Hintergrund (etwa 2–10 Sekunden je Firma). Ergebnisse erscheinen in der Liste.'}
+    job = None
+    if marked:
+        job = _website_job(conn, marked, db_path, start)
+    return {'queued': len(marked), 'job_id': job['id'] if job else None,
+            'notice': 'Die Website-Suche läuft im Hintergrund (etwa 2–10 Sekunden je Firma). Ergebnisse erscheinen in der Liste.'}
 
 
-def _ensure_web_worker(db_path):
-    with _LOCK:
-        t = _WEB['thread']
-        if t and t.is_alive():
-            return
-        t = threading.Thread(target=_web_worker, args=(db_path,), daemon=True, name='website-finder')
-        _WEB['thread'] = t
-        t.start()
+def _website_job(conn, cids, db_path, start):
+    names = {r['id']: r['name'] for r in conn.execute(f"SELECT id, name FROM discovery_candidates WHERE id IN ({','.join('?' * len(cids))})", cids)}
+    tasks = [{'key': f'cand:{cid}', 'kind': 'website', 'label': names.get(cid, f'#{cid}')[:120], 'payload': {'cid': cid}, 'max_attempts': 2}
+             for cid in cids]
+    job, _ = jobs.submit(conn, 'website', f'Website-Suche ({len(cids)} Firmen)', tasks, db_path=db_path, start=start, priority=6)
+    _WEB['db'] = db_path
+    return job
+
+
+def adopt_waiting_websites(conn, db_path=None, start=False):
+    """Firmen mit „Suche wartet“, aber ohne offenen Auftragsschritt (z. B. aus älteren Versionen), in einen Auftrag übernehmen."""
+    rows = [r['id'] for r in conn.execute("""SELECT d.id FROM discovery_candidates d WHERE d.website_status='wartet' AND NOT EXISTS (
+        SELECT 1 FROM research_tasks t WHERE t.kind='website' AND t.task_key='cand:' || d.id AND t.status IN ('queued','running'))""")]
+    for i in range(0, len(rows), 200):
+        _website_job(conn, rows[i:i + 200], db_path, start)
+    return len(rows)
+
+
+@jobs.handler('website')
+def _job_website(db_path, payload, ctx):
+    from .model import connect
+    with connect(db_path) as conn:
+        cand = conn.execute('SELECT status, website_status FROM discovery_candidates WHERE id=?', (payload['cid'],)).fetchone()
+        if not cand or cand['website_status'] not in ('wartet', 'laeuft'):
+            raise jobs.Skip('Nicht mehr in der Website-Suche.')
+        conn.execute("UPDATE discovery_candidates SET website_status='laeuft' WHERE id=?", (payload['cid'],))
+        conn.commit()
+        try:
+            return find_website(conn, payload['cid'])
+        except Exception as exc:  # nie hängen bleiben – Fehler gehört zu genau dieser Firma
+            conn.execute("UPDATE discovery_candidates SET website_status='nicht_gefunden', website_evidence=? WHERE id=?",
+                         (f'Fehler bei der Suche: {exc.__class__.__name__}', payload['cid']))
+            conn.commit()
+            return {'_status': 'failed', '_error': f'{exc.__class__.__name__}: {exc}'}
+
+
+@jobs.handler('website:retry')
+def _job_website_retry(conn, job_id):
+    for t in conn.execute("SELECT payload_json FROM research_tasks WHERE job_id=? AND status='queued'", (job_id,)).fetchall():
+        conn.execute("UPDATE discovery_candidates SET website_status='wartet' WHERE id=? AND status='neu' AND website_status IN ('nicht_gefunden','')",
+                     (json.loads(t['payload_json'])['cid'],))
+
+
+@jobs.handler('website:cancel')
+def _job_website_cancel(conn, payload):
+    conn.execute("UPDATE discovery_candidates SET website_status='' WHERE id=? AND website_status='wartet'", (payload['cid'],))
 
 
 def _web_worker(db_path):
+    """Kompatibel zu früher: Website-Suche synchron abarbeiten (Tests, Werkzeuge)."""
     from .model import connect
-    while True:
-        with connect(db_path) as conn:
-            row = conn.execute("SELECT id FROM discovery_candidates WHERE website_status='wartet' ORDER BY id LIMIT 1").fetchone()
-            if not row:
-                return
-            conn.execute("UPDATE discovery_candidates SET website_status='laeuft' WHERE id=?", (row['id'],))
-            conn.commit()
-            try:
-                find_website(conn, row['id'])
-            except Exception as exc:  # nie hängen bleiben
-                conn.execute("UPDATE discovery_candidates SET website_status='nicht_gefunden', website_evidence=? WHERE id=?",
-                             (f'Fehler bei der Suche: {exc.__class__.__name__}', row['id']))
-                conn.commit()
+    with connect(db_path) as conn:
+        adopt_waiting_websites(conn, db_path, start=False)
+    jobs.run_until_idle(db_path, kinds=('website',))
 
 
 def wait_websites(timeout=60):
-    t = _WEB['thread']
-    if t:
-        t.join(timeout)
+    if _WEB.get('db'):
+        jobs.wait_idle(_WEB['db'], timeout, kinds=('website',))
 
 
 # ---------------------------------------------------------------- HTTP
