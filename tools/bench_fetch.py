@@ -51,10 +51,19 @@ def run_site(host, spec, server, mode):
         pass
     with simulated_network(server) as net:
         outcome, fields, pages, err, engines = 'ok', {}, 0, '', []
+        evidence_missing = evidence_total = 0
+        structured_ok = None
         try:
             if mode == 'imprint':
                 res = imprint.research_domain(f'http://{host}/', include_persons=False)
                 fields = {k: (v or {}).get('value') for k, v in (res.get('fields') or {}).items()}
+                with_value = [v for v in (res.get('fields') or {}).values() if v and v.get('value')]
+                evidence_missing = sum(1 for v in with_value if not v.get('evidence'))
+                evidence_total = len(with_value)
+                orgs = (res.get('structured') or {}).get('organizations') or []
+                structured_ok = None
+                if 'jsonld_phone' in (spec.get('expect') or {}):
+                    structured_ok = any(o.get('telephone') == spec['expect']['jsonld_phone'] for o in orgs)
                 outcome = 'ok' if res.get('status') == 'ok' else 'no_imprint'
             else:
                 res = wa.light_crawl(f'http://{host}/', 'website')
@@ -81,7 +90,8 @@ def run_site(host, spec, server, mode):
             'ms': round(ms, 1), 'requests': len(hits), 'robots_requests': sum(1 for h in hits if h[1] == '/robots.txt'),
             'unvalidated_connects': len(net.unvalidated), 'dns_lookups': len(net.resolutions), 'pages': pages,
             'fields_expected': len(checks), 'fields_correct': sum(correct.values()), 'wrong': {k: fields.get(k) for k, ok in correct.items() if not ok},
-            'expected_behaviour': bool(behaved), 'expect': exp, 'parser_used': engines}
+            'expected_behaviour': bool(behaved), 'expect': exp, 'parser_used': engines,
+            'evidence_total': evidence_total, 'evidence_missing': evidence_missing, 'structured_ok': structured_ok}
 
 
 def summarize(rows):
@@ -93,7 +103,9 @@ def summarize(rows):
             'robots_requests': sum(r['robots_requests'] for r in rows), 'unvalidated_connects': sum(r['unvalidated_connects'] for r in rows),
             'dns_lookups': sum(r['dns_lookups'] for r in rows), 'fields_expected': fe, 'fields_correct': sum(r['fields_correct'] for r in rows),
             'field_accuracy': round(100 * sum(r['fields_correct'] for r in rows) / fe, 1) if fe else None,
-            'parser_used': sorted({e for r in rows for e in r.get('parser_used', [])})}
+            'parser_used': sorted({e for r in rows for e in r.get('parser_used', [])}),
+            'evidence_total': sum(r.get('evidence_total', 0) for r in rows), 'evidence_missing': sum(r.get('evidence_missing', 0) for r in rows),
+            'structured_checks': sum(r.get('structured_ok') is not None for r in rows), 'structured_ok': sum(bool(r.get('structured_ok')) for r in rows)}
 
 
 def main():
@@ -129,7 +141,8 @@ def main():
         s = data['summary']
         print(f"[{args.label}] {mode:8} erwartetes Verhalten {s['expected_behaviour']}/{s['sites']} · Felder {s['fields_correct']}/{s['fields_expected']}"
               f" ({s['field_accuracy']} %) · P50 {s['p50_ms']} ms · P95 {s['p95_ms']} ms · Anfragen {s['requests']} (robots {s['robots_requests']})"
-              f" · ungeprüfte Verbindungen {s['unvalidated_connects']}" + (f" · Parser {','.join(s['parser_used'])}" if s['parser_used'] else ''))
+              f" · ungeprüfte Verbindungen {s['unvalidated_connects']}" + (f" · Parser {','.join(s['parser_used'])}" if s['parser_used'] else '')
+              + (f" · Belege {s['evidence_total'] - s['evidence_missing']}/{s['evidence_total']} · JSON-LD {s['structured_ok']}/{s['structured_checks']}" if mode == 'imprint' and 'evidence_total' in s else ''))
         for r in data['rows']:
             if not r['expected_behaviour']:
                 print(f"    ✗ {r['host']:30} {r['outcome']:10} {r['error_class']:12} {r['error'][:110]} {r['wrong'] or ''}")

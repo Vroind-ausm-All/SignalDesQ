@@ -35,6 +35,7 @@ from .quality import route_quality, start_scheduler
 from .today import route_today
 from .source_check import route_source_check
 from .research.settings import route_research, load as load_research_settings
+from .research import jobs as research_jobs
 from .sweep import route_sweep, recover_sweeps
 from .report import route_report, recover_reports
 from .pricing import route_pricing
@@ -159,7 +160,7 @@ def validate(fields: dict, partial=False):
 
 STATIC_FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
     "/style.css": ("style.css", "text/css"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-    "/accounting.js": ("accounting.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+    "/accounting.js": ("accounting.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
 
 LOOPBACK_HOSTS = frozenset({'127.0.0.1', 'localhost', '::1'})
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
@@ -176,7 +177,7 @@ def make_handler(db_path, allowed_hosts=None):
     hosts = LOOPBACK_HOSTS | {h.lower() for h in (allowed_hosts or ())}
 
     class Handler(BaseHTTPRequestHandler):
-        server_version = "SignalDesk/1.15"
+        server_version = "SignalDesk/1.16"
         user = None
 
         def _security_headers(self):
@@ -316,6 +317,8 @@ def make_handler(db_path, allowed_hosts=None):
                 if route_source_check(self, conn, method, route, query):
                     return
                 if route_research(self, conn, method, route, query):
+                    return
+                if research_jobs.route_jobs(self, conn, method, route, query, db_path):
                     return
                 if route_sweep(self, conn, method, route, query, db_path):
                     return
@@ -781,7 +784,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 21  # v1.14 – bei Schemaänderungen erhöhen
+SCHEMA_VERSION = 22  # v1.16 – bei Schemaänderungen erhöhen (research_jobs/research_tasks)
 
 
 def backup_before_migration(db):
@@ -806,6 +809,7 @@ def prepare_database(db):
                         finished_at=datetime('now') WHERE status IN ('queued','running')""")
         conn.execute("""UPDATE quick_scans SET status='failed',error='Recherche durch Neustart unterbrochen.',
                         finished_at=datetime('now') WHERE status IN ('queued','running')""")
+        research_jobs.recover(conn)  # v1.16: unterbrochene Auftragsschritte wieder einreihen (vor den fachlichen Wiederaufnahmen)
         recover_batches(conn)
         recover_audits(conn)
         recover_scans(conn)
@@ -832,7 +836,7 @@ def security_status(conn, hosts, host_header=''):
          'Im Netzwerk nur hinter einem TLS-Proxy (HTTPS) betreiben – SignalDesk selbst spricht nur HTTP.'},
     ]
     return {'checks': checks, 'auth_required': required, 'users': conn.execute('SELECT COUNT(*) FROM users WHERE active=1').fetchone()[0],
-            'schema_version': SCHEMA_VERSION, 'server_version': 'SignalDesk/1.15'}
+            'schema_version': SCHEMA_VERSION, 'server_version': 'SignalDesk/1.16'}
 
 
 def reset_login(conn):
@@ -920,6 +924,10 @@ def main():
     server, port = bind_server(make_handler(db, allowed_hosts), args.port, host=args.host)
     if not args.no_scheduler:
         start_scheduler(db)
+    with connect(db) as conn:
+        if research_jobs.pending(conn)[0]:
+            research_jobs.ensure_workers(db)  # nach Neustart offene Recherche-Aufträge fortsetzen
+            print("Offene Recherche-Aufträge werden fortgesetzt.")
     url = f"http://127.0.0.1:{port}"
     if port != args.port:
         print(f"Port {args.port} ist belegt – weiche auf {port} aus.")

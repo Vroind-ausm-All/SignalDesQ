@@ -246,7 +246,7 @@ class SettingsTests(unittest.TestCase):
             settings.save(self.conn, {'tarnung': True})
         settings.save(self.conn, {'parser': 'stdlib', 'browser_fallback': False})
         settings.reset()
-        self.assertEqual(settings.load(self.conn), {'fetcher': 'http', 'parser': 'stdlib', 'browser_fallback': False})
+        self.assertEqual(settings.load(self.conn), {'fetcher': 'http', 'parser': 'stdlib', 'browser_fallback': False, 'content': 'stdlib'})
         st = settings.status()
         self.assertEqual(st['parser_in_use'], 'stdlib')
         self.assertIn('Tarnung', st['notice'])

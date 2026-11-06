@@ -228,6 +228,8 @@ def init_db(conn: sqlite3.Connection):
     init_quality(conn)
     init_auth(conn)
     init_area(conn)
+    from .research.jobs import init_jobs
+    init_jobs(conn)  # v1.16: persistente Recherche-Aufträge
     init_sweep(conn)
     init_report(conn)
     conn.commit()

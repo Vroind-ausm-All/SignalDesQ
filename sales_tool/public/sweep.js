@@ -57,7 +57,7 @@
       const sw = await api(`/sweeps/${id}`);
       renderProgress(sw);
       if (['queued', 'running'].includes(sw.status)) { pollSweep = setTimeout(() => watchSweep(id), 2000); if (sw.counts?.neu) loadList(); }
-      else { $('#swGo').disabled = false; await loadHistory(); $('#swSweep').value = String(id); offset = 0; loadList(); toast(`Suche fertig: ${sw.counts?.neu || 0} neue Firmen zum Sichten`); }
+      else { $('#swGo').disabled = false; if (window.refreshJobs) window.refreshJobs(); await loadHistory(); $('#swSweep').value = String(id); offset = 0; loadList(); toast(`Suche fertig: ${sw.counts?.neu || 0} neue Firmen zum Sichten`); }
     } catch (e) { $('#swGo').disabled = false; toast(e.message, true); }
   }
 
@@ -195,7 +195,7 @@
       if (!p.org_kinds.length) return toast('Bitte wählen, wen du suchst (z. B. Unternehmen)', true);
       store.set('sw_last', p);
       $('#swGo').disabled = true;
-      try { const sw = await api('/sweeps', 'POST', p); renderProgress(sw); watchSweep(sw.id); }
+      try { const sw = await api('/sweeps', 'POST', p); renderProgress(sw); watchSweep(sw.id); if (window.refreshJobs) window.refreshJobs(); }
       catch (err) { $('#swGo').disabled = false; toast(err.message, true); }
     });
     $('#swCheck').addEventListener('click', async () => {
@@ -246,7 +246,7 @@
         const ids = chosen.size ? [...chosen] : (b.dataset.swBulk === 'websites' ? (data?.items || []).filter(c => c.status === 'neu' && !['belegt', 'quelle', 'bestaetigt'].includes(c.website_status)).map(c => c.id) : []);
         if (!ids.length) return toast('Bitte Firmen auswählen', true);
         try {
-          if (b.dataset.swBulk === 'websites') { const r = await api('/sweep-candidates/find-websites', 'POST', {ids: ids.slice(0, 200)}); toast(`${r.queued} Firmen in der Website-Suche. ${r.notice}`); }
+          if (b.dataset.swBulk === 'websites') { const r = await api('/sweep-candidates/find-websites', 'POST', {ids: ids.slice(0, 200)}); toast(`${r.queued} Firmen in der Website-Suche. ${r.notice}`); if (window.refreshJobs) window.refreshJobs(); }
           else if (b.dataset.swBulk === 'bericht') {
             const r = await api('/sweep-candidates/bulk', 'POST', {ids: ids.slice(0, 50), decision: 'uebernehmen'});
             chosen.clear(); if (typeof reload === 'function') reload();

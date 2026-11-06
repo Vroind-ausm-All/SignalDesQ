@@ -3,13 +3,15 @@
 - fetcher: 'http' (neu, IP-Pinning, Standard) oder 'legacy' (Abruf bis v1.14 – nur für Vergleich/Rückfall)
 - parser: 'stdlib' (Standard – im Sprint-1-Benchmark gleiche Ergebnisse, 2,4× schneller), 'auto' (Scrapling, falls installiert) oder 'scrapling'
 - browser_fallback: Seiten ohne statischen Text zusätzlich mit dem Browser (Playwright, JavaScript aus) lesen – nur wenn installiert
+- content: Haupttext-Leser 'stdlib' (Standard) oder 'trafilatura' (optional, requirements-research.txt)
 """
 from __future__ import annotations
 
 import threading
 
-DEFAULTS = {'fetcher': 'http', 'parser': 'stdlib', 'browser_fallback': True}  # Messung S1: Scrapling ohne Vorteil, 2,4× langsamer
-CHOICES = {'fetcher': ('http', 'legacy'), 'parser': ('auto', 'scrapling', 'stdlib'), 'browser_fallback': (True, False)}
+DEFAULTS = {'fetcher': 'http', 'parser': 'stdlib', 'browser_fallback': True, 'content': 'stdlib'}  # Messung S1: Scrapling ohne Vorteil, 2,4× langsamer
+CHOICES = {'fetcher': ('http', 'legacy'), 'parser': ('auto', 'scrapling', 'stdlib'), 'browser_fallback': (True, False),
+           'content': ('stdlib', 'trafilatura')}
 KEY = 'research_settings'
 _LOCK = threading.Lock()
 _CURRENT = dict(DEFAULTS)
@@ -62,6 +64,7 @@ def save(conn, data):
 
 def status():
     """Selbstauskunft für die Oberfläche: Schalter + installierte Zusätze."""
+    from .extractors.content import trafilatura_available
     from .fetchers import browser
     from .parse import engine, scrapling_available
     version = ''
@@ -72,7 +75,7 @@ def status():
         except Exception:  # noqa: BLE001
             version = '?'
     return {'settings': get(), 'parser_in_use': engine(), 'scrapling': {'installed': bool(version), 'version': version},
-            'browser': {'installed': browser.available()},
+            'browser': {'installed': browser.available()}, 'trafilatura': {'installed': trafilatura_available()},
             'notice': 'Abruf immer mit IP-Pinning, robots.txt (RFC 9309) und Größenbremsen. Scrapling dient nur der HTML-Auswertung; '
                       'sein eigener Abruf ist nicht eingebaut (Tarnung als Chrome und Google-Referer als Voreinstellung, kein IP-Pinning).'}
 

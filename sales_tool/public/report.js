@@ -32,7 +32,10 @@
       return;
     }
     const imp = d.imprint;
-    const impBody = imp ? `<div class="rp-grid">${Object.entries(imp.fields).map(([k, v]) => `<div><small>${esc(FIELD[k] || k)}</small><b>${esc(v.value)}</b>${lead[k] && lead[k] !== v.value ? `<small class="late">im Lead: ${esc(lead[k])}</small>` : ''}</div>`).join('')}</div>
+    const st = imp && imp.structured && imp.structured.evidence && imp.structured.evidence.length ? imp.structured : null;
+    const impBody = imp ? `<div class="rp-grid">${Object.entries(imp.fields).map(([k, v]) => `<div title="${esc(v.excerpt || '')}"><small>${esc(FIELD[k] || k)}</small><b>${esc(v.value)}</b>${lead[k] && lead[k] !== v.value ? `<small class="late">im Lead: ${esc(lead[k])}</small>` : ''}<small class="rp-ev">Beleg: „${esc((v.excerpt || '').slice(0, 70))}“</small></div>`).join('')}</div>
+        ${st ? `<div class="sales-subhead">Strukturierte Angaben der Website (ungeprüft)</div><div class="rp-grid">${st.evidence.map(e => `<div><small>${esc(FIELD[e.field] || e.field)} · ${esc(e.method === 'jsonld' ? 'JSON-LD' : 'Microdata')}</small><b>${esc(e.value)}</b>${imp.fields[e.field] && imp.fields[e.field].value !== e.value ? '<small class="late">weicht vom Impressum ab</small>' : ''}</div>`).join('')}</div>
+          <p class="muted">Diese Angaben hat die Firma selbst für Suchmaschinen hinterlegt. Sie stehen als ungeprüfte Belege in den Firmendaten – maßgeblich ist das Impressum.</p>` : ''}
         ${imp.representatives.length ? `<p class="muted">Vertretungsberechtigt laut Impressum: ${imp.representatives.map(esc).join(', ')}</p>` : ''}
         <p class="muted">Fundstelle: ${link(imp.url, 'Impressum')} ${imp.warnings.map(esc).join(' · ')}</p>
         ${imp.review_status === 'offen' && imp.status === 'done' ? `<div class="acc-btn-group"><button type="button" class="btn btn-primary" data-rp-imprint="${imp.item_id}">Firmendaten in den Lead übernehmen</button><span class="muted">Bestätigte Werte werden nicht überschrieben.</span></div>` : imp.review_status === 'uebernommen' ? `<p class="rp-auto">✓ Automatisch in leere Lead-Felder übernommen. Vorhandene oder bestätigte Werte wurden nicht überschrieben; Personen werden nicht automatisch angelegt.</p>`
@@ -93,6 +96,7 @@
   };
 
   window.refreshReportsList = async function () {
+    if (window.refreshJobs) window.refreshJobs();
     try {
       const rows = await api('/reports');
       const show = rows.slice(0, 8);

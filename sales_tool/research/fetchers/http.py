@@ -86,6 +86,8 @@ def _single(url, policy, deadline, accept, limit_for):
         return status, headers, b''.join(chunks), ips[0]
     except (socket.timeout, TimeoutError) as exc:
         raise FetchError('Zeitüberschreitung (keine Antwort).', 'timeout') from exc
+    except ssl.SSLCertVerificationError as exc:
+        raise FetchError(f'TLS-Zertifikat ungültig: {exc.verify_message or exc}', 'tls') from exc
     except ssl.SSLError as exc:
         raise FetchError(f'TLS-Fehler: {exc.reason or exc}', 'network') from exc
     except (http.client.HTTPException, ConnectionError, OSError) as exc:
@@ -127,6 +129,9 @@ def robots_check(url, policy=pol.DEFAULT_POLICY):
             res = fetch(robots_url, policy=_robots_policy(policy), origin=robots_url)
             rules = pol.rules_from_response(res.status, res.body)
         except FetchError as exc:
+            if exc.kind in ('network', 'timeout', 'tls') and not exc.status:
+                # Website selbst nicht erreichbar: kein robots-Verbot, sondern ein Verbindungsfehler (nicht zwischenspeichern)
+                raise FetchError(f'Website nicht erreichbar ({exc})', exc.kind) from exc
             rules = pol.rules_from_response(exc.status, b'') if exc.status else pol.RobotsRules(
                 disallow_all=True, reason=f'robots.txt nicht prüfbar ({exc}) – vorsorglich gesperrt (RFC 9309)')
         pol.ROBOTS.put(url, rules)

@@ -187,7 +187,8 @@ LEGAL_FORMS = (r'GmbH\s*&\s*Co\.?\s*KGaA|GmbH\s*&\s*Co\.?\s*KG|UG\s*\(haftungsbe
 COMPANY_RE = re.compile(r'([A-ZÄÖÜ0-9][\w&.,\'’+\-– ]{1,90}?\s(?:' + LEGAL_FORMS + r'))(?=$|[\s,;:)|/])')
 LABEL_PREFIX = re.compile(r'^(anbieter|betreiber|herausgeber|verantwortlich|firma|unternehmen|name|inhaber der website|'
                           r'angaben gemäß § ?5 (tmg|ddg)|diensteanbieter|website|webseite)\s*[:\-–]\s*', re.I)
-PLZ_RE = re.compile(r'(?<![\d-])(\d{5})\s+([A-ZÄÖÜ][A-Za-zÄÖÜäöüß.\- ]{1,40}?)(?=$|\s*[,;|]|\s{2,}|\s+(?:Deutschland|Germany|DE)\b|\s+(?:Tel|Fon|Fax|E-Mail|Mail|www)\b)')
+PLZ_RE = re.compile(r'(?<![\d-])(\d{5})\s+([A-ZÄÖÜ][A-Za-zÄÖÜäöüß.\- ]{1,40}?)(?=$|\s*[,;|]|\s{2,}|\s+(?:Deutschland|Germany|DE)\b|\s+(?:Tel|Fon|Fax|E-Mail|Mail|www)\b|'
+                    r'\s+(?:Amtsgericht|Registergericht|Handelsregister|HRB|HRA|USt|Umsatzsteuer|Geschäftsführ|Vertreten|Inhaber)\b)')
 STREET_RE = re.compile(r'([A-ZÄÖÜ][A-Za-zÄÖÜäöüß.\-\' ]{2,50}?\s\d{1,4}\s?[a-zA-Z]?(?:\s?[-–/]\s?\d{1,4}[a-z]?)?)(?=$|\s*[,;|]|\s+\d{5}\s)')
 REG_NUM_RE = re.compile(r'\b(HRB|HRA|GnR|PR|VR|GsR)\s*(?:Nr\.?|-Nr\.?|:)?\s*(\d{1,6}(?:\s?[A-Z]{1,2}\b)?)')
 COURT_RE = re.compile(r'(?:Amtsgerichts?|Registergericht\s*:?\s*(?:Amtsgericht)?|Registergericht)\s*:?\s*'
@@ -493,7 +494,15 @@ def research_domain(domain_or_url, include_persons=True):
     if '://' not in url:
         url = 'https://' + url
     log = []
-    home_url, ctype, data = FETCH(url, None)
+    try:
+        home_url, ctype, data = FETCH(url, None)
+    except CrawlError as exc:
+        # v1.16: ohne angegebenes Schema erst https, bei reinem Verbindungsfehler http (kein Rückfall bei Zertifikatsfehlern)
+        if '://' in domain_or_url.strip() or getattr(exc, 'kind', '') != 'network':
+            raise
+        url = 'http://' + url.split('://', 1)[1]
+        home_url, ctype, data = FETCH(url, None)
+        log.append('Website ohne funktionierendes HTTPS – unverschlüsselt (http) gelesen.')
     origin = home_url
     site_domain = (urlsplit(origin).hostname or '').lower()
     site_domain = site_domain[4:] if site_domain.startswith('www.') else site_domain
@@ -504,6 +513,7 @@ def research_domain(domain_or_url, include_persons=True):
         candidates = [root + p for p in FALLBACK_PATHS]
         log.append('Kein Impressumslink auf der Startseite – Standardpfade geprüft.')
     best = None
+    best_source = {home_url: _deobfuscate(text) + '\n' + text + '\n' + '\n'.join('mailto:' + m for m in mailtos)}
     for cand in candidates:
         SLEEP(REQUEST_DELAY)
         try:
@@ -524,10 +534,11 @@ def research_domain(domain_or_url, include_persons=True):
             continue
         result = extract(t2, mailtos2, site_domain, include_persons)
         best = (final, stype2, result)
+        best_source[final] = _deobfuscate(t2) + '\n' + t2 + '\n' + '\n'.join('mailto:' + m for m in mailtos2)
         break
     if not best:
         # Manche Seiten haben die Pflichtangaben direkt auf der Startseite (One-Pager)
-        if re.search(r'impressum|angaben gem|§ ?5 (tmg|ddg)', text, re.I):
+        if re.search(r'angaben gem|§ ?5 (tmg|ddg)|registergericht|handelsregister|umsatzsteuer-id|ust-id', text, re.I):  # v1.16: nicht nur „Impressum“-Link
             best = (home_url, source_type, extract(text, mailtos, site_domain, include_persons))
             log.append('Impressumsangaben auf der Startseite gefunden.')
     if not best:
@@ -538,7 +549,33 @@ def research_domain(domain_or_url, include_persons=True):
     final, stype, result = best
     result.update({'status': 'ok', 'home_url': home_url, 'imprint_url': final, 'source_type': stype,
                    'checked_at': _now(), 'log': log, 'site_domain': site_domain})
+    _attach_evidence(result, best_source.get(final, ''), final)
+    result['structured'] = _structured(home_url, data)
     return result
+
+
+def _attach_evidence(result, source_text, source_url):
+    """Sprint 2: jeder Wert braucht einen Beleg im Originaltext, sonst wird er verworfen (bleibt leer)."""
+    from .research.evidence import content_hash, validate_fields
+    checked, rejected = validate_fields(result.get('fields') or {}, source_text, source_url, METHOD,
+                                        chash=content_hash(source_text))
+    result['fields'] = checked
+    if rejected:
+        result.setdefault('warnings', []).append('Nicht im Originaltext belegbar, daher verworfen: ' + ', '.join(rejected) + '.')
+    result['completeness'] = {'found': sum(1 for v in checked.values() if v), 'total': len(checked)}
+
+
+def _structured(home_url, data):
+    """Strukturierte Angaben der Startseite (JSON-LD/Microdata) – mit Beleg im HTML-Quelltext."""
+    from .research.evidence import structured_evidence
+    from .research.extractors import structured
+    from .research.fetchers.base import decode_html
+    if not data or data[:5] == b'%PDF-':
+        return {'organizations': [], 'jobpostings': [], 'evidence': []}
+    page = decode_html(data) if isinstance(data, bytes) else data
+    st = structured.extract(page, home_url)
+    st['evidence'] = [e for org in st['organizations'][:3] for e in structured_evidence(org, home_url, page)]
+    return st
 
 
 def _now():

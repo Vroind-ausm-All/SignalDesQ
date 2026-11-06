@@ -467,26 +467,13 @@ def _career_links(origin, links):
 
 
 def _jsonld_jobs(raw):
+    """Stellenanzeigen aus JSON-LD/Microdata (JobPosting) – seit v1.16 über research.extractors.structured (eine Implementierung)."""
+    from .research.extractors import structured
     jobs = []
-    for block in re.findall(r'<script[^>]+application/ld\+json[^>]*>(.*?)</script>', raw, re.I | re.S):
-        try:
-            data = json.loads(block.strip())
-        except ValueError:
-            continue
-        stack = data if isinstance(data, list) else [data]
-        while stack:
-            item = stack.pop()
-            if isinstance(item, dict):
-                if '@graph' in item:
-                    stack.extend(item['@graph'] if isinstance(item['@graph'], list) else [item['@graph']])
-                t = item.get('@type')
-                if t == 'JobPosting' or (isinstance(t, list) and 'JobPosting' in t):
-                    desc = re.sub(r'<[^>]+>', ' ', str(item.get('description', '')))
-                    jobs.append({'title': str(item.get('title', '')).strip(), 'published_at': parse_date(str(item.get('datePosted', ''))),
-                                 'valid_through': parse_date(str(item.get('validThrough', ''))), 'text': re.sub(r'\s+', ' ', desc)[:4000],
-                                 'source_type': 'karriereseite_jsonld'})
-            elif isinstance(item, list):
-                stack.extend(item)
+    for j in structured.extract(raw)['jobpostings']:
+        jobs.append({'title': j['title'], 'published_at': parse_date(j['date_posted']), 'valid_through': parse_date(j['valid_through']),
+                     'text': re.sub(r'\s+', ' ', j['description'])[:4000], 'city': j['city'], 'remote': j['remote'],
+                     'source_type': 'karriereseite_jsonld' if j['method'] == 'jsonld' else 'karriereseite_microdata'})
     return jobs
 
 
@@ -547,7 +534,8 @@ def scan_career(website, company=''):
         except CrawlError as exc:
             log.append(f'{cand}: {exc}')
             continue
-        html = raw.decode('utf-8', 'replace')
+        from .research.fetchers.base import decode_html
+        html = decode_html(raw)
         found = _jsonld_jobs(html)
         if not found:
             text, sublinks, _ = imprint.html_to_text(raw)

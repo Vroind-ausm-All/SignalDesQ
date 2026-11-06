@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.16.0 – Masterplan 2.0: Sprint 2 (Belege, strukturierte Daten) + Sprint 3 (persistente Aufträge)
+
+- **Belegprüfung:**
+  - Jeder Wert braucht einen Beleg im Originaltext, sonst bleibt er leer.
+  - Jeder Beleg trägt Quelle, Auszug, Methode, Zeitpunkt und Inhalts-Hash.
+  - Ergebnis im Testgelände: 103/103 Impressumsfelder, 187/187 Werte belegt.
+- **Strukturierte Angaben** (JSON-LD, Microdata, OpenGraph; eigene Implementierung, da extruct nicht installierbar):
+  - Organisation und Stellenanzeigen;
+  - im Firmen-Bericht als ungeprüfte Fakten mit Beleg;
+  - Kaufsignale nutzen dieselbe Implementierung.
+- **Haupttext:** eingebauter Leser ohne Navigation, Kopf-/Fußbereich und Banner. Trafilatura ist schaltbar (gemessen: 23× langsamer, weniger Überschriften).
+- **Behoben:** PLZ im PDF-Impressum; One-Pager-Fehlerkennung; http-Rückfall für Websites ohne HTTPS (nie bei Zertifikatsfehlern); „nicht erreichbar“ nicht mehr als robots-Verbot.
+- **Recherche-Aufträge** (`research/jobs.py`, Schema 22) für Sammelsuche, Website-Suche und Firmen-Berichte:
+  - Neustart ohne Verlust (Absturztest mit kill -9: 10/10 fertig, keine Dubletten);
+  - Pausieren, Fortsetzen, Abbrechen, Fehlgeschlagene erneut;
+  - Wartezeiten statt sofortiger Wiederholung;
+  - höchstens 3 Worker, je Domain einer;
+  - ein 403 stoppt nur seinen Schritt.
+- **Oberfläche:** neues Feld „Recherche-Aufträge“ in „Firmen finden“ und „Firmen-Berichte“, mit Fortschritt je Firma und Fehlern.
+- 344 Tests (24 neu). Bericht: `docs/BERICHT_SPRINT_S2_S3.md`.
+
 ## 1.15.0 – Masterplan 2.0: Sprint 0 + 1 (sicherer Website-Abruf) und Empfehlung A
 
 - **Testgelände und Benchmark:** 33 fiktive Websites mit schwierigen Fällen, simuliertes Netz ohne echte Abrufe, `tools/bench_fetch.py`, Ausgangsmessung v1.14.

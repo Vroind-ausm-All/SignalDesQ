@@ -51,7 +51,7 @@ def robots_allowed(url: str) -> bool:
     if settings.get()['fetcher'] == 'legacy':
         return legacy_robots_allowed(url)
     from .research.fetchers.http import robots_check
-    return robots_check(url)[0]
+    return robots_check(url)[0]  # Verbindungsfehler werden als CrawlError gemeldet (nicht als robots-Verbot)
 
 
 def legacy_robots_allowed(url: str) -> bool:
@@ -156,7 +156,9 @@ def light_crawl(url: str, purpose: str = "website") -> dict:
             clean = re.sub(r"\s+", " ", text).strip()[:MAX_TEXT]
             if not clean:
                 raise CrawlError("Kein sichtbarer Seitentext.")
-            pages.append({"url": final, "title": parsed["title"], "text": clean,
+            from .research.extractors.content import main_text
+            main = main_text(decode_html(data) if isinstance(data, bytes) else data, final)
+            pages.append({"url": final, "title": parsed["title"], "text": clean, "main_text": main["text"][:MAX_TEXT], "content_engine": main["engine"],
                           "raw_text": text[:MAX_TEXT] if purpose in ("contacts", "full") else "",
                           "headings": parsed["headings"], "form_count": parsed["forms"], "parser": parsed["engine"]})
             if len(pages) == 1:
