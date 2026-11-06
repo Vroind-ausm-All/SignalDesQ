@@ -16,3 +16,9 @@ typing_extensions==4.16.0 # PSF-2.0
 trafilatura==2.3.1        # Apache-2.0 (zieht htmldate, justext, courlan, lxml_html_clean, charset_normalizer, dateparser, urllib3, certifi nach)
 # extruct (Plan: strukturierte Daten) ließ sich unter Python 3.13 nicht installieren (Abhängigkeit jstyleson baut nicht);
 # SignalDesk liest JSON-LD/Microdata/OpenGraph deshalb mit einer eigenen Implementierung (research/extractors/structured.py).
+
+# Optional ab v1.17: RapidFuzz für den Dubletten-Abgleich (Namensähnlichkeit). Ohne RapidFuzz rechnet SignalDesk mit difflib –
+# gleiche Ergebnisse in allen Tests, RapidFuzz ist etwa doppelt so schnell (1,5 statt 2,9 ms je Abgleich bei 20 000 Firmen).
+rapidfuzz==3.14.6         # MIT
+# DuckDB (Plan: großer Katalog) wurde gemessen und NICHT eingebaut: Import 14× schneller, aber 343 statt 31 MB Arbeitsspeicher
+# und 58 MB Zusatzpaket – der Katalog nutzt SQLite mit FTS5 (in Python enthalten). Messung: docs/bench/v1.17-catalog.json.

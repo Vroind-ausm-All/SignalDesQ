@@ -755,8 +755,12 @@ def review_candidate(conn, candidate_id, decision):
     assert_not_suppressed(conn, website=cand['website'], name=cand['name'])
     if cand['status'] == 'dublette' or cand['duplicate_lead_id']:
         raise ValueError('Firma ist bereits als Lead vorhanden – dort ergänzen statt doppelt anlegen.')
-    names, domains = _known_leads(conn)
-    dup = (domains.get(normalize_domain(cand['website'])) if cand['website'] else None) or names.get(normalize_name(cand['name']))
+    # v1.17: Identitätsregeln statt bloßem Namensvergleich – „Müller GmbH“ ist nicht „Müller GmbH & Co. KG“
+    from .duplicates import find_lead
+    web_ok = (cand['website_status'] if 'website_status' in cand.keys() else '') in ('', 'quelle', 'belegt', 'bestaetigt')
+    hit = find_lead(conn, {'name': cand['name'], 'website': cand['website'] if web_ok else '', 'register_id': cand['register_id'],
+                           'zip': cand['zip'], 'city': cand['city'], 'legal_form': cand['legal_form']})
+    dup = hit[0] if hit and hit[1] == 'same' else None
     if dup:
         conn.execute("UPDATE discovery_candidates SET status='dublette', duplicate_lead_id=? WHERE id=?", (dup, candidate_id))
         conn.commit()

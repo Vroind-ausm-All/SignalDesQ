@@ -93,8 +93,29 @@ def normalize_register(court, number):
     return f'{court}|{number}' if court and number else ''
 
 
-def find_duplicate(conn, website='', name='', register_court='', register_number='', exclude_id=None):
-    """Sucht einen bestehenden Lead über Domain, Registerangabe oder normalisierten Namen."""
+def find_duplicate(conn, website='', name='', register_court='', register_number='', exclude_id=None, zip_code='', city=''):
+    """Sucht einen bestehenden Lead über Domain, Registerangabe oder Name (v1.17: Identitätsregeln aus research/identity –
+    verschiedene Rechtsform, Registernummer oder Orte gelten nicht als Dublette). Gibt (lead_id, 'domain'|'register'|'name') zurück."""
+    from .duplicates import find_lead
+    reg = normalize_register(register_court, register_number)
+    if reg:  # gleiche Registerangabe inkl. Gericht bleibt ein harter Treffer
+        for row in conn.execute('SELECT id, register_court, register_number FROM leads WHERE register_number<>?', ('',)):
+            if (not exclude_id or row['id'] != exclude_id) and normalize_register(row['register_court'], row['register_number']) == reg:
+                return row['id'], 'register'
+    hit = find_lead(conn, {'name': name, 'website': website, 'register_id': register_number, 'zip': zip_code, 'city': city}, exclude_id)
+    if hit and (hit[1] == 'same' or hit[3].startswith('gleiche Website')):  # eigene Domain bleibt starker Beleg
+        return hit[0], ('register' if 'Register' in hit[3] else 'domain' if 'Website' in hit[3] else 'name')
+    if not name and website:  # nur Domain bekannt (z. B. „Bericht für Website“): gleiche eigene Domain genügt
+        from .research.identity import norm_domain
+        dom = norm_domain(website)
+        for row in (conn.execute('SELECT id, website FROM leads WHERE lower(website) LIKE ?', (f'%{dom}%',)) if dom else ()):
+            if (not exclude_id or row['id'] != exclude_id) and norm_domain(row['website']) == dom:
+                return row['id'], 'domain'
+    return None, None
+
+
+def _find_duplicate_exact(conn, website='', name='', register_court='', register_number='', exclude_id=None):
+    """Bisheriger, exakter Abgleich (bis v1.16) – nur noch für Vergleiche/Tests."""
     domain = normalize_domain(website)
     reg = normalize_register(register_court, register_number)
     norm = normalize_name(name)

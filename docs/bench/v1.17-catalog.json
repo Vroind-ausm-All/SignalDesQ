@@ -1,0 +1,45 @@
+{
+ "rows": 300000,
+ "file_mb": 63.2,
+ "python": "3.13.18",
+ "runs": [
+  {
+   "engine": "sqlite",
+   "import_s": 15.34,
+   "reimport_s": 9.93,
+   "rows": 300000,
+   "stored": 288000,
+   "unchanged_on_reimport": 288000,
+   "search_ms": {
+    "name": 11.06,
+    "zip": 36.34,
+    "city": 37.25
+   },
+   "hits_name": 5000,
+   "db_mb": 95.0,
+   "peak_rss_mb": 31.4
+  },
+  {
+   "engine": "duckdb 1.5.6",
+   "import_s": 1.07,
+   "reimport_s": 0.35,
+   "stored": 288000,
+   "search_ms": {
+    "name": 8.99,
+    "zip": 0.85,
+    "city": 0.9
+   },
+   "db_mb": 18.1,
+   "peak_rss_mb": 343.3,
+   "note": "Suche ohne Umschrift (Müller ≠ Mueller) und ohne Volltextindex; Upsert über einen eindeutigen Index"
+  }
+ ],
+ "match": {
+  "engine": "rapidfuzz",
+  "firms": 20000,
+  "build_s": 0.35,
+  "match_ms": 1.47,
+  "found_same": "400/400",
+  "peak_rss_mb": 41.9
+ }
+}

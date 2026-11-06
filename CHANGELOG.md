@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.17.0 – Masterplan 2.0: Sprint 4 (Dubletten, großer Firmenkatalog)
+
+- **Dubletten zuverlässig erkennen** (`research/identity.py`, eine Regel für Sichtung, Import, Leads und CRM):
+  - sicher gleich: gleiche LEI, gleiche Registernummer, gleiche eigene Website oder gleicher Kernname am gleichen Ort (Müller = Mueller, Wortfolge und Bindestriche egal);
+  - möglich: ähnlicher Name, Ort fehlt oder passt zu mehreren Firmen;
+  - nie zusammengeführt: andere Rechtsform (GmbH ≠ GmbH & Co. KG), andere Registernummer/LEI oder anderer Ort.
+- **Nicht doppelt aufgeführt:**
+  - Mögliche Dubletten erscheinen beim Haupteintrag mit „Gleiche Firma / Andere Firma“ bzw. „Ist dieser Lead“.
+  - Dazu eine Prüfliste, der Knopf „Dubletten prüfen“ und eine einmalige Bereinigung des Bestands beim Update (Schema 23).
+- **Behoben:** Die Übernahme einer „… GmbH & Co. KG“ wurde abgelehnt, wenn die „… GmbH“ schon Lead war (die Rechtsform wurde abgeschnitten).
+- **Doppelte Firmen im CRM** (Datenqualität):
+  - Vorschläge mit Grund; zusammengeführt wird nur per Klick, dabei wandern alle verknüpften Daten mit und leere Felder werden ergänzt.
+  - Rechnungen bleiben unangetastet; „Keine Dublette“ wird gemerkt.
+- **Großer GLEIF-Katalog offline** (`research/catalog.py`):
+  - Golden Copy/Delta als CSV oder ZIP, Upload und Import per Streaming (gemessen: 300.000 Zeilen mit 31 MB Arbeitsspeicher);
+  - je LEI ein Eintrag; Importprotokoll mit Lizenz;
+  - Suche (Umlaute egal), Übernahme in die Sichtung mit Dubletten-Abgleich;
+  - Ersatz bei Ausfall der GLEIF-API.
+- **Gemessen:** DuckDB (schneller, aber 11× Arbeitsspeicher, nicht eingebaut) und RapidFuzz (optional, doppelt so schnell, gleiche Ergebnisse).
+- **Fehlende Websites:** Zähler „ohne Website“ mit Filter.
+- 376 Tests (32 neu). Bericht: `docs/BERICHT_SPRINT_S4.md`.
+
 ## 1.16.0 – Masterplan 2.0: Sprint 2 (Belege, strukturierte Daten) + Sprint 3 (persistente Aufträge)
 
 - **Belegprüfung:**

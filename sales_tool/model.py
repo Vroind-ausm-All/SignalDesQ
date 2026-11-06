@@ -232,6 +232,8 @@ def init_db(conn: sqlite3.Connection):
     init_jobs(conn)  # v1.16: persistente Recherche-Aufträge
     init_sweep(conn)
     init_report(conn)
+    from .duplicates import init_duplicates
+    init_duplicates(conn)  # v1.17: „keine Dublette“-Entscheidungen
     conn.commit()
 
 

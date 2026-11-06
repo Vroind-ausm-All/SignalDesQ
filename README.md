@@ -20,6 +20,15 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.17 – Dubletten und großer Firmenkatalog (Masterplan 2.0, Sprint 4)
+
+- **Keine doppelten Firmen mehr:** Treffer derselben Firma aus GLEIF, Wikidata, OpenStreetMap, Importen und Katalog werden zu einem Eintrag zusammengeführt (gleiche LEI, Registernummer, Website oder gleicher Name am gleichen Ort, auch Müller/Mueller).
+- **Bei Unsicherheit entscheidest du:** Mögliche Dubletten stehen beim Haupteintrag mit „Gleiche Firma / Andere Firma“ und tauchen nicht doppelt in der Liste auf.
+- **Fremde Firmen bleiben getrennt:** GmbH und GmbH & Co. KG, gleiche Namen in verschiedenen Städten oder verschiedene Registernummern werden nie zusammengelegt.
+- **Doppelte Leads im CRM** findest du unter „Datenqualität & System“ und führst sie per Klick zusammen. Alle Notizen, Aufgaben und Berichte bleiben erhalten.
+- **Großer Firmenkatalog:** Lade die GLEIF-Datei (alle Firmen mit LEI) und durchsuche sie offline, auch wenn die GLEIF-Schnittstelle ausfällt. Die Datei wird stückweise gelesen, auch bei mehreren GB.
+- Bericht: [`docs/BERICHT_SPRINT_S4.md`](docs/BERICHT_SPRINT_S4.md)
+
 ## v1.16 – Belege und Recherche-Aufträge (Masterplan 2.0, Sprint 2 + 3)
 
 - **Nur belegte Angaben:** Jede Firmenangabe muss wörtlich in der abgerufenen Seite stehen, sonst bleibt das Feld leer. Telefonnummern, E-Mails oder Ansprechpartner werden nie erfunden.
