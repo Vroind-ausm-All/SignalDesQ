@@ -4,8 +4,11 @@
 (function () {
   const esc = v => escapeHTML(String(v ?? ''));
   const SRC = {gleif: 'GLEIF', gleif_csv: 'GLEIF-Import', liste: 'Eigene Liste', wikidata: 'Wikidata', osm: 'OSM', ted: 'TED'};
-  const WEB = {quelle: ['laut Quelle', 'ok'], belegt: ['belegt (Registernr.)', 'ok'], wahrscheinlich: ['wahrscheinlich', 'mid'], wartet: ['Suche wartet …', 'wait'],
-    laeuft: ['wird gesucht …', 'wait'], nicht_gefunden: ['nicht gefunden', 'off'], nicht_bestaetigt: ['nicht eindeutig', 'mid']};
+  // Empfehlung A (v1.15): nur „belegt“, „laut Quelle“ oder von dir bestätigt gilt als Website der Firma – alles andere ist ein Vorschlag
+  const WEB = {quelle: ['laut Quelle', 'ok'], belegt: ['belegt: Registernr. im Impressum', 'ok'], bestaetigt: ['von dir bestätigt', 'ok'],
+    wahrscheinlich: ['Vorschlag – bitte prüfen', 'mid'], nicht_bestaetigt: ['Vorschlag – nicht eindeutig', 'mid'], abgelehnt: ['Vorschlag abgelehnt', 'off'],
+    wartet: ['Suche wartet …', 'wait'], laeuft: ['wird gesucht …', 'wait'], nicht_gefunden: ['nicht gefunden', 'off']};
+  const SUGGESTION = ['wahrscheinlich', 'nicht_bestaetigt'];
   const PAGE = 50;
   const KIND = {verein: 'Verein/Stiftung', oeffentlich: 'öffentlich'};
   const CHECK = {ok: ['erreichbar', 'ok'], ueberlastet: ['überlastet', 'mid'], blockiert: ['blockiert', 'off'], fehler: ['Fehler', 'off'], format: ['Format geändert', 'off']};
@@ -80,7 +83,9 @@
   function webCell(c) {
     const st = WEB[c.website_status] || (c.website ? WEB.quelle : null);
     const link = c.website ? `<a href="${esc(c.website)}" target="_blank" rel="noopener noreferrer" data-sw-open>${esc(c.website.replace(/^https?:\/\//, ''))} ↗</a>` : '<span class="muted">keine Website bekannt</span>';
-    return `${link}${st ? ` <span class="sw-web ${st[1]}" title="${esc(c.website_evidence)}">${esc(st[0])}</span>` : ''}`;
+    const review = c.website && SUGGESTION.includes(c.website_status)
+      ? ` <span class="sw-suggest"><button type="button" class="text-button" data-sw-web="bestaetigen" data-id="${c.id}">✓ Website passt</button><button type="button" class="text-button" data-sw-web="ablehnen" data-id="${c.id}">✕ passt nicht</button></span>` : '';
+    return `${link}${st ? ` <span class="sw-web ${st[1]}" title="${esc(c.website_evidence)}">${esc(st[0])}</span>` : ''}${review}`;
   }
 
   function row(c, i) {
@@ -94,7 +99,7 @@
         <small>${KIND[c.org_kind] && c.source !== 'ted' ? `<span class="sw-web mid">${esc(KIND[c.org_kind])}</span> ` : ''}${c.legal_form && c.source !== 'ted' && !c.name.toLowerCase().includes(c.legal_form.toLowerCase().replace(/\s*\(.*$/, '')) ? esc(c.legal_form) + ' · ' : ''}${esc(addr || c.city || '')}${c.distance_km != null ? ` · ${c.distance_km.toLocaleString('de-DE')} km` : ''}${c.register_id ? ' · ' + esc(c.register_id) : ''}${c.industry_label ? ` · <i>${esc(c.industry_label)}</i>` : c.industry ? ' · ' + esc(c.industry) : ''}</small>
         <div class="sw-web-line">${webCell(c)}${contact.business_phone ? ` · ☎ ${esc(contact.business_phone)}` : ''}${contact.business_email ? ` · ✉ ${esc(contact.business_email)}` : ''}${contact.imprint_url ? ` · <a href="${esc(contact.imprint_url)}" target="_blank" rel="noopener noreferrer">Impressum ↗</a>` : ''}</div>
         <div class="sw-srcs">${srcs}${c.signal_note ? `<small>${esc(c.signal_note.slice(0, 140))}</small>` : ''}</div></div>
-      <div class="sw-btns">${open ? `<button type="button" class="btn btn-primary" data-sw-do="uebernehmen" data-id="${c.id}">Übernehmen</button><button type="button" class="btn btn-ghost" data-sw-do="verwerfen" data-id="${c.id}">Verwerfen</button>${['belegt', 'quelle', 'wartet', 'laeuft'].includes(c.website_status) ? '' : `<button type="button" class="text-button" data-sw-do="website" data-id="${c.id}">Website suchen</button>`}` :
+      <div class="sw-btns">${open ? `<button type="button" class="btn btn-primary" data-sw-do="uebernehmen" data-id="${c.id}">Übernehmen</button><button type="button" class="btn btn-ghost" data-sw-do="verwerfen" data-id="${c.id}">Verwerfen</button>${['belegt', 'quelle', 'bestaetigt', 'wartet', 'laeuft'].includes(c.website_status) ? '' : `<button type="button" class="text-button" data-sw-do="website" data-id="${c.id}">Website suchen</button>`}` :
         `<span class="sw-st">${esc({uebernommen: 'übernommen', verworfen: 'verworfen', dublette: 'schon Lead', gesperrt: 'Sperrliste'}[c.status] || c.status)}</span>${c.lead_id || c.duplicate_lead_id ? `<button type="button" class="text-button" data-lead="${c.lead_id || c.duplicate_lead_id}">Lead öffnen</button>` : ''}`}</div>
     </article>`;
   }
@@ -220,6 +225,15 @@
         if (d.dataset.swDo === 'website') { try { await api('/sweep-candidates/find-websites', 'POST', {ids: [id]}); loadList(); } catch (err) { toast(err.message, true); } return; }
         return decideOne(id, d.dataset.swDo);
       }
+      const wv = e.target.closest('[data-sw-web]');
+      if (wv) {
+        try {
+          await api(`/sweep-candidates/${wv.dataset.id}/website`, 'POST', {decision: wv.dataset.swWeb});
+          toast(wv.dataset.swWeb === 'bestaetigen' ? 'Website bestätigt – Impressumsdaten gelten jetzt als belegt' : 'Vorschlag abgelehnt – diese Domain wird nicht wieder vorgeschlagen');
+          loadList();
+        } catch (err) { toast(err.message, true); }
+        return;
+      }
       const rt = e.target.closest('[data-sw-retry]');
       if (rt) {
         rt.disabled = true;
@@ -229,7 +243,7 @@
       }
       const b = e.target.closest('[data-sw-bulk]');
       if (b) {
-        const ids = chosen.size ? [...chosen] : (b.dataset.swBulk === 'websites' ? (data?.items || []).filter(c => c.status === 'neu' && !['belegt', 'quelle'].includes(c.website_status)).map(c => c.id) : []);
+        const ids = chosen.size ? [...chosen] : (b.dataset.swBulk === 'websites' ? (data?.items || []).filter(c => c.status === 'neu' && !['belegt', 'quelle', 'bestaetigt'].includes(c.website_status)).map(c => c.id) : []);
         if (!ids.length) return toast('Bitte Firmen auswählen', true);
         try {
           if (b.dataset.swBulk === 'websites') { const r = await api('/sweep-candidates/find-websites', 'POST', {ids: ids.slice(0, 200)}); toast(`${r.queued} Firmen in der Website-Suche. ${r.notice}`); }

@@ -22,7 +22,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 from .website_analyzer import CrawlError, public_url, robots_allowed, same_company_host
 
 METHOD = 'regel:impressum-v1'
-AGENT = 'SignalDeskResearch/1.3 (+Impressumsprüfung, einzelne Seiten)'
+AGENT = 'SignalDeskResearch/1.15 (+public company data research; single pages, no bulk crawling)'  # nur ASCII; Abruf: research.policy.AGENT
 MAX_HTML = 2_000_000
 MAX_PDF = 5_000_000
 REQUEST_DELAY = 1.0  # Sekunden zwischen zwei Abrufen derselben Domain
@@ -51,24 +51,11 @@ class _SafeRedirect(HTTPRedirectHandler):
 
 
 def http_fetch(url, origin=None):
-    """Gibt (finale_url, content_type, bytes) zurück. Wirft CrawlError bei jedem Sicherheitsproblem."""
-    url = public_url(url)
-    if not robots_allowed(url):
-        raise CrawlError('robots.txt untersagt den Abruf dieser Seite.')
-    opener = build_opener(_SafeRedirect(origin))
-    req = Request(url, headers={'User-Agent': AGENT, 'Accept': 'text/html,application/xhtml+xml,application/pdf;q=0.8'})
-    try:
-        with opener.open(req, timeout=12) as resp:
-            ctype = (resp.headers.get('Content-Type') or '').split(';')[0].strip().lower()
-            limit = MAX_PDF if ctype == 'application/pdf' else MAX_HTML
-            data = resp.read(limit + 1)
-            if len(data) > limit:
-                raise CrawlError('Seite zu groß.')
-            return resp.geturl(), ctype, data
-    except HTTPError as exc:
-        raise CrawlError(f'HTTP {exc.code}') from exc
-    except (URLError, TimeoutError, OSError) as exc:
-        raise CrawlError(f'Nicht erreichbar ({getattr(exc, "reason", exc)})') from exc
+    """Gibt (finale_url, content_type, bytes) zurück. Wirft CrawlError bei jedem Sicherheitsproblem.
+    Seit v1.15 über research.fetch: IP-Pinning, geprüfte Weiterleitungen, robots.txt nach RFC 9309, gzip mit Größenbremse."""
+    from .research import fetch
+    res = fetch(url, origin=origin)
+    return res.final_url, res.content_type, res.body
 
 
 FETCH = http_fetch
@@ -80,7 +67,7 @@ SLEEP = time.sleep
 class _TextAndLinks(HTMLParser):
     BLOCK = {'p', 'div', 'br', 'li', 'tr', 'td', 'th', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'section', 'article',
              'header', 'footer', 'address', 'dd', 'dt', 'table', 'ul', 'ol', 'hr', 'blockquote', 'span'}
-    SKIP = {'script', 'style', 'noscript', 'svg', 'template', 'iframe'}
+    SKIP = {'script', 'style', 'noscript', 'svg', 'template', 'iframe', 'title'}  # v1.15: Seitentitel ist kein Fließtext
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
@@ -116,9 +103,11 @@ class _TextAndLinks(HTMLParser):
 
 
 def html_to_text(raw: bytes):
-    text = raw.decode('utf-8', 'replace') if isinstance(raw, bytes) else raw
-    if '�' in text[:5000] and isinstance(raw, bytes):
-        text = raw.decode('latin-1', 'replace')
+    if isinstance(raw, bytes):
+        from .research.fetchers.base import decode_html
+        text = decode_html(raw)  # v1.15: BOM → meta charset → UTF-8 → Windows-1252
+    else:
+        text = raw
     parser = _TextAndLinks()
     parser.feed(text)
     joined = ''.join(parser.parts).replace('\xa0', ' ')

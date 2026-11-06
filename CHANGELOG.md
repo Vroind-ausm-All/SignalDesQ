@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.15.0 – Masterplan 2.0: Sprint 0 + 1 (sicherer Website-Abruf) und Empfehlung A
+
+- **Testgelände und Benchmark:** 33 fiktive Websites mit schwierigen Fällen, simuliertes Netz ohne echte Abrufe, `tools/bench_fetch.py`, Ausgangsmessung v1.14.
+- **Neuer Website-Abruf** (`sales_tool/research/`):
+  - IP-Pinning gegen DNS-Rebinding;
+  - selbst geprüfte Weiterleitungen;
+  - robots.txt nach RFC 9309 (Weiterleitungen, 4xx erlaubt, 5xx gesperrt, `*`/`$`, Zwischenspeicher);
+  - gzip mit Bremse gegen gzip-Bomben, Größen- und Zeitgrenzen;
+  - zuverlässige Zeichensatzerkennung, Seitentitel nicht mehr im Fließtext;
+  - HTTP zuerst, Browser nur als Rückfall.
+- **Gemessen:**
+  - Impressumsfelder 99.0 % statt 79.6 %;
+  - Crawl 33/33 statt 29/33;
+  - P95 15 statt 103 ms;
+  - 91 statt 123 Anfragen;
+  - 0 statt 1 Verbindung zu ungeprüften Adressen.
+- **Scrapling:**
+  - Die HTML-Auswertung ist als Schalter eingebaut (Ergebnisse identisch, 2.4× langsamer, daher nicht Standard).
+  - Der Scrapling-Abruf wurde gemessen und **nicht** eingebaut: Er tarnt sich standardmäßig als Chrome, setzt einen Google-Referer, braucht patchright (362 MB) und erlaubt kein IP-Pinning.
+- **Schalter „Recherche-Technik“** in „Datenqualität & System“ (Abruf, Auswertung, Browser-Rückfall).
+- **Empfehlung A:**
+  - Website-Vorschläge heißen „Vorschlag – bitte prüfen“, mit den Knöpfen „Website passt / passt nicht“.
+  - Automatisch gilt nur „belegt“ bzw. „laut Quelle“.
+  - Abgelehnte Domains werden nicht erneut vorgeschlagen.
+  - Aus einem bloßen Vorschlag wird keine Registernummer übernommen.
+- Optional: `requirements-research.txt` mit fest gepinnten Versionen und Lizenzen.
+- 320 Tests (25 neu). Berichte: `docs/BERICHT_SPRINT_S0_S1.md`, Plan: `docs/MASTERPLAN_2_0_SCRAPLING.md`.
+
 ## 1.14.0 – Live-Test der Quellen: Anpassungen an die echten Schnittstellen
 
 Ein Live-Test aller offenen Quellen (11/2026) hat gezeigt, wo die Attrappen-Tests von der Wirklichkeit abwichen. Behoben:

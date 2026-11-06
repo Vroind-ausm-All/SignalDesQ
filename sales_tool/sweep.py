@@ -769,6 +769,11 @@ def decide(conn, cid, decision):
     upd = {k: v for k, v in upd.items() if v}
     if upd:
         conn.execute(f"UPDATE leads SET {', '.join(k + '=?' for k in upd)} WHERE id=?", (*upd.values(), lid))
+    if cand['website'] and cand['website_status'] not in CONFIRMED_WEB and cand['website_status'] not in ('', 'wartet', 'laeuft'):
+        # Empfehlung A: ein nicht bestätigter Vorschlag wird nicht zur Website der Firma
+        conn.execute("UPDATE leads SET website='' WHERE id=? AND website=?", (lid, cand['website']))
+        conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
+                     (lid, 'notiz', f"Website-Vorschlag {cand['website']} noch nicht bestätigt ({cand['website_evidence']}). Bitte prüfen."[:900]))
     auto = _apply_imprint(conn, lid, cand)
     srcs = ', '.join(lf.SOURCES.get(s['source'], {}).get('title', s['source']) for s in json.loads(cand['sources_json'] or '[]'))
     conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
@@ -790,7 +795,7 @@ def _apply_imprint(conn, lead_id, cand):
     fields = imp.get('fields') or {}
     if not fields:
         return []
-    confirmed = cand['website_status'] == 'belegt'
+    confirmed = cand['website_status'] in ('belegt', 'bestaetigt')
     lead = dict(conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone())
     src, stype = imp.get('imprint_url') or cand['website'], imp.get('source_type') or 'impressum_html'
     applied = []
@@ -859,7 +864,8 @@ def find_website(conn, cid):
     from . import imprint
     cand = conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (cid,)).fetchone()
     tried = []
-    targets = [cand['website']] if cand['website'] else domain_guesses(cand['name'], cand['city'])
+    rejected = set(json.loads(cand['imprint_json'] or '{}').get('rejected_domains', []))
+    targets = [cand['website']] if cand['website'] else [d for d in domain_guesses(cand['name'], cand['city']) if d not in rejected]
     for dom in targets:
         tried.append(dom)
         try:
@@ -876,10 +882,13 @@ def find_website(conn, cid):
                 contact['imprint_url'] = res['imprint_url']
             web = lf.clean_website(res.get('home_url') or dom)
             imp = {'imprint_url': res.get('imprint_url') or '', 'source_type': res.get('source_type') or 'impressum_html', 'checked_at': res.get('checked_at', ''),
-                   'fields': {k: {'value': v.get('value'), 'excerpt': (v.get('excerpt') or '')[:300]} for k, v in f.items() if v and v.get('value')}}
+                   'fields': {k: {'value': v.get('value'), 'excerpt': (v.get('excerpt') or '')[:300]} for k, v in f.items() if v and v.get('value')},
+                   'rejected_domains': sorted(rejected), 'guessed': not cand['website']}
+            if status == 'wahrscheinlich':  # Empfehlung A: nur ein Vorschlag – nichts aus dem Impressum in die Firma schreiben
+                why = f'Vorschlag: {why} – bitte prüfen'
             conn.execute('''UPDATE discovery_candidates SET website=?, website_status=?, website_evidence=?, contact_json=?, imprint_json=?,
-                            register_id=CASE WHEN register_id='' THEN ? ELSE register_id END, updated_at=? WHERE id=?''',
-                         (web, status, why, json.dumps(contact, ensure_ascii=False), json.dumps(imp, ensure_ascii=False),
+                            register_id=CASE WHEN register_id='' AND ?='belegt' THEN ? ELSE register_id END, updated_at=? WHERE id=?''',
+                         (web, status, why, json.dumps(contact, ensure_ascii=False), json.dumps(imp, ensure_ascii=False), status,
                           (f.get('register_number') or {}).get('value') or '', _now(), cid))
             conn.commit()
             return {'status': status, 'website': web, 'evidence': why}
@@ -891,6 +900,35 @@ def find_website(conn, cid):
                      (('Geprüft: ' + ', '.join(tried))[:300] if tried else 'Kein sinnvoller Domainname ableitbar', cid))
     conn.commit()
     return {'status': 'nicht_gefunden', 'tried': tried}
+
+
+CONFIRMED_WEB = ('quelle', 'belegt', 'bestaetigt')
+
+
+def review_website(conn, cid, data):
+    """Website-Vorschlag („wahrscheinlich“ / „nicht eindeutig“) von Hand bestätigen oder ablehnen (Empfehlung A)."""
+    if not isinstance(data, dict) or set(data) != {'decision'} or data['decision'] not in ('bestaetigen', 'ablehnen'):
+        raise ValueError('Erwartet: {decision: bestaetigen | ablehnen}.')
+    cand = conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (cid,)).fetchone()
+    if not cand:
+        raise LookupError('Treffer nicht gefunden.')
+    if not cand['website'] or cand['website_status'] not in ('wahrscheinlich', 'nicht_bestaetigt'):
+        raise ValueError('Nur offene Website-Vorschläge können bestätigt oder abgelehnt werden.')
+    imp = json.loads(cand['imprint_json'] or '{}')
+    if data['decision'] == 'bestaetigen':
+        conn.execute("UPDATE discovery_candidates SET website_status='bestaetigt', website_evidence=?, updated_at=? WHERE id=?",
+                     ((cand['website_evidence'].replace('Vorschlag: ', '').replace(' – bitte prüfen', '') + ' – von dir bestätigt')[:300], _now(), cid))
+        if cand['lead_id']:
+            conn.execute("UPDATE leads SET website=CASE WHEN website='' THEN ? ELSE website END WHERE id=?", (cand['website'], cand['lead_id']))
+            _apply_imprint(conn, cand['lead_id'], conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (cid,)).fetchone())
+    else:
+        dom = lf.normalize_domain(cand['website'])
+        imp['rejected_domains'] = sorted(set(imp.get('rejected_domains', [])) | {dom})
+        imp.pop('fields', None)
+        conn.execute("""UPDATE discovery_candidates SET website='', website_status='abgelehnt', website_evidence=?, contact_json='{}', imprint_json=?,
+                        updated_at=? WHERE id=?""", (f'Vorschlag {dom} von dir abgelehnt', json.dumps(imp, ensure_ascii=False), _now(), cid))
+    conn.commit()
+    return _cand_view(conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (cid,)).fetchone())
 
 
 def queue_websites(conn, data, db_path, start=True):
@@ -1001,6 +1039,10 @@ def route_sweep(h, conn, method, route, query, db_path):
         return True
     if route == '/api/sweep-candidates/find-websites' and method == 'POST':
         h._send(202, queue_websites(conn, h._body(), db_path))
+        return True
+    m = re.fullmatch(r'/api/sweep-candidates/(\d+)/website', route)
+    if m and method == 'POST':
+        h._send(200, review_website(conn, int(m.group(1)), h._body()))
         return True
     m = re.fullmatch(r'/api/sweep-candidates/(\d+)/decision', route)
     if m and method == 'POST':
