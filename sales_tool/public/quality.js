@@ -95,10 +95,21 @@
     bar.innerHTML = auth.user ? `${esc(auth.user.display_name || auth.user.username)} · ${esc(auth.user.role)} <button type="button" class="text-button" data-q-logout>Abmelden</button>` : '';
   }
 
+  async function loadResearchTech() {
+    if (!$('#rtForm')) return;
+    const r = await api('/research/settings');
+    const f = $('#rtForm').elements;
+    f.fetcher.value = r.settings.fetcher; f.parser.value = r.settings.parser; f.browser_fallback.value = String(r.settings.browser_fallback);
+    $('#rtNotice').textContent = r.notice;
+    $('#rtStatus').textContent = `In Benutzung: Auswertung ${r.parser_in_use === 'scrapling' ? 'Scrapling ' + r.scrapling.version : 'eingebaut'}`
+      + ` · Scrapling ${r.scrapling.installed ? 'installiert' : 'nicht installiert (optional: requirements-research.txt)'}`
+      + ` · Browser ${r.browser.installed ? 'installiert' : 'nicht installiert'}`;
+  }
+
   window.refreshQuality = async function () {
     if (!$('#viewQuality')) return;
     try {
-      const [changes, stale] = await Promise.all([loadChanges(), loadStale(), loadJobs(), loadSettings(), loadSecurity(), loadAuth()]);
+      const [changes, stale] = await Promise.all([loadChanges(), loadStale(), loadJobs(), loadSettings(), loadSecurity(), loadAuth(), loadResearchTech()]);
       $('#qMetrics').innerHTML = `<div class="panel"><small>Offene Änderungen</small><strong>${changes}</strong></div><div class="panel"><small>Firmen mit veralteten Daten</small><strong>${stale.leads.length}</strong></div><div class="panel"><small>Abgelaufene Löschfristen</small><strong>${stale.privacy_expired.length}</strong></div>`;
       const badge = changes + stale.privacy_expired.length;
       $('#qNavBadge').textContent = badge ? String(badge) : '';
@@ -139,6 +150,12 @@
       const body = {kind, interval_days: Number(f.interval_days.value), params};
       if (f.label.value.trim()) body.label = f.label.value.trim();
       act(() => api('/quality/jobs', 'POST', body), 'Auftrag angelegt – erster Lauf in etwa 5 Minuten oder über „Jetzt ausführen“');
+    });
+    $('#rtForm')?.addEventListener('submit', e => {
+      e.preventDefault();
+      const f = e.target.elements;
+      act(() => api('/research/settings', 'POST', {fetcher: f.fetcher.value, parser: f.parser.value, browser_fallback: f.browser_fallback.value === 'true'}),
+        'Recherche-Technik gespeichert');
     });
     $('#qSettingsForm').addEventListener('submit', e => {
       e.preventDefault();

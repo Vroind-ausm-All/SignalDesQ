@@ -20,6 +20,13 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.15 – Sicherer Website-Abruf (Masterplan 2.0, Sprint 0 + 1)
+
+- **Neuer Abruf für Firmen-Websites:** Er verbindet sich nur mit der geprüften Adresse und prüft Weiterleitungen einzeln. robots.txt wird nach dem aktuellen Standard beachtet, und Größen- und Zeitgrenzen schützen vor kaputten oder bösartigen Seiten. Auf 33 Testseiten stimmen jetzt 99 % der Impressumsangaben (vorher 80 %), bei deutlich weniger Anfragen.
+- **Scrapling** ist als optionale HTML-Auswertung schaltbar. Der Scrapling-Abruf wurde gemessen und bewusst nicht eingebaut: Er tarnt sich als Chrome-Browser.
+- **Website-Vorschläge:** Nur durch die Registernummer belegte Websites gelten automatisch. Andere Treffer bestätigst oder verwirfst du mit einem Klick.
+- Berichte: [`docs/BERICHT_SPRINT_S0_S1.md`](docs/BERICHT_SPRINT_S0_S1.md) · Plan: [`docs/MASTERPLAN_2_0_SCRAPLING.md`](docs/MASTERPLAN_2_0_SCRAPLING.md)
+
 ## v1.14 – Live-Test der Quellen
 
 - **Echte Schnittstellen statt Annahmen:** Alle offenen Quellen wurden live abgefragt. GLEIF, Wikidata, TED und OpenStreetMap sind an das angepasst, was die Server heute wirklich erlauben und liefern.

@@ -29,36 +29,13 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 def public_url(url: str) -> str:
-    """Accept DNS hostnames whose current addresses are globally routable.
+    """Accept DNS hostnames whose current addresses are globally routable (Implementierung: research.safe_urls).
 
-    DNS rebinding cannot be fully prevented at application level: run only on a
-    trusted PC and never expose this research server to an untrusted network.
+    Seit v1.15 verbindet der HTTP-Abruf sich zusätzlich genau mit der hier geprüften Adresse (IP-Pinning), sodass eine
+    zweite DNS-Antwort nicht mehr auf ein internes Ziel zeigen kann. Für den Team-Betrieb bleibt ein Netzwerkfilter sinnvoll.
     """
-    if not isinstance(url, str) or len(url) > 2048:
-        raise CrawlError("Ungültige URL.")
-    url = url.strip()
-    parsed = urlsplit(url)
-    if (parsed.scheme not in ("http", "https") or not parsed.hostname or
-            parsed.username or parsed.password or parsed.fragment or parsed.port not in (None, 80, 443)):
-        raise CrawlError("Nur öffentliche HTTP(S)-Websites ohne Login, Fragment oder Sonderport erlaubt.")
-    host = parsed.hostname.rstrip(".").lower()
-    if host == "localhost" or host.endswith((".localhost", ".local", ".internal", ".test")):
-        raise CrawlError("Lokale und interne Hostnamen sind gesperrt.")
-    try:
-        ipaddress.ip_address(host)
-    except ValueError:
-        if "." not in host:
-            raise CrawlError("Bitte einen öffentlichen Domainnamen verwenden.")
-    else:
-        raise CrawlError("IP-Adressen sind als Analyseziel gesperrt.")
-    try:
-        addresses = socket.getaddrinfo(host, parsed.port or (443 if parsed.scheme == "https" else 80), type=socket.SOCK_STREAM)
-    except socket.gaierror as exc:
-        raise CrawlError("Domain konnte nicht aufgelöst werden.") from exc
-    if not addresses or any(not ipaddress.ip_address(a[4][0]).is_global for a in addresses):
-        raise CrawlError("Interne, private oder nicht öffentliche IP-Adresse erkannt.")
-    # Drop fragments; normalize hostname, leave path and query untouched.
-    return urlunsplit((parsed.scheme, parsed.netloc.lower(), parsed.path or "/", parsed.query, ""))
+    from .research.safe_urls import public_url as _public_url
+    return _public_url(url)
 
 
 def same_company_host(a: str, b: str) -> bool:
@@ -69,9 +46,18 @@ def same_company_host(a: str, b: str) -> bool:
 
 
 def robots_allowed(url: str) -> bool:
+    """robots.txt nach RFC 9309 (Weiterleitungen geprüft, 4xx = erlaubt, 5xx = gesperrt, je Website zwischengespeichert)."""
+    from .research import settings
+    if settings.get()['fetcher'] == 'legacy':
+        return legacy_robots_allowed(url)
+    from .research.fetchers.http import robots_check
+    return robots_check(url)[0]
+
+
+def legacy_robots_allowed(url: str) -> bool:
+    """robots.txt-Prüfung bis v1.14 (ohne Weiterleitungen, 403 = Fehler) – nur für Vergleich/Rückfall."""
     p = urlsplit(url)
     robots_url = f"{p.scheme}://{p.netloc}/robots.txt"
-    # A deliberately small, non-redirecting robots request, max 200 KB.
     opener = build_opener(NoRedirect)
     try:
         with opener.open(Request(robots_url, headers={"User-Agent": AGENT}), timeout=6) as response:
@@ -117,90 +103,34 @@ def derive_links(origin: str, links: list[dict], purpose: str = "website") -> li
     return [u for _, u in sorted(candidates)[:MAX_PAGES-1]]
 
 
+MIN_STATIC_TEXT = 200  # Zeichen: darunter gilt eine Seite als „ohne ausreichenden statischen Inhalt“
+
+
 def crawl_site(url: str, purpose: str = "website") -> dict:
-    """Browse up to five same-company pages; don't click, submit or authenticate."""
-    if purpose not in ('website','contacts','full'):
+    """Bis zu fünf Seiten derselben Firma lesen – seit v1.15 HTTP zuerst (Masterplan 2.0, Sprint 1).
+    Der Browser (Playwright, JavaScript aus) wird nur genutzt, wenn er installiert und eingeschaltet ist UND der
+    statische Abruf keinen ausreichenden Text liefert. Kein Klicken, Absenden oder Anmelden."""
+    if purpose not in ('website', 'contacts', 'full'):
         raise CrawlError('Unbekannter Recherchetyp.')
     initial = public_url(url)
     if not robots_allowed(initial):
         raise CrawlError("Die Website untersagt diesen Abruf in robots.txt.")
+    from .research import settings
+    from .research.fetchers import browser
+    static, static_error = None, None
     try:
-        from playwright.sync_api import sync_playwright
-    except ImportError:
-        return light_crawl(initial, purpose)  # v1.11: ohne Browser weiterarbeiten statt abzubrechen
-    pages, errors = [], []
-    # Avoid parallel requests and third-party trackers/assets; no screenshots stored.
-    with sync_playwright() as pw:
-        try:
-            browser = pw.chromium.launch(headless=True, executable_path=os.environ.get("SIGNALDESK_CHROMIUM_PATH") or None)
-        except Exception:
-            browser = None
-        if browser is None:
-            return light_crawl(initial, purpose)
-        try:
-            context = browser.new_context(java_script_enabled=False, service_workers="block", accept_downloads=False,
-                                          user_agent=AGENT, ignore_https_errors=False)
-            def route_request(route):
-                request_url = route.request.url
-                try:
-                    # Fail closed for subresource redirects and off-domain content.
-                    if not same_company_host(initial, request_url):
-                        return route.abort()
-                    public_url(request_url)
-                    if route.request.resource_type in ("image", "font", "media", "websocket"):
-                        return route.abort()
-                    route.continue_()
-                except (ValueError, OSError):
-                    route.abort()
-            context.route("**/*", route_request)
-            queue = [initial]
-            seen = set()
-            while queue and len(pages) < MAX_PAGES:
-                requested = queue.pop(0)
-                requested = public_url(requested)
-                if requested in seen:
-                    continue
-                seen.add(requested)
-                if not robots_allowed(requested):
-                    errors.append(f"robots.txt sperrt {requested}")
-                    continue
-                page = context.new_page()
-                try:
-                    response = page.goto(requested, wait_until="domcontentloaded", timeout=13000)
-                    final = public_url(page.url)
-                    if not same_company_host(initial, final):
-                        raise CrawlError("Weiterleitung zu einer anderen Domain blockiert.")
-                    if response is None or response.status >= 400:
-                        raise CrawlError(f"HTTP {response.status if response else 'keine Antwort'}")
-                    data = page.evaluate("""() => {
-                        const b = document.body;
-                        return {
-                          title: document.title || '',
-                          text: (b?.innerText || '').slice(0, 5500),
-                          headings: Array.from(document.querySelectorAll('h1,h2,h3')).slice(0,25).map(x=>x.innerText.trim()).filter(Boolean),
-                          forms: document.querySelectorAll('form').length,
-                          links: Array.from(document.querySelectorAll('a[href]')).slice(0,150).map(a=>({href:a.href,text:(a.innerText||'').trim().slice(0,80)}))
-                        };
-                    }""")
-                    clean = re.sub(r"\s+", " ", str(data.get("text", ""))).strip()[:MAX_TEXT]
-                    if not clean:
-                        raise CrawlError("Kein sichtbarer Seitentext.")
-                    pages.append({"url": final, "title": str(data.get("title", ""))[:220],
-                                  "text": clean, "raw_text": str(data.get("text", ""))[:MAX_TEXT] if purpose in ('contacts', 'full') else '',
-                                  "headings": data.get("headings", [])[:25],
-                                  "form_count": int(data.get("forms", 0))})
-                    if len(pages) == 1:
-                        queue.extend(derive_links(final, data.get("links", []), purpose))
-                except Exception as exc:
-                    errors.append(f"{requested}: {str(exc)[:160]}")
-                finally:
-                    page.close()
-            context.close()
-        finally:
-            browser.close()
-    if not pages:
-        raise CrawlError("Keine nutzbaren öffentlichen Inhalte gefunden. " + "; ".join(errors[:2]))
-    return {"source": initial, "pages": pages, "warnings": errors[:10]}
+        static = light_crawl(initial, purpose)
+    except CrawlError as exc:
+        static_error = exc
+    thin = static is None or sum(len(p.get("text", "")) for p in static["pages"]) < MIN_STATIC_TEXT
+    if thin and settings.get()["browser_fallback"] and browser.available():
+        rendered = browser.crawl(initial, purpose, MAX_PAGES, MAX_TEXT, robots_allowed, public_url, same_company_host, derive_links, CrawlError)
+        if rendered and rendered["pages"] and (static is None or sum(len(p["text"]) for p in rendered["pages"]) > sum(len(p["text"]) for p in static["pages"])):
+            return {"source": initial, "pages": rendered["pages"], "renderer": "browser",
+                    "warnings": ["Statischer Abruf lieferte zu wenig Text – mit dem Browser gelesen (JavaScript aus)."] + rendered["errors"][:9]}
+    if static is None:
+        raise static_error
+    return static
 
 
 def light_crawl(url: str, purpose: str = "website") -> dict:
@@ -219,16 +149,16 @@ def light_crawl(url: str, purpose: str = "website") -> dict:
                 raise CrawlError("Weiterleitung zu einer anderen Domain blockiert.")
             if "html" not in (ctype or "html"):
                 raise CrawlError("Keine HTML-Seite.")
-            raw = data.decode("utf-8", "replace")
-            text, links, _ = imprint.html_to_text(data)
+            from .research.fetchers.base import decode_html
+            from .research.parse import parse_html
+            parsed = parse_html(decode_html(data) if isinstance(data, bytes) else data, final)
+            text, links = parsed["text"], parsed["links"]
             clean = re.sub(r"\s+", " ", text).strip()[:MAX_TEXT]
             if not clean:
                 raise CrawlError("Kein sichtbarer Seitentext.")
-            title = re.search(r"<title[^>]*>(.*?)</title>", raw, re.I | re.S)
-            headings = [re.sub(r"<[^>]+>|\s+", " ", h).strip() for h in re.findall(r"<h[1-3][^>]*>(.*?)</h[1-3]>", raw, re.I | re.S)][:25]
-            pages.append({"url": final, "title": re.sub(r"\s+", " ", title.group(1)).strip()[:220] if title else "",
-                          "text": clean, "raw_text": text[:MAX_TEXT] if purpose in ("contacts", "full") else "",
-                          "headings": [h for h in headings if h], "form_count": len(re.findall(r"<form\b", raw, re.I))})
+            pages.append({"url": final, "title": parsed["title"], "text": clean,
+                          "raw_text": text[:MAX_TEXT] if purpose in ("contacts", "full") else "",
+                          "headings": parsed["headings"], "form_count": parsed["forms"], "parser": parsed["engine"]})
             if len(pages) == 1:
                 queue.extend(derive_links(final, links, purpose))
         except Exception as exc:

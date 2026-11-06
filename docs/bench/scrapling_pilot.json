@@ -1,0 +1,58 @@
+{
+ "python": "3.13.18",
+ "rss_start_mb": 18.0,
+ "scrapling": "0.5.1",
+ "import_s": 0.14,
+ "rss_after_import_mb": 53.0,
+ "redirect_to_local_ip": "Fehler beim Folgen: ConnectionError",
+ "latency_ms": {
+  "scrapling_default": {
+   "p50": 1.34,
+   "max": 2.2,
+   "n": 21
+  },
+  "scrapling_ohne_tarnung": {
+   "p50": 1.49,
+   "max": 1.68,
+   "n": 21
+  },
+  "stdlib": {
+   "p50": 0.68,
+   "max": 0.9,
+   "n": 21
+  }
+ },
+ "request_headers": {
+  "scrapling_default": {
+   "sec-ch-ua": "\"Chromium\";v=\"152\", \"Not?A_Brand\";v=\"24\", \"Google Chrome\";v=\"152\"",
+   "sec-ch-ua-mobile": "?0",
+   "sec-ch-ua-platform": "\"Windows\"",
+   "upgrade-insecure-requests": "1",
+   "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+   "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+   "sec-fetch-site": "none",
+   "sec-fetch-mode": "navigate",
+   "sec-fetch-user": "?1",
+   "sec-fetch-dest": "document",
+   "referer": "https://www.google.com/",
+   "accept-encoding": "gzip, deflate, br, zstd",
+   "accept-language": "en-US,en;q=0.9",
+   "cache-control": "max-age=0",
+   "Upgrade": "h2c",
+   "HTTP2-Settings": "AAEAAQAAAAIAAAAAAAQAYAAAAAYABAAA",
+   "Host": "mueller-metall.example",
+   "Connection": "Upgrade, HTTP2-Settings"
+  },
+  "scrapling_ohne_tarnung": {
+   "Accept-Encoding": "gzip, deflate, br",
+   "User-Agent": "SignalDeskResearch/1.15 (+public company data research; single pages, no bulk crawling)",
+   "Host": "mueller-metall.example"
+  },
+  "stdlib": {
+   "Host": "mueller-metall.example",
+   "User-Agent": "SignalDeskResearch/1.15 (+public company data research; single pages, no bulk crawling)",
+   "Accept-Encoding": "gzip, deflate"
+  }
+ },
+ "rss_end_mb": 55.3
+}

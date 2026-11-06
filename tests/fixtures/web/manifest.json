@@ -1,0 +1,600 @@
+{
+ "note": "Fiktive Testwebsites (Sprint 0). Hosts *.example werden im Test auf 127.0.0.1 abgebildet; router.intern-weiterleitung.example auf 10.0.0.1 (privat).",
+ "resolve": {
+  "router.intern-weiterleitung.example": "10.0.0.1"
+ },
+ "sites": {
+  "mueller-metall.example": {
+   "pages": {
+    "/": "mueller-metall.example__index.html",
+    "/impressum": "mueller-metall.example__impressum.html",
+    "/kontakt": "mueller-metall.example__kontakt.html",
+    "/leistungen": "mueller-metall.example__leistungen.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {},
+   "expect": {
+    "legal_name": "Müller Metallbau GmbH",
+    "zip": "70565",
+    "city": "Stuttgart",
+    "register_number": "HRB 700001",
+    "vat_id": "DE999000001",
+    "business_phone": "+49 711 0000001",
+    "business_email": "info@mueller-metall.example"
+   },
+   "note": "Klassisches GmbH-Impressum, verlinkt"
+  },
+  "schmid-kg.example": {
+   "pages": {
+    "/": "schmid-kg.example__index.html",
+    "/impressum": "schmid-kg.example__impressum.html",
+    "/kontakt": "schmid-kg.example__kontakt.html",
+    "/leistungen": "schmid-kg.example__leistungen.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {},
+   "expect": {
+    "legal_name": "Schmid Anlagenbau GmbH & Co. KG",
+    "zip": "73728",
+    "city": "Esslingen am Neckar",
+    "register_number": "HRA 700002",
+    "vat_id": "DE999000002",
+    "business_phone": "+49 711 0000002",
+    "business_email": "kontakt@schmid-kg.example"
+   },
+   "note": "GmbH & Co. KG"
+  },
+  "weber-ug.example": {
+   "pages": {
+    "/": "weber-ug.example__index.html",
+    "/impressum": "weber-ug.example__impressum.html",
+    "/kontakt": "weber-ug.example__kontakt.html",
+    "/leistungen": "weber-ug.example__leistungen.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {},
+   "expect": {
+    "legal_name": "Weber Digital UG (haftungsbeschränkt)",
+    "zip": "71634",
+    "city": "Ludwigsburg",
+    "register_number": "HRB 700003",
+    "vat_id": "DE999000003",
+    "business_phone": "+49 7141 0000003",
+    "business_email": "hallo@weber-ug.example"
+   },
+   "note": "UG"
+  },
+  "www.kanzlei-berg.example": {
+   "pages": {
+    "/": "www.kanzlei-berg.example__index.html",
+    "/impressum": "www.kanzlei-berg.example__impressum.html",
+    "/kontakt": "www.kanzlei-berg.example__kontakt.html",
+    "/leistungen": "www.kanzlei-berg.example__leistungen.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {},
+   "expect": {
+    "legal_name": "Berg Steuerberatung GmbH",
+    "zip": "70173",
+    "city": "Stuttgart",
+    "register_number": "HRB 700004",
+    "vat_id": "DE999000004",
+    "business_phone": "+49 711 0000004",
+    "business_email": "office@kanzlei-berg.example"
+   },
+   "note": "Ziel der www-Weiterleitung"
+  },
+  "kanzlei-berg.example": {
+   "pages": {},
+   "robots": null,
+   "expect": {
+    "legal_name": "Berg Steuerberatung GmbH",
+    "zip": "70173",
+    "city": "Stuttgart",
+    "register_number": "HRB 700004",
+    "vat_id": "DE999000004",
+    "business_phone": "+49 711 0000004",
+    "business_email": "office@kanzlei-berg.example"
+   },
+   "routes": {
+    "*": {
+     "status": 301,
+     "location": "http://www.kanzlei-berg.example{path}"
+    }
+   },
+   "note": "Domain ohne www leitet ALLES (auch robots.txt) auf www um"
+  },
+  "geschlossen.example": {
+   "pages": {
+    "/": "geschlossen.example__index.html",
+    "/impressum": "geschlossen.example__impressum.html",
+    "/kontakt": "geschlossen.example__kontakt.html",
+    "/leistungen": "geschlossen.example__leistungen.html"
+   },
+   "robots": "User-agent: *\nDisallow: /\n",
+   "routes": {},
+   "expect": {
+    "blocked": "robots"
+   },
+   "note": "robots.txt sperrt alles → kein Abruf"
+  },
+  "robots403.example": {
+   "pages": {
+    "/": "robots403.example__index.html",
+    "/impressum": "robots403.example__impressum.html",
+    "/kontakt": "robots403.example__kontakt.html",
+    "/leistungen": "robots403.example__leistungen.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {
+    "/robots.txt": {
+     "status": 403
+    }
+   },
+   "expect": {
+    "legal_name": "Robots Vierhundertdrei GmbH",
+    "zip": "70174",
+    "city": "Stuttgart",
+    "register_number": "HRB 700006",
+    "vat_id": "DE999000006",
+    "business_phone": "+49 711 0000006",
+    "business_email": "info@robots403.example"
+   },
+   "note": "robots.txt antwortet 403 → laut RFC 9309 „nicht verfügbar“ = Abruf erlaubt"
+  },
+  "robots500.example": {
+   "pages": {
+    "/": "robots500.example__index.html",
+    "/impressum": "robots500.example__impressum.html",
+    "/kontakt": "robots500.example__kontakt.html",
+    "/leistungen": "robots500.example__leistungen.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {
+    "/robots.txt": {
+     "status": 503
+    }
+   },
+   "expect": {
+    "blocked": "robots"
+   },
+   "note": "robots.txt 5xx → laut RFC 9309 vollständig gesperrt"
+  },
+  "teilgesperrt.example": {
+   "pages": {
+    "/": "teilgesperrt.example__index.html",
+    "/impressum": "teilgesperrt.example__impressum.html",
+    "/kontakt": "teilgesperrt.example__kontakt.html",
+    "/leistungen": "teilgesperrt.example__leistungen.html"
+   },
+   "robots": "User-agent: *\nDisallow: /kontakt\nDisallow: /*.pdf$\n",
+   "routes": {},
+   "expect": {
+    "legal_name": "Teilgesperrt GmbH",
+    "zip": "70178",
+    "city": "Stuttgart",
+    "register_number": "HRB 700008",
+    "vat_id": "DE999000008",
+    "business_phone": "+49 711 0000008",
+    "business_email": "info@teilgesperrt.example"
+   },
+   "note": "robots sperrt nur /kontakt und PDFs (Wildcard-Regel)"
+  },
+  "gesperrt403.example": {
+   "pages": {
+    "/": "gesperrt403.example__index.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {
+    "/": {
+     "status": 403
+    }
+   },
+   "expect": {
+    "error": "http"
+   },
+   "note": "Startseite 403"
+  },
+  "drossel429.example": {
+   "pages": {
+    "/": "drossel429.example__index.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {
+    "/": {
+     "status": 429,
+     "headers": {
+      "Retry-After": "120"
+     }
+    }
+   },
+   "expect": {
+    "error": "http"
+   },
+   "note": "429 mit Retry-After – kein aggressives Wiederholen"
+  },
+  "groessle.example": {
+   "pages": {
+    "/": "groessle.example__index.bin",
+    "/impressum": "groessle.example__impressum.bin"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {
+    "*": {
+     "headers": {
+      "Content-Type": "text/html"
+     }
+    }
+   },
+   "expect": {
+    "legal_name": "Größle Feinwerk KG",
+    "zip": "73033",
+    "city": "Göppingen",
+    "register_number": "HRA 700009",
+    "vat_id": "DE999000009",
+    "business_phone": "+49 7161 0000009",
+    "business_email": "info@groessle.example"
+   },
+   "note": "ISO-8859-1 ohne Zeichensatzangabe"
+  },
+  "baeckerei-suess.example": {
+   "pages": {
+    "/": "baeckerei-suess.example__index.bin",
+    "/impressum": "baeckerei-suess.example__impressum.bin"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {},
+   "expect": {
+    "legal_name": "Bäckerei Süß GmbH",
+    "zip": "72764",
+    "city": "Reutlingen",
+    "register_number": "HRB 700010",
+    "vat_id": "DE999000010",
+    "business_phone": "+49 7121 0000010",
+    "business_email": "info@baeckerei-suess.example"
+   },
+   "note": "windows-1252 per meta charset"
+  },
+  "pdf-impressum.example": {
+   "pages": {
+    "/": "pdf-impressum.example__index.html",
+    "/impressum.pdf": "pdf-impressum.example__impressum.pdf.bin"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {
+    "/impressum.pdf": {
+     "headers": {
+      "Content-Type": "application/pdf"
+     }
+    }
+   },
+   "expect": {
+    "register_number": "HRB 700011",
+    "zip": "70180"
+   },
+   "note": "Impressum nur als PDF verlinkt"
+  },
+  "nur-javascript.example": {
+   "pages": {
+    "/": "nur-javascript.example__index.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {},
+   "expect": {
+    "error": "no_text"
+   },
+   "note": "Inhalt nur per JavaScript – statischer Abruf findet nichts"
+  },
+  "boese-weiterleitung.example": {
+   "pages": {
+    "/": "boese-weiterleitung.example__index.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {
+    "/": {
+     "status": 302,
+     "location": "http://127.0.0.1:9/admin"
+    }
+   },
+   "expect": {
+    "blocked": "ssrf"
+   },
+   "note": "Weiterleitung auf eine lokale IP-Adresse"
+  },
+  "intern-weiterleitung.example": {
+   "pages": {
+    "/": "intern-weiterleitung.example__index.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {
+    "/": {
+     "status": 302,
+     "location": "http://router.intern-weiterleitung.example/"
+    }
+   },
+   "expect": {
+    "blocked": "ssrf"
+   },
+   "note": "Weiterleitung auf einen Namen, der auf eine private Adresse (10.0.0.1) zeigt"
+  },
+  "fremd-weiterleitung.example": {
+   "pages": {
+    "/": "fremd-weiterleitung.example__index.html",
+    "/impressum": "fremd-weiterleitung.example__impressum.html",
+    "/kontakt": "fremd-weiterleitung.example__kontakt.html",
+    "/leistungen": "fremd-weiterleitung.example__leistungen.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {
+    "/impressum": {
+     "status": 301,
+     "location": "http://mueller-metall.example/impressum"
+    }
+   },
+   "expect": {
+    "no_imprint": true
+   },
+   "note": "Impressum leitet auf eine andere Firma um → nicht folgen"
+  },
+  "schleife.example": {
+   "pages": {
+    "/": "schleife.example__index.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {
+    "/": {
+     "status": 302,
+     "location": "/a"
+    },
+    "/a": {
+     "status": 302,
+     "location": "/b"
+    },
+    "/b": {
+     "status": 302,
+     "location": "/a"
+    }
+   },
+   "expect": {
+    "error": "redirects"
+   },
+   "note": "Weiterleitungsschleife"
+  },
+  "riesig.example": {
+   "pages": {
+    "/": "riesig.example__index.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {
+    "/": {
+     "size": 10000000
+    }
+   },
+   "expect": {
+    "error": "size"
+   },
+   "note": "10-MB-Antwort"
+  },
+  "gzip-bombe.example": {
+   "pages": {
+    "/": "gzip-bombe.example__index.bin"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {
+    "/": {
+     "headers": {
+      "Content-Encoding": "gzip",
+      "Content-Type": "text/html"
+     }
+    }
+   },
+   "expect": {
+    "error": "size"
+   },
+   "note": "gzip-Bombe: 60 MB entpackt, ~60 KB übertragen"
+  },
+  "gzip-technik.example": {
+   "pages": {
+    "/": "gzip-technik.example__index.bin",
+    "/impressum": "gzip-technik.example__impressum.bin"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {
+    "*": {
+     "headers": {
+      "Content-Encoding": "gzip",
+      "Content-Type": "text/html; charset=utf-8"
+     }
+    }
+   },
+   "expect": {
+    "legal_name": "Gzip Technik GmbH",
+    "register_number": "HRB 700013",
+    "zip": "70184",
+    "vat_id": "DE999000013"
+   },
+   "note": "Server liefert gzip, obwohl nicht angefragt"
+  },
+  "langsam.example": {
+   "pages": {
+    "/": "langsam.example__index.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {
+    "/": {
+     "delay": 25
+    }
+   },
+   "expect": {
+    "error": "timeout"
+   },
+   "note": "Antwort nach 25 s"
+  },
+  "kein-html.example": {
+   "pages": {
+    "/": "kein-html.example__index.bin"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {
+    "/": {
+     "headers": {
+      "Content-Type": "image/png"
+     }
+    }
+   },
+   "expect": {
+    "error": "content_type"
+   },
+   "note": "Startseite ist ein Bild"
+  },
+  "widerspruch.example": {
+   "pages": {
+    "/": "widerspruch.example__index.html",
+    "/impressum": "widerspruch.example__impressum.html",
+    "/kontakt": "widerspruch.example__kontakt.html",
+    "/leistungen": "widerspruch.example__leistungen.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {},
+   "expect": {
+    "legal_name": "Widerspruch Bau GmbH & Co. KG",
+    "zip": "70186",
+    "city": "Stuttgart",
+    "register_number": "HRA 700014",
+    "vat_id": "DE999000014",
+    "business_phone": "+49 711 0000014",
+    "business_email": "info@widerspruch.example"
+   },
+   "note": "Kontaktseite nennt andere Nummer als das Impressum"
+  },
+  "social.example": {
+   "pages": {
+    "/": "social.example__index.html",
+    "/impressum": "social.example__impressum.html",
+    "/kontakt": "social.example__kontakt.html",
+    "/leistungen": "social.example__leistungen.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {},
+   "expect": {
+    "legal_name": "Social Media Agentur GmbH",
+    "zip": "70188",
+    "city": "Stuttgart",
+    "register_number": "HRB 700015",
+    "vat_id": "DE999000015",
+    "business_phone": "+49 711 0000015",
+    "business_email": "hallo@social.example"
+   },
+   "note": "Links zu sozialen Netzwerken dürfen nicht verfolgt werden"
+  },
+  "rechtliches.example": {
+   "pages": {
+    "/": "rechtliches.example__index.html",
+    "/rechtliches.html": "rechtliches.example__rechtliches.html.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {},
+   "expect": {
+    "legal_name": "Rechtlich GmbH",
+    "register_number": "HRB 700016",
+    "zip": "70190",
+    "vat_id": "DE999000016",
+    "business_phone": "+49 711 0000016",
+    "business_email": "info@rechtliches.example"
+   },
+   "note": "Link heißt „Rechtliche Hinweise“"
+  },
+  "onepager.example": {
+   "pages": {
+    "/": "onepager.example__index.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {},
+   "expect": {
+    "legal_name": "Onepager GmbH",
+    "register_number": "HRB 700017",
+    "zip": "70191"
+   },
+   "note": "Impressum steht auf der Startseite"
+  },
+  "ohne-link.example": {
+   "pages": {
+    "/": "ohne-link.example__index.html",
+    "/impressum": "ohne-link.example__impressum.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {},
+   "expect": {
+    "legal_name": "Ohne Link GmbH",
+    "register_number": "HRB 700018",
+    "zip": "70192"
+   },
+   "note": "Kein Link, aber /impressum existiert"
+  },
+  "english-ltd.example": {
+   "pages": {
+    "/": "english-ltd.example__index.html",
+    "/impressum": "english-ltd.example__impressum.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {},
+   "expect": {
+    "register_number": "HRB 700019",
+    "vat_id": "DE999000019",
+    "zip": "70193"
+   },
+   "note": "Englisches Impressum"
+  },
+  "obfusk.example": {
+   "pages": {
+    "/": "obfusk.example__index.html",
+    "/impressum": "obfusk.example__impressum.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {},
+   "expect": {
+    "legal_name": "Obfusk IT GmbH",
+    "register_number": "HRB 700020",
+    "business_email": "info@obfusk.example"
+   },
+   "note": "E-Mail verschleiert"
+  },
+  "strukturiert.example": {
+   "pages": {
+    "/": "strukturiert.example__index.html",
+    "/impressum": "strukturiert.example__impressum.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {},
+   "expect": {
+    "legal_name": "Strukturiert Daten GmbH",
+    "register_number": "HRB 700021",
+    "jsonld_type": "Organization",
+    "jsonld_phone": "+49 711 0000021"
+   },
+   "note": "JSON-LD Organization auf der Startseite"
+  },
+  "karriere-werke.example": {
+   "pages": {
+    "/": "karriere-werke.example__index.html",
+    "/impressum": "karriere-werke.example__impressum.html",
+    "/kontakt": "karriere-werke.example__kontakt.html",
+    "/leistungen": "karriere-werke.example__leistungen.html",
+    "/karriere": "karriere-werke.example__karriere.html"
+   },
+   "robots": "User-agent: *\nAllow: /\n",
+   "routes": {},
+   "expect": {
+    "legal_name": "Karriere Werke AG",
+    "zip": "70199",
+    "city": "Stuttgart",
+    "register_number": "HRB 700022",
+    "vat_id": "DE999000022",
+    "business_phone": "+49 711 0000022",
+    "business_email": "info@karriere-werke.example",
+    "jobposting_title": "Webentwickler (m/w/d)"
+   },
+   "note": "Karriereseite mit JSON-LD JobPosting"
+  }
+ }
+}
