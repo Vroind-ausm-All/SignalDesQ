@@ -1,5 +1,37 @@
 # Changelog
 
+## 1.14.0 – Live-Test der Quellen: Anpassungen an die echten Schnittstellen
+
+Ein Live-Test aller offenen Quellen (11/2026) hat gezeigt, wo die Attrappen-Tests von der Wirklichkeit abwichen. Behoben:
+
+- **GLEIF:**
+  - Die API lehnt inzwischen jeden Ortsfilter ab.
+  - SignalDesk nutzt jetzt sofort die erlaubten Filter (Volltext + Land + aktiv), also ohne zwei Fehlversuche je Ort.
+  - Ortsteile („Stuttgart - Möhringen“) werden mitgenommen.
+  - Die Rechtsform kommt aus dem offiziellen ELF-Code (alle 31 deutschen Codes).
+  - Neue Auswahl „Wen suchst du?“: Unternehmen (Standard), Vereine/Verbände/Stiftungen, öffentliche Einrichtungen.
+- **Wikidata:**
+  - Wikidata drosselt bei Störungen auf „1 Anfrage pro Minute“ und sperrt bis zu 1000 s.
+  - SignalDesk taktet jetzt selbst (2 s, im Störungsmodus 65 s), fragt während einer Sperre nicht erneut an und bricht lange Sperren sofort mit klarer Meldung ab, statt zu warten.
+  - Websites per LEI kommen in einer Abfrage statt bis zu fünf.
+- **Suchgebiet ohne Netzwerk:**
+  - Ein mitgeliefertes Ortsverzeichnis (13,216 Orte, GeoNames CC BY 4.0, Großkunden-PLZ bereinigt) ersetzt die Umkreisabfrage bei Wikidata/OpenStreetMap.
+  - Eine früher gespeicherte Notlösung „nur Mittelpunkt“ wird nicht mehr dauerhaft verwendet.
+- **TED:**
+  - Ausschreibungen kommen jetzt standardmäßig nur von Auftraggebern im Suchgebiet (serverseitiger Ortsfilter), mit Ort, PLZ und Entfernung.
+  - „Bundesweit“ bleibt als Option.
+- **OpenStreetMap:** höchstens 45 s je Server; ein nicht erreichbarer Server wird 10 Minuten übersprungen.
+- **Quellen-Check** in „Firmen finden“: eine winzige Testanfrage je Quelle. Ergebnis: erreichbar, überlastet (mit Wartezeit), blockiert oder Format geändert.
+- Rechtsform-Erkennung: „Gruppe“, „Group“ und „Holding“ gelten nicht mehr als Rechtsform; e.K. wird erkannt.
+- Schema-Version 21 (`discovery_candidates.org_kind`).
+- Weitere Live-Befunde:
+  - Besitz- und Fondsgesellschaften (Grundbesitz, Wind-/Solarparks, „… III Management“, „Nr. 90 KG“) werden ausgefiltert.
+  - Die TED-Gruppe „Software“ enthält keine Lizenzkäufe mehr (48000000 → 72230000).
+  - Die Rechtsform wird beim Übernehmen in den Lead geschrieben.
+  - Der Status zeigt „läuft“ auch bei Wiederholversuchen.
+- Echte Sammelsuche Stuttgart 30 km: **285 s statt 856 s**, alle Treffer im Suchgebiet.
+- 295 Tests (19 neu). Bericht: `docs/BERICHT_V114_LIVETEST.md`.
+
 ## 1.13.0 – Feedbackrunde: Ortsbezug, Überlastung, automatische Website-Recherche, gegliederte Aufgaben, kompakte Pipeline
 
 - Ortsbezug:

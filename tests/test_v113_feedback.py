@@ -84,7 +84,7 @@ class OverloadTests(tb.SweepBase):
         d = self.run_sweep(sources=['gleif', 'ted'])
         self.assertEqual(d['progress']['ted']['status'], 'fehler')
         self.assertIn('erneut abfragen', d['progress']['ted']['error'])
-        self.assertEqual([s for s in self.sleeps if s >= 20], [20, 60], 'zwei Wiederholungen mit wachsender Pause')
+        self.assertEqual([s for s in self.sleeps if s in (20, 60, 120)], [20, 60], 'zwei Wiederholungen mit wachsender Pause')
         self.assertEqual(d['progress']['gleif']['status'], 'fertig', 'andere Quellen laufen weiter')
         gleif_new = d['progress']['gleif']['new']
         self.net.fail.clear()

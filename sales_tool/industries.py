@@ -101,7 +101,11 @@ INDUSTRIES = {k: {**v, 'group': g} for g, items in INDUSTRY_GROUPS.items() for k
 # Gesellschaften ohne eigenes operatives Geschäft (für die Vorauswahl „nur operative Firmen“)
 NON_OPERATIVE_RE = re.compile(
     r'verwaltung|beteiligung|holding|vermögen|vermoegen|grundst|immobilienfonds|fonds|invest|capital|kapital|topco|midco|bidco|holdco|'
-    r'treuhand|komplement|stiftung|asset|propert|projekt\s*\d|objekt|vorrats|ventures|equity|\bspv\b|\bsicav\b|portfolio', re.I)
+    r'treuhand|komplement|stiftung|asset|propert|projekt\s*\d|objekt|vorrats|ventures|equity|\bspv\b|\bsicav\b|portfolio|'
+    # v1.14 (Live-Test GLEIF Stuttgart): Besitz-/Grundstücksgesellschaften, Wind-/Solarparks, nummerierte Fonds-Vehikel
+    r'grundbesitz|\bbesitz\b|besitzgesellschaft|liegenschaften\s+gmbh|solarpark|windpark|bürgerwind|buergerwind|'
+    r'\b(?:II|III|IV|V|VI|VII|VIII|IX|X|XI|XII|XIII|XIV|XV)\s+(?:management|verwaltungs|gmbh|kg)\b|\bnr\.\s*\d+\s+kg\b|'
+    r'\bvv\s+(?:gmbh|kg)\b|\bfund\b|\.vc\b', re.I)
 
 
 def catalog():

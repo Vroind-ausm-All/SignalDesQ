@@ -20,6 +20,15 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.14 – Live-Test der Quellen
+
+- **Echte Schnittstellen statt Annahmen:** Alle offenen Quellen wurden live abgefragt. GLEIF, Wikidata, TED und OpenStreetMap sind an das angepasst, was die Server heute wirklich erlauben und liefern.
+- **Suchgebiet sofort und offline:** Die Orte im Umkreis kommen aus einem mitgelieferten Ortsverzeichnis. Ortsdaten: GeoNames (www.geonames.org), CC BY 4.0.
+- **Wen suchst du?** Standardmäßig nur Unternehmen. Vereine und öffentliche Einrichtungen sind zuschaltbar; die Rechtsform kommt aus dem amtlichen Code.
+- **Ausschreibungen aus deiner Region:** standardmäßig nur Auftraggeber im Suchgebiet, wahlweise bundesweit.
+- **Quellen prüfen:** Ein Knopf zeigt, welche Quelle gerade erreichbar ist.
+- Bericht: [`docs/BERICHT_V114_LIVETEST.md`](docs/BERICHT_V114_LIVETEST.md)
+
 ## v1.13 – Feedbackrunde: weniger Lärm, mehr Automatik
 
 - **Nur Firmen aus deinem Ort:**
