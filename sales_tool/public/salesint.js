@@ -51,6 +51,7 @@
       f.elements.project_label.value = d.project_label;
       f.elements.customer_goal.value = d.customer_goal;
       f.elements.assumptions.value = d.assumptions;
+      if (window.quoteApplyTemplate) window.quoteApplyTemplate(d.package, d.positions);
       toast(d.notice);
     } catch (e) { toast(e.message, true); }
   }

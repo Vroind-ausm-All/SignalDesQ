@@ -339,3 +339,17 @@
 .rp-modal-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#f6fcf8;border:1px solid #d9ebe2;border-radius:10px;padding:12px 16px}.rp-modal-bar small{display:block;color:var(--muted);font-size:11px}
 .nav-group-sub{margin-top:6px!important;font-size:9px!important;color:#557a7e!important}
 @media(max-width:900px){.rp-cols{grid-template-columns:1fr}.rp-steps{grid-template-columns:1fr 1fr}.rp-scores{grid-template-columns:repeat(2,1fr)}.rp-start{grid-template-columns:1fr}}
+/* Sprint D: Angebots-Baukasten */
+.qb-tpl{align-self:end}.qb-add{border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:8px;background:#fbfdfb}
+.qb-add-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.4fr) 80px auto;gap:8px}.qb-add-row select,.qb-add-row input,.qb-fields input,.qb-fields select,.qb-title,.qb-cat input,.qb-set-grid input{border:1px solid #dce4df;border-radius:8px;padding:9px 10px;background:#fff;width:100%;min-width:0;color:var(--ink)}
+.qb-positions{display:grid;gap:8px}.qb-pos{display:grid;grid-template-columns:26px minmax(0,1fr) 110px 52px;gap:10px;align-items:start;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}
+.qb-n{width:24px;height:24px;border-radius:50%;background:#eef3f0;display:grid;place-items:center;font-size:11px;font-weight:800}.qb-title{font-weight:700}
+.qb-pos-main{display:grid;gap:6px;min-width:0}.qb-pos-main small{font-size:11px;overflow-wrap:anywhere}.qb-fields{display:flex;gap:8px;flex-wrap:wrap}.qb-fields label{display:grid;gap:3px;font-size:10px;font-weight:750;color:#718085;min-width:90px;flex:1}
+.qb-price{text-align:right;display:grid}.qb-price b{font-size:15px}.qb-price small{color:var(--muted);font-size:10px}.qb-tools{display:flex;gap:4px;justify-content:flex-end}
+.qb-table{width:100%;min-width:0;border-collapse:collapse;font-size:12px;margin:8px 0}.qb-table th{font-size:9px;padding:8px 6px}.qb-table td{padding:8px 6px;border-bottom:1px solid #eef1ef;vertical-align:top}
+.qb-table td small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.qb-table .num{text-align:right;white-space:nowrap}.qb-table tr.sum td{font-weight:800;border-top:2px solid var(--line)}
+.qb-table tbody tr{cursor:default}.qb-internal tr.warn td{background:#fff6f0}.qb-check{margin:10px 0;padding:10px 14px;border-radius:9px;font-size:12px}.qb-check.ok{background:#e1f7eb;color:#1c7a5a}.qb-check.warn{background:#fff3e6;color:#8a4b22}
+.qb-settings>summary{cursor:pointer;display:grid;gap:4px}.qb-set-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.qb-set-grid label{display:grid;gap:4px;font-size:11px;font-weight:700;color:#718085}
+.qb-catalog h4{margin:18px 0 4px}.qb-cat{min-width:720px}.qb-cat input{max-width:110px;text-align:right;padding:6px 8px}.qb-cat tr.custom td:first-child{box-shadow:inset 3px 0 #d9ab51}
+@media(max-width:800px){.qb-add-row{grid-template-columns:1fr 1fr}.qb-pos{grid-template-columns:24px minmax(0,1fr)}.qb-price,.qb-tools{grid-column:2;text-align:left;justify-content:flex-start}.qb-set-grid{grid-template-columns:1fr 1fr}}
+.qb-add-row{display:flex;flex-wrap:wrap;gap:8px}.qb-add-row select{flex:1 1 180px}.qb-add-row input{flex:0 0 80px}.qb-add-row .btn{flex:1 0 auto}

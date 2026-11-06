@@ -31,7 +31,7 @@
         <button class="nav" data-view="playbook"><span>▤</span> Sales-Playbook</button>
       </details>
     </nav>
-    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.11 · Arbeitstag von oben nach unten</small><div id="authBar" class="auth-bar hidden"></div></div>
+    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small>v1.12 · Arbeitstag von oben nach unten</small><div id="authBar" class="auth-bar hidden"></div></div>
   </aside>
   <main class="main">
     <header class="topbar"><div class="breadcrumb">SALES <span>/</span> <span id="sectionBreadcrumb">Heute</span></div><div class="top-actions"><div class="date-chip" id="today"></div><button class="btn btn-primary" id="newLeadBtn">＋ Neuer Lead</button></div></header>
@@ -136,26 +136,35 @@
   <section class="panel sales-section"><span class="eyebrow">PROTOKOLL</span><h2>Letzte Anruf-Ergebnisse</h2><div id="wsRecentCalls" class="sales-list"></div></section>
 </div>
 <div class="content hidden" id="viewQuotes">
- <div class="eyebrow">SCOPE TRANSPARENT · FESTPREIS STATT STUNDENVERKAUF</div><div class="page-title"><div><h1>Eine Lösung. Ein Festpreis.</h1><p>Leistungsbausteine automatisch zusammenstellen. Interne Aufwände bleiben intern; Kunden erhalten einen vollständigen, klaren Festpreis und genaue Liefergegenstände.</p></div><span class="pill">Verkauf von Ergebnissen</span></div>
- <div class="sales-cols quote-grid">
-  <section class="panel sales-section"><span class="eyebrow">01 / PAKET KONFIGURIEREN</span><h2>Angebot erstellen</h2>
-    <form id="quoteForm" class="sales-form">
-      <label>Interessent / Unternehmen<select name="lead_id" class="sales-lead-select" required></select></label>
-      <label>Lösungspaket<select id="quotePackage" name="package" required></select></label>
-      <label>Projekttitel<input name="project_label" maxlength="140" placeholder="z. B. Digitale Kundenanfragen vereinfachen"></label>
-      <label>Ergebnisversprechen / Kundenziel<textarea name="customer_goal" rows="2" maxlength="500" placeholder="Konkretes, realistisch erreichbares Ergebnis"></textarea></label>
-      <div><b>Zusätzliche Leistungsbausteine</b><div id="quoteAddons" class="quote-addons"></div></div>
-      <label>Voraussetzungen / Abhängigkeiten<textarea name="assumptions" maxlength="1000" rows="2" placeholder="z. B. Kunde liefert Texte/Assets bis zum Kick-off"></textarea></label>
-      <div class="sales-subhead">Nur interne Kalkulation – nicht im Kundendokument</div>
-      <div class="sales-row"><label>Interner Verrechnungskostensatz (€ / h)<input name="cost_rate_eur" type="number" min="15" max="250" step="1" value="55"></label><label>Risikopuffer (%)<input name="risk_pct" type="number" min="0" max="60" value="15"></label></div>
-      <div class="sales-row"><label>Ziel-Deckungsbeitrag (%)<input name="target_margin_pct" type="number" min="10" max="75" value="35"></label><label>Festpreis manuell setzen (€ netto, optional)<input name="custom_price_eur" type="number" min="100" max="1000000" step="50" placeholder="Automatischer Vorschlag"></label></div>
-      <label>Umsatzsteuerstatus<select name="tax_mode"><option value="offen">Noch offen – Entwurf, nicht versenden</option><option value="regel_19">Regulär mit 19 % USt.</option><option value="kleinunternehmer">§ 19 UStG (nur falls wirklich anwendbar)</option></select></label>
-      <button class="btn btn-primary" type="button" id="quoteCalculate">Festpreis & Umfang berechnen</button><button class="btn btn-ghost" type="submit">Angebot als Entwurf speichern</button>
-    </form>
-  </section>
-  <section class="panel sales-section"><span class="eyebrow">02 / KUNDENVORSCHAU</span><h2>Was dein Kunde sieht</h2><div id="quoteCustomer" class="quote-preview"><p class="muted">Wähle dein Paket und klicke auf Berechnen.</p></div><div class="divider"></div><h3>Interner Deckungsbeitrag</h3><div id="quoteInternal" class="quote-internal">Nur für dich sichtbar.</div><div class="legal-foot"><b>Grundsatz:</b> Keine versteckten Zusatzgebühren. Lieferumfang, Ausschlüsse, Steuerstatus und Gesamtpreis werden vor dem Versand sichtbar. Stunden und interne Kalkulation sind nicht Teil des Kundenangebots.</div></section>
- </div>
- <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">03 / ANGEBOTSVERLAUF</span><h2>Gespeicherte Angebote</h2></div><button type="button" class="text-button" id="quoteRefresh">Aktualisieren ↻</button></div><div id="quoteHistory" class="sales-list"></div><div id="quoteSaved" class="quote-preview"></div></section>
+  <div class="eyebrow">3 · VERKAUFEN · NACHVOLLZIEHBARE FESTPREISE</div><div class="page-title"><div><h1>Angebote & Preise.</h1><p>Stelle dein Angebot aus deinem Leistungskatalog zusammen. Jede Position hat einen Festpreis, der sich nachvollziehbar aus Aufwand, Stundensatz, Puffer und enthaltenen Fremdkosten ergibt. Anreise und Tagespauschale kommen als eigene Positionen dazu.</p></div><span class="pill" id="qbRatePill">66 €/h</span></div>
+  <div class="sales-cols quote-grid">
+   <section class="panel sales-section"><span class="eyebrow">01 / ANGEBOT ZUSAMMENSTELLEN</span><h2>Positionen</h2>
+     <form id="quoteForm" class="sales-form">
+       <label>Interessent / Unternehmen<select name="lead_id" class="sales-lead-select" required></select></label>
+       <div class="sales-row"><label>Vorlage (optional)<select id="quotePackage" name="package"></select></label><button type="button" class="btn btn-ghost qb-tpl" id="qbTemplate">Vorlage laden</button></div>
+       <label>Projekttitel<input name="project_label" maxlength="140" placeholder="z. B. Neuer Webauftritt mit Shop-Anbindung"></label>
+       <label>Ergebnis / Kundenziel<textarea name="customer_goal" rows="2" maxlength="500" placeholder="Konkretes, realistisch erreichbares Ergebnis"></textarea></label>
+       <div class="qb-add"><b>Leistung hinzufügen</b>
+         <div class="qb-add-row"><select id="qbService" aria-label="Leistung"></select><select id="qbSize" aria-label="Umfang"></select><input id="qbQty" type="number" min="1" step="1" value="1" aria-label="Menge"><button type="button" class="btn btn-primary" id="qbAdd">＋ Hinzufügen</button></div>
+         <small class="muted" id="qbHint"></small>
+         <div class="acc-btn-group"><button type="button" class="btn btn-ghost" data-qb-quick="anreise">＋ Anreise</button><button type="button" class="btn btn-ghost" data-qb-quick="tagessatz">＋ Tagespauschale</button><button type="button" class="btn btn-ghost" data-qb-quick="aufwand">＋ Nach Aufwand</button></div>
+       </div>
+       <div id="qbPositions" class="qb-positions"></div>
+       <label>Voraussetzungen / Abhängigkeiten<textarea name="assumptions" maxlength="1000" rows="2" placeholder="z. B. Kunde liefert Texte/Bilder bis zum Kick-off"></textarea></label>
+       <label>Umsatzsteuerstatus<select name="tax_mode"><option value="offen">Noch offen – Entwurf, nicht versenden</option><option value="regel_19">Regulär mit 19 % USt.</option><option value="kleinunternehmer">§ 19 UStG (nur falls wirklich anwendbar)</option></select></label>
+       <div id="quoteAddons" class="hidden"></div>
+       <div class="acc-btn-group"><button class="btn btn-primary" type="button" id="quoteCalculate">Festpreise berechnen</button><button class="btn btn-ghost" type="submit">Angebot als Entwurf speichern</button></div>
+     </form>
+   </section>
+   <section class="panel sales-section"><span class="eyebrow">02 / KUNDENVORSCHAU</span><h2>Was dein Kunde sieht</h2><div id="quoteCustomer" class="quote-preview"><p class="muted">Positionen hinzufügen und „Festpreise berechnen“.</p></div></section>
+  </div>
+  <section class="panel sales-section"><span class="eyebrow">03 / NUR FÜR DICH</span><h2>So setzt sich der Preis zusammen</h2><div id="quoteInternal" class="quote-internal"><p class="muted">Erscheint nach der Berechnung: Aufwand × Stundensatz + Puffer + enthaltene Fremdkosten = Festpreis, dazu dein effektiver Stundenlohn.</p></div>
+   <div class="legal-foot"><b>Grundsatz:</b> Keine versteckten Aufschläge. Laufende Kosten Dritter (Hosting, Lizenzen, Werbebudget, KI-/Telefonminuten) stehen im Angebot ausdrücklich als „nicht im Festpreis“. Stunden und Kalkulation erscheinen nie im Kundendokument.</div></section>
+  <details class="panel sales-section qb-settings" id="qbSettingsBox"><summary><span class="eyebrow">04 / KALKULATIONSGRUNDLAGEN & LEISTUNGSKATALOG</span><b>Stundensatz, Tagespauschale, Anreise und Katalogwerte anpassen</b></summary>
+   <form id="qbSettings" class="sales-form qb-settings-form"></form>
+   <p class="muted" id="qbCatalogNotice"></p><div id="qbCatalog" class="qb-catalog"></div>
+  </details>
+ <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">05 / ANGEBOTSVERLAUF</span><h2>Gespeicherte Angebote</h2></div><button type="button" class="text-button" id="quoteRefresh">Aktualisieren ↻</button></div><div id="quoteHistory" class="sales-list"></div><div id="quoteSaved" class="quote-preview"></div></section>
 </div>
 <div class="content hidden" id="viewFinder">
  <div class="eyebrow">NEUE KUNDEN FINDEN · OFFENE QUELLEN</div>
@@ -579,4 +588,5 @@
 <script src="/today.js" defer></script>
 <script src="/sweep.js" defer></script>
 <script src="/report.js" defer></script>
+<script src="/quotes.js" defer></script>
 </body></html>
