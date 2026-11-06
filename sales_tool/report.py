@@ -150,12 +150,19 @@ def _step_impressum(conn, db_path, lead):
         return 'fehler' if row['status'] == 'failed' else 'hinweis', row['error'] or 'Kein Impressum gefunden.', {'imprint_item': item['id']}
     fields = (json.loads(row['result_json']).get('fields') or {})
     found = [k for k, v in fields.items() if v and v.get('value')]
+    # v1.13: Firmendaten automatisch in LEERE Lead-Felder übernehmen (vorhandene Werte bleiben, Personen nicht automatisch)
+    auto_note = ''
+    try:
+        r = ib.review_item(conn, item['id'], {'decision': 'ergaenzen', 'lead_id': lead['id'], 'include_representatives': False})
+        auto_note = f" · {len(r['applied'])} automatisch übernommen" + (f", {len(r['kept_existing'])} vorhandene Werte behalten" if r['kept_existing'] else '')
+    except ValueError as exc:
+        auto_note = f' · nicht übernommen: {exc}'
     legal = (fields.get('legal_name') or {}).get('value')
     if legal and lead['company'] == normalize_domain(lead['website']):
         # Platzhalter aus „Bericht für Website“ durch den Namen laut Impressum ersetzen (kein bestätigter Registerwert)
         conn.execute("UPDATE leads SET company=?, updated_at=datetime('now') WHERE id=?", (legal[:200], lead['id']))
         conn.commit()
-    return 'fertig', f"{len(found)} Felder ausgelesen – Übernahme im Bericht mit einem Klick", {'imprint_item': item['id']}
+    return 'fertig', f"{len(found)} Felder ausgelesen{auto_note}", {'imprint_item': item['id']}
 
 
 def _step_website(conn, db_path, lead):
@@ -248,6 +255,11 @@ def run_report(db_path, rid):
         conn.execute("UPDATE company_reports SET status=?, finished_at=datetime('now') WHERE id=?", ('fertig' if ok else 'fehler', rid))
         conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
                      (rep['lead_id'], 'notiz', f'Firmen-Bericht erstellt: {ok} von {len(STEPS)} Schritten erfolgreich.'))
+        if ok:  # v1.13: Recherche-Schritt ist erledigt → nächster Schritt Kontaktweg
+            from .today import RESEARCH_RE
+            lead = conn.execute('SELECT next_step FROM leads WHERE id=?', (rep['lead_id'],)).fetchone()
+            if lead and (not lead['next_step'] or RESEARCH_RE.search(lead['next_step'])):
+                conn.execute("UPDATE leads SET next_step='Kontaktweg klären (Firmen-Bericht liegt vor)', next_date='' WHERE id=?", (rep['lead_id'],))
         conn.commit()
 
 

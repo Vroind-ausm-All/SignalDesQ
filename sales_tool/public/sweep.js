@@ -26,18 +26,23 @@
   function formParams() {
     const f = $('#swForm').elements;
     return {place: f.place.value.trim(), radius_km: Number(f.radius_km.value), industries: [...selectedInd], keywords: f.keywords.value.trim(),
-      sources: $$('#swForm [name=src]:checked').map(x => x.value), operative: f.operative.checked, include_sole: f.include_sole.checked};
+      sources: $$('#swForm [name=src]:checked').map(x => x.value), operative: f.operative.checked, include_sole: f.include_sole.checked,
+      find_websites: f.find_websites.checked};
   }
 
   function renderProgress(sw) {
     const box = $('#swProgress');
     box.classList.remove('hidden');
-    const area = sw.progress._area;
+    const area = sw.progress._area, web = sw.progress._web;
+    const failed = Object.entries(sw.progress).filter(([k, p]) => !k.startsWith('_') && p.status === 'fehler').length;
+    const done = !['queued', 'running'].includes(sw.status);
     const rows = Object.entries(sw.progress).filter(([k]) => !k.startsWith('_')).map(([k, p]) => `<div class="sw-src ${esc(p.status)}">
-      <b>${esc(p.label || SRC[k] || k)}</b><span class="sw-st">${esc(p.status || 'wartet')}</span>
-      <small>${p.error ? `<span class="late">${esc(p.error)}</span>` : `${p.new ?? 0} neu · ${p.merged ?? 0} zusammengeführt · ${p.known ?? 0} schon bekannt · ${p.filtered ?? 0} ausgefiltert${p.detail ? ' · ' + esc(p.detail) : ''}`}</small></div>`).join('');
+      <b>${esc(p.label || SRC[k] || k)}</b><span class="sw-st ${p.status === 'wartet' && p.detail ? 'retry' : ''}">${esc(p.status === 'wartet' && p.detail ? 'neuer Versuch …' : p.status || 'wartet')}</span>
+      <small>${p.error ? `<span class="${p.status === 'fehler' ? 'late' : 'muted'}">${esc(p.error)}</span>` : `${p.new ?? 0} neu · ${p.merged ?? 0} zusammengeführt · ${p.known ?? 0} schon bekannt · ${p.filtered ?? 0} ausgefiltert${p.detail ? ' · ' + esc(p.detail) : ''}`}</small></div>`).join('');
     box.innerHTML = `<div class="sw-prog-head"><b>${esc(sw.label)}</b> <span class="muted">${area ? `Mittelpunkt ${esc(area.center)} · ${area.places} Orte im Umkreis (${esc(area.via)})` : 'Suchgebiet wird bestimmt …'}</span>
-      <span class="sw-st ${esc(sw.status)}">${esc({queued: 'wartet', running: 'läuft', fertig: 'fertig', fehler: 'Fehler', abgebrochen: 'abgebrochen'}[sw.status] || sw.status)}</span></div>${rows}`;
+      <span class="sw-st ${esc(sw.status)}">${esc({queued: 'wartet', running: 'läuft', fertig: 'fertig', fehler: 'Fehler', abgebrochen: 'abgebrochen'}[sw.status] || sw.status)}</span></div>${rows}
+      ${web && web.queued ? `<div class="sw-src fertig"><b>Website-Suche</b><span class="sw-st">automatisch</span><small>${web.queued} Firmen ohne Website werden nacheinander gesucht (Nachweis per Impressum) – Status siehe Liste unten.</small></div>` : ''}
+      ${done && failed ? `<div class="sw-retry"><button type="button" class="btn btn-primary" data-sw-retry="${sw.id}">↻ Fehlgeschlagene Quellen erneut abfragen</button><span class="muted">Die Server von Wikidata/OpenStreetMap sind zeitweise überlastet – ein neuer Versuch einige Minuten später hilft meist. Schon gefundene Firmen bleiben erhalten.</span></div>` : ''}`;
   }
 
   async function watchSweep(id) {
@@ -93,11 +98,17 @@
 
   async function loadList() {
     const qs = new URLSearchParams({status: $('#swStatus').value, sweep_id: $('#swSweep').value, website: $('#swWeb').value, sort: $('#swSort').value,
-      q: $('#swQ').value.trim(), offset: String(offset), limit: String(PAGE)});
+      q: $('#swQ').value.trim(), offset: String(offset), limit: String(PAGE), city: $('#swCity').value, max_km: $('#swKm').value,
+      no_ted: $('#swNoTed').checked ? '1' : ''});
+    [...qs.keys()].filter(k => !qs.get(k)).forEach(k => qs.delete(k));
     try {
       data = await api('/sweep-candidates?' + qs);
       cursor = Math.min(cursor, Math.max(0, data.items.length - 1));
       $('#swList').innerHTML = data.items.length ? data.items.map(row).join('') : `<div class="empty">${$('#swStatus').value === 'neu' ? 'Nichts mehr zu sichten. Starte oben eine Suche oder importiere eine Firmenliste.' : 'Keine Einträge.'}</div>`;
+      const cur = $('#swCity').value;
+      $('#swCity').innerHTML = '<option value="">alle Orte</option>' + (data.cities || []).map(x => `<option value="${esc(x.city)}">${esc(x.city)} (${x.n})</option>`).join('')
+        + (cur && !(data.cities || []).some(x => x.city.toLowerCase() === cur.toLowerCase()) ? `<option value="${esc(cur)}">${esc(cur)}</option>` : '');
+      $('#swCity').value = cur;
       const c = data.counts || {};
       $('#swCounts').textContent = `${c.neu || 0} neu · ${c.uebernommen || 0} übernommen · ${c.verworfen || 0} verworfen · ${c.dublette || 0} schon als Lead`;
       $('#swPage').textContent = data.total ? `${offset + 1}–${Math.min(offset + PAGE, data.total)} von ${data.total}` : '';
@@ -125,7 +136,7 @@
   async function decideOne(id, decision) {
     try {
       const r = await api(`/sweep-candidates/${id}/decision`, 'POST', {decision});
-      toast(decision === 'uebernehmen' ? 'Als Lead übernommen (Rechtsstatus „unbekannt“)' : 'Verworfen – erscheint nicht erneut');
+      toast(decision === 'uebernehmen' ? `Als Lead übernommen (Rechtsstatus „unbekannt“)${r.auto_applied?.length ? ` · aus dem Impressum ergänzt: ${r.auto_applied.length} Feld(er)` : ''}` : 'Verworfen – erscheint nicht erneut');
       chosen.delete(id);
       if (decision === 'uebernehmen' && typeof reload === 'function') reload();
       await loadList();
@@ -147,7 +158,8 @@
       const last = store.get('sw_last');
       if (last) {
         const f = $('#swForm').elements;
-        f.place.value = last.place || ''; f.radius_km.value = String(last.radius_km || 30); f.keywords.value = last.keywords || '';
+        f.place.value = last.place || ''; f.radius_km.value = String(last.radius_km ?? 30); f.keywords.value = last.keywords || '';
+        if (last.find_websites === false) f.find_websites.checked = false;
         (last.industries || []).forEach(k => selectedInd.add(k));
       }
       $('#swIndNotice').textContent = catalog.notice;
@@ -176,7 +188,7 @@
       catch (err) { $('#swGo').disabled = false; toast(err.message, true); }
     });
     $('#swFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) importFile(f); });
-    ['#swStatus', '#swSweep', '#swWeb', '#swSort'].forEach(s => $(s).addEventListener('change', () => { offset = 0; cursor = 0; loadList(); }));
+    ['#swStatus', '#swSweep', '#swWeb', '#swSort', '#swCity', '#swKm', '#swNoTed'].forEach(s => $(s).addEventListener('change', () => { offset = 0; cursor = 0; loadList(); }));
     let qt = null;
     $('#swQ').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(() => { offset = 0; loadList(); }, 300); });
     $('#swPrev').addEventListener('click', () => { offset = Math.max(0, offset - PAGE); cursor = 0; loadList(); });
@@ -189,6 +201,13 @@
         const id = Number(d.dataset.id);
         if (d.dataset.swDo === 'website') { try { await api('/sweep-candidates/find-websites', 'POST', {ids: [id]}); loadList(); } catch (err) { toast(err.message, true); } return; }
         return decideOne(id, d.dataset.swDo);
+      }
+      const rt = e.target.closest('[data-sw-retry]');
+      if (rt) {
+        rt.disabled = true;
+        try { const r = await api(`/sweeps/${rt.dataset.swRetry}/retry`, 'POST', {}); toast(`Neuer Versuch: ${r.retrying.map(k => SRC[k] || k).join(', ')}`); $('#swGo').disabled = true; watchSweep(Number(rt.dataset.swRetry)); }
+        catch (err) { rt.disabled = false; toast(err.message, true); }
+        return;
       }
       const b = e.target.closest('[data-sw-bulk]');
       if (b) {
@@ -212,7 +231,7 @@
       const ag = e.target.closest('[data-sw-again]');
       if (ag) {
         const h = (store.get('sw_history') || []).find(x => String(x.id) === ag.dataset.swAgain);
-        if (h) { const f = $('#swForm').elements; f.place.value = h.params.place; f.radius_km.value = String(h.params.radius_km); f.keywords.value = (h.params.keywords || []).join(', '); selectedInd = new Set(h.params.industries || []); renderIndustries(); $('#swForm').scrollIntoView({behavior: 'smooth'}); }
+        if (h) { const f = $('#swForm').elements; f.place.value = h.params.place; f.radius_km.value = String(h.params.radius_km ?? 30); f.keywords.value = (h.params.keywords || []).join(', '); selectedInd = new Set(h.params.industries || []); renderIndustries(); $('#swForm').scrollIntoView({behavior: 'smooth'}); }
         return;
       }
       const it = e.target.closest('.sw-item');

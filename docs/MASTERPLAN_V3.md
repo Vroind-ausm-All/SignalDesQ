@@ -84,6 +84,16 @@ Masterplan v3 ist damit umgesetzt. Als Nächstes steht der Live-Test der ganzen 
 - Katalogwerte an die eigene Erfahrung anpassen;
 - Rückmeldung als Grundlage für die nächste Runde.
 
+## Feedbackrunde v1.13 (umgesetzt)
+Nach dem ersten Praxistest wurden umgesetzt:
+- Ortsbezug (Umkreis 0, Orts- und Entfernungsfilter, TED standardmäßig aus);
+- Wiederholung bei überlasteten Quellen;
+- automatische Website-Suche und Impressums-Übernahme in leere Felder;
+- gegliederte Aufgaben mit zusammengefasster Recherche;
+- kompakte Pipeline mit Drag & Drop und Click & Drop.
+
+Details stehen in `docs/BERICHT_V113.md`.
+
 ## Leitplanken (unverändert)
 
 Es gelten weiter alle Leitplanken aus Masterplan v2:
