@@ -33,20 +33,23 @@
     return {place: f.place.value.trim(), radius_km: Number(f.radius_km.value), industries: [...selectedInd], keywords: f.keywords.value.trim(),
       sources: $$('#swForm [name=src]:checked').map(x => x.value), operative: f.operative.checked, include_sole: f.include_sole.checked,
       find_websites: f.find_websites.checked, ted_nationwide: f.ted_nationwide.checked,
-      org_kinds: $$('#swForm [name=org]:checked').map(x => x.value)};
+      org_kinds: $$('#swForm [name=org]:checked').map(x => x.value),
+      budget: {max_companies: Number(f.max_companies.value), max_websites: Number(f.max_websites.value), max_minutes: Number(f.max_minutes.value)}};
   }
+  window.swFormParams = formParams;
 
   function renderProgress(sw) {
     const box = $('#swProgress');
     box.classList.remove('hidden');
-    const area = sw.progress._area, web = sw.progress._web;
+    const area = sw.progress._area, web = sw.progress._web, bud = sw.progress._budget;
     const failed = Object.entries(sw.progress).filter(([k, p]) => !k.startsWith('_') && p.status === 'fehler').length;
     const done = !['queued', 'running'].includes(sw.status);
     const rows = Object.entries(sw.progress).filter(([k]) => !k.startsWith('_')).map(([k, p]) => `<div class="sw-src ${esc(p.status)}">
       <b>${esc(p.label || SRC[k] || k)}</b><span class="sw-st ${p.status === 'wartet' && p.detail ? 'retry' : ''}">${esc(p.status === 'wartet' && p.detail ? 'neuer Versuch …' : p.status || 'wartet')}</span>
-      <small>${p.error ? `<span class="${p.status === 'fehler' ? 'late' : 'muted'}">${esc(p.error)}</span>` : `${p.new ?? 0} neu · ${p.merged ?? 0} zusammengeführt${p.possible ? ` · ${p.possible} mögliche Dublette(n)` : ''} · ${p.known ?? 0} schon bekannt · ${p.filtered ?? 0} ausgefiltert${p.detail ? ' · ' + esc(p.detail) : ''}`}</small></div>`).join('');
+      <small>${p.error ? `<span class="${p.status === 'fehler' ? 'late' : 'muted'}">${esc(p.error)}</span>` : `${p.new ?? 0} neu · ${p.merged ?? 0} zusammengeführt${p.possible ? ` · ${p.possible} mögliche Dublette(n)` : ''}${p.budget ? ` · <b>${p.budget} wegen Budget nicht übernommen</b>` : ''} · ${p.known ?? 0} schon bekannt · ${p.filtered ?? 0} ausgefiltert${p.detail ? ' · ' + esc(p.detail) : ''}`}</small></div>`).join('');
     box.innerHTML = `<div class="sw-prog-head"><b>${esc(sw.label)}</b> <span class="muted">${area ? `Mittelpunkt ${esc(area.center)} · ${area.places} Orte im Umkreis (${esc(area.via)})` : 'Suchgebiet wird bestimmt …'}</span>
-      <span class="sw-st ${esc(sw.status)}">${esc({queued: 'wartet', running: 'läuft', fertig: 'fertig', fehler: 'Fehler', abgebrochen: 'abgebrochen'}[sw.status] || sw.status)}</span></div>${rows}
+      <span class="sw-st ${esc(sw.status)}">${esc({queued: 'wartet', running: 'läuft', fertig: 'fertig', fehler: 'Fehler', abgebrochen: 'abgebrochen'}[sw.status] || sw.status)}</span></div>
+      ${bud ? `<div class="sw-budget-line"><b>Budget</b> <span>${bud.companies ?? 0} / ${bud.max_companies} neue Firmen</span> · <span>höchstens ${bud.max_websites} Website-Suchen</span> · <span>${bud.minutes ?? 0} / ${bud.max_minutes} Min.</span> · <span class="muted">KI-Analysen nur auf Klick · keine externen Kosten</span></div>` : ''}${rows}
       ${web && web.queued ? `<div class="sw-src fertig"><b>Website-Suche</b><span class="sw-st">automatisch</span><small>${web.queued} Firmen ohne Website werden nacheinander gesucht (Nachweis per Impressum) – Status siehe Liste unten.</small></div>` : ''}
       ${done && failed ? `<div class="sw-retry"><button type="button" class="btn btn-primary" data-sw-retry="${sw.id}">↻ Fehlgeschlagene Quellen erneut abfragen</button><span class="muted">Die Server von Wikidata/OpenStreetMap sind zeitweise überlastet – ein neuer Versuch einige Minuten später hilft meist. Schon gefundene Firmen bleiben erhalten.</span></div>` : ''}`;
   }
@@ -78,6 +81,20 @@
     } catch (e) { toast(e.message, true); }
   }
   window.importCompanyFile = file => { switchView('finder'); importFile(file); };
+  // v1.18: Formular aus einem Suchprofil füllen (Gebiet, Branchen, Quellen, Filter, Budget)
+  window.swApplyParams = function (p, budget) {
+    const f = $('#swForm').elements;
+    f.place.value = p.place || ''; f.radius_km.value = String(p.radius_km ?? 30);
+    f.keywords.value = Array.isArray(p.keywords) ? p.keywords.join(', ') : (p.keywords || '');
+    $$('#swForm [name=src]').forEach(x => { x.checked = (p.sources || []).includes(x.value); });
+    $$('#swForm [name=org]').forEach(x => { x.checked = (p.org_kinds || ['unternehmen']).includes(x.value); });
+    f.operative.checked = p.operative !== false; f.include_sole.checked = !!p.include_sole; f.find_websites.checked = p.find_websites !== false;
+    f.ted_nationwide.checked = !!p.ted_nationwide;
+    if (budget) { f.max_companies.value = budget.max_companies; f.max_websites.value = budget.max_websites; f.max_minutes.value = budget.max_minutes; }
+    selectedInd = new Set(p.industries || []);
+    if (catalog) renderIndustries();
+  };
+  window.swWatch = id => { $('#swGo').disabled = true; watchSweep(id); };
 
   // ------------------------------------------------------------ Sichtung
   function webCell(c) {
@@ -199,6 +216,7 @@
         const f = $('#swForm').elements;
         f.place.value = last.place || ''; f.radius_km.value = String(last.radius_km ?? 30); f.keywords.value = last.keywords || '';
         if (last.find_websites === false) f.find_websites.checked = false;
+        if (last.budget) { f.max_companies.value = last.budget.max_companies; f.max_websites.value = last.budget.max_websites; f.max_minutes.value = last.budget.max_minutes; }
         if (last.ted_nationwide) f.ted_nationwide.checked = true;
         if (Array.isArray(last.org_kinds) && last.org_kinds.length) $$('#swForm [name=org]').forEach(x => { x.checked = last.org_kinds.includes(x.value); });
         (last.industries || []).forEach(k => selectedInd.add(k));

@@ -12,6 +12,9 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
+import sys
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).parent))
+from s5_helpers import confirm_need  # noqa: E402
 from sales_tool import accounting as acc
 from sales_tool.einvoice import parse_einvoice, xrechnung_xml, import_document
 from sales_tool.model import connect, init_db
@@ -406,6 +409,7 @@ class AccountingHttpTests(unittest.TestCase):
         status, lead, _ = self.call('/api/leads', 'POST', {'company': 'Beispiel Maschinenbau GmbH', 'stage': 'angebot'})
         status, prop, _ = self.call('/api/workspace/proposals', 'POST', {'lead_id': lead['id'], 'package': 'pilot', 'tax_mode': 'regel_19'})
         self.assertEqual(status, 201)
+        confirm_need(self.db, lead['id'])  # v1.18: Annahme nur mit bestätigtem Bedarf
         status, _, _ = self.call(f"/api/workspace/proposals/{prop['id']}", 'PATCH', {'status': 'angenommen'})
         self.assertEqual(status, 200)
         status, lead_after, _ = self.call(f"/api/leads/{lead['id']}")

@@ -19,7 +19,7 @@ from sales_tool import sweep as sw
 from sales_tool.company_data import find_duplicate
 from sales_tool.model import connect, init_db
 from sales_tool.research import identity as ident
-from sales_tool.server import make_handler, prepare_database
+from sales_tool.server import SCHEMA_VERSION, make_handler, prepare_database
 
 LEI = '529900ABCDEFGHIJKL01'
 
@@ -249,7 +249,7 @@ class SweepDuplicateTests(Base):
         with connect(db) as c:
             n = c.execute("SELECT COUNT(*) FROM discovery_candidates WHERE status='neu'").fetchone()[0]
             self.assertEqual(n, 1)
-            self.assertEqual(c.execute('PRAGMA user_version').fetchone()[0], 23)
+            self.assertEqual(c.execute('PRAGMA user_version').fetchone()[0], SCHEMA_VERSION)
 
 
 class LeadDuplicateTests(Base):

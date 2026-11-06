@@ -21,7 +21,7 @@ Quelle: „SignalDesk 2.0 – Scrapling- und GitHub-Masterplan“ vom 06.11.2026
 | 2 | Extraktion und einheitliche Belege (Trafilatura, extruct/JSON-LD) | ✅ v1.16: Belegprüfung (Wert muss im Originaltext stehen), JSON-LD/Microdata/OpenGraph ohne Fremdpaket (extruct nicht installierbar), Haupttext eingebaut, Trafilatura schaltbar; 103/103 Felder, 187/187 Werte mit Beleg |
 | 3 | Persistente Recherche-Aufträge (Pause, Fortsetzen, Abbrechen; Neustart ohne Verlust) | ✅ v1.16: `research/jobs.py` für Sammelsuche, Website-Suche und Firmen-Berichte; Absturztest (SIGKILL) ohne Verlust; noch auf eigenen Threads: Quickscan/KI-Analyse, Impressums-Stapel, Kaufsignal-Scan, Website-Scoring |
 | 4 | Große Firmendaten (DuckDB, GLEIF Golden Copy/Delta), RapidFuzz | ✅ v1.17: Dubletten-Regeln (`research/identity.py`) für Sichtung, Leads und CRM – mögliche Dubletten beim Haupteintrag statt doppelt, GmbH ≠ GmbH & Co. KG; Lead-Zusammenführung per Klick; GLEIF-Katalog per Streaming (CSV/ZIP, Golden Copy/Delta, Protokoll, GLEIF-Ersatz); DuckDB gemessen und **nicht** eingebaut (11× Arbeitsspeicher), RapidFuzz optional |
-| 5 | Geführter Arbeitstag, CRM, Angebote | 🟡 weitgehend vorhanden (Sprints A–D, v1.9–v1.13), Abgleich mit dem Abnahmeablauf offen |
+| 5 | Geführter Arbeitstag, CRM, Angebote | ✅ v1.18: Beispieltag des Plans als Abnahmetest (API + Browser) ohne Sackgasse; Kontaktsperre zentral inkl. Sperrliste; „Bedarf bestätigt“ als Freigabe vor Angebotsversand, Angebot aus bestätigtem Bedarf; Firmenakte mit Ablauf, nächstem Schritt, Belegabdeckung und Zeitleiste; Folgeaufgaben; Suchprofile mit Budget; Tagesabschluss |
 | 6 | Windows-Version, eingefrorene Paketversionen, Liste der Bestandteile, Tests Windows/Linux | ⬜ |
 
 ## Entscheidung „Empfehlung A“ (Website-Zuordnung)

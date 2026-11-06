@@ -23,6 +23,7 @@ import io
 import json
 import re
 import threading
+import time
 import unicodedata
 
 from . import area as ar
@@ -312,6 +313,12 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None, cindex=N
         dup = index.find(probe)
         blocked = bool(check_suppressed(conn, website=item.get('website', ''), name=name))
         status = 'gesperrt' if blocked else ('dublette' if dup else 'neu')
+        if status == 'neu' and '_budget_left' in ctx:
+            if ctx['_budget_left'] <= 0:
+                c['budget'] = c.get('budget', 0) + 1  # v1.18: Budget erreicht – sichtbar gezählt, nicht still verworfen
+                continue
+            if not possible:
+                ctx['_budget_left'] -= 1
         maybe_lead = index.possible(probe) if not dup else None
         if possible and cindex.status.get(possible[1]) != 'neu':
             # ähnlich zu einem schon entschiedenen Treffer: übernommen → Hinweis auf dessen Lead, sonst nur Hinweis
@@ -355,7 +362,7 @@ def _add_keys(conn, cid, keys):
 
 def validate_params(data):
     allowed = {'place', 'radius_km', 'industries', 'keywords', 'sources', 'operative', 'include_sole', 'ted_presets', 'find_websites',
-               'org_kinds', 'ted_nationwide'}
+               'org_kinds', 'ted_nationwide', 'budget', 'profile_id'}
     if not isinstance(data, dict) or set(data) - allowed:
         raise ValueError('Ungültige Suchparameter.')
     place = str(data.get('place') or '').strip()
@@ -378,7 +385,29 @@ def validate_params(data):
     return {'place': place, 'radius_km': radius, 'industries': ind.validate_keys(data.get('industries', [])),
             'keywords': ind.parse_keywords(data.get('keywords', '')), 'sources': sources, 'operative': data.get('operative', True),
             'include_sole': data.get('include_sole', False), 'ted_presets': presets, 'find_websites': data.get('find_websites', True),
-            'org_kinds': kinds, 'ted_nationwide': data.get('ted_nationwide', False)}
+            'org_kinds': kinds, 'ted_nationwide': data.get('ted_nationwide', False), 'budget': validate_budget(data.get('budget')),
+            'profile_id': data['profile_id'] if isinstance(data.get('profile_id'), int) and not isinstance(data.get('profile_id'), bool) else None}
+
+
+BUDGET_DEFAULT = {'max_companies': 300, 'max_websites': 100, 'max_minutes': 30}
+BUDGET_LIMITS = {'max_companies': (1, 5000), 'max_websites': (0, 500), 'max_minutes': (1, 240)}
+
+
+def validate_budget(b):
+    """Sichtbares Budget je Suchlauf (Masterplan 2.0, Abschnitt 13): höchstens so viele neue Firmen, Website-Suchen, Minuten.
+    KI-Analysen laufen nie automatisch; externe Kosten fallen nicht an (nur kostenlose offene Quellen)."""
+    if b is None:
+        return dict(BUDGET_DEFAULT)
+    if not isinstance(b, dict) or set(b) - set(BUDGET_DEFAULT):
+        raise ValueError('Budget: max_companies, max_websites, max_minutes.')
+    out = dict(BUDGET_DEFAULT)
+    for k, (lo, hi) in BUDGET_LIMITS.items():
+        if k in b:
+            v = b[k]
+            if isinstance(v, bool) or not isinstance(v, int) or not lo <= v <= hi:
+                raise ValueError(f'Budget {k}: {lo}–{hi}.')
+            out[k] = v
+    return out
 
 
 def start_sweep(conn, data, db_path, start=True):
@@ -485,7 +514,20 @@ def run_sweep(db_path, sid, only=None, finalize=True):
         index = LeadIndex(conn)
         ctx['_cindex'] = CandidateIndex(conn)
         ctx['_catalog'] = catalog.catalog_path(db_path)
+        budget = p.get('budget') or dict(BUDGET_DEFAULT)
+        prog = json.loads(conn.execute('SELECT progress_json FROM sweeps WHERE id=?', (sid,)).fetchone()['progress_json'])
+        started = (prog.get('_budget') or {}).get('started') or time.time()
+        used = conn.execute("SELECT COUNT(*) FROM discovery_candidates WHERE sweep_id=? AND status='neu' AND dup_of IS NULL", (sid,)).fetchone()[0]
+        ctx['_budget_left'] = max(0, budget['max_companies'] - used)
+        ctx['_deadline'] = started + budget['max_minutes'] * 60
+        _progress(conn, sid, '_budget', started=started, **budget, companies=used)
         for source in sources:
+            if time.time() > ctx['_deadline']:
+                _progress(conn, sid, source, status='übersprungen', error='', detail=f"Zeitbudget von {budget['max_minutes']} Min. erreicht")
+                continue
+            if ctx['_budget_left'] <= 0:
+                _progress(conn, sid, source, status='übersprungen', error='', detail=f"Budget von {budget['max_companies']} neuen Firmen erreicht")
+                continue
             _progress(conn, sid, source, status='läuft', error='', detail='')
             run_id = _run_record(conn, source, sid, {'place': p['place'], 'radius_km': p['radius_km']})
             for attempt in range(len(RETRY_DELAYS) + 1):
@@ -515,6 +557,8 @@ def run_sweep(db_path, sid, only=None, finalize=True):
                     _finish_run(conn, run_id, error=f'Unerwarteter Fehler: {exc.__class__.__name__}')
                     _progress(conn, sid, source, status='fehler', error=f'Unerwarteter Fehler: {exc.__class__.__name__}')
                     break
+        used = conn.execute("SELECT COUNT(*) FROM discovery_candidates WHERE sweep_id=? AND status='neu' AND dup_of IS NULL", (sid,)).fetchone()[0]
+        _progress(conn, sid, '_budget', companies=used, minutes=round((time.time() - started) / 60, 1))
         if finalize:
             _finalize_sweep(conn, sid, db_path)
 
@@ -536,7 +580,8 @@ def _finalize_sweep(conn, sid, db_path):
     queued = 0
     if ok and p.get('find_websites', True):
         ids = [r['id'] for r in conn.execute("""SELECT id FROM discovery_candidates WHERE sweep_id=? AND status='neu' AND website=''
-                                                AND website_status='' AND source<>'ted' ORDER BY distance_km IS NULL, distance_km LIMIT ?""", (sid, AUTO_WEBSITES))]
+                                                AND website_status='' AND source<>'ted' ORDER BY distance_km IS NULL, distance_km LIMIT ?""",
+                                             (sid, min(AUTO_WEBSITES, (p.get('budget') or BUDGET_DEFAULT)['max_websites'])))]
         if ids:
             queued = queue_websites(conn, {'ids': ids}, db_path, start=AUTO_WEB_START)['queued']
             _progress(conn, sid, '_web', queued=queued + (prog.get('_web') or {}).get('queued', 0))
@@ -597,6 +642,9 @@ def _run_gleif_api(conn, sid, run_id, ctx, area, ua, index, state):
     requests, places_done, filters_note, attempt = 0, 0, '', 0
     leis = []
     for pl in area['places']:
+        if time.time() > ctx.get('_deadline', float('inf')) or ctx.get('_budget_left', 1) <= 0:
+            filters_note += ' · Budget erreicht, restliche Orte ausgelassen'
+            break
         for page in range(1, MAX_GLEIF_PAGES_PER_PLACE + 1):
             if requests >= MAX_GLEIF_REQUESTS:
                 break

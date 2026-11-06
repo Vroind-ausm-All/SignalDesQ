@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.18.0 – Masterplan 2.0: Sprint 5 (geführter Arbeitstag, CRM, Angebote)
+
+- **Beispieltag des Plans als Abnahmetest:** vom Suchprofil bis zum Tagesabschluss, über die Schnittstelle und im Browser, ohne Sackgasse.
+- **Kontaktsperre zentral:**
+  - Widerspruch, Phase „gesperrt“ oder ein Treffer auf der **Sperrliste** sperren Gespräch, Termin, Mail-Entwurf, Angebot, Bedarf, Kontaktvorschläge und Kontaktphasen (409 mit Grund).
+  - Ein Widerspruch lässt sich immer dokumentieren; aufheben nur über die Sperrliste mit Begründung.
+- **„Bedarf bestätigt“ als manuelle Freigabe:**
+  - nur nach dokumentiertem Gespräch, mit Problem, Ziel und konkreten Leistungen aus dem Festpreis-Katalog;
+  - erst danach gilt ein Angebot als „beim Kunden“ oder „angenommen“;
+  - „Angebot aus bestätigtem Bedarf“ übernimmt genau diese Leistungen; die interne Kalkulation bleibt verborgen.
+- **Firmenakte** im Lead-Fenster: Ablauf in 7 Schritten, „Als Nächstes“ mit Direktsprung, Belegabdeckung des Scores, Zeitleiste aus allen Modulen, offene Aufgaben.
+- **Folgeaufgaben** nach Termin-Vereinbarung, Termin, Bedarf und Angebot. Phasen nur vorwärts; eigene nächste Schritte werden nie überschrieben.
+- **Suchprofile mit Budget** (neue Firmen, Website-Suchen, Minuten), durchgesetzt und im Fortschritt sichtbar.
+- **Tagesabschluss** auf „Heute“: Erledigtes, Morgen, Firmen ohne nächsten Schritt (direkt Wiedervorlage setzen), Datensicherung.
+- **Schema 24.** 388 Tests (12 neu). Bericht: `docs/BERICHT_SPRINT_S5.md`.
+
 ## 1.17.0 – Masterplan 2.0: Sprint 4 (Dubletten, großer Firmenkatalog)
 
 - **Dubletten zuverlässig erkennen** (`research/identity.py`, eine Regel für Sichtung, Import, Leads und CRM):

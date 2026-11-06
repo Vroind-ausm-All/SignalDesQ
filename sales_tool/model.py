@@ -234,6 +234,10 @@ def init_db(conn: sqlite3.Connection):
     init_report(conn)
     from .duplicates import init_duplicates
     init_duplicates(conn)  # v1.17: „keine Dublette“-Entscheidungen
+    from .workday import init_workday
+    init_workday(conn)  # v1.18: bestätigter Bedarf, Tagesabschluss
+    from .profiles import init_profiles
+    init_profiles(conn)  # v1.18: Suchprofile mit Budget
     conn.commit()
 
 
