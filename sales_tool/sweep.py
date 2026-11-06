@@ -59,7 +59,8 @@ def init_sweep(conn):
     for name, decl in (('sweep_id', 'INTEGER'), ('sources_json', "TEXT NOT NULL DEFAULT '[]'"), ('distance_km', 'REAL'),
                        ('industry_key', "TEXT NOT NULL DEFAULT ''"), ('lei', "TEXT NOT NULL DEFAULT ''"),
                        ('website_status', "TEXT NOT NULL DEFAULT ''"), ('website_evidence', "TEXT NOT NULL DEFAULT ''"),
-                       ('contact_json', "TEXT NOT NULL DEFAULT '{}'"), ('updated_at', "TEXT NOT NULL DEFAULT ''")):
+                       ('contact_json', "TEXT NOT NULL DEFAULT '{}'"), ('updated_at', "TEXT NOT NULL DEFAULT ''"),
+                       ('imprint_json', "TEXT NOT NULL DEFAULT '{}'")):
         if name not in cols:
             conn.execute(f'ALTER TABLE discovery_candidates ADD COLUMN {name} {decl}')
     conn.execute('CREATE INDEX IF NOT EXISTS idx_discovery_cand_sweep ON discovery_candidates(sweep_id, status)')
@@ -232,7 +233,7 @@ def _add_keys(conn, cid, keys):
 # ---------------------------------------------------------------- Sammelsuche
 
 def validate_params(data):
-    allowed = {'place', 'radius_km', 'industries', 'keywords', 'sources', 'operative', 'include_sole', 'ted_presets'}
+    allowed = {'place', 'radius_km', 'industries', 'keywords', 'sources', 'operative', 'include_sole', 'ted_presets', 'find_websites'}
     if not isinstance(data, dict) or set(data) - allowed:
         raise ValueError('Ungültige Suchparameter.')
     place = str(data.get('place') or '').strip()
@@ -246,12 +247,12 @@ def validate_params(data):
     presets = data.get('ted_presets', ['web', 'design', 'software', 'marketing'])
     if not isinstance(presets, list) or any(p not in lf.CPV_PRESETS for p in presets):
         raise ValueError('Unbekannte Ausschreibungsgruppe.')
-    for flag in ('operative', 'include_sole'):
+    for flag in ('operative', 'include_sole', 'find_websites'):
         if flag in data and not isinstance(data[flag], bool):
             raise ValueError(f'{flag}: true/false.')
     return {'place': place, 'radius_km': radius, 'industries': ind.validate_keys(data.get('industries', [])),
             'keywords': ind.parse_keywords(data.get('keywords', '')), 'sources': sources, 'operative': data.get('operative', True),
-            'include_sole': data.get('include_sole', False), 'ted_presets': presets}
+            'include_sole': data.get('include_sole', False), 'ted_presets': presets, 'find_websites': data.get('find_websites', True)}
 
 
 def start_sweep(conn, data, db_path, start=True):
@@ -298,18 +299,24 @@ def _finish_run(conn, run_id, counts=None, error=''):
     conn.commit()
 
 
-def run_sweep(db_path, sid):
+RETRY_DELAYS = (20, 60)   # Sekunden – Überlastung der offenen Quellen abwarten (exponentielles Zurückweichen)
+AUTO_WEBSITES = 200      # nach der Suche automatisch Websites suchen (Anzahl Firmen ohne Website, nächste zuerst)
+AUTO_WEB_START = True    # in Tests ausgeschaltet
+
+
+def run_sweep(db_path, sid, only=None):
     from .model import connect
     with connect(db_path) as conn:
         sw = conn.execute('SELECT * FROM sweeps WHERE id=?', (sid,)).fetchone()
         p = json.loads(sw['params_json'])
-        conn.execute("UPDATE sweeps SET status='running' WHERE id=?", (sid,))
+        conn.execute("UPDATE sweeps SET status='running', finished_at='' WHERE id=?", (sid,))
         conn.commit()
         ua = lf._user_agent(conn)
+        sources = [s for s in p['sources'] if not only or s in only]
         try:
             area = ar.resolve(conn, p['place'], p['radius_km'])
         except (lf.SourceError, ValueError) as exc:
-            for s in p['sources']:
+            for s in sources:
                 _progress(conn, sid, s, status='fehler', error=f'Suchgebiet nicht bestimmbar: {exc}')
             conn.execute("UPDATE sweeps SET status='fehler', finished_at=datetime('now') WHERE id=?", (sid,))
             conn.commit()
@@ -317,23 +324,61 @@ def run_sweep(db_path, sid):
         ctx = {**p, 'center': area['center'], 'place_distance': {pl['name'].casefold(): pl['distance_km'] for pl in area['places']}}
         _progress(conn, sid, '_area', places=len(area['places']), center=area['center']['label'], via=area['source'])
         index = LeadIndex(conn)
-        for source in p['sources']:
-            _progress(conn, sid, source, status='läuft')
+        for source in sources:
+            _progress(conn, sid, source, status='läuft', error='', detail='')
             run_id = _run_record(conn, source, sid, {'place': p['place'], 'radius_km': p['radius_km']})
-            try:
-                counts, detail = SOURCE_RUNNERS[source](conn, sid, run_id, ctx, area, ua, index)
-                _finish_run(conn, run_id, counts)
-                _progress(conn, sid, source, status='fertig', detail=detail, **counts)
-            except (lf.SourceError, ValueError) as exc:
-                _finish_run(conn, run_id, error=str(exc))
-                _progress(conn, sid, source, status='fehler', error=str(exc)[:400])
-            except Exception as exc:  # eine Quelle darf die anderen nicht stoppen
-                _finish_run(conn, run_id, error=f'Unerwarteter Fehler: {exc.__class__.__name__}')
-                _progress(conn, sid, source, status='fehler', error=f'Unerwarteter Fehler: {exc.__class__.__name__}')
+            for attempt in range(len(RETRY_DELAYS) + 1):
+                try:
+                    counts, detail = SOURCE_RUNNERS[source](conn, sid, run_id, ctx, area, ua, index)
+                    _finish_run(conn, run_id, counts)
+                    _progress(conn, sid, source, status='fertig', error='', detail=detail + (f' (im {attempt + 1}. Versuch)' if attempt else ''), **counts)
+                    break
+                except lf.SourceError as exc:
+                    if exc.retryable and attempt < len(RETRY_DELAYS):
+                        wait = min(max(exc.retry_after or 0, RETRY_DELAYS[attempt]), 120)
+                        _progress(conn, sid, source, status='wartet', error='',
+                                  detail=f'Quelle gerade überlastet – neuer Versuch in {wait} s ({attempt + 2}. von {len(RETRY_DELAYS) + 1} Versuchen)')
+                        lf.SLEEP(wait)
+                        continue
+                    _finish_run(conn, run_id, error=str(exc))
+                    _progress(conn, sid, source, status='fehler', retryable=exc.retryable,
+                              error=str(exc)[:400] + (' – nach mehreren Versuchen. „Fehlgeschlagene Quellen erneut abfragen“ später nutzen.' if exc.retryable else ''))
+                    break
+                except ValueError as exc:
+                    _finish_run(conn, run_id, error=str(exc))
+                    _progress(conn, sid, source, status='fehler', error=str(exc)[:400])
+                    break
+                except Exception as exc:  # eine Quelle darf die anderen nicht stoppen
+                    _finish_run(conn, run_id, error=f'Unerwarteter Fehler: {exc.__class__.__name__}')
+                    _progress(conn, sid, source, status='fehler', error=f'Unerwarteter Fehler: {exc.__class__.__name__}')
+                    break
         prog = json.loads(conn.execute('SELECT progress_json FROM sweeps WHERE id=?', (sid,)).fetchone()['progress_json'])
         ok = any(v.get('status') == 'fertig' for k, v in prog.items() if not k.startswith('_'))
+        if ok and p.get('find_websites', True):
+            ids = [r['id'] for r in conn.execute("""SELECT id FROM discovery_candidates WHERE sweep_id=? AND status='neu' AND website=''
+                                                    AND website_status='' AND source<>'ted' ORDER BY distance_km IS NULL, distance_km LIMIT ?""", (sid, AUTO_WEBSITES))]
+            if ids:
+                q = queue_websites(conn, {'ids': ids}, db_path, start=AUTO_WEB_START)
+                _progress(conn, sid, '_web', queued=q['queued'])
         conn.execute("UPDATE sweeps SET status=?, finished_at=datetime('now') WHERE id=?", ('fertig' if ok else 'fehler', sid))
         conn.commit()
+
+
+def retry_sweep(conn, sid, db_path, start=True):
+    sw = conn.execute('SELECT * FROM sweeps WHERE id=?', (sid,)).fetchone()
+    if not sw or sw['kind'] != 'suche':
+        raise LookupError('Suche nicht gefunden.')
+    if sw['status'] in ('queued', 'running'):
+        raise ValueError('Die Suche läuft noch.')
+    prog = json.loads(sw['progress_json'])
+    failed = [k for k, v in prog.items() if not k.startswith('_') and v.get('status') == 'fehler']
+    if not failed:
+        raise ValueError('Keine fehlgeschlagene Quelle in dieser Suche.')
+    if start:
+        t = threading.Thread(target=run_sweep, args=(db_path, sid, failed), daemon=True, name=f'sweep-retry-{sid}')
+        _THREADS[sid] = t
+        t.start()
+    return {'retrying': failed}
 
 
 def _run_gleif(conn, sid, run_id, ctx, area, ua, index):
@@ -432,19 +477,31 @@ DEFAULT_OSM = [('office', 'company'), ('office', 'it'), ('office', 'consulting')
                ('office', 'tax_advisor'), ('office', 'lawyer'), ('office', 'advertising_agency'), ('craft', None), ('industrial', None)]
 
 
+def _osm_sel(key, value):
+    return f'["{key}"="{value}"]' if value else f'["{key}"]'
+
+
 def _run_osm(conn, sid, run_id, ctx, area, ua, index):
+    """OpenStreetMap im Umkreis – in kleinen Teilabfragen (je 6 Merkmale), damit überlastete Server eher antworten."""
     c = area['center']
     selectors = ind.osm_selectors(ctx['industries']) or DEFAULT_OSM
-    r = int(ctx['radius_km'] * 1000)
+    r = int(max(ctx['radius_km'], 3) * 1000)
     need_web = '' if ctx['industries'] else '["website"]'
-    parts = []
-    for key, value in selectors[:30]:
-        sel = f'["{key}"="{value}"]' if value else f'["{key}"]'
-        parts.append(f'nwr{sel}["name"]{need_web}(around:{r},{c["lat"]},{c["lon"]});')
-    query = f'[out:json][timeout:80];\n(\n  {chr(10).join(parts)}\n);\nout center tags 3000;'
-    data = lf.overpass(query, ua)
+    elements, errors, chunks = {}, [], [selectors[i:i + 6] for i in range(0, min(len(selectors), 36), 6)]
+    for n, chunk in enumerate(chunks):
+        if n:
+            lf.SLEEP(2)
+        parts = [f'nwr{_osm_sel(key, value)}["name"]{need_web}(around:{r},{c["lat"]},{c["lon"]});' for key, value in chunk]
+        query = f'[out:json][timeout:60];\n(\n  {chr(10).join(parts)}\n);\nout center tags 1500;'
+        try:
+            for el in lf.overpass(query, ua).get('elements', []):
+                elements[f"{el.get('type')}/{el.get('id')}"] = el
+        except lf.SourceError as exc:
+            errors.append(exc)
+    if errors and not elements:
+        raise errors[0]
     items = []
-    for el in data.get('elements', []):
+    for el in elements.values():
         tags = el.get('tags', {})
         name = tags.get('name', '').strip()
         lat, lon = el.get('lat') or (el.get('center') or {}).get('lat'), el.get('lon') or (el.get('center') or {}).get('lon')
@@ -458,7 +515,7 @@ def _run_osm(conn, sid, run_id, ctx, area, ua, index):
                       'distance_km': round(ar.haversine(c['lat'], c['lon'], lat, lon), 1) if lat and lon else None,
                       'source_url': f"https://www.openstreetmap.org/{el.get('type', 'node')}/{el.get('id', '')}"})
     counts = store_items(conn, sid, run_id, 'osm', items, ctx, index)
-    return counts, f'{len(items)} Einträge im Umkreis'
+    return counts, f'{len(items)} Einträge im Umkreis' + (f' ({len(errors)} von {len(chunks)} Teilabfragen überlastet)' if errors else '')
 
 
 def _run_ted(conn, sid, run_id, ctx, area, ua, index):
@@ -619,6 +676,19 @@ def candidates(conn, q):
     if get('q'):
         where.append('(name LIKE ? OR city LIKE ? OR zip LIKE ?)')
         args += [f"%{get('q')[:60]}%"] * 3
+    if get('no_ted') == '1':
+        where.append("source<>'ted'")
+    if get('max_km'):
+        try:
+            km = float(get('max_km'))
+        except ValueError as exc:
+            raise ValueError('max_km ungültig.') from exc
+        where.append('distance_km IS NOT NULL AND distance_km<=?')
+        args.append(km)
+    facet_sql, facet_args = 'FROM discovery_candidates WHERE ' + ' AND '.join(where), list(args)
+    if get('city'):
+        where.append('city=? COLLATE NOCASE')
+        args.append(get('city')[:120])
     sql = 'FROM discovery_candidates WHERE ' + ' AND '.join(where)
     total = conn.execute('SELECT COUNT(*) ' + sql, args).fetchone()[0]
     nm = "ltrim(name, '\" ') COLLATE NOCASE"
@@ -631,7 +701,8 @@ def candidates(conn, q):
         raise ValueError('limit/offset ungültig.') from exc
     rows = [_cand_view(r) for r in conn.execute(f'SELECT * {sql} ORDER BY {order} LIMIT ? OFFSET ?', (*args, limit, offset))]
     counts = {r['status']: r['n'] for r in conn.execute('SELECT status, COUNT(*) AS n FROM discovery_candidates WHERE sweep_id IS NOT NULL GROUP BY status')}
-    return {'total': total, 'offset': offset, 'limit': limit, 'items': rows, 'counts': counts,
+    cities = [{'city': r['city'], 'n': r['n']} for r in conn.execute(f"SELECT city, COUNT(*) AS n {facet_sql} AND city<>'' GROUP BY city COLLATE NOCASE ORDER BY n DESC LIMIT 40", facet_args)]
+    return {'total': total, 'offset': offset, 'limit': limit, 'items': rows, 'counts': counts, 'cities': cities,
             'notice': 'Fund ≠ Kontakterlaubnis. Übernommene Firmen starten mit Rechtsstatus „unbekannt“.'}
 
 
@@ -658,11 +729,44 @@ def decide(conn, cid, decision):
     upd = {k: v for k, v in upd.items() if v}
     if upd:
         conn.execute(f"UPDATE leads SET {', '.join(k + '=?' for k in upd)} WHERE id=?", (*upd.values(), lid))
+    auto = _apply_imprint(conn, lid, cand)
     srcs = ', '.join(lf.SOURCES.get(s['source'], {}).get('title', s['source']) for s in json.loads(cand['sources_json'] or '[]'))
     conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
-                 (lid, 'notiz', f"Quellen: {srcs}. Website: {cand['website_evidence'] or 'noch nicht gefunden'}."[:900]))
+                 (lid, 'notiz', (f"Quellen: {srcs}. Website: {cand['website_evidence'] or 'noch nicht gefunden'}."
+                                 + (f" Aus dem Impressum automatisch übernommen: {', '.join(auto)}." if auto else ''))[:900]))
     conn.commit()
+    res['auto_applied'] = auto
     return res
+
+
+AUTO_FIELDS = ('legal_name', 'legal_form', 'street', 'zip', 'city', 'register_court', 'register_number', 'vat_id', 'business_phone', 'business_email')
+
+
+def _apply_imprint(conn, lead_id, cand):
+    """Übernimmt Firmendaten aus dem bei der Website-Suche gelesenen Impressum in LEERE Lead-Felder (nie überschreiben).
+    Bei „belegt“ (Registernummer stimmt überein) gelten die Werte als bestätigt, sonst bleiben sie als ungeprüfte Belege stehen."""
+    from .company_data import add_fact
+    imp = json.loads(cand['imprint_json'] or '{}')
+    fields = imp.get('fields') or {}
+    if not fields:
+        return []
+    confirmed = cand['website_status'] == 'belegt'
+    lead = dict(conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone())
+    src, stype = imp.get('imprint_url') or cand['website'], imp.get('source_type') or 'impressum_html'
+    applied = []
+    for key in AUTO_FIELDS:
+        v = (fields.get(key) or {}).get('value')
+        if not v:
+            continue
+        add_fact(conn, lead_id, key, v, stype, src, (fields.get(key) or {}).get('excerpt', ''), 'website-suche-v1', 'hoch' if confirmed else 'mittel',
+                 'bestaetigt' if confirmed else 'ungeprueft')
+        if confirmed and not lead.get(key):
+            conn.execute(f'UPDATE leads SET {key}=? WHERE id=?', (v[:300], lead_id))
+            applied.append(key)
+    if confirmed and src:
+        conn.execute("""UPDATE leads SET imprint_url=CASE WHEN imprint_url='' THEN ? ELSE imprint_url END, imprint_checked_at=?,
+                        updated_at=datetime('now') WHERE id=?""", (src, imp.get('checked_at') or _now(), lead_id))
+    return applied
 
 
 def bulk(conn, data):
@@ -731,9 +835,12 @@ def find_website(conn, cid):
             if res.get('imprint_url'):
                 contact['imprint_url'] = res['imprint_url']
             web = lf.clean_website(res.get('home_url') or dom)
-            conn.execute('''UPDATE discovery_candidates SET website=?, website_status=?, website_evidence=?, contact_json=?,
+            imp = {'imprint_url': res.get('imprint_url') or '', 'source_type': res.get('source_type') or 'impressum_html', 'checked_at': res.get('checked_at', ''),
+                   'fields': {k: {'value': v.get('value'), 'excerpt': (v.get('excerpt') or '')[:300]} for k, v in f.items() if v and v.get('value')}}
+            conn.execute('''UPDATE discovery_candidates SET website=?, website_status=?, website_evidence=?, contact_json=?, imprint_json=?,
                             register_id=CASE WHEN register_id='' THEN ? ELSE register_id END, updated_at=? WHERE id=?''',
-                         (web, status, why, json.dumps(contact, ensure_ascii=False), (f.get('register_number') or {}).get('value') or '', _now(), cid))
+                         (web, status, why, json.dumps(contact, ensure_ascii=False), json.dumps(imp, ensure_ascii=False),
+                          (f.get('register_number') or {}).get('value') or '', _now(), cid))
             conn.commit()
             return {'status': status, 'website': web, 'evidence': why}
     if cand['website']:
@@ -837,6 +944,10 @@ def route_sweep(h, conn, method, route, query, db_path):
         opts = {'filename': get('filename')[:120], 'plz': get('plz')[:60], 'operative': get('operative', '1') == '1',
                 'include_sole': get('include_sole') == '1', 'industries': [x for x in get('industries').split(',') if x], 'keywords': get('keywords')[:400]}
         h._send(201, import_file(conn, _read_raw(h), opts))
+        return True
+    m = re.fullmatch(r'/api/sweeps/(\d+)/retry', route)
+    if m and method == 'POST':
+        h._send(202, retry_sweep(conn, int(m.group(1)), db_path))
         return True
     m = re.fullmatch(r'/api/sweeps/(\d+)', route)
     if m and method == 'GET':

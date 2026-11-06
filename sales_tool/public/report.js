@@ -35,7 +35,8 @@
     const impBody = imp ? `<div class="rp-grid">${Object.entries(imp.fields).map(([k, v]) => `<div><small>${esc(FIELD[k] || k)}</small><b>${esc(v.value)}</b>${lead[k] && lead[k] !== v.value ? `<small class="late">im Lead: ${esc(lead[k])}</small>` : ''}</div>`).join('')}</div>
         ${imp.representatives.length ? `<p class="muted">Vertretungsberechtigt laut Impressum: ${imp.representatives.map(esc).join(', ')}</p>` : ''}
         <p class="muted">Fundstelle: ${link(imp.url, 'Impressum')} ${imp.warnings.map(esc).join(' · ')}</p>
-        ${imp.review_status === 'offen' && imp.status === 'done' ? `<div class="acc-btn-group"><button type="button" class="btn btn-primary" data-rp-imprint="${imp.item_id}">Firmendaten in den Lead übernehmen</button><span class="muted">Bestätigte Werte werden nicht überschrieben.</span></div>` : `<p class="muted">Status: ${esc(imp.review_status === 'offen' ? 'noch nicht übernommen' : imp.review_status)}</p>`}`
+        ${imp.review_status === 'offen' && imp.status === 'done' ? `<div class="acc-btn-group"><button type="button" class="btn btn-primary" data-rp-imprint="${imp.item_id}">Firmendaten in den Lead übernehmen</button><span class="muted">Bestätigte Werte werden nicht überschrieben.</span></div>` : imp.review_status === 'uebernommen' ? `<p class="rp-auto">✓ Automatisch in leere Lead-Felder übernommen. Vorhandene oder bestätigte Werte wurden nicht überschrieben; Personen werden nicht automatisch angelegt.</p>`
+          : `<p class="muted">Status: ${esc(imp.review_status === 'offen' ? 'noch nicht übernommen' : imp.review_status)}</p>`}`
       : '<div class="empty">Kein Impressum ausgelesen.</div>';
     const w = d.website;
     const webBody = w ? `<div class="rp-scores">${[['overall', 'Gesamt'], ['design', 'Design & UX'], ['web', 'Web & Conversion'], ['process', 'Prozess & App'], ['coverage', 'Belegabdeckung %']].map(([k, l]) => `<div><small>${l}</small><b>${w.scores[k] ?? '–'}</b></div>`).join('')}</div>

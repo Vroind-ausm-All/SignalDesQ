@@ -106,7 +106,12 @@ MANUAL_SOURCES = [
 
 
 class SourceError(Exception):
-    pass
+    def __init__(self, message, retry_after=None, retryable=None):
+        super().__init__(message)
+        self.retry_after = retry_after
+        # Überlastung/Zeitüberschreitung: später erneut versuchen lohnt sich
+        self.retryable = retryable if retryable is not None else bool(
+            re.search(r'HTTP (429|502|503|504)|überlastet|nicht erreichbar|timed out|capacity', message, re.I))
 
 
 # ---------------------------------------------------------------- Schema
@@ -161,7 +166,9 @@ def _http(url, user_agent, data=None, content_type=None, accept='application/jso
     except urllib.error.HTTPError as exc:
         detail = exc.read(2000).decode('utf-8', 'replace')
         if exc.code == 429:
-            raise SourceError('Die Quelle meldet zu viele Anfragen (HTTP 429). Bitte später erneut versuchen.') from exc
+            ra = (exc.headers or {}).get('Retry-After', '') if hasattr(exc, 'headers') else ''
+            raise SourceError('Die Quelle meldet zu viele Anfragen (HTTP 429). Bitte später erneut versuchen.',
+                              retry_after=int(ra) if str(ra).isdigit() else None) from exc
         raise SourceError(f'Quelle antwortet mit HTTP {exc.code}: {re.sub(r"<[^>]+>", " ", detail)[:300].strip()}') from exc
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         raise SourceError(f'Quelle nicht erreichbar ({getattr(exc, "reason", exc)}). Internetverbindung/Firewall prüfen.') from exc
@@ -323,7 +330,8 @@ def overpass(query, ua):
                          content_type='application/x-www-form-urlencoded', timeout=90)
         except SourceError as exc:
             errors.append(f"{urllib.parse.urlsplit(server).hostname}: {exc}")
-    raise SourceError('Alle OpenStreetMap-Server überlastet oder nicht erreichbar – bitte später erneut versuchen. (' + ' | '.join(errors)[:400] + ')')
+    raise SourceError('Alle OpenStreetMap-Server sind gerade überlastet oder nicht erreichbar. ('
+                      + ' | '.join(re.sub(r'\s+', ' ', e)[:110] for e in errors) + ')')
 
 
 def search_osm(params, ua):
@@ -639,8 +647,9 @@ def review_candidate(conn, candidate_id, decision):
         'signal_note': cand['signal_note'][:2000], 'offer': 'conversion' if cand['source'] != 'ted' else 'pilot',
         'stage': 'recherche', 'permission': 'unbekannt', 'contact_route': 'ausschreibung' if cand['source'] == 'ted' else 'unbekannt',
         'note': ' '.join(p for p in note_parts if p)[:4000],
-        'next_step': 'Vergabeunterlagen prüfen und Teilnahme entscheiden' if cand['source'] == 'ted' else 'Website prüfen (URL-Recherche) und Anlass/Signal belegen',
-        'next_date': (dt.date.today() + dt.timedelta(days=2)).isoformat(),
+        # v1.13: kein Termin je Firma mehr – Recherche-Schritte werden in „Aufgaben → Recherche“ gesammelt
+        'next_step': 'Vergabeunterlagen prüfen und Teilnahme entscheiden' if cand['source'] == 'ted' else 'Firmen-Bericht erstellen',
+        'next_date': (dt.date.today() + dt.timedelta(days=2)).isoformat() if cand['source'] == 'ted' else '',
     }
     cols = ','.join(lead)
     cur = conn.execute(f'INSERT INTO leads ({cols}) VALUES ({",".join("?" for _ in lead)})', tuple(lead.values()))

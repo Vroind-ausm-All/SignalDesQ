@@ -4,7 +4,7 @@
 (function () {
   const esc = v => escapeHTML(String(v ?? ''));
   const KIND = {termin: 'Termin', rueckruf: 'Rückruf', aufgabe: 'Aufgabe', naechster_schritt: 'Nächster Schritt', nachfassen: 'Nachfassen',
-    angebot_frist: 'Bindefrist', bedarfsanalyse: 'Bedarfsanalyse', angebot_entwurf: 'Angebotsentwurf'};
+    angebot_frist: 'Bindefrist', bedarfsanalyse: 'Bedarfsanalyse', angebot_entwurf: 'Angebotsentwurf', recherche: 'Recherche'};
   const STATUS = {entwurf: 'Entwurf', gesendet_manuell: 'beim Kunden', angenommen: 'angenommen'};
   // Aktion je Pipeline-Phase für einen einzelnen Lead
   const LEAD_ACTION = {

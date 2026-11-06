@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.13.0 – Feedbackrunde: Ortsbezug, Überlastung, automatische Website-Recherche, gegliederte Aufgaben, kompakte Pipeline
+
+- Ortsbezug:
+  - Umkreis „nur dieser Ort“ (0 km);
+  - TED-Ausschreibungen standardmäßig aus und als „bundesweit“ gekennzeichnet;
+  - Sichtungsfilter Ort (mit Anzahl), Höchstentfernung und „ohne Ausschreibungen“.
+- Überlastete Quellen (HTTP 429/502/503/504, Zeitüberschreitung):
+  - automatische Wiederholung nach 20 s und 60 s, Retry-After wird beachtet (höchstens 2 min);
+  - OpenStreetMap in Teilabfragen mit Teilerfolg;
+  - Knopf „Fehlgeschlagene Quellen erneut abfragen“ (`POST /api/sweeps/{id}/retry`).
+- Automatisierung:
+  - Website-Suche startet nach jeder Suche automatisch (bis 200 Firmen, abschaltbar);
+  - Impressumsdaten werden beim Übernehmen („belegt“) und im Firmen-Bericht automatisch in leere Lead-Felder geschrieben;
+  - nie überschreiben, keine Personen anlegen, „wahrscheinlich“ bleibt ungeprüfter Beleg.
+- Aufgaben:
+  - gegliedert nach Recherche, Kontakt & Freigaben, Termine & Gespräche, Angebote & Abrechnung und Sonstiges;
+  - Recherche je Firma zusammengefasst, Firmen-Berichte für alle mit einem Klick, Bereinigung erledigter Recherche-Schritte;
+  - übernommene Firmen bekommen keinen Termin-Druck mehr („Firmen-Bericht erstellen“ ohne Datum);
+  - auf „Heute“ ein Sammelpunkt statt vieler Einzelzeilen.
+- Deal-Pipeline:
+  - kompakte Karten (Name + Score), Details per Klick;
+  - Drag & Drop und Click & Drop (⇄, dann Zielspalte; Touch/Tastatur; Esc bricht ab);
+  - Spalte „Verloren“, Spalten mit eigener Scrollhöhe.
+- Schema-Version 20 (`discovery_candidates.imprint_json`).
+- 276 Tests (19 neu). Bericht: `docs/BERICHT_V113.md`.
+
 ## 1.12.0 – Sprint D: Angebote & Preise
 
 - Leistungskatalog mit 26 Leistungen in 8 Bereichen, basierend auf deinem Angebot:

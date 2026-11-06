@@ -157,7 +157,7 @@ def validate(fields: dict, partial=False):
 
 STATIC_FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
     "/style.css": ("style.css", "text/css"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-    "/accounting.js": ("accounting.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+    "/accounting.js": ("accounting.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
 
 LOOPBACK_HOSTS = frozenset({'127.0.0.1', 'localhost', '::1'})
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
@@ -174,7 +174,7 @@ def make_handler(db_path, allowed_hosts=None):
     hosts = LOOPBACK_HOSTS | {h.lower() for h in (allowed_hosts or ())}
 
     class Handler(BaseHTTPRequestHandler):
-        server_version = "SignalDesk/1.12"
+        server_version = "SignalDesk/1.13"
         user = None
 
         def _security_headers(self):
@@ -775,7 +775,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 19  # v1.11 – bei Schemaänderungen erhöhen
+SCHEMA_VERSION = 20  # v1.13 – bei Schemaänderungen erhöhen
 
 
 def backup_before_migration(db):
@@ -825,7 +825,7 @@ def security_status(conn, hosts, host_header=''):
          'Im Netzwerk nur hinter einem TLS-Proxy (HTTPS) betreiben – SignalDesk selbst spricht nur HTTP.'},
     ]
     return {'checks': checks, 'auth_required': required, 'users': conn.execute('SELECT COUNT(*) FROM users WHERE active=1').fetchone()[0],
-            'schema_version': SCHEMA_VERSION, 'server_version': 'SignalDesk/1.12'}
+            'schema_version': SCHEMA_VERSION, 'server_version': 'SignalDesk/1.13'}
 
 
 def reset_login(conn):

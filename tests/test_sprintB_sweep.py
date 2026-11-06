@@ -98,11 +98,11 @@ class SweepBase(unittest.TestCase):
         self.conn = connect(self.db)
         init_db(self.conn)
         self.net = FakeNet()
-        self._orig = (lf.FETCH, lf.SLEEP, sw.GLEIF_DELAY)
-        lf.FETCH, lf.SLEEP, sw.GLEIF_DELAY = self.net, (lambda s: None), 0
+        self._orig = (lf.FETCH, lf.SLEEP, sw.GLEIF_DELAY, sw.AUTO_WEB_START)
+        lf.FETCH, lf.SLEEP, sw.GLEIF_DELAY, sw.AUTO_WEB_START = self.net, (lambda s: None), 0, False
 
     def tearDown(self):
-        lf.FETCH, lf.SLEEP, sw.GLEIF_DELAY = self._orig
+        lf.FETCH, lf.SLEEP, sw.GLEIF_DELAY, sw.AUTO_WEB_START = self._orig
         self.conn.close()
         self.tmp.cleanup()
 

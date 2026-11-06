@@ -20,6 +20,25 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.13 – Feedbackrunde: weniger Lärm, mehr Automatik
+
+- **Nur Firmen aus deinem Ort:**
+  - Umkreis „nur dieser Ort“;
+  - Filter nach Ort und Entfernung;
+  - bundesweite TED-Ausschreibungen sind standardmäßig aus.
+- **Überlastete Quellen:** Wikidata und OpenStreetMap werden mit wachsender Pause automatisch erneut gefragt. Später holt „Fehlgeschlagene Quellen erneut abfragen“ den Rest nach, ohne Dubletten.
+- **Website und Impressum automatisch:**
+  - Nach jeder Suche werden Websites mit Nachweis gesucht.
+  - Belegte Impressumsdaten landen automatisch in leeren Lead-Feldern. Es wird nie etwas überschrieben, und Personen werden nie automatisch angelegt.
+- **Aufgaben gegliedert:**
+  - Recherche ist je Firma zusammengefasst;
+  - Firmen-Berichte für alle startest du mit einem Klick;
+  - darunter folgen Kontakt, Termine, Angebote und Sonstiges.
+- **Pipeline kompakt:**
+  - Name und Score; Details per Klick;
+  - verschieben per Drag & Drop oder ⇄ + Zielspalte.
+- Bericht: [`docs/BERICHT_V113.md`](docs/BERICHT_V113.md)
+
 ## v1.12 – Angebote & Preise, nachvollziehbar
 
 - **Leistungskatalog mit 26 Leistungen** aus deinem Angebot, meist in drei Größen (Basis, Standard, Umfangreich): von Logo, Webdesign und Webshop über Foto und Video, SEO und GEO bis zum KI-Chatbot und Telefon-Sprachbot. Dazu kommen **Tagespauschale** und **Anreise** als eigene Positionen.

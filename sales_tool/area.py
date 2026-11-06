@@ -15,7 +15,7 @@ import urllib.parse
 from . import lead_finder as lf
 
 NOMINATIM = 'https://nominatim.openstreetmap.org/search?'
-RADII = (5, 10, 20, 30, 50, 75)
+RADII = (0, 5, 10, 20, 30, 50, 75)  # 0 = nur der Ort selbst
 MAX_PLACES = 60
 
 
@@ -122,7 +122,7 @@ def resolve(conn, place, radius_km):
         return {'center': json.loads(row['center_json']), 'radius_km': radius_km, 'places': json.loads(row['places_json']), 'source': row['source'], 'cached': True}
     ua = lf._user_agent(conn)
     places, source, errors = [], '', []
-    for name, fn in (('Wikidata', _wikidata_places), ('OpenStreetMap', _osm_places)):
+    for name, fn in ((('Wikidata', _wikidata_places), ('OpenStreetMap', _osm_places)) if radius_km else ()):
         try:
             places = fn(center['lat'], center['lon'], radius_km, ua)
             source = name
@@ -138,7 +138,7 @@ def resolve(conn, place, radius_km):
     if not places:  # ohne Umkreisdaten wenigstens den Ort selbst durchsuchen
         name = parse_place(place)['city'] or center['label'].split(', ')[-1]
         places = [{'name': name, 'lat': center['lat'], 'lon': center['lon'], 'population': 0, 'distance_km': 0.0}]
-        source = 'nur Mittelpunkt'
+        source = 'nur dieser Ort' if not radius_km else 'nur Mittelpunkt'
     center_out = {**center, 'query': place}
     conn.execute('INSERT OR REPLACE INTO search_areas(key, center_json, places_json, source) VALUES (?,?,?,?)',
                  (key, json.dumps(center_out, ensure_ascii=False), json.dumps(places, ensure_ascii=False), source))

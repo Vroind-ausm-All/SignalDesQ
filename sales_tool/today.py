@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import re
 
 OPEN_STAGES = ('recherche', 'qualifiziert', 'kontakt', 'antwort', 'termin', 'angebot')
 STAGE_ACTIONS = {
@@ -64,9 +65,16 @@ def wiedervorlage(conn, today=None):
         needs = r['permission_status'] == 'zu_pruefen'
         add('aufgabe', r['title'], r['company'], r['lead_id'], r['due_date'], 'Freigabe prüfen' if needs else 'Erledigen',
             'workspace' if needs else 'tasks', r['id'], 'Kontaktaktion – erst Freigabe dokumentieren' if needs else '', 'permissions' if needs else None)
+    research = 0
     for r in conn.execute("""SELECT id, company, next_step, next_date FROM leads WHERE next_step<>'' AND next_date<>'' AND next_date<=?
                              AND stage NOT IN ('gewonnen','verloren','gesperrt') ORDER BY next_date""", (t,)):
+        if RESEARCH_RE.search(r['next_step']):
+            research += 1  # v1.13: Recherche-Schritte nicht einzeln, sondern als ein Sammelpunkt
+            continue
         add('naechster_schritt', r['next_step'], r['company'], r['id'], r['next_date'], 'Lead öffnen', 'lead', r['id'])
+    if research:
+        add('recherche', f'{research} Firma(en) mit fälligem Recherche-Schritt', 'Recherche', None, t, 'Gesammelt ansehen', 'tasks',
+            detail='Am schnellsten: Firmen-Berichte für alle auf einmal erstellen')
     for r in conn.execute("""SELECT c.*, l.company FROM calls c JOIN leads l ON l.id=c.lead_id
                              WHERE c.outcome='rueckruf_vereinbart' AND c.callback_date<>'' AND c.callback_date<=? AND l.stage NOT IN ('gesperrt','verloren')
                              AND l.permission<>'nicht_kontaktieren'
@@ -100,6 +108,81 @@ def wiedervorlage(conn, today=None):
     order = {'termin': 0, 'rueckruf': 1, 'aufgabe': 2, 'naechster_schritt': 3, 'nachfassen': 4, 'angebot_frist': 5, 'bedarfsanalyse': 6, 'angebot_entwurf': 7}
     items.sort(key=lambda i: (i['kind'] != 'termin', not i['overdue'], order.get(i['kind'], 9), i['due'] or '9999'))
     return items
+
+
+RESEARCH_RE = re.compile(r'bericht|recherch|website prüfen|impressum|url-recherche|signal belegen|anlass|ansprechpartner verifizieren|zuständige person', re.I)
+GROUP_RULES = (
+    ('recherche', 'Recherche', ('website_pruefen', 'ansprechpartner_verifizieren'), RESEARCH_RE),
+    ('kontakt', 'Kontakt & Freigaben', ('erstkontakt', 'followup', 'rueckruf', 'empfehlung_anfragen'),
+     re.compile(r'kontakt|anruf|rückruf|ruf .* an|e-mail|mail|nachfass|empfehlung|freigabe|ansprechen|anschreiben', re.I)),
+    ('termine', 'Termine & Gespräche', ('termin_vorbereiten', 'bedarfsfrage_vorbereiten'), re.compile(r'termin|gespräch|meeting|workshop|bedarf|besuch|präsentation', re.I)),
+    ('angebot', 'Angebote & Abrechnung', ('angebot_kalkulieren',), re.compile(r'angebot|rechnung|vertrag|zahlung|kalkul|preis', re.I)),
+)
+
+MATCH_ORDER = ('recherche', 'angebot', 'termine', 'kontakt')
+
+
+def _group_of(title, action_type='', permission_status=''):
+    if permission_status and permission_status != 'nicht_erforderlich':
+        return 'kontakt'
+    rules = {r[0]: r for r in GROUP_RULES}
+    for key in MATCH_ORDER:  # das konkretere Geschäftsobjekt gewinnt: „Angebot nach Gespräch …“ → Angebote
+        _, _, actions, rx = rules[key]
+        if action_type in actions or rx.search(title or ''):
+            return key
+    return 'sonstiges'
+
+
+def task_overview(conn, today=None):
+    """Aufgaben gegliedert: Recherche zusammengefasst je Firma, danach Kontakt, Termine, Angebote, Sonstiges."""
+    t = (today or dt.date.today()).isoformat()
+    groups = {k: {'key': k, 'label': l, 'items': []} for k, l, _, _ in GROUP_RULES}
+    groups['sonstiges'] = {'key': 'sonstiges', 'label': 'Sonstiges', 'items': []}
+    for r in conn.execute("""SELECT t.*, l.company FROM tasks t LEFT JOIN leads l ON l.id=t.lead_id
+                             WHERE t.done=0 AND (l.id IS NULL OR l.stage NOT IN ('gesperrt','verloren')) ORDER BY (t.due_date=''), t.due_date, t.id"""):
+        g = _group_of(r['title'], r['action_type'] or '', r['permission_status'] or '')
+        groups[g]['items'].append({'type': 'task', 'id': r['id'], 'lead_id': r['lead_id'], 'company': r['company'] or 'Allgemein', 'title': r['title'],
+                                   'due': r['due_date'], 'overdue': bool(r['due_date'] and r['due_date'] < t), 'permission_status': r['permission_status'],
+                                   'channel': r['channel']})
+    for r in conn.execute("""SELECT id, company, next_step, next_date, stage FROM leads WHERE next_step<>''
+                             AND stage NOT IN ('gewonnen','verloren','gesperrt') ORDER BY (next_date=''), next_date"""):
+        g = _group_of(r['next_step'])
+        groups[g]['items'].append({'type': 'step', 'id': r['id'], 'lead_id': r['id'], 'company': r['company'], 'title': r['next_step'],
+                                   'due': r['next_date'], 'overdue': bool(r['next_date'] and r['next_date'] < t)})
+    # Recherche je Firma zusammenfassen: Firmen in Recherche ohne fertigen Bericht
+    research = {}
+    for it in groups['recherche']['items']:
+        if it['lead_id']:
+            research.setdefault(it['lead_id'], {'lead_id': it['lead_id'], 'company': it['company'], 'steps': []})['steps'].append(it['title'])
+    for r in conn.execute("""SELECT l.id, l.company FROM leads l WHERE l.stage='recherche' AND l.permission<>'nicht_kontaktieren'
+                             AND NOT EXISTS (SELECT 1 FROM company_reports r WHERE r.lead_id=l.id AND r.status='fertig')"""):
+        research.setdefault(r['id'], {'lead_id': r['id'], 'company': r['company'], 'steps': []})
+    for lid, entry in research.items():
+        row = conn.execute("SELECT status FROM company_reports WHERE lead_id=? ORDER BY id DESC LIMIT 1", (lid,)).fetchone()
+        entry['report'] = row['status'] if row else ''
+        entry['website'] = bool(conn.execute("SELECT website<>'' FROM leads WHERE id=?", (lid,)).fetchone()[0])
+    firms = sorted(research.values(), key=lambda e: (e['report'] == 'fertig', not e['website'], e['company'].casefold()))
+    other = [it for it in groups['recherche']['items'] if not it['lead_id']]
+    groups['recherche']['items'] = other
+    groups['recherche']['firms'] = firms
+    for g in groups.values():
+        g['count'] = len(g['items']) + len(g.get('firms', []))
+        g['overdue'] = sum(1 for i in g['items'] if i['overdue'])
+    done = [dict(r) for r in conn.execute("""SELECT t.id, t.title, t.due_date, l.company FROM tasks t LEFT JOIN leads l ON l.id=t.lead_id
+                                             WHERE t.done=1 ORDER BY t.id DESC LIMIT 30""")]
+    return {'groups': list(groups.values()), 'done': done,
+            'research_without_report': sum(1 for f in firms if f['report'] != 'fertig' and f['website'])}
+
+
+def cleanup_research_steps(conn):
+    """Entfernt erledigte Recherche-Schritte: Lead hat einen fertigen Firmen-Bericht."""
+    n = 0
+    for r in conn.execute("SELECT id, next_step FROM leads WHERE next_step<>''").fetchall():
+        if RESEARCH_RE.search(r['next_step']) and conn.execute("SELECT 1 FROM company_reports WHERE lead_id=? AND status='fertig'", (r['id'],)).fetchone():
+            conn.execute("UPDATE leads SET next_step='Kontaktweg klären (Firmen-Bericht liegt vor)', next_date='' WHERE id=?", (r['id'],))
+            n += 1
+    conn.commit()
+    return {'updated': n}
 
 
 def m_title(r):
@@ -218,6 +301,12 @@ def today_view(conn, today=None, check_ollama=False):
 def route_today(h, conn, method, route, query):
     if route == '/api/today' and method == 'GET':
         h._send(200, today_view(conn))
+        return True
+    if route == '/api/tasks/overview' and method == 'GET':
+        h._send(200, task_overview(conn))
+        return True
+    if route == '/api/tasks/research-cleanup' and method == 'POST':
+        h._send(200, cleanup_research_steps(conn))
         return True
     if route == '/api/system/capabilities' and method == 'GET':
         h._send(200, capabilities(conn))
