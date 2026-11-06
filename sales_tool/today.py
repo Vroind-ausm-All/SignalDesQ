@@ -16,7 +16,7 @@ import json
 
 OPEN_STAGES = ('recherche', 'qualifiziert', 'kontakt', 'antwort', 'termin', 'angebot')
 STAGE_ACTIONS = {
-    'recherche': {'label': 'Firma recherchieren', 'view': 'center', 'hint': 'Website, Impressum, Signale und Entscheider prüfen'},
+    'recherche': {'label': 'Firmen-Berichte erstellen', 'view': 'center', 'hint': 'Ein Klick: Impressum, Website, Inhalte, Ansprechpartner, Signale'},
     'qualifiziert': {'label': 'Kontaktweg klären', 'view': 'leads', 'hint': 'Zulässigen Weg und Rechtsgrundlage dokumentieren'},
     'kontakt': {'label': 'Kontakt aufnehmen', 'view': 'workspace', 'section': 'contact', 'hint': 'Freigabe prüfen, Anruf oder Nachricht vorbereiten'},
     'antwort': {'label': 'Termin vereinbaren', 'view': 'workspace', 'section': 'meeting', 'hint': 'Rückmeldung in einen Gesprächstermin verwandeln'},

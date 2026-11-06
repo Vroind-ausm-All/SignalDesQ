@@ -668,16 +668,18 @@ def decide(conn, cid, decision):
 def bulk(conn, data):
     if not isinstance(data, dict) or set(data) != {'ids', 'decision'} or not isinstance(data['ids'], list) or not 1 <= len(data['ids']) <= 200:
         raise ValueError('Erwartet: {ids: [...] (1–200), decision}.')
-    done, errors = 0, []
+    done, errors, lead_ids = 0, [], []
     for cid in data['ids']:
         if isinstance(cid, bool) or not isinstance(cid, int):
             raise ValueError('IDs müssen Zahlen sein.')
         try:
-            decide(conn, cid, data['decision'])
+            res = decide(conn, cid, data['decision'])
             done += 1
+            if res.get('lead_id'):
+                lead_ids.append(res['lead_id'])
         except (ValueError, LookupError) as exc:
             errors.append(f'#{cid}: {exc}')
-    return {'done': done, 'errors': errors[:20]}
+    return {'done': done, 'errors': errors[:20], 'lead_ids': lead_ids}
 
 
 # ---------------------------------------------------------------- Website-Suche mit Nachweis

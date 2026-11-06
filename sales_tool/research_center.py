@@ -156,6 +156,11 @@ def jobs(conn):
         add('Karriereseite', r['company'], r['status'], r['created_at'], 'signals', None, r['error'] or (f"{r['found']} Signal(e)" if r['status'] == 'done' else ''))
     for r in conn.execute(f"SELECT * FROM quick_scans WHERE status IN ('queued','running') OR created_at>={recent} ORDER BY id DESC LIMIT 10"):
         add('URL-Recherche', r['url'], r['status'], r['created_at'], 'research', None, r['error'])
+    for r in conn.execute(f"""SELECT r.*, l.company FROM company_reports r JOIN leads l ON l.id=r.lead_id
+                              WHERE r.status IN ('queued','running') OR r.created_at>={recent} ORDER BY r.id DESC LIMIT 10"""):
+        steps = json.loads(r['steps_json'] or '{}')
+        done = sum(1 for x in steps.values() if x.get('status') not in ('wartet', 'läuft'))
+        add('report', f"Firmen-Bericht: {r['company']}", r['status'], r['created_at'], 'center', round(100 * done / max(1, len(steps))), f"{done}/{len(steps)} Schritte")
     for r in conn.execute(f"""SELECT c.*, l.company FROM contact_research_runs c JOIN leads l ON l.id=c.lead_id
                               WHERE c.status IN ('queued','running') OR c.created_at>={recent} ORDER BY c.id DESC LIMIT 10"""):
         add('Entscheider-Recherche', r['company'], r['status'], r['created_at'], 'leads', None, r['error'])

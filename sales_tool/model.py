@@ -215,6 +215,7 @@ def init_db(conn: sqlite3.Connection):
     from .auth import init_auth
     from .area import init_area
     from .sweep import init_sweep
+    from .report import init_report
     init_workspace(conn)
     init_accounting(conn)
     init_einvoice(conn)
@@ -228,6 +229,7 @@ def init_db(conn: sqlite3.Connection):
     init_auth(conn)
     init_area(conn)
     init_sweep(conn)
+    init_report(conn)
     conn.commit()
 
 
