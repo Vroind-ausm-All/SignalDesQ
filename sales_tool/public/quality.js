@@ -108,10 +108,28 @@
       + ` · Browser ${r.browser.installed ? 'installiert' : 'nicht installiert'}`;
   }
 
+  // v1.17: doppelte Firmen im CRM – nur Vorschläge, zusammengeführt wird erst auf Klick
+  let dupPairs = [];
+  async function loadDups() {
+    const d = await api('/leads/duplicates');
+    dupPairs = d.pairs;
+    const side = (l, inv) => `<div class="q-dup-side"><b>#${l.id} ${esc(l.company)}</b><small>${esc([l.legal_form, l.location, l.register_number, (l.website || '').replace(/^https?:\/\//, '')].filter(Boolean).join(' · ') || '–')}</small>
+      <small>Phase ${esc(l.stage)} · seit ${esc(fmtDate((l.created_at || '').slice(0, 10)))}${inv ? ` · <b>${inv} Rechnung(en)</b>` : ''}</small></div>`;
+    $('#qDups').innerHTML = d.pairs.length ? d.pairs.map((p, i) => {
+      const invK = p.invoices[String(p.keep.id)], invD = p.invoices[String(p.drop.id)];
+      const [keep, drop] = invD && !invK ? [p.drop, p.keep] : [p.keep, p.drop];
+      return `<div class="sales-item q-dup"><div class="q-dup-pair">${side(keep, p.invoices[String(keep.id)])}<span class="q-dup-arrow" aria-hidden="true">⟵</span>${side(drop, p.invoices[String(drop.id)])}</div>
+        <small><span class="sw-web ${p.verdict === 'same' ? 'ok' : 'mid'}">${p.verdict === 'same' ? 'sicher gleich' : 'möglich'}</span> ${esc(p.reason)}</small>
+        <div class="acc-btn-group">${invK && invD ? '<span class="muted">Beide haben Rechnungen – nicht zusammenführbar</span>' : `<button type="button" class="btn btn-primary" data-q-merge="${i}" data-keep="${keep.id}" data-drop="${drop.id}">Zusammenführen (#${keep.id} behalten)</button>`}
+        <button type="button" class="btn btn-ghost" data-q-notdup="${i}">Keine Dublette</button></div></div>`;
+    }).join('') : '<div class="empty">Keine doppelten Firmen gefunden.</div>';
+    return d.total;
+  }
+
   window.refreshQuality = async function () {
     if (!$('#viewQuality')) return;
     try {
-      const [changes, stale] = await Promise.all([loadChanges(), loadStale(), loadJobs(), loadSettings(), loadSecurity(), loadAuth(), loadResearchTech()]);
+      const [changes, stale] = await Promise.all([loadChanges(), loadStale(), loadJobs(), loadSettings(), loadSecurity(), loadAuth(), loadResearchTech(), loadDups()]);
       $('#qMetrics').innerHTML = `<div class="panel"><small>Offene Änderungen</small><strong>${changes}</strong></div><div class="panel"><small>Firmen mit veralteten Daten</small><strong>${stale.leads.length}</strong></div><div class="panel"><small>Abgelaufene Löschfristen</small><strong>${stale.privacy_expired.length}</strong></div>`;
       const badge = changes + stale.privacy_expired.length;
       $('#qNavBadge').textContent = badge ? String(badge) : '';
@@ -132,6 +150,7 @@
 
   function init() {
     if (!$('#viewQuality')) return;
+    $('#qDupsReload').addEventListener('click', () => loadDups().then(n => toast(`${n} mögliche Dublette(n)`)).catch(e => toast(e.message, true)));
     $('#qDetect').addEventListener('click', () => act(() => api('/quality/changes/detect', 'POST', {}), r => `${r.impressum + r.website + r.register} neue Änderung(en) erkannt`));
     $('#qBackup').addEventListener('click', () => act(() => api('/backup', 'POST', {}), r => 'Gesichert: ' + r.path));
     $('#qEncForm').addEventListener('submit', e => { e.preventDefault(); const pw = e.target.elements.password.value; e.target.reset(); act(() => api('/backup/encrypted', 'POST', {password: pw}), r => r.notice); });
@@ -176,6 +195,17 @@
       const t = e.target;
       const c = t.closest('[data-q-change]'); if (c) return act(() => api(`/quality/changes/${c.dataset.qChange}`, 'POST', {decision: c.dataset.d}), 'Gespeichert');
       const l = t.closest('[data-q-lead]'); if (l) return showModal(Number(l.dataset.qLead));
+      const mg = t.closest('[data-q-merge]');
+      if (mg) {
+        const p = dupPairs[Number(mg.dataset.qMerge)];
+        const keep = Number(mg.dataset.keep), drop = Number(mg.dataset.drop);
+        const dn = (p.keep.id === drop ? p.keep : p.drop).company;
+        if (confirm(`„${dn}“ (#${drop}) in #${keep} zusammenführen?\n\nAktivitäten, Aufgaben, Belege, Berichte und Signale wandern mit, leere Felder werden ergänzt. #${drop} wird danach gelöscht.`))
+          act(() => api('/leads/merge', 'POST', {keep, drop}), r => { const n = Object.values(r.moved).reduce((a, b) => a + b, 0); return `Zusammengeführt: ${n} verknüpfte${n === 1 ? 'r Eintrag' : ' Einträge'} übernommen${r.filled.length ? ` · ${r.filled.length === 1 ? '1 leeres Feld' : r.filled.length + ' leere Felder'} ergänzt` : ''}`; }).then(() => { if (typeof reload === 'function') reload(); });
+        return;
+      }
+      const nd = t.closest('[data-q-notdup]');
+      if (nd) { const p = dupPairs[Number(nd.dataset.qNotdup)]; return act(() => api('/leads/not-duplicate', 'POST', {a: p.keep.id, b: p.drop.id}), 'Gemerkt – wird nicht wieder vorgeschlagen'); }
       const er = t.closest('[data-q-erase]');
       if (er) { if (confirm('Personendaten dieses Ansprechpartners endgültig löschen? Der Löschnachweis enthält keine Personendaten.')) act(() => api(`/quality/privacy/${er.dataset.qErase}/erase`, 'POST', {confirm: true}), 'Gelöscht'); return; }
       const r = t.closest('[data-q-run]'); if (r) return act(() => api(`/quality/jobs/${r.dataset.qRun}/run`, 'POST', {}), j => `${j.label}: ${j.last_detail || j.last_status}`);

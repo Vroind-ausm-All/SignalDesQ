@@ -28,6 +28,8 @@ import unicodedata
 from . import area as ar
 from . import industries as ind
 from . import lead_finder as lf
+from .research import catalog
+from .research import identity as ident
 from .research import jobs
 from . import legal_forms as lfm
 from .company_data import check_suppressed, normalize_domain, normalize_name
@@ -64,10 +66,15 @@ def init_sweep(conn):
                        ('industry_key', "TEXT NOT NULL DEFAULT ''"), ('lei', "TEXT NOT NULL DEFAULT ''"),
                        ('website_status', "TEXT NOT NULL DEFAULT ''"), ('website_evidence', "TEXT NOT NULL DEFAULT ''"),
                        ('contact_json', "TEXT NOT NULL DEFAULT '{}'"), ('updated_at', "TEXT NOT NULL DEFAULT ''"),
-                       ('imprint_json', "TEXT NOT NULL DEFAULT '{}'"), ('org_kind', "TEXT NOT NULL DEFAULT ''")):
+                       ('imprint_json', "TEXT NOT NULL DEFAULT '{}'"), ('org_kind', "TEXT NOT NULL DEFAULT ''"),
+                       ('dup_of', 'INTEGER'), ('dup_score', 'REAL'), ('dup_reason', "TEXT NOT NULL DEFAULT ''"), ('possible_lead_id', 'INTEGER'),
+                       ('merged_into', 'INTEGER')):
         if name not in cols:
             conn.execute(f'ALTER TABLE discovery_candidates ADD COLUMN {name} {decl}')
     conn.execute('CREATE INDEX IF NOT EXISTS idx_discovery_cand_sweep ON discovery_candidates(sweep_id, status)')
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_discovery_cand_dup ON discovery_candidates(dup_of)')
+    conn.execute('''CREATE TABLE IF NOT EXISTS discovery_not_same (a TEXT NOT NULL, b TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                    PRIMARY KEY (a, b))''')
     conn.execute("CREATE INDEX IF NOT EXISTS idx_discovery_cand_web ON discovery_candidates(website_status)")
 
 
@@ -119,11 +126,61 @@ def keys_for(item):
     return keys
 
 
+def _ident_item(r, website_ok=True):
+    keys = r.keys() if hasattr(r, 'keys') else r
+    g = (lambda k: (r[k] if k in keys else '') or '')
+    return {'name': g('name') or g('company'), 'lei': g('lei'), 'register_id': g('register_id') or g('register_number'),
+            'website': g('website') if website_ok else '', 'zip': g('zip'), 'city': g('city'), 'legal_form': g('legal_form')}
+
+
+def not_same_pairs(conn):
+    """„Andere Firma“-Entscheidungen zwischen Treffern als Paare von IDs (kleinere zuerst)."""
+    out = set()
+    for r in conn.execute("SELECT a, b FROM discovery_not_same WHERE a LIKE 'c%' AND b LIKE 'c%'"):
+        try:
+            out.add((int(r['a'][1:]), int(r['b'][1:])))
+        except ValueError:
+            continue
+    return out
+
+
+def _ns_pair(a, b):
+    return (f'c{min(a, b)}', f'c{max(a, b)}')
+
+
+class CandidateIndex:
+    """Dubletten-Abgleich über alle bisherigen Treffer (Masterplan 2.0, Sprint 4) – blockiert, damit auch große Mengen schnell sind."""
+
+    def __init__(self, conn):
+        self.idx = ident.Index()
+        self.status = {}
+        self.not_same = not_same_pairs(conn)
+        for r in conn.execute("SELECT * FROM discovery_candidates WHERE status<>'zusammengefuehrt' AND dup_of IS NULL"):
+            self.add(r)
+
+    def add(self, r):
+        web_ok = (r['website_status'] or '') in ('', 'quelle', 'belegt', 'bestaetigt')
+        self.idx.add(r['id'], _ident_item(r, web_ok))
+        self.status[r['id']] = r['status']
+
+    def match(self, item, exclude=(), for_id=None):
+        excl = set(exclude)
+        if for_id is not None:
+            excl |= {b for a, b in self.not_same if a == for_id} | {a for a, b in self.not_same if b == for_id} | {for_id}
+        return self.idx.best(item, exclude=excl)
+
+
 class LeadIndex:
-    """Einmal aufgebauter Index der bestehenden Leads (Domain, Registernummer+Ort, Name)."""
+    """Einmal aufgebauter Index der bestehenden Leads (Domain, Registernummer+Ort, Name) – plus unscharfer Abgleich (v1.17)."""
     def __init__(self, conn):
         self.domains, self.registers, self.names = {}, {}, {}
-        for r in conn.execute('SELECT id, company, legal_name, website, register_number, city, location FROM leads'):
+        self.fuzzy = ident.Index()
+        for r in conn.execute('SELECT id, company, legal_name, legal_form, website, register_number, city, location, zip FROM leads'):
+            item = {'name': r['legal_name'] or r['company'], 'register_id': r['register_number'], 'website': r['website'], 'zip': r['zip'],
+                    'city': r['city'] or (r['location'] or '').split(' ')[-1], 'legal_form': r['legal_form']}
+            self.fuzzy.add(r['id'], item)
+            if r['legal_name'] and r['company'] and r['company'] != r['legal_name']:
+                self.fuzzy.add(f"{r['id']}:alias", {**item, 'name': r['company']})
             if r['website']:
                 self.domains.setdefault(normalize_domain(r['website']), r['id'])
             rk = register_key(r['register_number'], r['city'] or (r['location'] or '').split(' ')[-1])
@@ -141,16 +198,32 @@ class LeadIndex:
         rk = register_key(item.get('register_id'), item.get('city'))
         if rk and rk in self.registers:
             return self.registers[rk]
-        return self.names.get(normalize_name(item.get('name')))
+        hit = self.names.get(normalize_name(item.get('name')))
+        if hit:
+            best = self.fuzzy.best(item)
+            if best and best[0] == 'same':
+                return int(str(best[1]).split(':')[0])
+            verdict = ident.decide(item, self.fuzzy.items.get(hit, {}))[0] if hit in self.fuzzy.items else 'same'
+            return hit if verdict != 'different' else None
+        best = self.fuzzy.best(item)
+        return int(str(best[1]).split(':')[0]) if best and best[0] == 'same' else None
+
+    def possible(self, item):
+        best = self.fuzzy.best(item)
+        return (int(str(best[1]).split(':')[0]), best[2], best[3]) if best and best[0] == 'possible' else None
 
 
 def _now():
     return dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
 
 
-def store_items(conn, sweep_id, run_id, source, items, ctx, index=None):
-    """Filtert, führt zusammen und speichert Treffer. Gibt Zähler zurück."""
+def store_items(conn, sweep_id, run_id, source, items, ctx, index=None, cindex=None):
+    """Filtert, führt zusammen und speichert Treffer. Gibt Zähler zurück.
+    v1.17: Dubletten zuverlässig erkennen – sicher gleiche Firmen werden zusammengeführt, mögliche Dubletten nicht doppelt
+    aufgeführt, sondern beim Haupteintrag zur Prüfung gezeigt; fremde Firmen (andere Rechtsform/Register/Ort) bleiben getrennt."""
     index = index or LeadIndex(conn)
+    cindex = cindex or ctx.get('_cindex') or CandidateIndex(conn)
+    ctx['_cindex'] = cindex
     c = {'found': len(items), 'new': 0, 'merged': 0, 'known': 0, 'dismissed': 0, 'suppressed': 0, 'filtered': 0}
     license_text = lf.SOURCES.get(source, {}).get('license', '')
     for item in items:
@@ -184,13 +257,28 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None):
         if any(conn.execute('SELECT 1 FROM discovery_dismissed WHERE key=?', (k,)).fetchone() for k in keys):
             c['dismissed'] += 1
             continue
-        existing = None
+        existing, possible, match_reason = None, None, ''
+        probe = {**item, 'name': name, 'legal_form': legal}
         for k in keys:
             row = conn.execute('SELECT d.* FROM discovery_keys k JOIN discovery_candidates d ON d.id=k.candidate_id WHERE k.key=?', (k,)).fetchone()
             if row:
-                existing = row
+                if row['merged_into']:
+                    row = conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (row['merged_into'],)).fetchone() or row
+                verdict, _, why = ident.decide(probe, _ident_item(row))
+                if verdict == 'different' and not k.startswith('lei:'):
+                    continue  # z. B. alter Namensschlüssel: „Müller GmbH“ ≠ „Müller GmbH & Co. KG“
+                existing, match_reason = row, f'Schlüssel {k.split(":")[0]}'
                 break
+        if not existing:
+            hit = cindex.match(probe)
+            if hit and hit[0] == 'same':
+                existing = conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (hit[1],)).fetchone()
+                match_reason = hit[3]
+            elif hit:
+                possible = hit
         src_entry = {'source': source, 'url': item.get('source_url', '')}
+        if match_reason:
+            src_entry['match'] = match_reason[:120]
         if existing:
             if existing['status'] in ('verworfen',):
                 c['dismissed'] += 1
@@ -218,11 +306,20 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None):
                 upd['distance_km'] = dist
             conn.execute(f"UPDATE discovery_candidates SET {', '.join(k + '=?' for k in upd)} WHERE id=?", (*upd.values(), existing['id']))
             _add_keys(conn, existing['id'], keys)
+            cindex.add(conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (existing['id'],)).fetchone())
             c['merged'] += 1
             continue
-        dup = index.find(item)
+        dup = index.find(probe)
         blocked = bool(check_suppressed(conn, website=item.get('website', ''), name=name))
         status = 'gesperrt' if blocked else ('dublette' if dup else 'neu')
+        maybe_lead = index.possible(probe) if not dup else None
+        if possible and cindex.status.get(possible[1]) != 'neu':
+            # ähnlich zu einem schon entschiedenen Treffer: übernommen → Hinweis auf dessen Lead, sonst nur Hinweis
+            prow = conn.execute('SELECT lead_id, duplicate_lead_id, status FROM discovery_candidates WHERE id=?', (possible[1],)).fetchone()
+            plead = prow and (prow['lead_id'] or prow['duplicate_lead_id'])
+            if plead and not dup and not maybe_lead:
+                maybe_lead = (plead, possible[2], possible[3])
+            possible = None
         cols = {'run_id': run_id, 'sweep_id': sweep_id, 'source': source, 'external_id': str(item.get('external_id', ''))[:120],
                 'name': name[:200], 'website': item.get('website', ''), 'street': item.get('street', ''), 'zip': item.get('zip', ''),
                 'city': item.get('city', ''), 'country': item.get('country', 'DE'), 'industry': item.get('industry', '')[:200],
@@ -233,9 +330,17 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None):
                 'distance_km': dist, 'industry_key': item.get('industry_key', ''), 'lei': item.get('lei', ''), 'org_kind': kind,
                 'website_status': 'quelle' if item.get('website') else '',
                 'website_evidence': f"Website laut {lf.SOURCES.get(source, {}).get('title', source)}" if item.get('website') else '',
-                'updated_at': _now()}
+                'updated_at': _now(),
+                'dup_of': possible[1] if possible and status == 'neu' else None,
+                'dup_score': (possible[2] if possible else (maybe_lead[1] if maybe_lead else None)),
+                'dup_reason': (possible[3] if possible else (f'evtl. schon als Lead: {maybe_lead[2]}' if maybe_lead else ''))[:200],
+                'possible_lead_id': maybe_lead[0] if maybe_lead else None}
         cur = conn.execute(f"INSERT INTO discovery_candidates ({','.join(cols)}) VALUES ({','.join('?' for _ in cols)})", tuple(cols.values()))
         _add_keys(conn, cur.lastrowid, keys)
+        if not cols['dup_of']:
+            cindex.add(conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (cur.lastrowid,)).fetchone())
+        else:
+            c['possible'] = c.get('possible', 0) + 1
         c['new' if status == 'neu' else ('suppressed' if blocked else 'known')] += 1
     conn.commit()
     return c
@@ -378,6 +483,8 @@ def run_sweep(db_path, sid, only=None, finalize=True):
         ctx = {**p, 'center': area['center'], 'place_distance': {pl['name'].casefold(): pl['distance_km'] for pl in area['places']}}
         _progress(conn, sid, '_area', places=len(area['places']), center=area['center']['label'], via=area['source'])
         index = LeadIndex(conn)
+        ctx['_cindex'] = CandidateIndex(conn)
+        ctx['_catalog'] = catalog.catalog_path(db_path)
         for source in sources:
             _progress(conn, sid, source, status='läuft', error='', detail='')
             run_id = _run_record(conn, source, sid, {'place': p['place'], 'radius_km': p['radius_km']})
@@ -468,7 +575,25 @@ def retry_sweep(conn, sid, db_path, start=True):
 
 
 def _run_gleif(conn, sid, run_id, ctx, area, ua, index):
-    total = {'found': 0, 'new': 0, 'merged': 0, 'known': 0, 'dismissed': 0, 'suppressed': 0, 'filtered': 0}
+    """GLEIF-API; fällt sie aus und liegt ein lokaler GLEIF-Katalog vor (v1.17), kommen die übrigen Orte aus dem Katalog."""
+    state = {'total': {'found': 0, 'new': 0, 'merged': 0, 'known': 0, 'dismissed': 0, 'suppressed': 0, 'filtered': 0}, 'places_done': 0}
+    try:
+        return _run_gleif_api(conn, sid, run_id, ctx, area, ua, index, state)
+    except lf.SourceError as exc:
+        cat = ctx.get('_catalog')
+        if not cat or not catalog.has_data(cat):
+            raise
+        rest = area['places'][state['places_done']:]
+        items = catalog.area_items(cat, rest)
+        c = store_items(conn, sid, run_id, 'gleif', items, ctx, index)
+        total = {k: state['total'][k] + c.get(k, 0) for k in state['total']}
+        last = (catalog.status(cat).get('last_import') or {}).get('finished_at', '')[:10]
+        return total, (f"GLEIF-API nicht erreichbar ({str(exc)[:120]}) – {len(rest)} Orte aus dem lokalen GLEIF-Katalog"
+                       f"{f' (Stand {last})' if last else ''}" + (f", {state['places_done']} Orte vorher live" if state['places_done'] else ''))
+
+
+def _run_gleif_api(conn, sid, run_id, ctx, area, ua, index, state):
+    total = state['total']
     requests, places_done, filters_note, attempt = 0, 0, '', 0
     leis = []
     for pl in area['places']:
@@ -493,6 +618,7 @@ def _run_gleif(conn, sid, run_id, ctx, area, ua, index):
             if page >= last or not data.get('data'):
                 break
         places_done += 1
+        state['places_done'] = places_done
         _progress(conn, sid, 'gleif', status='läuft', detail=f'{places_done}/{len(area["places"])} Orte', **total)
     return total, f'{places_done} Orte, {requests} Abfragen{filters_note}'
 
@@ -758,11 +884,19 @@ def candidates(conn, q):
     get = lambda k, default='': (q.get(k, [default]) or [default])[0]
     status = get('status', 'neu')
     where, args = [], []
-    if status != 'alle':
-        if status not in ('neu', 'uebernommen', 'verworfen', 'dublette', 'gesperrt'):
+    dups_only = get('dups') == '1'
+    if dups_only:  # Prüfliste: Einträge mit möglicher Dublette (beim Treffer oder als Lead)
+        where.append("status='neu' AND (dup_of IS NOT NULL OR possible_lead_id IS NOT NULL)")
+    elif status != 'alle':
+        if status not in ('neu', 'uebernommen', 'verworfen', 'dublette', 'gesperrt', 'zusammengefuehrt'):
             raise ValueError('Unbekannter Status.')
         where.append('status=?')
         args.append(status)
+    if not dups_only and status != 'zusammengefuehrt':
+        # v1.17: mögliche Dubletten erscheinen nicht als eigener Eintrag, sondern beim Haupteintrag
+        where.append('dup_of IS NULL')
+        if status == 'alle':
+            where.append("status<>'zusammengefuehrt'")
     if get('sweep_id'):
         if not get('sweep_id').isdigit():
             raise ValueError('sweep_id ungültig.')
@@ -804,10 +938,172 @@ def candidates(conn, q):
     except ValueError as exc:
         raise ValueError('limit/offset ungültig.') from exc
     rows = [_cand_view(r) for r in conn.execute(f'SELECT * {sql} ORDER BY {order} LIMIT ? OFFSET ?', (*args, limit, offset))]
-    counts = {r['status']: r['n'] for r in conn.execute('SELECT status, COUNT(*) AS n FROM discovery_candidates WHERE sweep_id IS NOT NULL GROUP BY status')}
+    _attach_duplicates(conn, rows)
+    counts = {r['status']: r['n'] for r in conn.execute('SELECT status, COUNT(*) AS n FROM discovery_candidates WHERE sweep_id IS NOT NULL AND dup_of IS NULL GROUP BY status')}
+    counts['moegliche_dubletten'] = conn.execute('''SELECT COUNT(*) FROM discovery_candidates WHERE sweep_id IS NOT NULL AND status='neu'
+                                                   AND (dup_of IS NOT NULL OR possible_lead_id IS NOT NULL)''').fetchone()[0]
+    counts['ohne_website'] = conn.execute("""SELECT COUNT(*) FROM discovery_candidates WHERE sweep_id IS NOT NULL AND status='neu'
+                                             AND dup_of IS NULL AND website=''""").fetchone()[0]
+    counts['zusammengefuehrt'] = conn.execute("SELECT COUNT(*) FROM discovery_candidates WHERE sweep_id IS NOT NULL AND status='zusammengefuehrt'").fetchone()[0]
     cities = [{'city': r['city'], 'n': r['n']} for r in conn.execute(f"SELECT city, COUNT(*) AS n {facet_sql} AND city<>'' GROUP BY city COLLATE NOCASE ORDER BY n DESC LIMIT 40", facet_args)]
     return {'total': total, 'offset': offset, 'limit': limit, 'items': rows, 'counts': counts, 'cities': cities,
             'notice': 'Fund ≠ Kontakterlaubnis. Übernommene Firmen starten mit Rechtsstatus „unbekannt“.'}
+
+
+def _brief(r):
+    return {'id': r['id'], 'name': r['name'], 'legal_form': r['legal_form'], 'zip': r['zip'], 'city': r['city'], 'street': r['street'],
+            'website': r['website'], 'register_id': r['register_id'], 'lei': r['lei'], 'status': r['status'],
+            'sources': [s['source'] for s in json.loads(r['sources_json'] or '[]')], 'dup_score': r['dup_score'], 'dup_reason': r['dup_reason']}
+
+
+def _attach_duplicates(conn, rows):
+    """Hängt an jeden Haupteintrag seine möglichen Dubletten (zur Entscheidung) und den evtl. schon vorhandenen Lead."""
+    ids = [r['id'] for r in rows]
+    by = {}
+    for i in range(0, len(ids), 500):
+        chunk = ids[i:i + 500]
+        for d in conn.execute(f"SELECT * FROM discovery_candidates WHERE status='neu' AND dup_of IN ({','.join('?' * len(chunk))}) ORDER BY dup_score DESC",
+                              chunk):
+            by.setdefault(d['dup_of'], []).append(_brief(d))
+    for r in rows:
+        r['possible_duplicates'] = by.get(r['id'], [])
+        if r.get('dup_of'):
+            p = conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (r['dup_of'],)).fetchone()
+            r['duplicate_primary'] = _brief(p) if p else None
+        if r.get('possible_lead_id'):
+            ld = conn.execute('SELECT id, company, website, location FROM leads WHERE id=?', (r['possible_lead_id'],)).fetchone()
+            r['possible_lead'] = dict(ld) if ld else None
+
+
+MERGE_FIELDS = ('website', 'register_id', 'street', 'zip', 'city', 'legal_form', 'lei', 'industry_key', 'org_kind', 'signal_note', 'source_url')
+
+
+def merge_candidate(conn, keep_id, drop_id, reason=''):
+    """Führt Treffer `drop` in `keep` zusammen: Quellen, Schlüssel und fehlende Angaben wandern mit; nichts geht verloren.
+    `drop` bleibt als „zusammengeführt“ (mit Verweis) erhalten, damit die Entscheidung nachvollziehbar ist."""
+    keep = conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (keep_id,)).fetchone()
+    drop = conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (drop_id,)).fetchone()
+    if not keep or not drop or keep_id == drop_id:
+        raise LookupError('Treffer nicht gefunden.')
+    sources = json.loads(keep['sources_json'] or '[]')
+    for src in json.loads(drop['sources_json'] or '[]'):
+        if not any(x['source'] == src['source'] and x.get('url') == src.get('url') for x in sources):
+            sources.append({**src, 'match': (reason or src.get('match') or '')[:120]})
+    upd = {'sources_json': json.dumps(sources, ensure_ascii=False), 'updated_at': _now()}
+    for f in MERGE_FIELDS:
+        if not keep[f] and drop[f]:
+            upd[f] = drop[f]
+    if drop['website'] and not keep['website']:
+        for f in ('website_status', 'website_evidence', 'imprint_json', 'contact_json'):
+            upd[f] = drop[f]
+    if (drop['employees'] or 0) > (keep['employees'] or 0):
+        upd['employees'] = drop['employees']
+    if drop['distance_km'] is not None and (keep['distance_km'] is None or drop['distance_km'] < keep['distance_km']):
+        upd['distance_km'] = drop['distance_km']
+    if drop['industry'] and drop['industry'] not in (keep['industry'] or ''):
+        upd['industry'] = ((keep['industry'] or '') + ', ' + drop['industry']).strip(', ')[:200]
+    conn.execute(f"UPDATE discovery_candidates SET {', '.join(k + '=?' for k in upd)} WHERE id=?", (*upd.values(), keep_id))
+    conn.execute('UPDATE discovery_keys SET candidate_id=? WHERE candidate_id=?', (keep_id, drop_id))
+    conn.execute('UPDATE discovery_candidates SET dup_of=? WHERE dup_of=?', (keep_id, drop_id))
+    conn.execute('UPDATE discovery_candidates SET merged_into=? WHERE merged_into=?', (keep_id, drop_id))
+    conn.execute("""UPDATE discovery_candidates SET status='zusammengefuehrt', merged_into=?, dup_of=NULL, dup_reason=?, updated_at=?
+                    WHERE id=?""", (keep_id, (reason or 'zusammengeführt')[:200], _now(), drop_id))
+    if drop['website_status'] in ('wartet', 'laeuft'):
+        conn.execute("UPDATE discovery_candidates SET website_status='' WHERE id=?", (drop_id,))
+    return keep_id
+
+
+def review_duplicate(conn, cid, decision):
+    """Entscheidung zu einer möglichen Dublette.
+    gleich → in den Haupteintrag zusammenführen · verschieden → als eigene Firma behalten (wird nicht wieder vorgeschlagen)
+    lead_gleich → ist schon Lead (Status „schon Lead“) · lead_verschieden → Hinweis auf den Lead entfernen."""
+    cand = conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (cid,)).fetchone()
+    if not cand:
+        raise LookupError('Treffer nicht gefunden.')
+    if cand['status'] != 'neu':
+        raise ValueError('Treffer wurde bereits bearbeitet.')
+    if decision in ('gleich', 'verschieden'):
+        if not cand['dup_of']:
+            raise ValueError('Für diesen Treffer ist keine mögliche Dublette vermerkt.')
+        primary = cand['dup_of']
+        if decision == 'gleich':
+            merge_candidate(conn, primary, cid, 'von dir bestätigt: gleiche Firma')
+        else:
+            conn.execute('INSERT OR IGNORE INTO discovery_not_same(a, b) VALUES (?,?)', _ns_pair(primary, cid))
+            conn.execute("UPDATE discovery_candidates SET dup_of=NULL, dup_score=NULL, dup_reason=?, updated_at=? WHERE id=?",
+                         (f'von dir: andere Firma als #{primary}', _now(), cid))
+        conn.commit()
+        return {'status': 'zusammengefuehrt' if decision == 'gleich' else 'neu', 'primary': primary}
+    if decision in ('lead_gleich', 'lead_verschieden'):
+        lid = cand['possible_lead_id']
+        if not lid:
+            raise ValueError('Für diesen Treffer ist kein möglicher Lead vermerkt.')
+        if decision == 'lead_gleich':
+            conn.execute("""UPDATE discovery_candidates SET status='dublette', duplicate_lead_id=?, possible_lead_id=NULL, dup_of=NULL,
+                            dup_reason='von dir bestätigt: schon als Lead vorhanden', updated_at=? WHERE id=?""", (lid, _now(), cid))
+            conn.execute('UPDATE discovery_candidates SET dup_of=NULL, possible_lead_id=? WHERE dup_of=?', (lid, cid))
+        else:
+            conn.execute('INSERT OR IGNORE INTO discovery_not_same(a, b) VALUES (?,?)', (f'c{cid}', f'l{lid}'))
+            conn.execute("UPDATE discovery_candidates SET possible_lead_id=NULL, dup_reason=?, updated_at=? WHERE id=?",
+                         (f'von dir: anderer Lead als #{lid}', _now(), cid))
+        conn.commit()
+        return {'status': 'dublette' if decision == 'lead_gleich' else 'neu', 'lead_id': lid}
+    raise ValueError('Entscheidung: gleich, verschieden, lead_gleich oder lead_verschieden.')
+
+
+def dedupe_candidates(conn):
+    """Bereinigt den Bestand (auch Daten aus älteren Versionen): sicher gleiche offene Treffer werden zusammengeführt,
+    mögliche Dubletten zur Prüfung beim Haupteintrag einsortiert. Bereits entschiedene Treffer bleiben unverändert –
+    sie dienen nur als Anker. Gibt Zähler zurück."""
+    rows = conn.execute("""SELECT * FROM discovery_candidates WHERE status<>'zusammengefuehrt'
+                           ORDER BY CASE status WHEN 'neu' THEN 1 ELSE 0 END, id""").fetchall()
+    idx, ns, status = ident.Index(), not_same_pairs(conn), {}
+    leads = LeadIndex(conn)
+    lead_ns = {(r['a'], r['b']) for r in conn.execute("SELECT a, b FROM discovery_not_same WHERE b LIKE 'l%'")}
+    out = {'checked': len(rows), 'merged': 0, 'possible': 0, 'known_lead': 0, 'possible_lead': 0}
+    for r in rows:
+        web_ok = (r['website_status'] or '') in ('', 'quelle', 'belegt', 'bestaetigt')
+        item = _ident_item(r, web_ok)
+        if r['status'] != 'neu' or r['dup_of']:
+            if not r['dup_of']:
+                idx.add(r['id'], item)
+                status[r['id']] = r['status']
+            continue
+        excl = {b for a, b in ns if a == r['id']} | {a for a, b in ns if b == r['id']}
+        hit = idx.best(item, exclude=excl)
+        if hit and hit[0] == 'same':
+            merge_candidate(conn, hit[1], r['id'], f'automatisch: {hit[3]}')
+            out['merged'] += 1
+            continue
+        if hit and status.get(hit[1]) == 'neu':
+            conn.execute('UPDATE discovery_candidates SET dup_of=?, dup_score=?, dup_reason=? WHERE id=?', (hit[1], hit[2], hit[3][:200], r['id']))
+            out['possible'] += 1
+            continue
+        lid = r['duplicate_lead_id'] or leads.find(item)
+        if lid and not r['duplicate_lead_id'] and (f"c{r['id']}", f'l{lid}') not in lead_ns:
+            conn.execute("UPDATE discovery_candidates SET status='dublette', duplicate_lead_id=? WHERE id=?", (lid, r['id']))
+            out['known_lead'] += 1
+            continue
+        if not r['possible_lead_id']:
+            maybe = leads.possible(item)
+            if maybe and (f"c{r['id']}", f'l{maybe[0]}') not in lead_ns:
+                conn.execute('UPDATE discovery_candidates SET possible_lead_id=?, dup_score=?, dup_reason=? WHERE id=?',
+                             (maybe[0], maybe[1], f'evtl. schon als Lead: {maybe[2]}'[:200], r['id']))
+                out['possible_lead'] += 1
+        idx.add(r['id'], item)
+        status[r['id']] = 'neu'
+    conn.commit()
+    return out
+
+
+def _rehome_duplicates(conn, cid, decision, lead_id=None):
+    """Nach der Entscheidung über einen Haupteintrag dessen mögliche Dubletten wieder sichtbar machen – mit Hinweis."""
+    if decision == 'uebernehmen' and lead_id:
+        conn.execute("""UPDATE discovery_candidates SET dup_of=NULL, possible_lead_id=?, dup_reason=? WHERE dup_of=? AND status='neu'""",
+                     (lead_id, f'evtl. dieselbe Firma wie der übernommene Treffer #{cid}', cid))
+    else:
+        conn.execute("""UPDATE discovery_candidates SET dup_of=NULL, dup_reason=? WHERE dup_of=? AND status='neu'""",
+                     (f'ähnlich zum verworfenen Treffer #{cid}', cid))
 
 
 def decide(conn, cid, decision):
@@ -816,6 +1112,7 @@ def decide(conn, cid, decision):
         raise LookupError('Treffer nicht gefunden.')
     if decision == 'verwerfen':
         res = lf.review_candidate(conn, cid, 'verwerfen')
+        _rehome_duplicates(conn, cid, 'verwerfen')
         for k in [r['key'] for r in conn.execute('SELECT key FROM discovery_keys WHERE candidate_id=?', (cid,))]:
             conn.execute('INSERT OR IGNORE INTO discovery_dismissed(key) VALUES (?)', (k,))
         conn.commit()
@@ -824,6 +1121,8 @@ def decide(conn, cid, decision):
         raise ValueError('Entscheidung: uebernehmen oder verwerfen.')
     res = lf.review_candidate(conn, cid, 'uebernehmen')
     lid = res['lead_id']
+    conn.execute('UPDATE discovery_candidates SET dup_of=NULL, possible_lead_id=NULL WHERE id=?', (cid,))
+    _rehome_duplicates(conn, cid, 'uebernehmen', lid)
     contact = json.loads(cand['contact_json'] or '{}')
     upd = {'legal_name': cand['name'], 'legal_form': cand['legal_form'] if cand['source'] != 'ted' else '', 'street': cand['street'],
            'zip': cand['zip'], 'city': cand['city'],
@@ -1129,6 +1428,18 @@ def route_sweep(h, conn, method, route, query, db_path):
         return True
     if route == '/api/sweep-candidates' and method == 'GET':
         h._send(200, candidates(conn, query))
+        return True
+    if route == '/api/sweep-candidates/dedupe' and method == 'POST':
+        if h._body() != {'run': True}:
+            raise ValueError('Erwartet: {"run": true}.')
+        h._send(200, dedupe_candidates(conn))
+        return True
+    m = re.fullmatch(r'/api/sweep-candidates/(\d+)/duplicate', route)
+    if m and method == 'POST':
+        b = h._body()
+        if set(b) != {'decision'}:
+            raise ValueError('Erwartet: {decision}.')
+        h._send(200, review_duplicate(conn, int(m.group(1)), b['decision']))
         return True
     if route == '/api/sweep-candidates/bulk' and method == 'POST':
         h._send(200, bulk(conn, h._body()))

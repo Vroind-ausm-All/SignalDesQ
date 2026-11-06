@@ -44,7 +44,7 @@
     const done = !['queued', 'running'].includes(sw.status);
     const rows = Object.entries(sw.progress).filter(([k]) => !k.startsWith('_')).map(([k, p]) => `<div class="sw-src ${esc(p.status)}">
       <b>${esc(p.label || SRC[k] || k)}</b><span class="sw-st ${p.status === 'wartet' && p.detail ? 'retry' : ''}">${esc(p.status === 'wartet' && p.detail ? 'neuer Versuch …' : p.status || 'wartet')}</span>
-      <small>${p.error ? `<span class="${p.status === 'fehler' ? 'late' : 'muted'}">${esc(p.error)}</span>` : `${p.new ?? 0} neu · ${p.merged ?? 0} zusammengeführt · ${p.known ?? 0} schon bekannt · ${p.filtered ?? 0} ausgefiltert${p.detail ? ' · ' + esc(p.detail) : ''}`}</small></div>`).join('');
+      <small>${p.error ? `<span class="${p.status === 'fehler' ? 'late' : 'muted'}">${esc(p.error)}</span>` : `${p.new ?? 0} neu · ${p.merged ?? 0} zusammengeführt${p.possible ? ` · ${p.possible} mögliche Dublette(n)` : ''} · ${p.known ?? 0} schon bekannt · ${p.filtered ?? 0} ausgefiltert${p.detail ? ' · ' + esc(p.detail) : ''}`}</small></div>`).join('');
     box.innerHTML = `<div class="sw-prog-head"><b>${esc(sw.label)}</b> <span class="muted">${area ? `Mittelpunkt ${esc(area.center)} · ${area.places} Orte im Umkreis (${esc(area.via)})` : 'Suchgebiet wird bestimmt …'}</span>
       <span class="sw-st ${esc(sw.status)}">${esc({queued: 'wartet', running: 'läuft', fertig: 'fertig', fehler: 'Fehler', abgebrochen: 'abgebrochen'}[sw.status] || sw.status)}</span></div>${rows}
       ${web && web.queued ? `<div class="sw-src fertig"><b>Website-Suche</b><span class="sw-st">automatisch</span><small>${web.queued} Firmen ohne Website werden nacheinander gesucht (Nachweis per Impressum) – Status siehe Liste unten.</small></div>` : ''}
@@ -88,6 +88,33 @@
     return `${link}${st ? ` <span class="sw-web ${st[1]}" title="${esc(c.website_evidence)}">${esc(st[0])}</span>` : ''}${review}`;
   }
 
+  // v1.17: mögliche Dubletten stehen beim Haupteintrag – nie als eigener, doppelter Eintrag
+  const addrOf = d => [d.street, [d.zip, d.city].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+  function dupLine(d, primaryName) {
+    const facts = [d.legal_form && !d.name.toLowerCase().includes(String(d.legal_form).toLowerCase().replace(/\s*\(.*$/, '')) ? d.legal_form : '', addrOf(d) || 'ohne Ort',
+      d.register_id, d.website ? d.website.replace(/^https?:\/\//, '') : '', (d.sources || []).map(s => SRC[s] || s).join(', ')].filter(Boolean);
+    return `<div class="sw-dup" data-dup-id="${d.id}"><div><b>${esc(d.name)}</b> <small>${esc(facts.join(' · '))}</small>
+      <small class="sw-dup-why">${esc(d.dup_reason || '')}${d.dup_score && !String(d.dup_reason || '').includes('%') ? ` · ${Math.round(d.dup_score * 100)} %` : ''}</small></div>
+      <span class="sw-dup-btns"><button type="button" class="btn btn-ghost" data-sw-dup="gleich" data-id="${d.id}" title="${esc(d.name)} gehört zu ${esc(primaryName)} – zusammenführen">Gleiche Firma</button><button type="button" class="text-button" data-sw-dup="verschieden" data-id="${d.id}">Andere Firma</button></span></div>`;
+  }
+  function dupBlock(c) {
+    if (c.status !== 'neu') return '';
+    let out = '';
+    if (c.possible_duplicates?.length) {
+      out += `<div class="sw-dups"><span class="sw-dups-head">⚠ ${c.possible_duplicates.length === 1 ? 'Mögliche Dublette' : c.possible_duplicates.length + ' mögliche Dubletten'} – bitte entscheiden (nicht doppelt gelistet):</span>${c.possible_duplicates.map(d => dupLine(d, c.name)).join('')}</div>`;
+    }
+    if (c.duplicate_primary) {
+      const p = c.duplicate_primary;
+      out += `<div class="sw-dups"><span class="sw-dups-head">⚠ Evtl. dieselbe Firma wie <b>${esc(p.name)}</b> (${esc(addrOf(p) || 'ohne Ort')}) – ${esc(c.dup_reason || '')}</span>
+        <span class="sw-dup-btns"><button type="button" class="btn btn-ghost" data-sw-dup="gleich" data-id="${c.id}">Gleiche Firma – zusammenführen</button><button type="button" class="text-button" data-sw-dup="verschieden" data-id="${c.id}">Andere Firma</button></span></div>`;
+    }
+    if (c.possible_lead) {
+      out += `<div class="sw-dups lead"><span class="sw-dups-head">⚠ Evtl. schon als Lead: <button type="button" class="text-button" data-lead="${c.possible_lead.id}">${esc(c.possible_lead.company)}</button> ${esc(c.possible_lead.location || '')} – ${esc((c.dup_reason || '').replace(/^evtl\. schon als Lead: /, ''))}</span>
+        <span class="sw-dup-btns"><button type="button" class="btn btn-ghost" data-sw-dup="lead_gleich" data-id="${c.id}">Ist dieser Lead</button><button type="button" class="text-button" data-sw-dup="lead_verschieden" data-id="${c.id}">Andere Firma</button></span></div>`;
+    }
+    return out;
+  }
+
   function row(c, i) {
     const addr = [c.street, [c.zip, c.city].filter(Boolean).join(' ')].filter(Boolean).join(', ');
     const contact = c.contact || {};
@@ -98,14 +125,15 @@
       <div class="sw-main"><b>${esc(c.name)}</b>
         <small>${KIND[c.org_kind] && c.source !== 'ted' ? `<span class="sw-web mid">${esc(KIND[c.org_kind])}</span> ` : ''}${c.legal_form && c.source !== 'ted' && !c.name.toLowerCase().includes(c.legal_form.toLowerCase().replace(/\s*\(.*$/, '')) ? esc(c.legal_form) + ' · ' : ''}${esc(addr || c.city || '')}${c.distance_km != null ? ` · ${c.distance_km.toLocaleString('de-DE')} km` : ''}${c.register_id ? ' · ' + esc(c.register_id) : ''}${c.industry_label ? ` · <i>${esc(c.industry_label)}</i>` : c.industry ? ' · ' + esc(c.industry) : ''}</small>
         <div class="sw-web-line">${webCell(c)}${contact.business_phone ? ` · ☎ ${esc(contact.business_phone)}` : ''}${contact.business_email ? ` · ✉ ${esc(contact.business_email)}` : ''}${contact.imprint_url ? ` · <a href="${esc(contact.imprint_url)}" target="_blank" rel="noopener noreferrer">Impressum ↗</a>` : ''}</div>
-        <div class="sw-srcs">${srcs}${c.signal_note ? `<small>${esc(c.signal_note.slice(0, 140))}</small>` : ''}</div></div>
+        <div class="sw-srcs">${srcs}${c.signal_note ? `<small>${esc(c.signal_note.slice(0, 140))}</small>` : ''}</div>${dupBlock(c)}</div>
       <div class="sw-btns">${open ? `<button type="button" class="btn btn-primary" data-sw-do="uebernehmen" data-id="${c.id}">Übernehmen</button><button type="button" class="btn btn-ghost" data-sw-do="verwerfen" data-id="${c.id}">Verwerfen</button>${['belegt', 'quelle', 'bestaetigt', 'wartet', 'laeuft'].includes(c.website_status) ? '' : `<button type="button" class="text-button" data-sw-do="website" data-id="${c.id}">Website suchen</button>`}` :
         `<span class="sw-st">${esc({uebernommen: 'übernommen', verworfen: 'verworfen', dublette: 'schon Lead', gesperrt: 'Sperrliste'}[c.status] || c.status)}</span>${c.lead_id || c.duplicate_lead_id ? `<button type="button" class="text-button" data-lead="${c.lead_id || c.duplicate_lead_id}">Lead öffnen</button>` : ''}`}</div>
     </article>`;
   }
 
   async function loadList() {
-    const qs = new URLSearchParams({status: $('#swStatus').value, sweep_id: $('#swSweep').value, website: $('#swWeb').value, sort: $('#swSort').value,
+    const dups = $('#swStatus').value === 'dups';
+    const qs = new URLSearchParams({status: dups ? 'neu' : $('#swStatus').value, dups: dups ? '1' : '', sweep_id: $('#swSweep').value, website: $('#swWeb').value, sort: $('#swSort').value,
       q: $('#swQ').value.trim(), offset: String(offset), limit: String(PAGE), city: $('#swCity').value, max_km: $('#swKm').value,
       no_ted: $('#swNoTed').checked ? '1' : ''});
     [...qs.keys()].filter(k => !qs.get(k)).forEach(k => qs.delete(k));
@@ -118,7 +146,10 @@
         + (cur && !(data.cities || []).some(x => x.city.toLowerCase() === cur.toLowerCase()) ? `<option value="${esc(cur)}">${esc(cur)}</option>` : '');
       $('#swCity').value = cur;
       const c = data.counts || {};
-      $('#swCounts').textContent = `${c.neu || 0} neu · ${c.uebernommen || 0} übernommen · ${c.verworfen || 0} verworfen · ${c.dublette || 0} schon als Lead`;
+      $('#swCounts').innerHTML = `${c.neu || 0} neu · ${c.uebernommen || 0} übernommen · ${c.verworfen || 0} verworfen · ${c.dublette || 0} schon als Lead`
+        + (c.moegliche_dubletten ? ` · <button type="button" class="text-button" data-sw-dupview>${c.moegliche_dubletten} mögliche Dublette(n) prüfen</button>` : '')
+        + (c.zusammengefuehrt ? ` · ${c.zusammengefuehrt} zusammengeführt` : '')
+        + (c.ohne_website ? ` · <button type="button" class="text-button" data-sw-noweb>${c.ohne_website} ohne Website</button>` : '');
       $('#swPage').textContent = data.total ? `${offset + 1}–${Math.min(offset + PAGE, data.total)} von ${data.total}` : '';
       $('#swPrev').disabled = offset === 0;
       $('#swNext').disabled = offset + PAGE >= data.total;
@@ -210,6 +241,13 @@
       } catch (e) { $('#swCheckNote').textContent = e.message; }
       b.disabled = false;
     });
+    $('#swDedupe').addEventListener('click', async () => {
+      try {
+        const r = await api('/sweep-candidates/dedupe', 'POST', {run: true});
+        toast(`${r.checked} Treffer geprüft: ${r.merged} sicher gleiche zusammengeführt, ${r.possible} mögliche Dubletten zur Prüfung, ${r.known_lead + r.possible_lead} Bezug zu bestehenden Leads`);
+        loadList();
+      } catch (e) { toast(e.message, true); }
+    });
     $('#swFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) importFile(f); });
     ['#swStatus', '#swSweep', '#swWeb', '#swSort', '#swCity', '#swKm', '#swNoTed'].forEach(s => $(s).addEventListener('change', () => { offset = 0; cursor = 0; loadList(); }));
     let qt = null;
@@ -225,6 +263,19 @@
         if (d.dataset.swDo === 'website') { try { await api('/sweep-candidates/find-websites', 'POST', {ids: [id]}); loadList(); } catch (err) { toast(err.message, true); } return; }
         return decideOne(id, d.dataset.swDo);
       }
+      const dp = e.target.closest('[data-sw-dup]');
+      if (dp) {
+        dp.disabled = true;
+        try {
+          await api(`/sweep-candidates/${dp.dataset.id}/duplicate`, 'POST', {decision: dp.dataset.swDup});
+          toast({gleich: 'Zusammengeführt – Quellen und Angaben sind jetzt in einem Eintrag', verschieden: 'Als eigene Firma behalten – wird nicht wieder als Dublette vorgeschlagen',
+            lead_gleich: 'Als „schon Lead“ markiert', lead_verschieden: 'Hinweis entfernt – eigene Firma'}[dp.dataset.swDup]);
+          loadList();
+        } catch (err) { dp.disabled = false; toast(err.message, true); }
+        return;
+      }
+      if (e.target.closest('[data-sw-noweb]')) { $('#swStatus').value = 'neu'; $('#swWeb').value = '0'; offset = 0; cursor = 0; loadList(); return; }
+      if (e.target.closest('[data-sw-dupview]')) { $('#swStatus').value = 'dups'; offset = 0; cursor = 0; loadList(); return; }
       const wv = e.target.closest('[data-sw-web]');
       if (wv) {
         try {
