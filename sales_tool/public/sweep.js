@@ -7,6 +7,8 @@
   const WEB = {quelle: ['laut Quelle', 'ok'], belegt: ['belegt (Registernr.)', 'ok'], wahrscheinlich: ['wahrscheinlich', 'mid'], wartet: ['Suche wartet …', 'wait'],
     laeuft: ['wird gesucht …', 'wait'], nicht_gefunden: ['nicht gefunden', 'off'], nicht_bestaetigt: ['nicht eindeutig', 'mid']};
   const PAGE = 50;
+  const KIND = {verein: 'Verein/Stiftung', oeffentlich: 'öffentlich'};
+  const CHECK = {ok: ['erreichbar', 'ok'], ueberlastet: ['überlastet', 'mid'], blockiert: ['blockiert', 'off'], fehler: ['Fehler', 'off'], format: ['Format geändert', 'off']};
   let catalog = null, selectedInd = new Set(), offset = 0, data = null, cursor = 0, chosen = new Set(), pollSweep = null, pollWeb = null;
   const store = {get: k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } },
                  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* privat */ } }};
@@ -27,7 +29,8 @@
     const f = $('#swForm').elements;
     return {place: f.place.value.trim(), radius_km: Number(f.radius_km.value), industries: [...selectedInd], keywords: f.keywords.value.trim(),
       sources: $$('#swForm [name=src]:checked').map(x => x.value), operative: f.operative.checked, include_sole: f.include_sole.checked,
-      find_websites: f.find_websites.checked};
+      find_websites: f.find_websites.checked, ted_nationwide: f.ted_nationwide.checked,
+      org_kinds: $$('#swForm [name=org]:checked').map(x => x.value)};
   }
 
   function renderProgress(sw) {
@@ -88,7 +91,7 @@
     return `<article class="sw-item ${i === cursor ? 'cur' : ''}" data-sw-idx="${i}" data-id="${c.id}">
       <input type="checkbox" data-sw-sel="${c.id}" ${chosen.has(c.id) ? 'checked' : ''} aria-label="${esc(c.name)} auswählen">
       <div class="sw-main"><b>${esc(c.name)}</b>
-        <small>${esc(addr || c.city || '')}${c.distance_km != null ? ` · ${c.distance_km.toLocaleString('de-DE')} km` : ''}${c.register_id ? ' · ' + esc(c.register_id) : ''}${c.industry_label ? ` · <i>${esc(c.industry_label)}</i>` : c.industry ? ' · ' + esc(c.industry) : ''}</small>
+        <small>${KIND[c.org_kind] && c.source !== 'ted' ? `<span class="sw-web mid">${esc(KIND[c.org_kind])}</span> ` : ''}${c.legal_form && c.source !== 'ted' && !c.name.toLowerCase().includes(c.legal_form.toLowerCase().replace(/\s*\(.*$/, '')) ? esc(c.legal_form) + ' · ' : ''}${esc(addr || c.city || '')}${c.distance_km != null ? ` · ${c.distance_km.toLocaleString('de-DE')} km` : ''}${c.register_id ? ' · ' + esc(c.register_id) : ''}${c.industry_label ? ` · <i>${esc(c.industry_label)}</i>` : c.industry ? ' · ' + esc(c.industry) : ''}</small>
         <div class="sw-web-line">${webCell(c)}${contact.business_phone ? ` · ☎ ${esc(contact.business_phone)}` : ''}${contact.business_email ? ` · ✉ ${esc(contact.business_email)}` : ''}${contact.imprint_url ? ` · <a href="${esc(contact.imprint_url)}" target="_blank" rel="noopener noreferrer">Impressum ↗</a>` : ''}</div>
         <div class="sw-srcs">${srcs}${c.signal_note ? `<small>${esc(c.signal_note.slice(0, 140))}</small>` : ''}</div></div>
       <div class="sw-btns">${open ? `<button type="button" class="btn btn-primary" data-sw-do="uebernehmen" data-id="${c.id}">Übernehmen</button><button type="button" class="btn btn-ghost" data-sw-do="verwerfen" data-id="${c.id}">Verwerfen</button>${['belegt', 'quelle', 'wartet', 'laeuft'].includes(c.website_status) ? '' : `<button type="button" class="text-button" data-sw-do="website" data-id="${c.id}">Website suchen</button>`}` :
@@ -160,6 +163,8 @@
         const f = $('#swForm').elements;
         f.place.value = last.place || ''; f.radius_km.value = String(last.radius_km ?? 30); f.keywords.value = last.keywords || '';
         if (last.find_websites === false) f.find_websites.checked = false;
+        if (last.ted_nationwide) f.ted_nationwide.checked = true;
+        if (Array.isArray(last.org_kinds) && last.org_kinds.length) $$('#swForm [name=org]').forEach(x => { x.checked = last.org_kinds.includes(x.value); });
         (last.industries || []).forEach(k => selectedInd.add(k));
       }
       $('#swIndNotice').textContent = catalog.notice;
@@ -182,10 +187,23 @@
       e.preventDefault();
       const p = formParams();
       if (!p.sources.length) return toast('Mindestens eine Quelle wählen', true);
+      if (!p.org_kinds.length) return toast('Bitte wählen, wen du suchst (z. B. Unternehmen)', true);
       store.set('sw_last', p);
       $('#swGo').disabled = true;
       try { const sw = await api('/sweeps', 'POST', p); renderProgress(sw); watchSweep(sw.id); }
       catch (err) { $('#swGo').disabled = false; toast(err.message, true); }
+    });
+    $('#swCheck').addEventListener('click', async () => {
+      const b = $('#swCheck');
+      b.disabled = true; $('#swCheckNote').textContent = 'Prüfe … (bis zu 20 Sekunden)';
+      try {
+        const r = await api('/sources/check', 'POST', {run: true});
+        $('#swCheckRows').innerHTML = r.rows.map(x => `<div class="sw-src ${x.status === 'ok' ? 'fertig' : x.status === 'ueberlastet' ? 'retry' : 'fehler'}">
+          <b>${esc(x.label)}</b><span class="sw-web ${(CHECK[x.status] || ['', 'off'])[1]}">${esc((CHECK[x.status] || [x.status])[0])}</span>
+          <small>${esc(x.detail)}${x.hint ? ` – <i>${esc(x.hint)}</i>` : ''} · ${x.ms} ms</small></div>`).join('');
+        $('#swCheckNote').textContent = `${r.ok} von ${r.total} erreichbar · ${r.checked_at}${r.cached ? ' (Ergebnis von eben – höchstens eine Prüfung pro Minute)' : ''}${r.osm_any ? '' : ' · kein OpenStreetMap-Server erreichbar: die Suche läuft dann ohne OSM'}`;
+      } catch (e) { $('#swCheckNote').textContent = e.message; }
+      b.disabled = false;
     });
     $('#swFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) importFile(f); });
     ['#swStatus', '#swSweep', '#swWeb', '#swSort', '#swCity', '#swKm', '#swNoTed'].forEach(s => $(s).addEventListener('change', () => { offset = 0; cursor = 0; loadList(); }));

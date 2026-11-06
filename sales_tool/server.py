@@ -33,6 +33,7 @@ from .research_center import route_center
 from .sales_integration import route_sales_integration, can_complete_task
 from .quality import route_quality, start_scheduler
 from .today import route_today
+from .source_check import route_source_check
 from .sweep import route_sweep, recover_sweeps
 from .report import route_report, recover_reports
 from .pricing import route_pricing
@@ -174,7 +175,7 @@ def make_handler(db_path, allowed_hosts=None):
     hosts = LOOPBACK_HOSTS | {h.lower() for h in (allowed_hosts or ())}
 
     class Handler(BaseHTTPRequestHandler):
-        server_version = "SignalDesk/1.13"
+        server_version = "SignalDesk/1.14"
         user = None
 
         def _security_headers(self):
@@ -310,6 +311,8 @@ def make_handler(db_path, allowed_hosts=None):
                 if route_signals(self, conn, method, route, query, db_path):
                     return
                 if route_today(self, conn, method, route, query):
+                    return
+                if route_source_check(self, conn, method, route, query):
                     return
                 if route_sweep(self, conn, method, route, query, db_path):
                     return
@@ -775,7 +778,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 20  # v1.13 – bei Schemaänderungen erhöhen
+SCHEMA_VERSION = 21  # v1.14 – bei Schemaänderungen erhöhen
 
 
 def backup_before_migration(db):
@@ -825,7 +828,7 @@ def security_status(conn, hosts, host_header=''):
          'Im Netzwerk nur hinter einem TLS-Proxy (HTTPS) betreiben – SignalDesk selbst spricht nur HTTP.'},
     ]
     return {'checks': checks, 'auth_required': required, 'users': conn.execute('SELECT COUNT(*) FROM users WHERE active=1').fetchone()[0],
-            'schema_version': SCHEMA_VERSION, 'server_version': 'SignalDesk/1.13'}
+            'schema_version': SCHEMA_VERSION, 'server_version': 'SignalDesk/1.14'}
 
 
 def reset_login(conn):

@@ -4,6 +4,7 @@ Alle Netzwerkantworten sind Attrappen mit fiktiven Firmen. Die echten Fehlerbild
 GLEIF „HTTP 400 Filter should contain only allowed values“, Wikidata „HTTP 502“, OpenStreetMap „timed out“.
 """
 import json
+import re
 import tempfile
 import threading
 import unittest
@@ -14,6 +15,7 @@ from pathlib import Path
 from unittest import mock
 
 from sales_tool import area as ar
+from sales_tool import gemeinden as gm
 from sales_tool import imprint
 from sales_tool import industries as ind
 from sales_tool import lead_finder as lf
@@ -46,15 +48,22 @@ class FakeNet:
             if 'gleif' in self.fail:
                 raise lf.SourceError('Quelle nicht erreichbar (The read operation timed out).')
             q = urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)
-            if 'filter[entity.status]' in q:  # Fehlerbild des Nutzers
+            # Verhalten der Live-API (geprüft 11/2026): nur diese Filter sind erlaubt, alles andere → HTTP 400
+            allowed = {'filter[fulltext]', 'filter[entity.legalAddress.country]', 'filter[entity.status]', 'filter[entity.category]'}
+            if 'gleif_fulltext' in self.fail:  # gedachter Fall: Volltext gesperrt, alter Ortsfilter wieder erlaubt
+                allowed = {'filter[entity.legalAddress.city]', 'filter[entity.legalAddress.country]'}
+            if any(k.startswith('filter[') and k not in allowed for k in q):
                 raise lf.SourceError('Quelle antwortet mit HTTP 400: {"errors":[{"title":"Filter should contain only allowed values.","source":{"parameter":"filter"}}]}')
-            city = q.get('filter[entity.legalAddress.city]', [''])[0]
+            term = q.get('filter[fulltext]', q.get('filter[entity.legalAddress.city]', ['']))[0]
             recs = {'Stuttgart': [gleif_record(LEI_A, 'Reith Spezialkabel GmbH', 'Stuttgart', '70173', 'HRB 14671'),
                                   gleif_record(LEI_B, 'Kesselwerk Verwaltungs GmbH', 'Stuttgart', '70174', 'HRB 999'),
                                   gleif_record('D' * 18 + '04', 'Alt GmbH', 'Stuttgart', '70175', status='INACTIVE'),
                                   gleif_record('E' * 18 + '05', 'Rentenfonds Süd', 'Stuttgart', '70176', category='FUND'),
-                                  gleif_record('F' * 18 + '06', 'Gesperrte Muster AG', 'Stuttgart', '70176', 'HRB 555')],
-                    'Esslingen am Neckar': [gleif_record(LEI_C, 'Neckar Präzisionsteile GmbH', 'Esslingen am Neckar', '73728', 'HRB 7300')]}.get(city, [])
+                                  gleif_record('F' * 18 + '06', 'Gesperrte Muster AG', 'Stuttgart', '70176', 'HRB 555'),
+                                  gleif_record('J' * 18 + '10', 'Stuttgarter Versicherung AG', 'Köln', '50667', 'HRB 4')],
+                    'Esslingen am Neckar': [gleif_record(LEI_C, 'Neckar Präzisionsteile GmbH', 'Esslingen am Neckar', '73728', 'HRB 7300')]}.get(term, [])
+            if q.get('filter[entity.status]') == ['ACTIVE']:
+                recs = [r for r in recs if r['attributes']['entity']['status'] == 'ACTIVE']
             return {'data': recs, 'meta': {'pagination': {'lastPage': 1}}}
         if 'wikidata' in url:
             if 'wikidata' in self.fail:
@@ -86,13 +95,22 @@ class FakeNet:
         if 'ted.europa.eu' in url:
             if 'ted' in self.fail:
                 raise lf.SourceError('Quelle antwortet mit HTTP 503: Wartung')
-            return {'notices': [{'publication-number': '123-2026', 'notice-title': {'deu': 'Relaunch Website Stadtwerke'}, 'buyer-name': {'deu': ['Stadtwerke Beispielstadt']},
-                                 'publication-date': ['2026-11-01'], 'links': {}}]}
+            # Live-Format (11/2026): buyer-city {'mul': [...]}, buyer-post-code [...]; Ortsfilter „buyer-city IN (…)“ serverseitig
+            notices = [{'publication-number': '123-2026', 'notice-title': {'deu': 'Relaunch Website Stadtwerke'}, 'buyer-name': {'deu': ['Stadtwerke Beispielstadt']},
+                        'publication-date': ['2026-11-01'], 'links': {}, 'buyer-city': {'mul': ['Stuttgart']}, 'buyer-post-code': ['70173']},
+                       {'publication-number': '456-2026', 'notice-title': {'deu': 'Neues Corporate Design'}, 'buyer-name': {'deu': ['Hafenamt Musterhafen']},
+                        'publication-date': ['2026-11-02'], 'links': {}, 'buyer-city': {'mul': ['Hamburg']}, 'buyer-post-code': ['20457']}]
+            m = re.search(r'buyer-city IN \(([^)]*)\)', json.loads(data)['query'])
+            if m:
+                wanted = re.findall(r'"([^"]+)"', m.group(1))
+                notices = [n for n in notices if n['buyer-city']['mul'][0] in wanted]
+            return {'notices': notices}
         raise AssertionError('unerwartete URL ' + url)
 
 
 class SweepBase(unittest.TestCase):
     def setUp(self):
+        lf.wikidata_reset()
         self.tmp = tempfile.TemporaryDirectory()
         self.db = Path(self.tmp.name) / 'sw.sqlite3'
         self.conn = connect(self.db)
@@ -100,9 +118,11 @@ class SweepBase(unittest.TestCase):
         self.net = FakeNet()
         self._orig = (lf.FETCH, lf.SLEEP, sw.GLEIF_DELAY, sw.AUTO_WEB_START)
         lf.FETCH, lf.SLEEP, sw.GLEIF_DELAY, sw.AUTO_WEB_START = self.net, (lambda s: None), 0, False
+        gm._STATE['rows'] = []  # v1.14: Netzwerk-Suchgebiet testen; das Offline-Verzeichnis prüft test_v114_livetest
 
     def tearDown(self):
         lf.FETCH, lf.SLEEP, sw.GLEIF_DELAY, sw.AUTO_WEB_START = self._orig
+        gm._STATE['rows'] = None
         self.conn.close()
         self.tmp.cleanup()
 
@@ -119,14 +139,17 @@ class SweepBase(unittest.TestCase):
 class SourceRepairTests(SweepBase):
     def test_gleif_falls_back_when_filter_rejected(self):
         data = lf.gleif_page('ua', city='Stuttgart')
-        self.assertEqual(data['_attempt'], 1, 'ohne Status-Filter erneut gefragt')
+        self.assertEqual(data['_attempt'], 0, 'v1.14: erlaubte Filter (Volltext + Land + aktiv) sofort, ohne Fehlversuch')
+        self.assertEqual(sum('gleif' in c for c in self.net.calls), 1)
         items = lf.gleif_items(data, city='Stuttgart')
         names = [i['name'] for i in items]
         self.assertIn('Reith Spezialkabel GmbH', names)
         self.assertNotIn('Alt GmbH', names, 'Inaktive lokal gefiltert')
         self.assertNotIn('Rentenfonds Süd', names, 'Fonds lokal gefiltert')
         self.assertEqual(items[0]['lei'], LEI_A)
-        self.assertEqual(lf.gleif_page('ua', city='Stuttgart', page=2, attempt_from=1)['_attempt'], 1, 'Folgeseiten ohne erneuten Fehlversuch')
+        self.assertNotIn('Stuttgarter Versicherung AG', names, 'Volltext-Treffer aus anderem Ort lokal ausgefiltert')
+        self.net.fail.add('gleif_fulltext')
+        self.assertEqual(lf.gleif_page('ua', city='Stuttgart')['_attempt'], 2, 'lehnt GLEIF auch den Volltext ab: alter Ortsfilter als Rückfall')
 
     def test_wikidata_retry_and_clear_message(self):
         self.net.fail.add('wikidata')
@@ -170,7 +193,7 @@ class SweepTests(SweepBase):
         self.assertEqual(d['status'], 'fertig')
         for s in ('gleif', 'wikidata', 'osm', 'ted'):
             self.assertEqual(d['progress'][s]['status'], 'fertig', s)
-        self.assertIn('vereinfacht', d['progress']['gleif']['detail'])
+        self.assertNotIn('vereinfacht', d['progress']['gleif']['detail'], 'v1.14: erlaubte GLEIF-Filter sofort – kein Fehlversuch')
         cs = {c['name']: c for c in self.cands()}
         reith = cs['Reith Spezialkabel GmbH']
         self.assertEqual(sorted(s['source'] for s in reith['sources']), ['gleif', 'wikidata'], 'GLEIF + Wikidata über LEI zusammengeführt')
@@ -324,6 +347,7 @@ class IndustryTests(unittest.TestCase):
 
 class SweepHttpTests(SweepBase):
     def setUp(self):
+        lf.wikidata_reset()
         super().setUp()
         self.server = ThreadingHTTPServer(('127.0.0.1', 0), make_handler(self.db))
         threading.Thread(target=self.server.serve_forever, daemon=True).start()

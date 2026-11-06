@@ -69,6 +69,7 @@ class FakeFetch:
 
 class LeadFinderTests(unittest.TestCase):
     def setUp(self):
+        lf.wikidata_reset()
         self.tmp = tempfile.TemporaryDirectory()
         self.conn = connect(Path(self.tmp.name) / 'lf.sqlite3')
         init_db(self.conn)
@@ -116,7 +117,8 @@ class LeadFinderTests(unittest.TestCase):
         self.assertEqual(len(run['candidates']), 1)
         c = run['candidates'][0]
         self.assertEqual((c['register_id'], c['zip'], c['legal_form']), ('HRB 123456', '70565', 'GmbH'))
-        self.assertIn('filter%5Bentity.legalAddress.city%5D=Stuttgart', self.fake.calls[0]['url'])
+        self.assertIn('filter%5Bfulltext%5D=Stuttgart', self.fake.calls[0]['url'], 'v1.14: Live-API erlaubt nur Volltext statt Ortsfilter')
+        self.assertIn('filter%5Bentity.legalAddress.country%5D=DE', self.fake.calls[0]['url'])
 
     def test_ted_tenders_become_signals(self):
         run = lf.run_search(self.conn, {'source': 'ted', 'preset': 'web', 'days': 30})
@@ -201,6 +203,7 @@ class LeadFinderTests(unittest.TestCase):
 
 class LeadFinderHttpTests(unittest.TestCase):
     def setUp(self):
+        lf.wikidata_reset()
         self.tmp = tempfile.TemporaryDirectory()
         self.db = Path(self.tmp.name) / 'http.sqlite3'
         with connect(self.db) as conn:

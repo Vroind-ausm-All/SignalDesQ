@@ -28,9 +28,12 @@ import unicodedata
 from . import area as ar
 from . import industries as ind
 from . import lead_finder as lf
+from . import legal_forms as lfm
 from .company_data import check_suppressed, normalize_domain, normalize_name
 
 SWEEP_SOURCES = {'gleif': 'GLEIF', 'wikidata': 'Wikidata', 'osm': 'OpenStreetMap', 'ted': 'TED-Ausschreibungen'}
+ORG_KIND_CHOICES = (lfm.UNTERNEHMEN, lfm.VEREIN, lfm.OEFFENTLICH)
+ORG_KINDS_DEFAULT = (lfm.UNTERNEHMEN,)
 MAX_GLEIF_PAGES_PER_PLACE = 25
 MAX_GLEIF_REQUESTS = 150
 GLEIF_DELAY = 1.1
@@ -60,7 +63,7 @@ def init_sweep(conn):
                        ('industry_key', "TEXT NOT NULL DEFAULT ''"), ('lei', "TEXT NOT NULL DEFAULT ''"),
                        ('website_status', "TEXT NOT NULL DEFAULT ''"), ('website_evidence', "TEXT NOT NULL DEFAULT ''"),
                        ('contact_json', "TEXT NOT NULL DEFAULT '{}'"), ('updated_at', "TEXT NOT NULL DEFAULT ''"),
-                       ('imprint_json', "TEXT NOT NULL DEFAULT '{}'")):
+                       ('imprint_json', "TEXT NOT NULL DEFAULT '{}'"), ('org_kind', "TEXT NOT NULL DEFAULT ''")):
         if name not in cols:
             conn.execute(f'ALTER TABLE discovery_candidates ADD COLUMN {name} {decl}')
     conn.execute('CREATE INDEX IF NOT EXISTS idx_discovery_cand_sweep ON discovery_candidates(sweep_id, status)')
@@ -153,6 +156,10 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None):
         if ctx.get('operative', True) and source != 'ted' and ind.NON_OPERATIVE_RE.search(name):
             c['filtered'] += 1
             continue
+        kind = item.get('org_kind') or lfm.kind_of(name, item.get('elf', ''), legal)
+        if source != 'ted' and (kind if kind != lfm.SONSTIGE else lfm.UNTERNEHMEN) not in ctx.get('org_kinds', ORG_KINDS_DEFAULT):
+            c['filtered'] += 1
+            continue
         if source != 'ted':
             ok, ikey = ind.match(f"{name} {item.get('industry', '')}", ctx.get('industries', []), ctx.get('keywords', []))
             if not ok and not item.get('_industry_matched'):
@@ -188,7 +195,8 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None):
             if not any(s['source'] == source for s in sources):
                 sources.append(src_entry)
             upd = {'sources_json': json.dumps(sources, ensure_ascii=False), 'updated_at': _now()}
-            for f in ('website', 'register_id', 'street', 'zip', 'city', 'legal_form', 'lei', 'industry_key'):
+            item.setdefault('org_kind', kind)
+            for f in ('website', 'register_id', 'street', 'zip', 'city', 'legal_form', 'lei', 'industry_key', 'org_kind'):
                 if not existing[f] and item.get(f):
                     upd[f] = str(item[f])[:300]
             if item.get('website') and not existing['website']:
@@ -214,7 +222,7 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None):
                 'signal_type': item.get('signal_type', 'kein_signal'), 'signal_note': item.get('signal_note', ''),
                 'signal_date': item.get('signal_date', ''), 'source_url': item.get('source_url', ''), 'license': license_text,
                 'status': status, 'duplicate_lead_id': dup, 'sources_json': json.dumps([src_entry], ensure_ascii=False),
-                'distance_km': dist, 'industry_key': item.get('industry_key', ''), 'lei': item.get('lei', ''),
+                'distance_km': dist, 'industry_key': item.get('industry_key', ''), 'lei': item.get('lei', ''), 'org_kind': kind,
                 'website_status': 'quelle' if item.get('website') else '',
                 'website_evidence': f"Website laut {lf.SOURCES.get(source, {}).get('title', source)}" if item.get('website') else '',
                 'updated_at': _now()}
@@ -233,7 +241,8 @@ def _add_keys(conn, cid, keys):
 # ---------------------------------------------------------------- Sammelsuche
 
 def validate_params(data):
-    allowed = {'place', 'radius_km', 'industries', 'keywords', 'sources', 'operative', 'include_sole', 'ted_presets', 'find_websites'}
+    allowed = {'place', 'radius_km', 'industries', 'keywords', 'sources', 'operative', 'include_sole', 'ted_presets', 'find_websites',
+               'org_kinds', 'ted_nationwide'}
     if not isinstance(data, dict) or set(data) - allowed:
         raise ValueError('Ungültige Suchparameter.')
     place = str(data.get('place') or '').strip()
@@ -247,12 +256,16 @@ def validate_params(data):
     presets = data.get('ted_presets', ['web', 'design', 'software', 'marketing'])
     if not isinstance(presets, list) or any(p not in lf.CPV_PRESETS for p in presets):
         raise ValueError('Unbekannte Ausschreibungsgruppe.')
-    for flag in ('operative', 'include_sole', 'find_websites'):
+    kinds = data.get('org_kinds', list(ORG_KINDS_DEFAULT))
+    if not isinstance(kinds, list) or not kinds or any(k not in ORG_KIND_CHOICES for k in kinds):
+        raise ValueError('Organisationsart: ' + ', '.join(ORG_KIND_CHOICES) + '.')
+    for flag in ('operative', 'include_sole', 'find_websites', 'ted_nationwide'):
         if flag in data and not isinstance(data[flag], bool):
             raise ValueError(f'{flag}: true/false.')
     return {'place': place, 'radius_km': radius, 'industries': ind.validate_keys(data.get('industries', [])),
             'keywords': ind.parse_keywords(data.get('keywords', '')), 'sources': sources, 'operative': data.get('operative', True),
-            'include_sole': data.get('include_sole', False), 'ted_presets': presets, 'find_websites': data.get('find_websites', True)}
+            'include_sole': data.get('include_sole', False), 'ted_presets': presets, 'find_websites': data.get('find_websites', True),
+            'org_kinds': kinds, 'ted_nationwide': data.get('ted_nationwide', False)}
 
 
 def start_sweep(conn, data, db_path, start=True):
@@ -328,6 +341,8 @@ def run_sweep(db_path, sid, only=None):
             _progress(conn, sid, source, status='läuft', error='', detail='')
             run_id = _run_record(conn, source, sid, {'place': p['place'], 'radius_km': p['radius_km']})
             for attempt in range(len(RETRY_DELAYS) + 1):
+                if attempt:
+                    _progress(conn, sid, source, status='läuft', detail=f'{attempt + 1}. Versuch läuft …')
                 try:
                     counts, detail = SOURCE_RUNNERS[source](conn, sid, run_id, ctx, area, ua, index)
                     _finish_run(conn, run_id, counts)
@@ -352,6 +367,11 @@ def run_sweep(db_path, sid, only=None):
                     _finish_run(conn, run_id, error=f'Unerwarteter Fehler: {exc.__class__.__name__}')
                     _progress(conn, sid, source, status='fehler', error=f'Unerwarteter Fehler: {exc.__class__.__name__}')
                     break
+        if ctx.get('_leis'):
+            found = _websites_by_lei(conn, ctx['_leis'], ua)
+            if found:
+                gp = json.loads(conn.execute('SELECT progress_json FROM sweeps WHERE id=?', (sid,)).fetchone()['progress_json']).get('gleif', {})
+                _progress(conn, sid, 'gleif', detail=(gp.get('detail', '') + f', {found} Websites über Wikidata (LEI)').strip(', '))
         prog = json.loads(conn.execute('SELECT progress_json FROM sweeps WHERE id=?', (sid,)).fetchone()['progress_json'])
         ok = any(v.get('status') == 'fertig' for k, v in prog.items() if not k.startswith('_'))
         if ok and p.get('find_websites', True):
@@ -408,21 +428,23 @@ def _run_gleif(conn, sid, run_id, ctx, area, ua, index):
                 break
         places_done += 1
         _progress(conn, sid, 'gleif', status='läuft', detail=f'{places_done}/{len(area["places"])} Orte', **total)
-    found_web = _websites_by_lei(conn, leis, ua) if leis else 0
-    detail = f'{places_done} Orte, {requests} Abfragen{filters_note}' + (f', {found_web} Websites über Wikidata (LEI)' if found_web else '')
-    return total, detail
+    ctx['_leis'] = leis  # Websites per LEI erst am Ende der Suche ergänzen (Wikidata-Firmenabfrage hat Vorrang)
+    return total, f'{places_done} Orte, {requests} Abfragen{filters_note}'
 
 
 def _websites_by_lei(conn, leis, ua):
     """Ergänzt Websites zu GLEIF-Firmen über Wikidata (Eigenschaft LEI → offizielle Website)."""
     found = 0
-    for i in range(0, min(len(leis), 1000), 200):
-        chunk = [l for l in leis[i:i + 200] if re.fullmatch(r'[A-Z0-9]{20}', l)]
+    if lf.wikidata_status()['blocked_s']:
+        return 0  # Wikidata hat um Pause gebeten: Zusatzabfrage auslassen
+    for i in range(0, min(len(leis), 1000), 1000):
+        chunk = [l for l in dict.fromkeys(leis[i:i + 1000]) if re.fullmatch(r'[A-Z0-9]{20}', l)]
         if not chunk:
             continue
         q = 'SELECT ?lei ?website WHERE { VALUES ?lei { ' + ' '.join(f'"{l}"' for l in chunk) + ' } ?c wdt:P1278 ?lei ; wdt:P856 ?website . }'
         try:
-            data = lf.wikidata_sparql(q, ua, retries=0)
+            # Live-Befund: Bei Störungen ist schon die 2. Anfrage pro Minute zu viel (→ 1000 s Sperre). Daher ≥ 65 s Abstand.
+            data = lf.wikidata_sparql(q, ua, retries=0, min_gap=lf.WIKIDATA_OUTAGE_GAP)
         except lf.SourceError:
             return found
         for b in data.get('results', {}).get('bindings', []):
@@ -498,6 +520,8 @@ def _run_osm(conn, sid, run_id, ctx, area, ua, index):
                 elements[f"{el.get('type')}/{el.get('id')}"] = el
         except lf.SourceError as exc:
             errors.append(exc)
+            if not elements and exc.retryable is False:
+                break  # kein Server erreichbar: restliche Teilabfragen nicht abwarten
     if errors and not elements:
         raise errors[0]
     items = []
@@ -519,13 +543,24 @@ def _run_osm(conn, sid, run_id, ctx, area, ua, index):
 
 
 def _run_ted(conn, sid, run_id, ctx, area, ua, index):
+    """Ausschreibungen: standardmäßig nur Auftraggeber im Suchgebiet (serverseitiger Ortsfilter), wahlweise bundesweit."""
     total = {'found': 0, 'new': 0, 'merged': 0, 'known': 0, 'dismissed': 0, 'suppressed': 0, 'filtered': 0}
+    regional = not ctx.get('ted_nationwide')
+    places = sorted(area['places'], key=lambda p: p['distance_km'])[:120] if regional else []
     for preset in ctx['ted_presets']:
-        items = lf.search_ted({'preset': preset, 'days': 30, 'limit': 50}, ua)
+        items = lf.search_ted({'preset': preset, 'days': 90 if regional else 30, 'limit': 100 if regional else 50,
+                               'cities': [p['name'] for p in places]}, ua)
+        for it in items:
+            pl = next((p for p in places if lf.city_matches(it.get('city'), p['name'])), None)
+            if pl:
+                it['distance_km'] = pl['distance_km']
+        if regional:
+            items = [it for it in items if it.get('distance_km') is not None]
         cnt = store_items(conn, sid, run_id, 'ted', items, ctx, index)
         for k in total:
             total[k] += cnt[k]
-    return total, 'bundesweit, letzte 30 Tage (Ausschreibungen sind öffentliche Aufträge – man bewirbt sich)'
+    where = f'Auftraggeber im Suchgebiet ({len(places)} Orte), letzte 90 Tage' if regional else 'bundesweit, letzte 30 Tage'
+    return total, where + ' (Ausschreibungen sind öffentliche Aufträge – man bewirbt sich)'
 
 
 SOURCE_RUNNERS = {'gleif': _run_gleif, 'wikidata': _run_wikidata, 'osm': _run_osm, 'ted': _run_ted}
@@ -609,8 +644,12 @@ def parse_import(text, opts):
             item = {'name': row.get('Entity.LegalName', ''), 'lei': row.get('LEI', ''), 'external_id': row.get('LEI', ''),
                     'street': street, 'zip': row.get('Entity.LegalAddress.PostalCode', ''), 'city': (row.get('Entity.LegalAddress.City') or '').title() if (row.get('Entity.LegalAddress.City') or '').isupper() else row.get('Entity.LegalAddress.City', ''),
                     'register_id': row.get('Entity.RegistrationAuthority.RegistrationAuthorityEntityID', ''),
+                    'elf': (row.get('Entity.LegalForm.EntityLegalFormCode') or '').upper(),
                     'signal_note': f"LEI seit {(row.get('Registration.InitialRegistrationDate') or '')[:10]}, Gründung {(row.get('Entity.EntityCreationDate') or '')[:10] or 'unbekannt'}",
                     'source_url': f"https://search.gleif.org/#/record/{row.get('LEI', '')}"}
+            hit = lfm.from_elf(item['elf'])
+            if hit:
+                item['legal_form'], item['org_kind'] = hit
         else:
             item = {k: _pick(row, cols) for k, cols in GENERIC_COLUMNS.items()}
             item['website'] = lf.clean_website(item['website'])
@@ -721,7 +760,8 @@ def decide(conn, cid, decision):
     res = lf.review_candidate(conn, cid, 'uebernehmen')
     lid = res['lead_id']
     contact = json.loads(cand['contact_json'] or '{}')
-    upd = {'legal_name': cand['name'], 'street': cand['street'], 'zip': cand['zip'], 'city': cand['city'],
+    upd = {'legal_name': cand['name'], 'legal_form': cand['legal_form'] if cand['source'] != 'ted' else '', 'street': cand['street'],
+           'zip': cand['zip'], 'city': cand['city'],
            'register_number': cand['register_id'] if register_key(cand['register_id'], 'x') else ''}
     if cand['legal_form'] and contact:
         upd['business_phone'] = contact.get('business_phone', '')[:60]

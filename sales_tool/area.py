@@ -1,5 +1,8 @@
 """Suchgebiet (Sprint B): Ort oder Postleitzahl + Umkreis → Mittelpunkt und Gemeinden im Umkreis.
 
+v1.14 (Live-Test): zuerst das mitgelieferte Ortsverzeichnis (offline, GeoNames CC BY 4.0) – ohne Netzwerk, sofort.
+Nur unbekannte Orte/PLZ gehen wie bisher an Nominatim bzw. Wikidata/OpenStreetMap.
+
 - Mittelpunkt: OpenStreetMap-Nominatim (eine Anfrage je neuem Ort/PLZ, dauerhaft zwischengespeichert –
   entspricht der Nominatim-Nutzungsrichtlinie: kein Massen-Geocoding, identifizierender User-Agent).
 - Gemeinden im Umkreis: Wikidata (Gemeinden in Deutschland mit Koordinaten), ersatzweise OpenStreetMap (place-Knoten).
@@ -12,6 +15,7 @@ import math
 import re
 import urllib.parse
 
+from . import gemeinden as gm
 from . import lead_finder as lf
 
 NOMINATIM = 'https://nominatim.openstreetmap.org/search?'
@@ -51,8 +55,25 @@ def parse_place(text):
     return {'postcode': '', 'city': text}
 
 
+def _offline_center(p):
+    g = None
+    if p['postcode']:
+        g = gm.by_postcode(p['postcode'])
+        if p['city'] and (not g or gm._norm(g['name']) != gm._norm(p['city'])):
+            g = gm.by_name(p['city'], p['postcode']) or g
+    elif p['city']:
+        g = gm.by_name(p['city'])
+    if not g:
+        return None
+    label = ', '.join(x for x in (p['postcode'], g['name']) if x)
+    return {'lat': g['lat'], 'lon': g['lon'], 'label': label, 'postcode': p['postcode'], 'cached': False, 'offline': True, 'name': g['name']}
+
+
 def geocode(conn, text, ua=None):
     p = parse_place(text)
+    off = _offline_center(p)
+    if off:
+        return off
     key = (p['postcode'] + ' ' + p['city']).strip().casefold()
     row = conn.execute('SELECT * FROM geo_cache WHERE query=?', (key,)).fetchone()
     if row:
@@ -83,8 +104,7 @@ def _wikidata_places(lat, lon, km, ua):
   OPTIONAL {{ ?place wdt:P1082 ?pop }}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "de". }}
 }} LIMIT 400'''
-    data = lf.FETCH('https://query.wikidata.org/sparql?' + urllib.parse.urlencode({'query': query, 'format': 'json'}), ua,
-                    accept='application/sparql-results+json')
+    data = lf.wikidata_sparql(query, ua, retries=0)
     out = {}
     for b in data.get('results', {}).get('bindings', []):
         name = b.get('placeLabel', {}).get('value', '')
@@ -116,8 +136,23 @@ def resolve(conn, place, radius_km):
     if radius_km not in RADII:
         raise ValueError('Umkreis: ' + ', '.join(f'{r} km' for r in RADII) + '.')
     center = geocode(conn, place)
+    if gm.available():
+        if radius_km:
+            places = gm.within(center['lat'], center['lon'], radius_km)
+            names = {p['name'] for p in places}  # Ortsteile („Stuttgart Feuerbach“) stecken schon im Ort
+            places = [p for p in places if not any(p['name'].startswith(n + ' ') for n in names if n != p['name'])]
+        else:
+            own = gm.by_name(center.get('name') or parse_place(place)['city'] or center['label'].split(', ')[-1])
+            places = [{'name': own['name'], 'lat': own['lat'], 'lon': own['lon'], 'population': 0, 'size': own['size'], 'distance_km': 0.0,
+                       'kreis': own['kreis']}] if own else []
+        if places:
+            places.sort(key=lambda p: (-p['size'], p['distance_km']))  # größere Orte (mehr PLZ) zuerst, dann die nächsten
+            total = len(places)
+            places = places[:MAX_PLACES]
+            return {'center': {**center, 'query': place}, 'radius_km': radius_km, 'places': places, 'places_total': total,
+                    'source': 'Ortsverzeichnis offline (GeoNames, CC BY 4.0)' if radius_km else 'nur dieser Ort', 'errors': [], 'cached': False}
     key = f"{round(center['lat'], 3)},{round(center['lon'], 3)}:{radius_km}"
-    row = conn.execute('SELECT * FROM search_areas WHERE key=?', (key,)).fetchone()
+    row = conn.execute("SELECT * FROM search_areas WHERE key=? AND source NOT IN ('nur Mittelpunkt')", (key,)).fetchone()
     if row:
         return {'center': json.loads(row['center_json']), 'radius_km': radius_km, 'places': json.loads(row['places_json']), 'source': row['source'], 'cached': True}
     ua = lf._user_agent(conn)
@@ -140,7 +175,8 @@ def resolve(conn, place, radius_km):
         places = [{'name': name, 'lat': center['lat'], 'lon': center['lon'], 'population': 0, 'distance_km': 0.0}]
         source = 'nur dieser Ort' if not radius_km else 'nur Mittelpunkt'
     center_out = {**center, 'query': place}
-    conn.execute('INSERT OR REPLACE INTO search_areas(key, center_json, places_json, source) VALUES (?,?,?,?)',
-                 (key, json.dumps(center_out, ensure_ascii=False), json.dumps(places, ensure_ascii=False), source))
-    conn.commit()
+    if source != 'nur Mittelpunkt':  # v1.14: Notlösung nicht dauerhaft speichern – sonst fehlen später die Nachbarorte
+        conn.execute('INSERT OR REPLACE INTO search_areas(key, center_json, places_json, source) VALUES (?,?,?,?)',
+                     (key, json.dumps(center_out, ensure_ascii=False), json.dumps(places, ensure_ascii=False), source))
+        conn.commit()
     return {'center': center_out, 'radius_km': radius_km, 'places': places, 'source': source, 'errors': errors, 'cached': False}

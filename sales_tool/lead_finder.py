@@ -32,8 +32,8 @@ DAILY_LIMIT_PER_SOURCE = 40
 MAX_RESULTS = 200
 
 LEGAL_FORM_RE = re.compile(
-    r'\b(GmbH|gGmbH|AG|SE|KGaA|KG|OHG|oHG|UG|PartG|PartG mbB|eG|e\.\s?V\.|mbH|GbR|Ltd\.?|Limited|S\.?A\.?|B\.?V\.?|Inc\.?|LLC|S\.?à\s?r\.?l\.?)\b'
-    r'|haftungsbeschränkt|Holding|Gruppe|Group', re.IGNORECASE)
+    r'(?<![\w.])(GmbH|gGmbH|AG|SE|KGaA|KG|OHG|oHG|UG|PartG mbB|PartG|eG|e\.\s?V\.|e\.\s?K\.|mbH|GbR|Ltd\.?|Limited|S\.?A\.?|B\.?V\.?|Inc\.?|LLC|S\.?à\s?r\.?l\.?)(?![\w])'
+    r'|\(haftungsbeschränkt\)', re.IGNORECASE)
 PLACE_RE = re.compile(r"^[A-Za-zÀ-ÖØ-öø-ÿ0-9 .\-/()]{2,80}$")
 KEYWORD_RE = re.compile(r"^[A-Za-zÀ-ÖØ-öø-ÿ0-9 &.\-]{0,60}$")
 
@@ -67,7 +67,7 @@ SOURCES = {
 CPV_PRESETS = {
     'web': ('Websites & Webentwicklung', ['72413000', '72212224', '72415000']),
     'design': ('Grafik- & Kommunikationsdesign', ['79822500', '79415200', '79342000']),
-    'software': ('Software & Apps', ['72262000', '72212000', '48000000']),
+    'software': ('Software & Apps', ['72262000', '72212000', '72230000']),  # v1.14: 48000000 (Lizenzkauf) war zu breit
     'marketing': ('Marketing & Werbung', ['79341000', '79342000', '79340000']),
 }
 OSM_CATEGORIES = {
@@ -164,11 +164,15 @@ def _http(url, user_agent, data=None, content_type=None, accept='application/jso
                 raise SourceError('Antwort zu groß – Suche bitte eingrenzen.')
             return json.loads(raw.decode('utf-8'))
     except urllib.error.HTTPError as exc:
-        detail = exc.read(2000).decode('utf-8', 'replace')
+        detail = exc.read(40000).decode('utf-8', 'replace')  # Wikimedia nennt den Grund erst nach langem CSS-Block
         if exc.code == 429:
             ra = (exc.headers or {}).get('Retry-After', '') if hasattr(exc, 'headers') else ''
-            raise SourceError('Die Quelle meldet zu viele Anfragen (HTTP 429). Bitte später erneut versuchen.',
-                              retry_after=int(ra) if str(ra).isdigit() else None) from exc
+            outage = bool(re.search(r'rate-limiting to 1 req|during active .{0,20}outage', detail, re.I))
+            err = SourceError('Die Quelle meldet zu viele Anfragen (HTTP 429)'
+                              + (' – sie ist gerade gestört und erlaubt nur 1 Anfrage pro Minute.' if outage else '. Bitte später erneut versuchen.'),
+                              retry_after=int(ra) if str(ra).isdigit() else None)
+            err.outage = outage
+            raise err from exc
         raise SourceError(f'Quelle antwortet mit HTTP {exc.code}: {re.sub(r"<[^>]+>", " ", detail)[:300].strip()}') from exc
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         raise SourceError(f'Quelle nicht erreichbar ({getattr(exc, "reason", exc)}). Internetverbindung/Firewall prüfen.') from exc
@@ -257,13 +261,64 @@ def wikidata_query(city, keyword='', min_employees=0, limit=100):
 }} LIMIT {int(limit) * 4}'''
 
 
-def wikidata_sparql(query, ua, retries=1):
-    """SPARQL-Abfrage mit einem Wiederholversuch bei Überlastung (HTTP 502/503/504)."""
-    url = 'https://query.wikidata.org/sparql?' + urllib.parse.urlencode({'query': query, 'format': 'json'})
+# Wikidata-Taktung (Live-Befund 11/2026): Während Störungen begrenzt Wikimedia auf „1 req / min“ und sperrt bei
+# Überschreitung bis zu 1000 s (Retry-After). Deshalb: Mindestabstand zwischen Anfragen, nach einer 429 mit Störungshinweis
+# 65 s Abstand für 30 Minuten, und während einer Sperre gar nicht erst anfragen.
+WIKIDATA_GAP = 2.0
+WIKIDATA_OUTAGE_GAP = 65.0
+CLOCK = __import__('time').monotonic  # in Tests ersetzbar
+_WD = {'last': None, 'gap': WIKIDATA_GAP, 'gap_until': 0.0, 'blocked_until': 0.0}
+
+
+def wikidata_status():
+    now = CLOCK()
+    return {'blocked_s': max(0, int(_WD['blocked_until'] - now)), 'slow': _WD['gap'] > WIKIDATA_GAP and now < _WD['gap_until'],
+            'gap_s': int(_WD['gap'] if now < _WD['gap_until'] else WIKIDATA_GAP)}
+
+
+def wikidata_reset():
+    _WD.update(last=None, gap=WIKIDATA_GAP, gap_until=0.0, blocked_until=0.0)
+    _OVERPASS_DOWN.clear()
+
+
+def _wikidata_gate(min_gap=0.0):
+    now = CLOCK()
+    if now < _WD['blocked_until']:
+        wait = int(_WD['blocked_until'] - now) + 1
+        raise SourceError(f'Wikidata hat um eine Pause gebeten (HTTP 429) – nächste Anfrage frühestens in {_fmt_wait(wait)}.', retry_after=wait)
+    gap = max(_WD['gap'] if now < _WD['gap_until'] else WIKIDATA_GAP, min_gap)
+    if _WD['last'] is not None and now - _WD['last'] < gap:
+        SLEEP(gap - (now - _WD['last']))
+    _WD['last'] = CLOCK()
+
+
+def _fmt_wait(seconds):
+    return f'{seconds} s' if seconds < 120 else f'{round(seconds / 60)} min'
+
+
+def wikidata_sparql(query, ua, retries=1, min_gap=0.0):
+    """SPARQL-Abfrage mit Taktung; ein Wiederholversuch bei HTTP 502/503/504, nie sofort nach HTTP 429.
+    Lange Abfragen (z. B. viele LEIs) gehen per POST."""
+    params = urllib.parse.urlencode({'query': query, 'format': 'json'})
     for attempt in range(retries + 1):
+        _wikidata_gate(min_gap)
         try:
-            return FETCH(url, ua, accept='application/sparql-results+json')
+            if len(params) > 6000:
+                return FETCH('https://query.wikidata.org/sparql', ua, data=params.encode(), content_type='application/x-www-form-urlencoded',
+                             accept='application/sparql-results+json')
+            return FETCH('https://query.wikidata.org/sparql?' + params, ua, accept='application/sparql-results+json')
         except SourceError as exc:
+            if 'HTTP 429' in str(exc):
+                now = CLOCK()
+                if getattr(exc, 'outage', False):
+                    _WD.update(gap=WIKIDATA_OUTAGE_GAP, gap_until=now + 1800)
+                wait = exc.retry_after or (WIKIDATA_OUTAGE_GAP if getattr(exc, 'outage', False) else 30)
+                _WD['blocked_until'] = now + min(wait, 1800)
+                exc.retry_after = wait
+                if wait > 120:
+                    raise SourceError(f'{exc} Wikidata sperrt weitere Anfragen für etwa {_fmt_wait(wait)}. Die anderen Quellen laufen weiter – '
+                                      'später „Fehlgeschlagene Quellen erneut abfragen“.', retry_after=wait, retryable=False) from exc
+                raise
             if attempt >= retries or not re.search(r'HTTP 50[234]|nicht erreichbar|timed out', str(exc)):
                 if re.search(r'HTTP 50[234]', str(exc)):
                     raise SourceError('Wikidata ist gerade überlastet (HTTP 502/503/504). Bitte in einigen Minuten erneut versuchen.') from exc
@@ -321,17 +376,36 @@ OVERPASS_SERVERS = ('https://overpass-api.de/api/interpreter', 'https://overpass
                     'https://overpass.kumi.systems/api/interpreter')
 
 
+OVERPASS_TIMEOUT = 45
+OVERPASS_DOWN_SECONDS = 600
+_OVERPASS_DOWN = {}  # Server → bis wann übersprungen (nicht erreichbar, z. B. Verbindungsabbruch)
+
+
 def overpass(query, ua):
-    """Overpass-Abfrage mit Ausweichservern (v1.10) – der Hauptserver ist häufig überlastet."""
-    errors = []
-    for server in OVERPASS_SERVERS:
+    """Overpass-Abfrage mit Ausweichservern (v1.10).
+
+    v1.14 (Live-Test): höchstens 45 s je Server. Ein Server ohne Verbindung wird 10 Minuten übersprungen, einer mit
+    Zeitüberschreitung 5 Minuten – statt bei jeder Teilabfrage und jedem Wiederholversuch erneut zu warten. Überlastete
+    Server, die antworten (HTTP 502/503/504 „at capacity“), werden weiter automatisch wiederholt."""
+    errors, now = [], CLOCK()
+    servers = [s for s in OVERPASS_SERVERS if _OVERPASS_DOWN.get(s, 0) <= now]
+    if not servers:
+        wait = int(min(_OVERPASS_DOWN.values()) - now) + 1
+        raise SourceError(f'Kein OpenStreetMap-Server erreichbar (alle gerade übersprungen). Nächster Versuch in etwa {_fmt_wait(wait)} – '
+                          'später „Fehlgeschlagene Quellen erneut abfragen“.', retry_after=wait, retryable=False)
+    for server in servers:
         try:
             return FETCH(server, ua, data=urllib.parse.urlencode({'data': query}).encode(),
-                         content_type='application/x-www-form-urlencoded', timeout=90)
+                         content_type='application/x-www-form-urlencoded', timeout=OVERPASS_TIMEOUT)
         except SourceError as exc:
             errors.append(f"{urllib.parse.urlsplit(server).hostname}: {exc}")
+            if 'nicht erreichbar' in str(exc):
+                _OVERPASS_DOWN[server] = CLOCK() + (OVERPASS_DOWN_SECONDS // 2 if 'timed out' in str(exc) else OVERPASS_DOWN_SECONDS)
+    unreachable = all(_OVERPASS_DOWN.get(s, 0) > CLOCK() for s in OVERPASS_SERVERS)
     raise SourceError('Alle OpenStreetMap-Server sind gerade überlastet oder nicht erreichbar. ('
-                      + ' | '.join(re.sub(r'\s+', ' ', e)[:110] for e in errors) + ')')
+                      + ' | '.join(re.sub(r'\s+', ' ', e)[:110] for e in errors) + ')'
+                      + (' – keiner antwortet; später erneut versuchen.' if unreachable else ''),
+                      retryable=None if not unreachable else False)
 
 
 def search_osm(params, ua):
@@ -363,23 +437,26 @@ GLEIF_URL = 'https://api.gleif.org/api/v1/lei-records?'
 
 
 def gleif_page(ua, city='', postcode='', keyword='', page=1, size=200, attempt_from=0):
-    """Eine Seite GLEIF-Datensätze. Lehnt die API eine Filterkombination ab (HTTP 400 „Filter should contain only
-    allowed values“), wird mit weniger Filtern erneut gefragt; der Rest wird lokal gefiltert."""
+    """Eine Seite GLEIF-Datensätze.
+
+    Live-Befund (11/2026): Die API lehnt Filter auf Ort/PLZ ab („Filter should contain only allowed values“); erlaubt sind
+    nur noch Volltext, Land, Status und Kategorie. Deshalb zuerst Volltext + Land + aktiv, der Ort wird lokal geprüft.
+    Lehnt die API auch das ab, wird mit weniger Filtern erneut gefragt (ältere Varianten bleiben als Rückfall)."""
     base = {'page[size]': size, 'page[number]': page}
+    term = ' '.join(x for x in (postcode or city, keyword) if x)
     place = {'filter[entity.legalAddress.postalCode]': postcode} if postcode else {'filter[entity.legalAddress.city]': city}
     attempts = [
-        {**place, 'filter[entity.legalAddress.country]': 'DE', 'filter[entity.status]': 'ACTIVE'},
+        {'filter[fulltext]': term, 'filter[entity.legalAddress.country]': 'DE', 'filter[entity.status]': 'ACTIVE'},
+        {'filter[fulltext]': term},
         {**place, 'filter[entity.legalAddress.country]': 'DE'},
-        dict(place),
-        {'filter[fulltext]': (postcode or city)},
     ]
     last = None
     for idx, filters in enumerate(attempts):
         if idx < attempt_from:
             continue
         q = {**filters, **base}
-        if keyword:
-            q['filter[fulltext]'] = (q.get('filter[fulltext]', '') + ' ' + keyword).strip()
+        if keyword and 'filter[fulltext]' not in q:
+            q['filter[fulltext]'] = keyword
         try:
             data = FETCH(GLEIF_URL + urllib.parse.urlencode(q), ua, accept='application/vnd.api+json')
             data['_filters'] = sorted(filters)
@@ -392,7 +469,31 @@ def gleif_page(ua, city='', postcode='', keyword='', page=1, size=200, attempt_f
     raise last
 
 
+def _norm_place(text):
+    t = (text or '').casefold().replace('ß', 'ss')
+    for a, b in (('ä', 'ae'), ('ö', 'oe'), ('ü', 'ue')):
+        t = t.replace(a, b)
+    return re.sub(r'[^a-z0-9]+', ' ', t).strip()
+
+
+SHORT_PLACE_RE = re.compile(r'\s+(am|an der|an den|bei|im|in der|ob der|/|\()\s*.*$', re.I)
+
+
+def city_matches(found, wanted):
+    """Ortsangabe aus einer Quelle passt zum gesuchten Ort – auch Ortsteile („Stuttgart - Möhringen“, „Stuttgart-Vaihingen“)
+    und Kurzformen („Esslingen“ für „Esslingen am Neckar“)."""
+    f, w = _norm_place(found), _norm_place(wanted)
+    if not f or not w:
+        return False
+    short = _norm_place(SHORT_PLACE_RE.sub('', wanted or ''))
+    for cand in {w, short} - {''}:
+        if f == cand or f.startswith(cand + ' '):
+            return True
+    return False
+
+
 def gleif_items(data, city='', postcode=''):
+    from .legal_forms import from_elf, kind_of
     items = []
     for rec in data.get('data', []):
         attr = rec.get('attributes', {})
@@ -406,17 +507,21 @@ def gleif_items(data, city='', postcode=''):
             continue
         if postcode and (addr.get('postalCode') or '') != postcode:
             continue
-        if city and not postcode and (addr.get('city') or '').casefold() != city.casefold():
+        if city and not postcode and not city_matches(addr.get('city'), city):
             continue
         name = (entity.get('legalName') or {}).get('name', '')
         lei = attr.get('lei') or rec.get('id', '')
         register = entity.get('registeredAs') or ''
         ra = (entity.get('registeredAt') or {}).get('id', '')
+        elf = ((entity.get('legalForm') or {}).get('id') or '').upper()
+        form = (from_elf(elf) or (legal_form_of(name), ''))[0]
+        lines = [x for x in (addr.get('addressLines') or []) if x and not re.match(r'^\d{5}\s', x)]
+        street = (lines[0] if lines else '') + (f" {addr['addressNumber']}" if addr.get('addressNumber') else '')
         items.append({
-            'external_id': lei, 'lei': lei, 'name': name[:200], 'street': ' '.join(addr.get('addressLines') or [])[:200],
+            'external_id': lei, 'lei': lei, 'name': name[:200], 'street': street.strip()[:200],
             'zip': (addr.get('postalCode') or '')[:10], 'city': (addr.get('city') or city)[:120],
             'country': (addr.get('country') or 'DE')[:2], 'register_id': register[:60], 'register_authority': ra,
-            'legal_form': legal_form_of(name),
+            'legal_form': form, 'elf': elf, 'org_kind': kind_of(name, elf, form),
             'signal_note': f"Initiale LEI-Registrierung {(attr.get('registration') or {}).get('initialRegistrationDate', '')[:10]}".strip(),
             'source_url': f'https://search.gleif.org/#/record/{lei}'})
     return items
@@ -430,8 +535,12 @@ def search_gleif(params, ua):
     return gleif_items(data, city=city)
 
 
-def ted_query(cpvs, since):
-    return f"classification-cpv IN ({' '.join(cpvs)}) AND place-of-performance IN (DEU) AND publication-date>={since.replace('-', '')}"
+def ted_query(cpvs, since, cities=None):
+    q = f"classification-cpv IN ({' '.join(cpvs)}) AND place-of-performance IN (DEU) AND publication-date>={since.replace('-', '')}"
+    names = [re.sub(r'["\\]', '', c).strip() for c in (cities or []) if c and c.strip()]
+    if names:  # Live geprüft 11/2026: TED filtert serverseitig nach Ort des Auftraggebers
+        q += ' AND buyer-city IN (' + ' '.join(f'"{n}"' for n in dict.fromkeys(names[:120])) + ')'
+    return q
 
 
 def search_ted(params, ua):
@@ -443,8 +552,10 @@ def search_ted(params, ua):
         raise ValueError('Zeitraum: 1–180 Tage.')
     limit = _limit(params.get('limit'), 50)
     since = (dt.date.today() - dt.timedelta(days=days)).isoformat()
-    body = {'query': ted_query(CPV_PRESETS[preset][1], since),
-            'fields': ['publication-number', 'notice-title', 'buyer-name', 'publication-date', 'deadline-receipt-tender-date-lot'],
+    cities = params.get('cities') or []
+    body = {'query': ted_query(CPV_PRESETS[preset][1], since, cities),
+            'fields': ['publication-number', 'notice-title', 'buyer-name', 'publication-date', 'deadline-receipt-tender-date-lot',
+                       'buyer-city', 'buyer-post-code', 'place-of-performance-city-lot', 'place-of-performance-post-code-lot'],
             'page': 1, 'limit': min(limit, 100), 'scope': 'ACTIVE', 'paginationMode': 'PAGE_NUMBER'}
     data = FETCH('https://api.ted.europa.eu/v3/notices/search', ua, data=json.dumps(body).encode(), content_type='application/json')
     items = []
@@ -460,7 +571,10 @@ def search_ted(params, ua):
             'external_id': pub, 'name': buyer[:200], 'industry': 'Öffentlicher Auftraggeber',
             'signal_type': 'digitalprojekt', 'signal_date': published if re.fullmatch(r'\d{4}-\d{2}-\d{2}', published) else '',
             'signal_note': f"Ausschreibung {pub}: {title}"[:900] + (f" · Angebotsfrist {deadline}" if deadline else ''),
-            'source_url': _ted_link(n, pub), 'legal_form': 'öffentlich'})
+            'source_url': _ted_link(n, pub), 'legal_form': 'öffentlich', 'org_kind': 'oeffentlich',
+            **_ted_place(n, cities),
+            'performance_city': _first(n.get('place-of-performance-city-lot'))[:120],
+            'performance_zip': _first(n.get('place-of-performance-post-code-lot'))[:10]})
     return items
 
 
@@ -478,6 +592,19 @@ def _first(value):
     if isinstance(value, list):
         return str(value[0]) if value else ''
     return str(value or '')
+
+
+def _ted_place(notice, cities):
+    """Ort/PLZ des Auftraggebers. Gemeinsame Beschaffungen nennen mehrere Orte – dann der aus dem Suchgebiet."""
+    bc = notice.get('buyer-city')
+    names = (bc.get('mul') or bc.get('deu') or next(iter(bc.values()), [])) if isinstance(bc, dict) else (bc or [])
+    names = names if isinstance(names, list) else [names]
+    zips = notice.get('buyer-post-code') or []
+    zips = zips if isinstance(zips, list) else [zips]
+    idx = 0
+    if cities:
+        idx = next((i for i, n in enumerate(names) if any(city_matches(n, c) for c in cities)), 0)
+    return {'city': str(names[idx] if idx < len(names) else '')[:120], 'zip': str(zips[idx] if idx < len(zips) else '')[:10]}
 
 
 def _ted_link(notice, pub):

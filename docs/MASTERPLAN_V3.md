@@ -78,8 +78,18 @@ Grundlage: Nutzer-Feedback nach dem ersten Praxiseinsatz (November 2026). Ausgan
     - mindestens 66 €/h Zielverdienst (über 13 Jahre Erfahrung);
     - teils Festpreise, dazu Anreise und Tagespauschale als eigene Positionen.
 
+## Live-Test der Quellen (v1.14, umgesetzt)
+
+Die offenen Quellen wurden am 06.11.2026 live abgefragt. Dabei kam heraus:
+- GLEIF lehnt Ortsfilter ab.
+- Wikidata ist gedrosselt (1 Anfrage/min, 1000 s Sperre).
+- OpenStreetMap ist aus Rechenzentren nicht erreichbar.
+- TED liefert Ort und PLZ.
+
+Die Adapter sind angepasst. Das Suchgebiet kommt offline aus einem Ortsverzeichnis (GeoNames). „Quellen prüfen“ macht den Live-Test beim Nutzer möglich. Details: `docs/BERICHT_V114_LIVETEST.md`.
+
 ## Danach ← nächster Schritt
-Masterplan v3 ist damit umgesetzt. Als Nächstes steht der Live-Test der ganzen Kette beim Nutzer an:
+Als Nächstes steht der Live-Test der ganzen Kette beim Nutzer an. Die Schrittfolge steht in `docs/BERICHT_V114_LIVETEST.md` unter „Deine Rolle beim Live-Test“:
 - Firmen finden → Bericht → Kontakt → Termin → Angebot → Rechnung;
 - Katalogwerte an die eigene Erfahrung anpassen;
 - Rückmeldung als Grundlage für die nächste Runde.

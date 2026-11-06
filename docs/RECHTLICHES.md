@@ -29,3 +29,16 @@ Telefonakquise im B2B-Bereich erfordert nach § 7 UWG mindestens eine anhand kon
 ## v0.6 Eigene Recherche statt kommerzieller Kontaktdatenanbieter
 
 Personenbezogene Kontaktdaten sind auch dann nicht automatisch frei verwendbar, wenn sie auf der Unternehmenswebsite stehen. Recherche nur aus Quellen mit zulässigem Abruf, keine social-network Scraper oder Nummern-Enumeration; nach Datenschutzrecht Rechtsgrundlage, Art.-14-Informationspflichten, Zweckbindung und Widerspruchs-/Löschprozesse prüfen. § 7 UWG bleibt unabhängig davon für Werbung maßgeblich. Das Programm sieht keine automatische Kontaktaufnahme vor. Siehe `docs/EIGENE_ENTSCHEIDER_RECHERCHE_V06.md`.
+
+## v1.14 Mitgeliefertes Ortsverzeichnis und Quellen-Check
+
+- **Ortsverzeichnis** (`sales_tool/data/gemeinden_de.json`): Es stammt aus dem GeoNames-Postleitzahlen-Export für Deutschland, Lizenz **CC BY 4.0**.
+  - Pflicht ist die Namensnennung „Ortsdaten: GeoNames (www.geonames.org)“. Sie steht in der Datei, im Suchfortschritt und in der README.
+  - Erzeugt wird die Datei mit `tools/build_gemeinden.py`.
+  - Enthalten sind nur Orte, Kreisschlüssel, Koordinaten und Postleitzahlen. Es gibt keine Personendaten.
+  - Großkunden-Postleitzahlen mit Firmen- und Behördennamen werden beim Bau ausgelassen.
+- **Quellen-Check:** Er stellt je Quelle eine winzige Testanfrage, nur auf ausdrücklichen Knopfdruck und höchstens einmal pro Minute. Gespeichert wird nur das Ergebnis im Arbeitsspeicher.
+- **Fair Use der offenen Quellen:**
+  - Wikidata wird automatisch getaktet: normal 2 s Abstand, bei einer Störung („1 Anfrage pro Minute“) 65 s.
+  - Nach einer HTTP-429 mit Wartezeit fragt SignalDesk bis zum Ablauf der Wartezeit nicht erneut an.
+  - Nicht erreichbare OpenStreetMap-Server werden 10 Minuten übersprungen.
