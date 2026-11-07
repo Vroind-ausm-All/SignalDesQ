@@ -20,6 +20,15 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.18 – Geführter Arbeitstag (Masterplan 2.0, Sprint 5)
+
+- **Firmenakte:** Im Lead-Fenster siehst du den Ablauf (Recherche → Kontaktweg → Gespräch → Termin → Bedarf → Angebot → Abschluss), den nächsten Schritt mit einem Klick, wie viel vom Score belegt ist, und alles Erledigte als Zeitleiste.
+- **Erst Bedarf, dann Angebot:** Nach dem Gespräch bestätigst du den Bedarf mit den passenden Leistungen aus deinem Katalog. „Angebot aus bestätigtem Bedarf“ erstellt daraus den Festpreis-Entwurf. Als „beim Kunden“ gilt ein Angebot erst danach.
+- **Sperren gelten überall:** Steht eine Firma auf der Sperrliste oder hat sie widersprochen, gibt es keine Termine, Mails, Angebote oder Kontaktvorschläge mehr.
+- **Suchprofile mit Budget:** Speichere deine Suche und starte sie mit einem Klick. Je Lauf gelten höchstens so viele neue Firmen, Website-Suchen und Minuten, wie du festlegst.
+- **Tag abschließen:** „Heute“ zeigt, was erledigt ist und was morgen ansteht. Firmen ohne nächsten Schritt bekommen direkt eine Wiedervorlage, auf Wunsch mit Datensicherung.
+- Bericht: [`docs/BERICHT_SPRINT_S5.md`](docs/BERICHT_SPRINT_S5.md)
+
 ## v1.17 – Dubletten und großer Firmenkatalog (Masterplan 2.0, Sprint 4)
 
 - **Keine doppelten Firmen mehr:** Treffer derselben Firma aus GLEIF, Wikidata, OpenStreetMap, Importen und Katalog werden zu einem Eintrag zusammengeführt (gleiche LEI, Registernummer, Website oder gleicher Name am gleichen Ort, auch Müller/Mueller).

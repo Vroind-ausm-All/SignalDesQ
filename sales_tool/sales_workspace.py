@@ -184,6 +184,9 @@ def create_call(conn, data):
     notes=_optional_text(data,'notes')
     legal=_optional_text(data,'legal_note',1000)
     callback=_valid_date(_optional_text(data,'callback_date',10))
+    from .workday import assert_contact_allowed, after_call
+    if outcome!='widerspruch':  # v1.18: Widerspruch lässt sich immer dokumentieren, alles andere nicht bei Sperre
+        assert_contact_allowed(conn,lead,'Gespräch dokumentieren')
     if outcome=='rueckruf_vereinbart' and (not callback or not notes):
         raise ValueError('Vereinbarten Rückruf mit Datum und Gesprächsnotiz belegen.')
     cur=conn.execute('INSERT INTO calls(lead_id,outcome,notes,legal_note,callback_date) VALUES (?,?,?,?,?)',(lead['id'],outcome,notes,legal,callback))
@@ -193,6 +196,8 @@ def create_call(conn, data):
         suppress_lead(conn,lead['id'],'Widerspruch im Gespräch')
     elif outcome=='rueckruf_vereinbart':
         conn.execute('INSERT INTO tasks (lead_id,title,due_date) VALUES (?,?,?)',(lead['id'],'Vereinbarten Rückruf prüfen: '+notes[:100],callback))
+    else:
+        after_call(conn,lead['id'],outcome)
     conn.commit()
     return {'id':cur.lastrowid,'saved':True,'blocked':outcome=='widerspruch'}
 
@@ -201,6 +206,8 @@ def create_meeting(conn,data):
     if not isinstance(data,dict) or set(data)-{'lead_id','title','starts_at','duration_min','location','notes'}:
         raise ValueError('Ungültige Termindaten.')
     lead=_lead(conn,data.get('lead_id'))
+    from .workday import assert_contact_allowed, after_meeting_created
+    assert_contact_allowed(conn,lead,'Termin eintragen')
     title=_required_text(data,'title',180)
     when=_required_text(data,'starts_at',16)
     try: dt.datetime.strptime(when,'%Y-%m-%dT%H:%M')
@@ -209,6 +216,7 @@ def create_meeting(conn,data):
         raise ValueError('Termindauer 15–180 Minuten.')
     cur=conn.execute('INSERT INTO meetings(lead_id,title,starts_at,duration_min,location,notes) VALUES (?,?,?,?,?,?)',(
         lead['id'],title,when,data.get('duration_min',30),_optional_text(data,'location',300),_optional_text(data,'notes',2000)))
+    after_meeting_created(conn,lead['id'],when)
     conn.commit()
     return {'id':cur.lastrowid,'saved':True}
 
@@ -294,6 +302,8 @@ def quote_preview(data):
 def make_proposal(conn,data):
     if not isinstance(data,dict) or 'lead_id' not in data: raise ValueError('Lead-ID fehlt.')
     lead=_lead(conn,data['lead_id'])
+    from .workday import assert_contact_allowed, after_proposal, need_status
+    assert_contact_allowed(conn,lead,'Angebot erstellen')
     payload={k:v for k,v in data.items() if k!='lead_id'}
     if 'positions' in payload:  # Sprint D: Baukasten mit einzelnen Positionen
         from .pricing import build_quote
@@ -306,10 +316,13 @@ def make_proposal(conn,data):
     valid_until=(issued+dt.timedelta(days=OFFER_VALID_DAYS)).isoformat()
     proposal['customer'].update({'customer_company':lead['company'],'offer_number':number,
                                  'offer_date':issued.isoformat(),'valid_until':valid_until})
+    ns=need_status(conn,lead['id'])
+    proposal['internal']['need_confirmed_at']=ns['confirmed_at']  # intern: Freigabegrundlage, nie im Kundendokument
     cur=conn.execute('INSERT INTO proposals(lead_id,internal_json,customer_json,number,valid_until) VALUES (?,?,?,?,?)',(
         lead['id'],json.dumps(proposal['internal'],ensure_ascii=False),json.dumps(proposal['customer'],ensure_ascii=False),number,valid_until))
+    after_proposal(conn,lead['id'],number)
     conn.commit()
-    return {'id':cur.lastrowid,'status':'entwurf','number':number,**proposal}
+    return {'id':cur.lastrowid,'status':'entwurf','number':number,'need_confirmed':bool(ns['confirmed']),**proposal}
 
 
 def proposal_rows(conn):
@@ -380,8 +393,8 @@ def create_mail_draft(conn,data):
     lead=_lead(conn,data.get('lead_id'))
     kind=data.get('draft_type')
     if kind not in DRAFT_TYPES: raise ValueError('Ungültige Vorlage.')
-    if lead['permission']=='nicht_kontaktieren' or lead['stage']=='gesperrt':
-        raise ValueError('Widerspruch/Sperre: keine Kontaktvorlage generieren.')
+    from .workday import assert_contact_allowed
+    assert_contact_allowed(conn,lead,'Kontaktvorlage erstellen')  # v1.18: auch Sperrliste (Domain/Name/E-Mail)
     basis=_optional_text(data,'contact_basis',500)
     if not basis: raise ValueError('Dokumentiere zuerst den vereinbarten Anlass bzw. Kontaktstatus.')
     template={

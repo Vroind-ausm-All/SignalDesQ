@@ -8,6 +8,9 @@ from http.server import ThreadingHTTPServer
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
+import sys
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).parent))
+from s5_helpers import confirm_need  # noqa: E402
 from sales_tool.model import connect, init_db
 from sales_tool.server import make_handler
 from sales_tool.sales_workspace import quote_preview, customer_markdown, daily_view, create_call, create_mail_draft
@@ -101,6 +104,10 @@ class WorkspaceApiTests(unittest.TestCase):
         self.assertNotIn('internal',cust)
         self.assertNotIn('cost_rate_eur',cust['markdown'])
         self.assertIn('Mehr Wiedererkennung',cust['markdown'])
+        code,err=self.call('PATCH','/api/workspace/proposals/'+str(offer['id']),{'status':'gesendet_manuell'})
+        self.assertEqual(code,409)  # v1.18: erst nach bestätigtem Bedarf
+        self.assertIn('Bedarf',err['error'])
+        confirm_need(self.path,lead_id)
         code,status=self.call('PATCH','/api/workspace/proposals/'+str(offer['id']),{'status':'gesendet_manuell'})
         self.assertEqual(code,200)
         code,history=self.call('GET','/api/workspace/proposals')
@@ -110,11 +117,12 @@ class WorkspaceApiTests(unittest.TestCase):
         lid=self.lead()
         _,offer=self.call('POST','/api/workspace/proposals',{'lead_id':lid,'package':'pilot','tax_mode':'regel_19'})
         ident=str(offer['id'])
+        confirm_need(self.path,lid)
         self.call('PATCH','/api/workspace/proposals/'+ident,{'status':'gesendet_manuell'})
         self.call('PATCH','/api/workspace/proposals/'+ident,{'status':'gesendet_manuell'})
         _,view=self.call('GET','/api/workspace')
         self.assertEqual(len([t for t in view['tasks'] if ident in t['title']]),1)
-        self.assertIn('zulässige',view['tasks'][0]['title'])
+        self.assertTrue(any('zulässige' in t['title'] for t in view['tasks']))
 
     def test_incomplete_quote_cannot_be_marked_sent(self):
         lid=self.lead()
@@ -141,8 +149,11 @@ class WorkspaceApiTests(unittest.TestCase):
         self.call('PATCH','/api/workspace/meetings/'+ident,{'status':'erledigt'})
         self.call('PATCH','/api/workspace/meetings/'+ident,{'status':'erledigt'})
         _,view=self.call('GET','/api/workspace')
-        self.assertEqual(len(view['tasks']),1)
-        self.assertIn('Gespräch',view['tasks'][0]['title'])
+        titles=[t['title'] for t in view['tasks']]
+        self.assertEqual(len([t for t in titles if t.startswith('Gespräch dokumentieren')]),1)
+        # v1.18: Folgeaufgaben je einmal – Termin vorbereiten, danach Bedarf bestätigen
+        self.assertEqual(len([t for t in titles if 'vorbereiten' in t]),1)
+        self.assertEqual(len([t for t in titles if t.startswith('Bedarf aus dem Termin')]),1)
 
     def test_callback_requires_agreement_and_creates_task(self):
         lid=self.lead()
@@ -164,7 +175,7 @@ class WorkspaceApiTests(unittest.TestCase):
         _,v=self.call('GET','/api/workspace')
         self.assertEqual(v['tasks'],[])
         code,_=self.call('POST','/api/workspace/mail-drafts',{'lead_id':lid,'draft_type':'nach_gespraech','contact_basis':'gesprochen'})
-        self.assertEqual(code,400)
+        self.assertEqual(code,409)  # v1.18: Kontaktsperre
 
     def test_mail_draft_never_sends(self):
         lid=self.lead()

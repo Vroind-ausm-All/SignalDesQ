@@ -39,6 +39,8 @@ from .research import jobs as research_jobs
 from .sweep import route_sweep, recover_sweeps, dedupe_candidates
 from .duplicates import route_duplicates
 from .research.catalog import route_catalog
+from .profiles import route_profiles
+from .workday import route_workday, ContactLocked, check_stage_change, assert_contact_allowed, assert_need_confirmed, after_proposal_sent, after_meeting_done
 from .report import route_report, recover_reports
 from .pricing import route_pricing
 from . import auth
@@ -162,7 +164,7 @@ def validate(fields: dict, partial=False):
 
 STATIC_FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
     "/style.css": ("style.css", "text/css"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-    "/accounting.js": ("accounting.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+    "/accounting.js": ("accounting.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
 
 LOOPBACK_HOSTS = frozenset({'127.0.0.1', 'localhost', '::1'})
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
@@ -328,6 +330,10 @@ def make_handler(db_path, allowed_hosts=None):
                     return
                 if route_catalog(self, conn, method, route, query, db_path):
                     return
+                if route_workday(self, conn, method, route, query, db_path):
+                    return
+                if route_profiles(self, conn, method, route, query, db_path):
+                    return
                 if route_report(self, conn, method, route, query, db_path):
                     return
                 if route_pricing(self, conn, method, route, query):
@@ -369,6 +375,9 @@ def make_handler(db_path, allowed_hosts=None):
                             current=proposal_detail(conn,ident,customer_only=True)
                             if current['customer']['tax_mode']=='offen':
                                 return self._error('Steuerstatus noch offen: Angebot nicht als gesendet/angenommen markieren.')
+                            plead=conn.execute('SELECT * FROM leads WHERE id=?',(current['lead_id'],)).fetchone()
+                            assert_contact_allowed(conn,plead,'Angebot versenden/annehmen')
+                            assert_need_confirmed(conn,current['lead_id'],'Angebot als gesendet/angenommen markieren')
                         prev=conn.execute('SELECT status,lead_id FROM proposals WHERE id=?',(ident,)).fetchone()
                         conn.execute("UPDATE proposals SET status=?,updated_at=datetime('now') WHERE id=?",(body['status'],ident))
                         if body['status']=='angenommen' and prev['status']!='angenommen':
@@ -382,6 +391,7 @@ def make_handler(db_path, allowed_hosts=None):
                             followup=(date.today()+timedelta(days=7)).isoformat()
                             conn.execute('INSERT INTO tasks(lead_id,title,due_date) VALUES (?,?,?)',
                                          (prev['lead_id'],'Angebotsstatus und zulässige Rückfrage prüfen (#'+str(ident)+')',followup))
+                            after_proposal_sent(conn,prev['lead_id'],conn.execute('SELECT number FROM proposals WHERE id=?',(ident,)).fetchone()['number'] or '#'+str(ident))
                         conn.commit()
                         return self._send(200,{'saved':True,'status':body['status'],
                                                'notice':'Der Status wird nur dokumentiert. Keine Nachricht wurde gesendet.'})
@@ -410,6 +420,7 @@ def make_handler(db_path, allowed_hosts=None):
                         from datetime import timedelta
                         conn.execute('INSERT INTO tasks(lead_id,title,due_date) VALUES (?,?,?)',
                                      (meeting['lead_id'],'Gespräch dokumentieren und vereinbarten nächsten Schritt prüfen', (date.today()+timedelta(days=1)).isoformat()))
+                        after_meeting_done(conn,meeting['lead_id'])
                     conn.commit()
                     return self._send(200,{'saved':True})
                 if route == '/api/workspace/mail-drafts':
@@ -639,6 +650,7 @@ def make_handler(db_path, allowed_hosts=None):
                         data = validate(self._body(), partial=True)
                         if not data:
                             return self._error("Keine Änderung")
+                        check_stage_change(conn, row, data)  # v1.18: keine Kontaktphase bei Sperre
                         if data.get("permission") == "nicht_kontaktieren":
                             data["stage"] = "gesperrt"
                         elif data.get("stage") == "gesperrt":
@@ -723,7 +735,8 @@ def make_handler(db_path, allowed_hosts=None):
                             allowed, why = can_complete_task(conn, ident)
                             if not allowed:
                                 return self._error(why, 409)
-                        cursor = conn.execute("UPDATE tasks SET done = ? WHERE id = ?", (int(data["done"]), ident))
+                        cursor = conn.execute("UPDATE tasks SET done = ?, done_at = CASE WHEN ? THEN datetime('now') ELSE '' END WHERE id = ?",
+                                              (int(data["done"]), int(data["done"]), ident))
                         if not cursor.rowcount:
                             return self._error("Aufgabe nicht gefunden", 404)
                         conn.commit()
@@ -771,6 +784,8 @@ def make_handler(db_path, allowed_hosts=None):
                 self._error(str(exc), 403)
             except KeyError as exc:
                 self._error("Pflichtfeld fehlt: " + str(exc), 400)
+            except ContactLocked as exc:  # v1.18: Kontaktsperre / fehlende Freigabe
+                self._error(str(exc), 409)
             except LookupError as exc:
                 self._error(str(exc).strip("'\"") or "Nicht gefunden", 404)
             except (ValueError, TypeError, OverflowError) as exc:
@@ -790,7 +805,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 23  # v1.17 – bei Schemaänderungen erhöhen (Dubletten-Spalten, discovery_not_same, lead_not_duplicate)
+SCHEMA_VERSION = 24  # v1.18 – bei Schemaänderungen erhöhen (bestätigter Bedarf, Tagesabschluss, Suchprofile)
 
 
 def backup_before_migration(db):
@@ -845,7 +860,7 @@ def security_status(conn, hosts, host_header=''):
          'Im Netzwerk nur hinter einem TLS-Proxy (HTTPS) betreiben – SignalDesk selbst spricht nur HTTP.'},
     ]
     return {'checks': checks, 'auth_required': required, 'users': conn.execute('SELECT COUNT(*) FROM users WHERE active=1').fetchone()[0],
-            'schema_version': SCHEMA_VERSION, 'server_version': 'SignalDesk/1.17'}
+            'schema_version': SCHEMA_VERSION, 'server_version': 'SignalDesk/1.18'}
 
 
 def reset_login(conn):

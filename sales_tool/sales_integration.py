@@ -312,6 +312,9 @@ def suggest_actions(conn, lead_id):
         raise LookupError('Lead nicht gefunden.')
     if lead['stage'] in ('gesperrt', 'gewonnen', 'verloren') or lead['permission'] == 'nicht_kontaktieren':
         return []
+    from .workday import contact_lock
+    if contact_lock(conn, lead):  # v1.18: auch Sperrliste (Domain/Name/Register/E-Mail)
+        return []
     out = []
 
     def add(key, atype, title, reason, contact_id=None, channel='', requires=False):
@@ -420,6 +423,8 @@ def review_permission(conn, task_id, data):
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (t['lead_id'],)).fetchone()
     if lead['stage'] == 'gesperrt' or lead['permission'] == 'nicht_kontaktieren':
         raise ValueError('Lead ist gesperrt – keine Kontaktaktion.')
+    from .workday import assert_contact_allowed
+    assert_contact_allowed(conn, lead, 'Kontaktaktion freigeben')  # v1.18: Sperrliste greift auch hier
     perm, evidence = lead['permission'], (lead['permission_evidence'] or '').strip()
     if channel == 'email' and not (perm == 'opt_in' and evidence or perm == 'bestandskunde_pruefen' and evidence):
         raise ValueError('E-Mail-Werbung nur mit dokumentierter Einwilligung (Opt-in) bzw. geprüfter Bestandskunden-Ausnahme (§ 7 Abs. 2 Nr. 3, Abs. 3 UWG).')
