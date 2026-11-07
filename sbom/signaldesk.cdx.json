@@ -1,0 +1,4778 @@
+{
+ "bomFormat": "CycloneDX",
+ "specVersion": "1.5",
+ "serialNumber": "urn:uuid:29b9b3fd-e15d-5831-974b-6530bd51ffeb",
+ "version": 1,
+ "metadata": {
+  "tools": {
+   "components": [
+    {
+     "type": "application",
+     "name": "tools/make_sbom.py",
+     "version": "1.19.0"
+    }
+   ]
+  },
+  "component": {
+   "type": "application",
+   "bom-ref": "signaldesk",
+   "name": "SignalDesk",
+   "version": "1.19.0",
+   "licenses": [
+    {
+     "license": {
+      "id": "MIT"
+     }
+    }
+   ],
+   "description": "Lokales Akquise- und Buchhaltungswerkzeug (Python-Standardbibliothek)"
+  },
+  "properties": [
+   {
+    "name": "signaldesk:core-dependencies",
+    "value": "keine (nur Python-Standardbibliothek)"
+   }
+  ]
+ },
+ "components": [
+  {
+   "type": "platform",
+   "bom-ref": "runtime:cpython",
+   "name": "CPython",
+   "version": "3.10–3.13",
+   "scope": "required",
+   "description": "Python-Laufzeit (vom Nutzer installiert bzw. per winget/python.org)",
+   "licenses": [
+    {
+     "expression": "PSF-2.0"
+    }
+   ]
+  },
+  {
+   "type": "application",
+   "bom-ref": "runtime:chromium",
+   "name": "Chromium (Playwright-Download)",
+   "version": "zur Playwright-Version passend",
+   "scope": "optional",
+   "description": "Nur Variante browser/team/voll: Browser für JavaScript-Seiten, lädt `playwright install chromium`",
+   "licenses": [
+    {
+     "expression": "BSD-3-Clause"
+    }
+   ]
+  },
+  {
+   "type": "data",
+   "bom-ref": "data:gemeinden_de.json",
+   "name": "gemeinden_de.json",
+   "version": "2026-11-06",
+   "description": "GeoNames Postal Codes DE (https://download.geonames.org/export/zip/)",
+   "scope": "required",
+   "licenses": [
+    {
+     "expression": "CC-BY-4.0"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "163eaca4b10468a3dc8b1d969e0b70402e87241144197611f0907aca0392df7c"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:attribution",
+     "value": "CC BY 4.0 – Ortsdaten: GeoNames (www.geonames.org)"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/babel@2.18.0",
+   "name": "babel",
+   "version": "2.18.0",
+   "purl": "pkg:pypi/babel@2.18.0",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "BSD-3-Clause"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "b80b99a14bd085fcacfa15c9165f651fbb3406e66cc603abf11c5750937c992d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e2b422b277c2b9a9630c1d7903c2a00d0830c409c59ac8cae9081c92f1aeba35"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-02-01"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/babel/2.18.0/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/certifi@2026.10.23",
+   "name": "certifi",
+   "version": "2026.10.23",
+   "purl": "pkg:pypi/certifi@2026.10.23",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "MPL-2.0"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "a9895e6e2758b371e0545e321a3a8fd1fcfd9829ada8824a936dfb16aaaf36cd"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-10-23"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/certifi/2026.10.23/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/cffi@2.1.1",
+   "name": "cffi",
+   "version": "2.1.1",
+   "purl": "pkg:pypi/cffi@2.1.1",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "MIT-0"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "046bfc24911b37851ee1b51aab8bffe713d89c68c6a057b09484ce9fd5f69b4e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "06c72bb76605a4b0cd0aad6930b69d4baf7dd5d806cfc409b824191099700e66"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0beceaabe56af686895136a2de78db54ecd8e4046b236b8fd6d6cb61389e9bf2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "154852545011f779917b11c78db2358d095da62a9a172b78ad0a583ee5adc0d0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "194cffa889098ced9976c3fc6340305e43f6303657d298da55366907c05c22d6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "19ee6127ee34de7d83ce3d371ebc5ed91addbdcc39f9ab15ce4eb35a4e534971"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1a18a57b58cfb21fc28d72e876acf10eaed67a1ed96226f92af4df681d571c4c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1aa5645c30469b09530c4ebca77ebf8f17618293c58f8549cb1a543a50236e7d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1dea0e4d7d4f11f619fe8c1d76caf49e24405b4b5743c0e3be16a500ecd930c9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "208f941bb9d18e768138677f0a6d2ce01f590df56043dda1df1535ac57c88517"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "210019b6c7cf07f081b4c54635c8cf744377001350e29cc0f81c4377b4797735"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "246fa40ce8645a614ff682e0b70f37134e460eaf93a775e0cbe3cca585a67a80"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "25792eac27877609e7bb06d42ff88278a6624fff2ba9bbb523c09616b117e80f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "27350daa11d4f10c540e6e89dada4c54feb7256ad03e9a4dc075ebad7ba360d1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "28907ab9bfb6aa13184cfc17c6b8e1023c5ab6fd7076d8c20a35e59fe04f8f29"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2ae64be792b8966f2c69538199728b290e34726562896df1e5dc8ffd8d8188e8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "31348097ff5bbe827ccc41795d4dd099d9f0625e7def00ee653c137a490c2a6c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3143d81e29e1e20a9ce10901ec369012947876596f75a222235965f2b7ae832e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3222ba5d678f80a030e6afbcc33dc1ae5cb45facabb61cee2c7016b8432fde48"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3311ed60d36f83378794e1009ac6258bafbf81f7888b4caa7b35a521e3f95813"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "334644fbac4eff73d985a17a91226df55d0f394160c4cfb880e084c8f7161cac"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "34e261f78cb6ceaaa36f42f2613f4380d94d9c759a9c73c769ee6e0247364632"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "363e05fa78e15116c3c32c210ee36884fd6b9afa6d440e47112c3bd511d64cb6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "398aff33cee2767e3e781d2554c54bd0dff386bb437581e0d8011fde1a942ec1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3d22a20b1fb1632cc72c22f95f7b0d2961c3e1c235f245ba4c606c4771035659"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "42a494cee34437f05546455144f2b5d9ac09b1face62bcfce597d2e521066688"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "42e2f76b9455f5a9a844f770bf3e200ed3da0e15f5df3db9c31fe80b04b3d004"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "42f6930c31dc7f50732c9ae793c2786c7b6b044195967bbdde40bb9be81c4cc0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "456a61fa52d579ebf9df2e9552ead5129855dbaff6c1e5a9b1bc408809bdc062"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "471cee653ae88de62096552e6d24ccb4a5adb8c8c9f10b5054d0122c15bf2779"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "49cbc70e6542d4ccccb936558d1064a8012541e78f821f955cff24e357776c94"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4a7c934f7360e8cd64fe9efadcbd10c7c6364f531e432b9a4bf5ccbc9e0e8b50"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4be96343e422f2dfcd12ab5c9f5aebe03f82f737c6bffeca6830b3875cb44aab"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4f42141fc14250de6dde5ee7ea4432be017252d91f19c5ad043c084cea629cac"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "507a24c282e0f42f8ed737cf048572cbf580468da5555764a8331735e9c736b6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "51b31d1c98274844cfd7838ce00bfc27c7423a4dc00fc0772fc3331c2cc90676"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "58acb8ab8e295e6c5ea12f888cbb13cf21511ef2a3303a23f4325c29d17fe5c1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5a59cc1c4442bc3d5c703bf720b51138d0bfc173618807c9ee2490a7541dd3d9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5bb4e7ea95dcd6a014a6fef62e62467d67d8e582326443f3d68e71d6320a9fcf"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5c58fe613dc5e5336357eff555824a314d8e43282600435c8d1cb6a7a2fedd13"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5e7cecbaadb83884793e05828cee59b210b24583b9c7425d0ba6a754fe22eb4e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "616f097f2fe415bc92a247f02e11f634e1f9e9a83d327e3c915c15089c87869e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "63bbfd5ded17c4840ac07cd8f1c21ba9d9708141f840b324f422f41b207e3973"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "64faea20f4e2613363a1a9b9c7dd73058f3ecd00133a511e72ad7c511658f527"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "661c298b4821edebead0c91edd2b00374d67ad7c5a1f7a91d4442633b79d6a72"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "68e62fe11f30d5ca8289242866f0a5291402d8529ca2178ab8afc5c9694ae890"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6a8dddef476fab96d066d578fc88526767b836ab5ab21754e1d5bf3879c31c7c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6e192623c49c94421616a5778fba35cf0d5a8d000650c1967ef4448ee5cdd990"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7225e4514edb64eb6740324353e0da0711954fd8d7da4576755b1c6e09b697cd"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "75f80557d1389eddbd0de2681f6a390a0c5338c31ddaa821381c203fc3fd50d9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "770de9db11e84213beec501cfcaa013b019820ca881e03344dea5844f7876d94"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7750c6449dff7864bb9bb27ddfb0267756189201a3afc911d82b3caacd70dfc3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7bde5e4cc5c10140859842b9d383af292b22639a4dffb725314baf45968cef80"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7ce713ace7c0e4520535b42b77eaa742c16dab813978064913e5a3cf82973b41"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7da0c5eff80f0197f3b3d1232ec5a682a9325f4ae9016a78f5f5ca35f9ced1f5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7dbb61fe3a7699468030f71bbe5f8a0e326a151daa91beb11a6fc1f980c55e1c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "811bd1e21d32de12efca32393a0ab3f5133b54fce9bd44b8bd77ab07da14bf6a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8ef53b2de9bcb9197d31854256575d59dbac0cba72ac627bb291ef5eceb74be4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "937c0052c05a31ca1daf18de3158eed4dbfcb9cc107adbea227728d647be701e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9d2055050ea716bd38b7f7f1579c275386646b4894c155a3e2f3cd62ed41b7c6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9f8d177621de5cb38ee3e731eda45d421db093ec0739f46a5594babda7987a98"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a2d7755bef5a12ed488f4ef1f1b69ee9191d7396083b755a5d2295f6edb4768b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a48d62ab9d6f4f98c983223a547af44be6ca3691074c31cecced6facd3ba2dc1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a4f00aa42f75d6e4595e8866e748cc1705adc0cddfeb2ca86d0d03993d63ba03"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a6e721d4b0e45d5b65e87534470e67b18dcd092c83f68fba09f152b9cbc061af"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a730a083190634c65cca36ba5f489531576ebd79bcd5c8e172130f6453127231"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a931079504ecc49efed7744c476a5c343a92fabf66dec2db95edb1b2fdc770e2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "aa9511c62d14da7aacc9b4bf51f3f697a621e83b2d6919008243c3aad168eea3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ab36d55f9ed2d067327667c2fea18dda018eb628dd6347aa01dda6cf1f5d3836"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ad2c86c495b899d862ea0f4b42891b8713a3bd45dd4105c7fd51c2a72f39f3a5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "aeae0e330c9f6acd681f647d46cefd30c29f93e3392882e792e82080c9691399"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b0431303acaea1089ad4b3e9ce4e6518193def1118d4073ca848635ee4ea2e96"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b5bdfd1c873d4e093aabc0ca84c4ca6dbc4f752afb5c86f146d9742580c9da2e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "baed1e86cc735622097354b9d1281406caf42ff42a886d29faa8e8d1630333be"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c1453022f490d2459a11819d83ad1d586e9ff65a12ac3e705ffebd46d3685dcf"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c26608d2222fb1e94487e4a387d85f13eb55d5ed725cb25a0c589ac4ee60e7bc"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c7659f22557c5a0bc4855cd635f55edec690cc008a40768527762cb9fb263455"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c8c69575568085ba0b1b10c0249d779a214aea6f6522e949a0fc9fb0fcb449d0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c8d2c9fd1f2d16f780d15127abb050d13d1a76c03a4bd87d7e4980e45e511e12"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ca82be1a1d406ecfe1d25dc16cb33488e5a16bf4438c9fb590484ea29d92478b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "cc572dace3f60ef98d7b12ff411d20f5362feb31a0439eab0085bbfd349982d7"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d18e5ac0f2f03f4f518d3e23db0f0cad7faa1da8620e9c09461d443bbf6e6692"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d28630f5854ab07ab1fd4aba756de52326c82e6be15d414b12793f1975048b54"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d9c275eaacd24aa73f94ffd6de08fc3f932424d8b6c376f4bed7cde376fe7bc3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "da0e573f9f97159390c89d9f1a9e41908b66d408cc5b58d08cf3847d844c531b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "dd31f52ea1086513bb9df30f8fcee9b8918323ae067a3d5b78bc826a000712be"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "dddad92b554513a31f272570678ba307fb9f618f05e3d4a5eacafff9eae03e1d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "df423d40ee8654634421812bc3b196da3f9bd7d32929da813f8394c4348a5358"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "df913725b79db7bcf03448f36b7bf8815363417d5b58deecf9305e3e30f0f21a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e0bcb7e0f677f543555d2adff3bf19c05f66cdb4796e5ff602442ab2fe3c4ef7"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e2d65b31f36619cda3999b78b2aa9632e76b78448e7a56fc4240824200e7c4fc"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e6e8cff14d6fb0be70a09c0bdc58096f501952d04624ebf867e0e56da2df8960"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f16c709686a78c727bbbf059f92b0bf41c6fc60deec706d2dc19f529175a6125"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f24fb43132a4c6b4cb4eb029492919b2db645be6808d738f244fd146c03c32cb"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f53e442b08449d42821fa4a4fba000095af9f62742a500f978a9f557ec44339a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f5cfbc5fe74540d335175b656c725d74d90e3730c626d92575eea35029d9afaa"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f81b3b8f3d4e343550fa4baa0e479bba9f2d29ce9c2e9b51d1ce1718d7442fcf"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f8ec5e643a9a937f64e1999eb9f75d072263751912dc5cd06d3c85f8f44be7c3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fb92203a88b3d3053034db775110081c49d28be6551923805e039924093761e4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fcd22650c908d7b7da162bbfaab594a1227a15d1643a98c68b122ac642fa2264"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-08-03"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "team"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/cffi/2.1.1/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/charset-normalizer@3.5.2",
+   "name": "charset-normalizer",
+   "version": "3.5.2",
+   "purl": "pkg:pypi/charset-normalizer@3.5.2",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "MIT"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "01077390b03f7988f11d700a2194e69b119741a86b1a638b1db88891e3eced8e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "01b0c0d2262a9e28e8484a278c7e1b5d650e3ac8cf2683d2967e25899f208bdf"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "04851f73ae72b8413dddadb16a49dfee95263553741fd42d546f7d66907e6be5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0521c5665880b33d603717defa76c094048900010897909952397feb3039da56"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0774bf9bf620249fee3e0b8b9fd3065de213be30f3aa94ce2494b3b638949e26"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0891b9d3903c5571c03771ca669a4b0ec5618ca722a5c957d3d29cd4e5062848"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0c951d5e6dd9c2ff60609476752bee49da4206adde960ebc247766937f72e718"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0fed1d06615f022ee3b13caf5e8b180cfea32bb2c5aded8a9d44277afc040f93"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "114e4d0c92d618409ed82a99e22b5c5e768fe995f2973f78265f4524f49d4640"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "11912e4bb14baae7c5d8791aa55ba0a3a03ec6729073307b0f57270abaa713d3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "11a4d68a6ecda3292cb1e50239e111543ba5d709bb62a6b4ea1afcfa729d8875"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "124fbf1a8ff966d87ae05bb8bd45a71f966055ed8bba320d0c7cf450bc5f4d0e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1461ac396c4fdb983a675f20aa555624f0ee18ac83d832b9244ffff3d8055275"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1503bccbeb36d5527790c3930327704c39af22de3112f1b1666a9f3ce15ee204"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "15bb4005af6320d259dc7593ca84a38d7fe06a421dbcf7b910ae23979101e787"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "15c44f7edfd477b06f517a5cc317fc1707edb9de2c865f43d4b6513907473234"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "16fa0eccf81304b79c5cd87f9271c3b85dd9dd99245e4422ae9c0dd45e0f99d3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "183b88127acdb4fabe59d951ab424faf1af7b63cdbb5f776186c1ea2ffcaed98"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "195c26fb65950f8fce54e26349852b7bdd7c5f120aeefbcc440b8a20faaed4a3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1afb975bd5d68d5ce9f6b6d44fdf2f7e34b895a35e95708a7a91b20a3b51d187"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1b4cbc7c3491ccb4aa17fcd8165649d01cf39f76de1696da8631b5f71b85401d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1bc0baf5ef96b6ede57d47f4b8fe4d9d84019c3bfcbeb20a41edc6a6ee341f1f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1c50fe28bbc2ced33386f298650d91218076c05420e6cbd790b913adc41659e7"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1db38f4c5496827c1a501846d64d14c3b80c7e6714e406cd7dc36a9899fa1011"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "211d5a3eb6af8f513b8d4ca19a8c1b7accab1b5f0d3175f9826b03c1a920dc1f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "23851fb4e1b85ed3f6c2a27b777cdfe2e19fb5b38429a8faf38c7542b7665869"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "254eb48b9fa5ee9898a3c445825a1f340fe53712a098904b39b0bddba8ea3cb1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2625388c6c754520c37abaf3b41eb34d1cc4a373f457898f08606c8e362b891d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "281cb91036248400f4cc957495cccd44c275c2e0c5854f7e45ac5cf7dc193847"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "28a15fdad492a99b6eccfaaed66ef3f74050680545ea61ec8b2f4c538f1f1320"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "28b4f0d66fb834ff90f28209ac7bce77868c45d8c93e26f906709d9b7c2e1af9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2a925889534b3748302dae5dead07cc13480de1dac3aea80a941b729b471ef93"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2b7b3bbfb4fe8ef40600792d762fbaa9057559f9d3fad209525b7a22b99e91fd"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2c9ad19a6cfcd5ea5c0d41161d22f9df1dcc277e9bef2751391334546a314c00"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2cc961b171b3f3440f410489ab3573e86aea8736134ebbb40ea1338b7f0831bc"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2ce45c6627b22c47e390bc91a41c3d13032192e699fa0bea96e9671b373d69b0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2e06a3a98f916dd41d27f3105e02e7a40181c98c94b9158733d03a6f80506c09"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "304d5463e65a35d7bb0850550e0780395395f6fcf452f04db7d5ca7cecc425ac"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "304d8e4d493af723536393eee0c689eb7813f4a474c8b479dee63f1fdd98f621"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "30fcd120b732aa79317f08dee04d7de0847822e4cf7ee0e9f445bb958832252c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "31f3930700408d211f13378ccbe1c40845d8da54bd0681fac3a9b5aae81c7aa8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "34276fd796040bf0993ab33a369aa572e6979c7aab225a88893667ad8eac8f7a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "355ad8011081dec5412240c087a9a0c9d4d5039f3ed11a3f13e18c2b29b56c51"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "38a873987f3be698494da8b2e3085e29da02da7b633dce73e79c699a113d7bf0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "39de2a259fc954455c57274dc94c79d5842774e1247a016aff30bc0efed0f4ef"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3d14b50de6bf4d0edf857a9386836846f982b8f524e188e2e68b96d702bcf4aa"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3d21b8b13c7592db2ac5e544a6d83187b995257472b0c9e8351b6d507ae37ed6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3d31298449090ab8d47b7b1b2a555ff73cac7ed438a08b7ac160980c7ebed649"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3ddacd27458c45bdacd6bd6db644bfb730efbf9e830310186e3045c9c5be8fb2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3df041de8887954562c9b261cba85ca0e9ded74048daf125f45edcfaa4832229"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "40ab6bffa02ae10a0581e6c198be7d2d8ca5c2a0c64e4ed3465d766df457573e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4275811936e2f06feff5e598fb42a1b7ae852da8e39605211892b56b81a34efd"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "443eae2bf318abeaf6f15d785138f71fd6de770e99a92158b8b814265e079115"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "447441e76ec720b15e64418d32e092297340387053047c7c694f579efb0ee1d9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4495c5002a7b28557e7e222e77e0b661183e432b7d6d2e788101e3f240e05b8c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "44bd4fbb29dfbeba60e7d2bd000c59e4b21ddb3cc53912b14048d37092706d7c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4685902cf26edf013ed7a3da0f426ebba7a00ebb9541386d835afbf002c11cab"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "498dc3188ca05a68231ac3fdbfc7f57eb67e1343c30e0fea17f8218c1599b253"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4c2b5031f63e331e3839b40aed2dd6f191e9c07edbde303e7876846ea1946995"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4d48f2d08b9de5864e2c8744d4461b862fb149a18274abc8b698c45975573438"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4f87960d57feabfb618e4e0af6e7371645fa26a277860739d6e5d6e0012c92f0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "50e3adfb96fc189eb27b1cf62d3b598b89b4bb0420d93a3d3e42e137409011be"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "51cf45226a9b588d0d2b4880c62d686934b63ab0bd79ca23ab0e9762eb27441b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "52aa6992700996af31f375de0c6bacd402b0097fe40b53c426b9f51a90ebabc7"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "55ea99acb17b9325618de155a0cd6a2e8f5d10be008113e1d433bbb58db543b2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "56bc200a365efb37383b7852e4cc5898d3b2da5987289b543956cf8cad71018a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "588461c2e8384d309bd63e5826019b6977bc66d629b99ac8737bb795d7b2cb5a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "58ca3755ee7ff7f59b57789ec9833c9de9ea275405cdd240eda1f193112e398a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "58f361dcbab699cf8f42db3f47c8e7fd1036f138c23a5d08de9fde5f425a730c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "598a11a2c7ebaa5334bf698bf29568c9c390abac6a154d8170fedecd1cea38c5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "59f63901b0031c3136cf64704dcb21de0bbae62ce2c9529bc39d27665463de37"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5cde776b7cc66e4f6c99612cea4aa7269aa65863f7a15841b2c264f103822f4e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5e2b6b57e9733d39f0c9fd3185efa6b8e29652c4cd8fe94180272cf6ed9a78c4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5fb29fb8cd1a46c27a1bf9613ad5ec2599310d46b4025d9556404a6b6a292800"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6045373d5a89a5ec71afde535db987ca28e76dfa276c2d4c818265b375d4b055"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "619799369eeef6366ed3e8755a5670f4f2f0fb6b30a0fd7264dc0fdc2357058e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "62588a277bfb59def052abd940703fa35107152bf479781a878617d60faf8fb5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "62603db9a7caa0802eaa28c1c46fecd7b3a263a774069c24c3c28c302448721c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "65cd72beeeca9d3aaea1201e5923859f308f952f9c71de93f06063c79f0f7a3b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "68eb192d85ab8e5f6ec69c2bc6ac0179fbf04a5ac1569d12fbef74883fe102d0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6bd128f206a7752ae1f2ab6c61bf8a24ba28913a10df8b14c2637b973ff97a80"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6be488a102b8cf28d0391d8c4ba7748938ae28b78ad901f8585520fca33ead1a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7218e8f32b0956cfcd048fd42d9d5779809745ca1d86113ca56f66e7ae1549c4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7441d755b7ab94f8d4eb3e43ec05482d760842fd263d003a99102d742cd835e2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "749e97e1b32313717a565abbe321bc2190bc8b35f1a67e4cdbc7c56c8d8ffe58"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "75a3ceed0724d625d64b86ca20aba182e4df462e04c2414fc941c0f523f06aac"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "780fbe7cab297b81dad9fb8dc5eb003c0468ffb0d9e5f65068c53a34661a96bc"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "78456a747de8dc58360ffa581f30a002baf5aa28cb262536545e91f113ed7639"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7967d08cf06dee78443b874f98c98036f624f3a4e73e11f9f64f5be4d25393cf"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7a881931aa470808df94a8c380eed2bbbc76cd9dc622310f99665658c821eb6d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7dcd882da75ef9adf94903b1e3b9419e8aa8fb4c7396822b834b9ef7fb96954f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7e841fb9010836c992c9f12fcbd43a831de93a5f726fc1ccd8ca1d0268c5014c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7fdde2c9fd9e3eca40631e024664cf2584272cc8f96308cbe5fdfc930f51d8bc"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8024d00c3faf3fc0c16e07a69f4405e8eac7cc0ab15f65fe6cf43827c4cf72b4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "80d02b6f04e92601a081dd97b23d3128033098bff5d35d392ddcc0476ea11253"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "838dcc90063569a0448120554591a1d6c4a4ffe11babf048908793154ab86ade"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "849df64e889b2e17230d58410a03dba311a65b163508fd33679b2b737d4b7858"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "87475fabc8d9996fd9c27debb395e642e8c838d78a00b6e932227a0e06b81e26"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "87e50a3e7cb90af586b6c5faf23e302a970415ac73bd7bd90a515a04b427ef96"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "89b53f3cda69831909888e0494f4fa0bcd3537e3e138dabeb620bd6ad946bae8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8a893cc101149f80a653f82062ebc95b34525a2614382e1da5458fe7c6997249"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8b2bfab86aa71ae13aa41a6a26aab338e0db2b8bc75434b05aea89e011ff35a4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8d86d6fc60743dc916eb79e2eb1ec4818e21e427731543af40a3021851174a13"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "915563965d418f986e7e145accc592eae9e1a1be3566ff98a05d7a9ec42a76e1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "92888bb3187c5ba50500b00b3b310c9f2c651709d28036077680cb5255450a03"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "93223adc95033dd47133a46ccfc316a0139176fd79085762e27202ec56018f03"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9373ad13ef0d2c0fb761e04e55bfdee5a08b52cef2c882c8fbe9935b1517152e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9409a8bf35cf78353942504b24a57de3d75b708997a1e4bd8db71ac8633ce364"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9b7f416ff0978e2f2249330527f0ad6fa02f4932e6199692d3b52da2048c19e4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9bde855991b7e362c146535e3136a50bfaffc0487d38b33ca7e5edefc6e23849"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9cae88599c7219005d879f98e5ed53341e9a122af585e1091200358a3003d2a0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9cf9b1a857e25c4baceeb3624e92a56df3668f398c4acba74e174d81fb4d1d3a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9f56f72050826f63dcee7a7f55b0a77168cb3bfc553fd405e7f8f9ece75a4036"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a090bb2c68df85450502e3e20d665e3a5af9c65a84d6508ed477badd49166fd3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a192e2c40070d92c3ccf777e3a5c4ff515573cd2bb7ed0c537fdadbbec5bbf21"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a19a731138fc27d5682277d3b9df22855cea1239bce7fcec5f78f42ef2d1f3c3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a66c3bc5ab1f0ff2164fc9965ddd611ff0802173f4b9d24554c563f6ab7e1d6e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a815775b6c38d4e0ff7bcffbeba67feded90202bb6a226b8dd35f1c855217413"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a89012d6d5476ee112d20d998570ed58df2260a852afb1758809cd6900411d21"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ae4f5fea5b8b8ccff88238cc8569303e5ee95efae67fa62922a311397a71f346"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b6856554c4f44d79fc2307d5768854310a8f0096e501c75637542c82292b0429"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b6b751274acb69d77b3323d6b7dbaa3c7fdfc1eb829b7eb61d262f32e1af9685"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b736353c0a625bbd5fcec108576e2385db3496f4f771f785ff32e108d3c3bc45"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b7fd005a73d9e657273b7a10dc71a9e03c8fb9ee6999798d6918ce095b81ac7f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b91363207bd9dc966a691e959bb47f64b30f7ac4b072be9968b366982f7db77c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ba0b1d2620edf869789c3879223f52bf2afc5d31b3cb47cc57b3a12c05e2aa9d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "bbbfc8e28816f19d7c0f1816664980c0a9875d01b27cdf8eedddb639d9e108ad"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "bd16aabe4a02a297c23417aa17ac6299dbd8c49f673bcd645b4929b11f5a4400"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c0afc6800ba57ccc350374c5bd6150419915d95ce93cdbab2d783d75eaf30ecb"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c6708715abcf3c73b99508253e961a9967f02fe536532834149574eda6de0d1c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c7c9ab723cde841fefb34efbad91e87f00a674b1fe1cd0784fde742bf2c154dc"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c8f3d67aeaf55f017982b73683f0e7342ba2f6635a78f69ce89ebb26aa411e5c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c9790464842f85f437dbbb54417eda1e0e6bfc52dd8d22d6fd1c994b73b2dc74"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ca403d7e4798f525fdfc78e258820419cbbd0f0ecbab9de7840e3c017cf6b8cf"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d008d90a7f2471519aef0c90dfbe73b3e6e4d5e66ac48e19154c17e89e98b604"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d19fbd981a488e22cd04883659ca6b08f50b5974f9fd7c95655ef6a043e5893f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d1befeed746d247c81127bb14de9dc3d30edb6e5976d34f83f86ed262b1d9105"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d2374b62878abb00cd8309b32af6c0b715cd02dec0ca74ef12e5069bdc64144a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d376bbd28b3a8999db1a103b3b388aee6f1ddeb3e51bc2172993efdcd86e064d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d4a7319f304a774bed22115bc891618e45f85065ab44ea6acd07d274e750519a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d6734d2ef8a50fbf8445c139477da401f50d62a0606bf00e20ec6d87773fefb1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d760fe2a4d7c3b226cb9026d6a842868d52a7901bd98420e1baf14e80da85cf5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d913de495d90407cd859d263bee2e5d1a4ed3eb6573c04e70d9ec619a7cbed7f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "db19d07e2e0129e974a0e65d0064fc222a446cd5122c2fd4184d2af9fc734a9e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "dca9ab98072a5a54ebacebdc45f53e645336b320c667410b061be1ca588ae709"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ddc7dacc8ece3a182e7f15cb862d1fd616b46d076cb1ae9dd232b2c38b655874"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ddf19c062bea7a0cc80f519243d2c01dd091be0cf952a0750d4ad576709559f5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "def79fa35ef0cef8d2accec024f4fdc7ead3012ff02f5215c783f39f03ef8cfc"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "df29a0a7107f7011e77f4eebdddec4c7331e24d787a0b21a46d63bdf7445da95"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e09a3942ecbdee5cce73ea9d42da82b81b72ac1bf031ce069b93b5adf4eac8cd"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e242bb1c5e76e97dfa9e7f209a71e93a01d7f19ffdd5cfbb2e2d55b4f08f8ab0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e243bd13217235fc7290c621941c3f5cc8b66e4872495be821d7436ba2fb838d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e2af3aad578aa6bd1384bcf4750fc285e5a9de53f40b7d41e5a0bf748edeb2b3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e4e81e09c1578b8df602e3db08b0b3ea0a6947ad612f52bf8dc5ea8d47691f0c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e54da4baf05720032d527874d40b65fa4d7e5c6c6a43d0c3adbeffcaf275a2b3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e80e6c2f55656b4824d72065abb4ddd6a525c74bd78a0aab5d9fc2cf4fb5af50"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ed2a239c0ea213acc1908150a3037257083c7c083128f1a4cec2ec4b97dca491"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ed905975ab14056a2e5eb1c376cb2e1ebc5396baf84163939c518556fccde9f5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ee21e28f0430bd6dc9086c6e525d5e818a44a5ad19720c8a0ef766792f3eb5e5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ee43c17b173d46a3212baa6ead3ae258eeabdae48c263a01ccf0218c366dd655"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ef4fcbf3327382cd4c9f540babd61248208af7b93eec4de397b4d5f58a09e288"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "eff0ac9dbe711a4aee69bf04a83896aa9b85f19641264053a9f6d48573abb7dd"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f0aa869112ef88429ae17820d99c3dd9504c9e9c671d3c246f3d7442cb051084"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f3c96f633825733f735c5a9cf21d21a257d8e1edf0b1cee0a064b9c424ca0f7d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f5833ad231be5eb6553de524a70f48d71b2c8563101750531e0b80184e175cd4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f5ec61164adcec446f8969a3358ec3f9b26bbda3b9213e5586d219afa8df2915"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f7d486c83842422badd511868fd8a9a20e9407ace71564b6af47ce7e60a336c1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fb9e68df06293761f9fe66ade60a9bc6d0f5e42b8acf2939a9158af86ab0e5bd"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fc14a032f813bf5fe624d991960ea83e9715adc27e4c1830a2361eb1d02ac341"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fcff63213e8e6e47770541a4607175404f47cbb3ebea7b6058cc82d524a0e424"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fd1fbe0f116b6e55da77aca2c6ddcddcfac2186cbf78bdebf40fc156efca389d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fe9753dfee015c570d73df76f899f18444d41388bffcde097deba51c4fadbb9f"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-09-30"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/charset-normalizer/3.5.2/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/courlan@1.4.0",
+   "name": "courlan",
+   "version": "1.4.0",
+   "purl": "pkg:pypi/courlan@1.4.0",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "Apache-2.0"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "ad1dbdefd912ca7238d4607dc855df5df097f56bac175dd662c84eed3802f49e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fbbac7b7fcde2195ea08e707609503c81cf39c891e8d26cdb1fed4585782d63d"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-06-01"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/courlan/1.4.0/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/cryptography@46.0.7",
+   "name": "cryptography",
+   "version": "46.0.7",
+   "purl": "pkg:pypi/cryptography@46.0.7",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "Apache-2.0 OR BSD-3-Clause"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "04959522f938493042d595a736e7dbdff6eb6cc2339c11465b3ff89343b65f65"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "128c5edfe5e5938b86b03941e94fac9ee793a94452ad1365c9fc3f4f62216832"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1d25aee46d0c6f1a501adcddb2d2fee4b979381346a78558ed13e50aa8a59067"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "24402210aa54baae71d99441d15bb5a1919c195398a87b563df84468160a65de"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "258514877e15963bd43b558917bc9f54cf7cf866c38aa576ebf47a77ddbc43a4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "35719dc79d4730d30f1c2b6474bd6acda36ae2dfae1e3c16f2051f215df33ce0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "397655da831414d165029da9bc483bed2fe0e75dde6a1523ec2fe63f3c46046b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3986ac1dee6def53797289999eabe84798ad7817f3e97779b5061a95b0ee4968"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "420b1e4109cc95f0e5700eed79908cef9268265c773d3a66f7af1eef53d409ef"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "42a1e5f98abb6391717978baf9f90dc28a743b7d9be7f0751a6f56a75d14065b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "462ad5cb1c148a22b2e3bcc5ad52504dff325d17daf5df8d88c17dda1f75f2a4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "506c4ff91eff4f82bdac7633318a526b1d1309fc07ca76a3ad182cb5b686d6d3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5ad9ef796328c5e3c4ceed237a183f5d41d21150f972455a9d926593a1dcb308"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5d1c02a14ceb9148cc7816249f64f623fbfee39e8c03b3650d842ad3f34d637e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5e51be372b26ef4ba3de3c167cd3d1022934bc838ae9eaad7e644986d2a3d163"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "60627cf07e0d9274338521205899337c5d18249db56865f943cbe753aa96f40f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "65814c60f8cc400c63131584e3e1fad01235edba2614b61fbfbfa954082db0ee"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "73510b83623e080a2c35c62c15298096e2a5dc8d51c3b4e1740211839d0dea77"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7bbc6ccf49d05ac8f7d7b5e2e2c33830d4fe2061def88210a126d130d7f71a85"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "80406c3065e2c55d7f49a9550fe0c49b3f12e5bfff5dedb727e319e1afb9bf99"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "84d4cced91f0f159a7ddacad249cc077e63195c36aac40b4150e7a57e84fffe7"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8a469028a86f12eb7d2fe97162d0634026d92a21f3ae0ac87ed1c4a447886c83"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "91bbcb08347344f810cbe49065914fe048949648f6bd5c2519f34619142bbe85"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "935ce7e3cfdb53e3536119a542b839bb94ec1ad081013e9ab9b7cfd478b05006"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9694078c5d44c157ef3162e3bf3946510b857df5a3955458381d1c7cfc143ddb"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a1529d614f44b863a7b480c6d000fe93b59acee9c82ffa027cfadc77521a9f5e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "abad9dac36cbf55de6eb49badd4016806b3165d396f64925bf2999bcb67837ba"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b36a4695e29fe69215d75960b22577197aca3f7a25b9cf9d165dcfe9d80bc325"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b7b412817be92117ec5ed95f880defe9cf18a832e8cafacf0a22337dc1981b4d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c5b1ccd1239f48b7151a65bc6dd54bcfcc15e028c8ac126d3fada09db0e07ef1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "cbd5fb06b62bd0721e1170273d3f4d5a277044c47ca27ee257025146c34cbdd1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "cdf1a610ef82abb396451862739e3fc93b071c844399e15b90726ef7470eeaf2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "cdfbe22376065ffcf8be74dc9a909f032df19bc58a699456a21712d6e5eabfd0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d02c738dacda7dc2a74d1b2b3177042009d5cab7c7079db74afc19e56ca1b455"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d151173275e1728cf7839aaa80c34fe550c04ddb27b34f48c232193df8db5842"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d23c8ca48e44ee015cd0a54aeccdf9f09004eba9fc96f38c911011d9ff1bd457"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d3b99c535a9de0adced13d159c5a9cf65c325601aa30f4be08afd680643e9c15"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d5f7520159cd9c2154eb61eb67548ca05c5774d39e9c2c4339fd793fe7d097b2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "db0f493b9181c7820c8134437eb8b0b4792085d37dbb24da050476ccb664e59c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e06acf3c99be55aa3b516397fe42f5855597f430add9c17fa46bf2e0fb34c9bb"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e4cfd68c5f3e0bfdad0d38e023239b96a2fe84146481852dffbcca442c245aa5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ea42cbe97209df307fdc3b155f1b6fa2577c0defa8f1f7d3be7d31d189108ad4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ebd6daf519b9f189f85c479427bbd6e9c9037862cf8fe89ee35503bd209ed902"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f247c8c1a1fb45e12586afbb436ef21ff1e80670b2861a90353d9b025583d246"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fbfd0e5f273877695cb93baf14b185f4878128b250cc9f8e617ea0c025dfb022"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fc9ab8856ae6cf7c9358430e49b368f3108f050031442eaeb6b9d87e4dcf4e4f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fcd8eac50d9138c1d7fc53a653ba60a2bee81a505f9f8850b6b2888555a45d0e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fdd1736fed309b4300346f88f74cd120c27c56852c3838cab416e7a166f67298"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ffca7aa1d00cf7d6469b988c581598f2259e46215e0140af408966a24cf086ce"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-04-08"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "team"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/cryptography/46.0.7/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/cssselect@1.5.0",
+   "name": "cssselect",
+   "version": "1.5.0",
+   "purl": "pkg:pypi/cssselect@1.5.0",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "BSD-3-Clause"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "1d1aded98e82bdde447ded990a191fd6916177c4f0c914fb62eccd58e2ffcdcc"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3cbe82dd7acbee9ba9e5723b5f9e4749826912f1fb31cd7f92aabed5fde15b15"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-07-27"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/cssselect/1.5.0/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/dateparser@1.4.3",
+   "name": "dateparser",
+   "version": "1.4.3",
+   "purl": "pkg:pypi/dateparser@1.4.3",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "BSD-3-Clause"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "bab8c43a746266e68142f4926e69438ce551441aa88e54e78bb6410bf3ee7000"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "cbce86c64e0cea5c54c84c015d34c903d46c51bfad50632bf2f05a6141d10c05"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-09-03"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/dateparser/1.4.3/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/greenlet@3.5.6",
+   "name": "greenlet",
+   "version": "3.5.6",
+   "purl": "pkg:pypi/greenlet@3.5.6",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "MIT AND PSF-2.0"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "0616b8f878098c5681fd8f0dc92d887551717402342a70f0abcbfea5f5ad8a44"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "06c0e933290fba8ffe53ead4ae1b8044b0e9754b75cebf381aa2bc3e50d82fac"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "128813fc29f2336a21b4d06eedd5e16bcc7ea46f59e9ff1cb30ea70e48195d88"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "188bf333769b7145e2b0b4a7f09615ec550ed44d3a2a8395fb7b36f0e9901e13"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1c20ea32a73d17b9b60e3371240e17b0068120c98a5ec01a224a7dd8c89733ba"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2ab5f42ac6c238eb71770715e6e909ad9a1a92b6c681ccb64cd5a0f07edb953f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "301102a49120b095e72a7838792b41233975fc1c155daec6d98f81c00c9280e0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "311018b46472fb26ee85870847fb89eb64cc8aaddb617400789d87076f7cfeec"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3ac3494c381dab876cad7d0b22f3a722f3e0c8deb3a65b9e7f35ad7f58b8fcb3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3c6dede9133e1da41d561bc3fb14e92b47e2ce39ae60edefaad145658ea7c5e2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3dbb4596a6a4e5d47121a33ff20533a81e60f302d9e67b69909a8bc21a43f0a7"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3deccbb57a481e3a408fe61cdfd5c13e0678fc0a30fdd09597917ca87b4be877"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "45663c01a4de48b9a64a2ee1509d92d1dfd3afb02b2ccfc9333029d11aef996a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "45bfd2b51e38aaa5f9849f114d9c7c1d75f69187c849b3549cd64c465283abfa"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "460e70b033aba8ed47e2ac9b5d0d2157b05a34fbfa30a241400aef4118902cdc"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4fb8e59f68845d56c23c031dcd79c329f345e4a9d2ffac91c3d1ab366bdc457b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "520648db8fb92eef7b3e6013f5a6f901cdf0d6685f639c2f7a245879f865bef7"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5599b380c1f28efeb724e81569eac80cd92f99a85bd9775456caaf3225d40b11"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "59deccd347735a7774223b05a93773fddbb298aba3cea21be4337fb4752dbe32"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5a0b2791239c99992a86c1b635b787fe2a877d9eaaa26f8891ce943832b585ae"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5adcbbfe78bdc242c71740a02e0991cc1b2f34d33c8bb15ca45eee8fd1140942"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5b602b4201b965a8354d74e232364a66ff243dd142e350d035f46169bb36e13d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5bbda3c70dd35d60671bc33b01916802707a052130d9e50cdb871d34594d35cb"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "602024dae6d77e161f4b89491b62ca1d4f19949d79d47b2db057e476d21179d6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "61a61b4a95a4f97922c3a6f5606d3e360851584bd47e500a5161373c53810e3d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "63aff70fe5aac59c72215f42ec39fcb59ff46774fa966e717f8ecb6ee2273577"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "71890d5247020c25c21a6b65202782bfc281d4e6e244842419d30e3492bb6dcc"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "73a29b5ba642e35433166a03a3e02935e7238c4b3467fbd77523b99edea23e5b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7969bffa322c097bd46ae595ada6a931cefda613f18ba64587e9cff4cb320756"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7ac4abb3877c43af320392c664774eef6fa2cc063c79a55fc02d844a3cbe7395"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7f731ebac68ea06d628658295cb2d217b10186329fcf9a3b6a149045059bf92e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7f924a5a9d5890649566f2f6682e0d8ad8ca23028bacffbbac36dbd7fd680176"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "874cea8bb1ec1ddccbacbd027856f6bf496f6bc18aba97a918c20e067edab236"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "876077e7ebb8c84ed068e2b23d4c62ebb010d60df84b9591af1be2f39010ffb2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "886bcf1870af74c32bc310fd00a6b803445e17e51b7d5a107c7b35c0f362cc16"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8b27df301f56e3b3d2298095c8f7d6b68f2521f6b1693e901fa039bdbae34424"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8b7c73d1cef3d9ae963e9ff03f6222df43efbb9054ffd2f1969c935b7fc84c02"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8cda13494d86a4f12429641117cb6ac4bbbc9c30a33f711f7d3a2e5fbe4b0b7e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8cddea1b8339451c2fb3388e138347b6126744f33b611bdb55b7357361cfef46"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8dba0129b93e7091dfefaf4cf7000172741bff7f47bf6326fcf17f32fbb54d6b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8e67c43bdfc88d5fee6db0d3e40175b362fc95fb85f0412d233b9b203c53a575"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9133d68624b1f2e89ec2f554d56aea8a5b0d7168cd9320200ba58d4d794845a4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "916f92f2a8db10508f739d0b5e00b83defe5d1115a997c54532a6d7cf8c95404"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9297fb9c39b9a2c039dbcd306c410bd6906b95244dec3bba4318d36c718c164c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "95e7c44d072db623a1aab04ce488cf9533294a77ed9d072cd503a3596f4106ac"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "975736b002ed080d124cf81a79cb7e05cb26d6b3f5c7a7b651c0fcce70353aa1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "97c5a53e8c1754df58e73f047a99e287d4da1bdfe64b0072fb25c87000897951"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9a09d59bef1db94f384b5bcc2d523694d338f3df6b757aeeaf7baca5d0c0be88"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a364c1ea75dc51b83a17f52fe0c79cf8bc4ddf740403bebd4581c7666eea017d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a3b4a01c6da07ef9f80d4fe8933b994bc99747bcea3eab0330a9c34d3c12655b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a5876d0a60355af98d535c47f6cd6eb0f8a432396dab26845d380b92f8412422"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a6a4b98a9132e0f45c9fc245a63894cfd8c45fb7a0d6bffc5eab3ec327cf7324"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a6b4ff33f7e011bbaa148238d131c4fd4f8afbab3c104ddfbdb2b12b74ff7016"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a93ee7c6e8fd0f8a83525a51bd777be57ee17787e91d805bd8d6faf9dcada18e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b374e79ffa7511afc11773aef40a4ccea6191fba1c856ea2f9c56738dca69d7a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b7d501d5eb5d4f67207df364752ad697465b834268744be7581c18d81d35d41d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c59acfa8eb73a1e0d484392dc002bdf001fd4ce73394e0132df3d1ab6093d7cb"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c75116c9de79949de23006e2d9b35ee82874c594fcf5c0311b439acaa14b8441"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ca80a49b53ed1d22f7282da7255f7bb2fd1935fd0f623d8613fda38745f18961"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "cad5782f93f7f738b62c6527b6f32a60694d924029f299a8b524758cfa53d815"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ccadce0130fd813ec86ebfe969a6c58b42acc1d0fe55a47525375b740e07b605"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d701eab36200c36224833d07dbdb709adb7fd4253429548ddb5e547b8ed40586"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "dad3d233d441a022c1f7155f0fb9d5aff7b97c1ea8c7dfa02cce586b16ab2d0b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "dd0b83bed3405b586a3133629f1d1a5bc7bfd64822a3b7ab342bdc68e6dbc61b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "de3de000d459402cda015068fd135aa50c0bf6f2477a80d4da1e646f123b4e78"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "de9923832f2d8c1a5ecd8d7260465a6ca5a86888a0d129e3bd5cf0406d2fc5bf"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "df19e2d0b1620039af5102563fbd96e8938c7f5c3f5828528d641d9fc585525e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e85880b538e59a59f55117b81f208a6660ad5ac328aad9305f812d9b8bc67a0f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ee7d9da3bf493909cf811a3f038840cb34fab5ae2956b8a263919f6e289ab188"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "eed88b64a5e5da72d6a71cdc5aaeefaa5ced9b748f8d19f89800b339961dad39"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f0ba7c2a329d650628f4c8572fd1db29f0a59dd70a3e3e0710dcf18a35cce9d8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f8e63209c3e1e828ee6a457529b4a6d8b05d050fe0ae03a7ae49e967c5d312e0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f8f0bd690e1a41294ac87905e8121c81a3761ec2583c768f13467428606c8c7a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f96f0e30b5a95c7631b12bfe214cbc90ec8fe8cfa36920596c10514a65743519"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f98e8215e172f567ce80eeaed9107fb4d32b6c44f26983d9b8334658136a205a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f9fe868463ec7e1363733af77e38a5fda3e9b63940337048c945d69e0c80ff24"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fdacf26402389bdd89857ad3c045a26fe8f3314f9a8b28226f82f88463a65b77"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fe3170a69fe039b18ad18171e66faa9a75f6fe9d78f968fd9b54e09fbd714d81"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fea4427d1ffdb3b523d7daa6712038428a4c16c450b9777bdd1221cfee0eab49"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-09-14"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "browser"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/greenlet/3.5.6/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/htmldate@1.11.0",
+   "name": "htmldate",
+   "version": "1.11.0",
+   "purl": "pkg:pypi/htmldate@1.11.0",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "Apache-2.0"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "2a5a0d80cce38d3f986a64bb9ab64ba03e5953159b38fd78a841492131ead348"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e099a58143d5ff32471f2aa8770247e12f0f5bdff62f2df74f833277fd0071b6"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-10-02"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/htmldate/1.11.0/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/justext@3.0.2",
+   "name": "justext",
+   "version": "3.0.2",
+   "purl": "pkg:pypi/justext@3.0.2",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "BSD-3-Clause"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "13496a450c44c4cd5b5a75a5efcd9996066d2a189794ea99a49949685a0beb05"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "62b1c562b15c3c6265e121cc070874243a443bfd53060e869393f09d6b6cc9a7"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2025-02-25"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/justext/3.0.2/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/lxml-html-clean@0.4.5",
+   "name": "lxml-html-clean",
+   "version": "0.4.5",
+   "purl": "pkg:pypi/lxml-html-clean@0.4.5",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "BSD-3-Clause"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "c76fcadd1e5bfb9b8bafc2200d51e4e78eb0dad67f56881c21dfb6484c7e7746"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e2a4c7d5beedd17cd7b484d848a0571e54baa239a4f9df5546e3acba7f990560"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-05-20"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/lxml-html-clean/0.4.5/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/lxml@6.1.3",
+   "name": "lxml",
+   "version": "6.1.3",
+   "purl": "pkg:pypi/lxml@6.1.3",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "BSD-3-Clause"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "032a0a97eed428bd143c75a11118238546424ceb2fa311cca5f073aa44658dc4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "05f5bce9af14fd1506997594bd81cee6d9c6b58ea80a39c058327aa6371ed9e9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0794e04ba343852c6d78e996c58ef4b8e579b4ecc72f8df0d4058bf843b4c96e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0ab2467e405e748d93495fb5568e74044802b8d3ff2b2a1607c3f78c6e982de5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0bf5a3e397df2ec4258eb5eea4c1ac6cf013ca1abd04a176903bff20a70021fe"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0c0710ac085a157b593c38fbcacd950f15c4afa8e2057527185875ab302752bc"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0dee106e9aa97fb00541b1ed7827070564d0549c3d3fba8920e6b20fd980f748"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0f17d83c48ee9dfd96abae3ac3e2108c76d2fc86ce96355e37b8da9f7f4ecc08"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0feebef8d0521188d0157f758356072e840173aa61ca45b8b3f87959ac283dd5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "13a620a3fcc20023f9e6ed5c383e00e826f1c2d5db554df2f67240760f9118e8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "13d22c0d57355366b393936acf6b98a5e0edeadddd3fccbc6a846c50a76b8741"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "160fcf381f76c3aeac28a756bec44f48942a8f7245a87aa28e3a523b4d90cd87"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "16148acd77ed1d8836a56db883af2f5eed720f9723088110b16a0d08582130a6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "170773d8a3cdc76259065523ddd978c44f9806e28605f08812e8f86783e44ac6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "18293f8a8d8b6a8e71ef37706b659e3846a4261232158167b1ddf35f6994f633"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "18a4db52b5a7b53a3540b0b0f4123319334621ee8083d496de314d0bf06ff59a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1a635e837b50a1819bebfedaac5916498ea024120969da8790500148fb0a894d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1aeca87830c4fe649dcf93fe2b059525b71c72587f21be4ae4af7103082a79fa"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1b7c37339d7e75cab9a123a04248e243cefefb302ad6db566ea0c77cbcde421e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1beb0f9909b26cee938df9ba56b15252a84429b1fc30ce6fca161390b9789a70"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "20384c2bbcbf87180c8c61eb60869699c1ec0cd09b62cfd13804022d860b0867"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "20428910dae17a1a93152a3ff2c0441d2f4932992c0797d65651dd0561f1792f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "207dfc3d47cf0e575e643bbc140dacc8863b39abaa1e5307cd64c7f2365b8a12"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "209c3ccbfe35a04ac6d24f0611f9d1cbf8025d49991b14acd935236234d6c156"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2123e5aa075ac20d23c7af489255efd129cbfe190dbe88fd42598cc9df3199b6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "21402998e4b78e7cce237d2788841aaa21ac9a4d1574d04dc2d12ee41ae807b5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2221e88679d1351e9a40aaee54bc65679b9795bbd0160bc3d5e36b163344eb75"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "22eec57e26c418cde02c051ce9914a365e52a7f135a565c6f0480242aeebab48"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "23c366231259cd75ad06495174701afb3fcb36a92917fa47de2d1f1bd9d95739"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "25f4118c438f96bb466e83108506d03d5c31b1bd2387e83e5b070bda6ded9c37"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "28a23fefdb345b2d4d0ff2860571b5ff9a89a28b6a120f720e8fb0324d346626"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "290f66b97ede0e552e1cb44a0fd8a74f9753ee635b50830a0b122fb72788d015"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2b9b1325ca1c2a9a2dbb6eb913ae563313f2082ae60b03210f7e83ee80712274"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2bec13085dc8ef48a3fe62f7dfcacfeda2c785cdf19cc8eeda2bb9ed081da165"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2cae5d5c90a62d9139c512a0cb1aad1d182b022b5740daea2617eb5bf7fc658e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2e01125896585139453cab8cb235893644d8815d7509520da95ae3ee8d1c1f79"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2e62c569ec7531b679b184cbfe335c501c1d13c4b363560013019962eb630e6d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2f5b2a2b9811b853b39bfa41367c6d78747b8e3e80e07fc5a24aae295c1a4d7d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "302f72413251c03f671e063c9414bed5dc8c927069e5abb69245521e51a4e81b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "32a409be3190b088f960ac92bfedfbef2f86c49ff940765e1548177592d20026"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "33cadd956b667997e4de1635fce9541f2e8ede2038fcde8cf55aa14d571d1bad"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "379f8a75cf6eb7eef0af074b55f49ab73b868388a98de14646abcdfa4564bb11"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3847e71a78cbbc1aff955dbbbaf2fff12153f611d3162c5beaa3395636cbc2f9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "38fc4e4e4e084e0bd491949482527d406788045c546d4f8789e93fc527b91385"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3a27ac6c780c8b8a1cd231b58407634cafc1c4cc28cd6c7141362df0f36351e7"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3a48093cdb058a93af842ede9703520e810b05dcd0fc6d7190a06376c3bfb6bd"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3e42265103fb385d8642a78672edf376c6f7e1d3598a7a4f9cb1278f2f6b5f6f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3e9a00d1c2c30936f7add097c41afc5da6556c580909104aafd382cac92a855c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "40983eabefd13da003e68170928c7acc011f0d095eefce5871a3c71c9385fb9a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "40bcbd9f94166ffe925811e730607385cec959f42fb1bb7dad83748680465221"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "41096ec0740a58dad03d3ae0c7486d306d20becefb13ceb1649835ab3eb64167"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "415e3a115c0d510e329020012834d1c0aa1c581ee53a218603e38abbc1dea70a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "41e2d428110b408e963b6fb18f9bbf1f5c027b56bd4b498d54556476c0aeb1c3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "424aa5657141d306ba9ad1baab4b2c0a0719040075ee6c66aee9bb2dea2b5054"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "42632b4024ab24a6b488f559ac851312509888b6b80ae2aa11cf29a646a0d245"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "45222d94ddd511536f3b2f7d9deae3b2339b4ce0f075f1ca25703b07cad9dd21"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4736e6c87e603146d8949d8501da621ad20c31015060d3fcf95ace2859f3e3e6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "48542c9acba9ff9450bd18d871d2c2c8787fdb283572b623d206f1b927cd7d9e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "49fbc2682a9306135b7ec49e93f97f9c26689b9b7f96ed2742d8d6497e994d13"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4a579dfb9c835f8ab47f4b8ed33440cbc75b806b73297208e6ec2a33e903740b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4b061064b4a2fe8598a466d723d43dbcd5a610a5d5cfe02fb6226f5c17349f75"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4e11e885e0704be185867fcf71b904d8f65d7d6877bc121f69870b0d0479ba7b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4f4db7c7e954d289d71878938348b3d91b904a3e8210a11939359fb758a58e7d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "527195c188d7d0af748cd48d220ab8cdc5cb99be3d49ac4d9be7324d8abf9bc0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "53258656846f5c48996b882fb4b135885e088a3ad3d96b4bc0530f95124d1f69"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "545ccc14fb05485f48b4439ec35beb16d5b5280eb6c81c658bd4707a2a119414"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5609efdb0d3c95499c00046bc53648b3482ec2175b5503d6e611b3f0555dc71d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5929d9df5e7e3379183be0e21f7d559618a5b61cb63280df6164019242e337ed"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5a143e6207579de8baeded4eaac9134413200359f1969d636f0bfb98ee8c3c8f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5a721a98c649855963811b59b55755b30566e7f7fc40bdc9803d66dee9f811cf"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5cffe18571ccc51d742cd08cbb3f8b756de9311d18c7ea98f5d92f37b8fb60c2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5d12669a2c419b0e8dc423d23dea24bb82f6f9cb829f32e04674b0ba40322a7c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5d582042c69857c364e8153de6e18e0da9b7b515a6a8113caf69a6ec8e0520f2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "61116cec57ed69aebc70f37a545eec095339bb829efbdabcfb97c51e9536e158"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "611a51e61c92f62345a50b0035df6fc0d678f9299f33728826d831598862f59d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "623c8799c17128753c65699f1c3aa32402657393a9ad6db09ed8b98ddf76611d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6374e9e382e5a98c9c5e66d41b357b470da1c54bce30f17f9dc4bcc58436cc1c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "66299564c046bc7e0cc5de5106601eae907e9fa5904cd68a323380a8502f7861"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "69cafd61aea04ebb3502c93c2aaa568b12931ca0802231e0b5de76bf8b6e74bd"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6a406d0b3cb207b0fa460ed4dc93e866f44f105da0169361cb18ff998a44c7f0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6ba4fe5bfbef6811a8e49b3719cde373ad399006c0c1ac184b7297116ecbba5d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6cd11e7550d89e551a87dcec30f04b1fca32e86b68708aa01a4daa455d8605e5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6e1eb8a4cbffd5553680ad96be6680e364710656eced73d1dc90ec489df599a3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6ea2f13dce778ca072ccee598bca46a092ce192e8fd907b6c1f0e52c800529a0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "71532ebf30be0048a45559b4fab15333fbaaf9042f658e878d918ecd0cf09805"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "73fc05988ed20809450474ba760a87c8ad4e455fc09783c02195e56ec634b41a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "75cc6569e86be5785b6188ef1642670c6adbc984e81ec35e224842ecd9eefcc8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "773062aec2f2e56b2b22d37054123f0de8a22a4688a0c3376c3fe42685f975cf"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7ae4949f212a53b007dbc355884fda122545c5764a54256c9217e419a62a6559"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7b2bb7d703bed7ac893bf7f40d97b5d9279d35d2ce460624ca28929eab0d5a3d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7d0f5976aa2701996f759b30172925829867547bb073af0ae67d1307a0f0262c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7d5a748d12dd9b535e0a130f60dae9ddf0adafbabe61e7864f55c7436c84547a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7dd624c1eaa629ad44b59a1a0145fdf2d67895592dce94c9358b938b3d075e65"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7f75b9b9fec2a9c6b18095c81865580e795b1441c429e42d22fcc82a77f40039"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "83e3a51e7933db700a0da0db31849db3a24022d9970da9bb73001e1d0326fd92"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8499d464de86fab0f102313cce32a9bed9ab1f06ec813cf025cb790964fbb765"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "869dfcd4d381cb0ea87085cc4f011b9171b494ef21e76ad8665f6d5e2d1dc8a1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8753b8d51dbc86fd335ee31fcf7f3658e9f5c016d4edfb23f76ad295f4b8c9d0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "887c021d9a977cff89cb273047c1352997b772a8908a25c21836861f69b92be1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "88e719b9437f148f7e1465df845c758dd1598618cbea3a2fd1e61a715542f2b2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8a330c0ee5fa318c7b5cbbaad882baeca3f570357e7eb25ab34bf31008150758"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8db38ff3fb7aee7d6a82ae4da2eef1178656fe1216841fbd24870062a9d60473"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8e49a646acfab83c68974f4aa1d0a2acca9e88d7d627ae0fc13201b14b76d310"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "909f4e927bb051f7740d6367285fc60cdcfdaf0258c2dba4ff5ba7eadadc250c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "90f709b9accab6b2e4d14f5c8718203877a0486bcb3afd74d8b539ecd1e961d4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "92d96586376fb79a33474797186bf993250152ee5c32650b67db78d54b92e6f3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "93476b6514b373fc6ca67d26c442784f7807c86f00635bfe79f935c3eab2af17"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "97acecb11cbc411473f15b8d780df06d7a9f3a2aad9aca78364f56640c8fb70e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "97ce49699d87ebf8aad631b55d65b33219a4f1bfefbbf5bff19dc9af160aeaf9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9bde9ae026a55b9a192078dfa6e27dd0ca4a050171ab6272e92f97b757dfdf48"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9e67324961ac9bbe616cce5100514d2e34d88665aeb07071e8b16eac55d06d94"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9efe56a68179f3adc4de41861c9358931db03837c48dd5e1c78077b84dd07f3a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a1932d7ce78a561367512c594fe66eac2b2ec9b9264cfd9b5f950622f4a116e2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a1cec0f99b9b914d39176347a93b7610dc09324491aee1cbc57cd291a41a1d55"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a2e3f70673a1d5b82f38255f777d26cd855bf2092b1436c4867464a7892f9238"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a43b3bdf11e477dc7770609d3477316f974354dfc8425d596f64f471cc8daf6e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a5c18810318303ce9afb3f95e2ddb54834f96fa699a8600433fd5a93dcf44c56"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a7eb78ba28b187e1e9203a55c60fcf70df2d22cb205fe6d51b9383d6097419f0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "aa633613ff907ea91b9b0489a1f0da1b8725d8c6ccec6b77e8a1c9c235044bb0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "aa9fd1ee2a5dacfc41039ed49ffeeacfa75bafbd255b69f3b578e11897a0e623"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ace1d2c83b2bd24db5940600541140e87a325e119cb32d5fa9ad720d7e76648e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b1cc980905221a5d8b3c476330730b3adb40ff80add71ffbdb6215ba055656f1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b37772102d44bb6628186accca3a121b1fa3a6b3d97518a8c29a5229ca4c0d0a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b3ff39654f0ce6ebd4db154211136dbe7e8157bcc3bed2344c87f32c7c6ecb6c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b477912f42c5c33405a10c759d22f80cf5af043ae02d95b9d8e5e5bc555739ed"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b49638355ea3bebba70da783ccbc630fd72afa16bc46c54474bfa1f9a915bbc6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b4fc6b03b9d9d90557274f571ab30e7fbbfc527955536935d96f98b6817a86e4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b50343241eb69fd85f7791cf8bcc7b1c4729826b7d59ba2f6b27db29638fa745"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "bc8dd3d9c93e70c3df974a201ac2958b6d77b465d813c51d1f15fa8e645763ae"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "be5346653c0b0e34be96869ff9dbeba23860156f89a2896a64c64fb419260cb6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c00e26288784460885fe76e4d4b293573e0f791f52e6d60e27b42edf005922eb"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c1b50797ac246bb2942a04b6c0f69af0667aba7cf7535f39bbb1b3208fd5d128"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c34ca1dc41bd86d9ff830d5bdf4e4a752bba6c54f7d2707027ce0eabd36084c9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c55e71a9b1db1f107efb60da49c093689b74c5c31a708e5379e2fd9439d4fbb5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c581b1d68b3845fb86c6b2983e755b29bf001461c59fa411d2c26a911b6559a9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c59e4265608da6a041f54646ecc0c9ecdbb19aaf14c4c684bb6c2114998cc415"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c5e7ce578aa8a80910a72a8ca0bbea3baae10100827249001999726a788456d8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c66f858b82497173f73366795fc6ee8171620e75a338506d6b2e7bc16f5fca11"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c6c0c13128a32eb04a51357e56a094e13aa8e6d3d1884de2e9ae923f6915e1a8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c9389b3784b56c58d933b5e0aecdf28f901b073ff385358d8a7d40907f6e14b2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ca0ec532ad2f5ba1e5ec120ac157769c57f01855b3d8bf37213f5d88abd9ba0a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "cad7617727a96d189bd6f979d0fadf765198c7934e85f4edaba9bf3ad919a300"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "cae82b5ca24b0c2beedb269f6e2a96f466acd926879ab00ae19f1a65cbf9ffb0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "cc669256d28736f7f3a149df5c380c50ace2692ba3e62203d10656fade4a2145"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ce1f220114959941170e22b8ad44279f6dee2dcef7591814d01ae805dc058889"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "cfb398886a7eb4c719161c3efcff2a1248febc53a4d8e5072d2d8a87fed84ac9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d077f21f4b16f0471353883748f126f62038760397c107bb9fad2ca94dc0dfb7"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d0c5c362bc94f1929dc7e96e715bbe7bd17037f802e6d8f0d1545df9133c0559"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d2765c18ce303149ee804b1f3dad11232726dd0a702d73a15cf19179ac8cc962"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d44442effeb8781f392340c5dc8c6716fba41dbeacb82fd4c0f09026fb5ff682"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d85dfab42dd672f87a7f76e9de7172962aee69fa12044f0d6e1a23cbd53fb80e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d97c5227621af74b111882a290b10f371780a38eef9d9e730408fba2259b52fb"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d9a0d12846d6ce434fb3857918eef4315ec9b4769deb020c75828798614bfcfd"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d9b3e7d71bf6acff341233417abbdface29c647e3113892d9aaedc02eb4aa2bc"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "da707f14ea3c35ee463d50acd596d6488e4b2b4ae7cf77a5bf93f55c023d63e8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "da85db328e507da922d586c3c7416ec360ec22e9cd9e0700691afacde0c81f53"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "dc205732d593118cf701d986f40e9de7801bb2e371cb189ddbda9b7348f4d97e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "dc3a44689eea43eab836e5c98a8ab015dc2419987d1ea6eafc7c590cdff86bed"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "dd5e90f34cffcfed97f36cf066325773d2b6021c60c29942e53a18b028501b1d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ddcf547bea2aee967d6a77779376a45e77e610e8465147a1f3d7e20d539d6e32"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e477aca0bc0d19f3b4ae9e4f2a1cfd687c31bf772d78734910658186b40b2477"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e8b17e23df3e827a69d25af70990ca2420e92668aaffaeeb3cd2351d7916a023"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e99e09ab7741f1281e2677f4c0058c7f5267d182530b09c87e4f6aa26adf3887"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ea2c01cdb16dc12156e455007c406dfaaece0c89aa4ba0e3b47586779f951d41"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ea6b1e9105b4b24a34c722432d9fb578f9ed83af21fa1abda639011e0f22bbb6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ebd054ad1737a68fb7c5c073d405cef2b88bb824e294de3b4a4e995b47f0e376"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ec295280f4b37769256da025acf5890370355ac589c27e89caae0b5e9eedc702"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f6449672f9c93316deb5e2839e18931f468670e44d5bd9b1301a5a9655d45c07"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f683dc6300317700025e41d89a43e0276692ded16113a3c43eab704d605c58e5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f6b9d2aad499c769ee8287609ab0e6de99d8bcea99c6e6c2e64945259fd52fb2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f8b9c8ceebae6387d0dc77f7f4dbbfbfc962dba2efbfe6877486075a480726b4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fad67b12ffe0f71e02b4932b04883cbc76a9072bbd30731409d3523cf058b011"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fbfb70ba01355251faf6b293171df49f73a88a1b6494db109ffea85442574458"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fe91993149523aa59941b9e3c90e2eb45f57ad014697aef6c8b13339a59c019e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "febd35ef45f603c2d74b74655efdbf45e14f55fc0aef4ac82b663ca829b283e0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ff88a92cafde90888511242d1c54afcc1a8adbb6dc0a88fa7f87e29e92400d4a"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-09-02"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/lxml/6.1.3/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/orjson@3.13.0",
+   "name": "orjson",
+   "version": "3.13.0",
+   "purl": "pkg:pypi/orjson@3.13.0",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "MPL-2.0 AND (Apache-2.0 OR MIT)"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "0526a3456db67b264c6d661b5f090077f326b6cd074d0ef53a72763595dec5d7"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "08bf722f923d2100bc5e5a5dcf72c656db557049c1bea26582fdd5dd9d5395a1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1807c2fa49d393c7ee95fd1ef1b39cbb24aa3ccd81f30b84503ba59407666960"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1d84820b2ec4ac975cba482214032de5b0dbdd17046170c98e642ef9c4a4ee4b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2715c4808d1571029ed18fd07a82140bf3ba7def0dc89f8d015c416e3649bf87"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3ef75ed7e81dae34a3649f82df52cd85f9ac839a7d6ec78ab355b33b3b27ef7f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4329c19b8a25693f60a77b867c9d2a3ab637b20e36f5b7bea7f5acb492b44b15"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "45e34deb3437509f4ec9888dd9ee5dc426cfe21be10f1eb4ea3a9e4d33034f9e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4e5c8175e1574dcbe446ee654275d353c1d78bbd9a0dc9f209bf35c9df72d171"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4ee06e53b998c71ce3eb93b86222912fdd9dcced685ac64d4525d36fac338ea4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4f66eac85b072092e9941c3111882afd7527bf926cbc717038fa3654b582002b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "50a5202ba388b3850ba24437951727d3aa6d79a21964a30ae8dc6a059a5fd34c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "51d11525bc3ca736fa97ce4e4c7da9999cc00bf261522bede43b4e7531bd7965"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "554948becd1110123ef9f6a6e1310fd92b2d07d2cbac6dbf65df3de75702e736"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "58a9619d88f8818d9ab6b39d70d203789457ba13c1ed5d274f33ce9ae7e81a36"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5ef4d4157392a0439b74f7e49e5636b4ea43d9616bd0884effc0195fffcaa2d5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "637dbca1fccffe83780e806fbc0f17427c0c59bf822528eb0acc8f0aa9f19acb"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "64e8f345048d988c8b68d3882e5d41028fca1219a9939b32e4a77be34c8ae8e3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "65c4e0e106ccc7265b488385659117a6805c37d042f737558ecd68aa0c67ad8f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6adcaa85d79977659a448b4123a88eb33511a11ed2db243535ad7ea88a6668e0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6c8bfe728b81b0fd58a3c7f3f9c5a113f87f2992c9948e0f28707aafd737c0bc"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6d0684895b119ad167fb4ec05113639dc7f728022deec4756a710e838ed92e7a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6ff2a2c67f35202f7d823753d38ad371a9b7fc297567cdfff4420e763cb9f6f8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7804dd1d6161da0e53b284c2aebf20f23e78eaac617300803e1467d1828d987f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "78a12d4f8d740cc9ae197f5223682e5e960ba61b4fb2ce5a6a3bb54e83fde28e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7991921c5da527a963b6d4cffd0e4ea89c7e71d4be0c8be1bfe6edb223ce7d96"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7b3bc6b81835ce65f4729ae401607583d41139c6de95bc7453f450f1391d3e7b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "83705c12b4afde10c62a5dd3fe6fdb21b7900bd0dcd5af1c85612ae94d0ee590"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "84d87e322e1674408f85adea63f11aa19201eba082755aec20ebc217f493bbd2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8594956a75223f657e1e68c568c0eeb3dd145f02cd6b78a47fd9a8095dbc4eae"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "89bcf2d4bc6c9a7e1763c8cf534f38712e66b76a0fefda7fb7785462f0d635e4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "89efecad02515df7f318d0613b5dfd6d2a1acd323a2b8294712789a715945525"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8c2ac5c09b017c484df1b4c68b2cf250b4e8ba08204cb58e7cd6cbbc71a9c902"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "91d933e668ff0ffe164d7c2daec36beba6d1ce7fadb71538fbe142a71f8a1e6e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "93c70a5e22bbbbdeafc7b273441e8452a196041d67fd4d9a9c450c66370a8486"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "948bad47f2e2e43527f14248364a0e5dee26dd3184691010ec4a1ebeb0fd6771"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9825b954155b345c4759f24e5f8d652b9aec2261bb5d4e1abe06bba0a1200535"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a0377d6962fa431c93ecd78fdea771bb62ec545b24ee0c5d4e32acf2260af259"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a79cdc4934fe81f593072c94e13da3095e9d41c2deef8f6ff2901794ca1c5042"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a7bfc7db961c7d96cb75889dc6a1e4ae1e91d87ee61da564f582bd742b8dfeef"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ac81530647c3423107cf61c3481e91f57134e9ddfb6ef83f5150ccbdcbc3a3ee"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ae1d895cf7bbfd50ef34bb63bb727b14514f259f3e3f8dd010783bd38e864c6e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b081f0e7b600ff24513dec4ca75507fa05e904607847e386e8310d5b7b96b6c7"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b571236d8393edcd3236e07423f762bfcf571f852aad667a3bce9e7b755e0790"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b74c30e56346aad067937d766846ee74c231d1d18aad3f324e9b9261de3b2d5e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "bceadfd314bd238f584fc229a4bbaf0e573597e7a026dec5429fbf29fd66c641"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c5e3ccaac3106e8fa6e2f2f6962449d7c757d7b067e41b395a19d6f0d6cec892"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c749ab3ac30b5ab1ffb7677f8b92eacfdfdc5260210baa398f845bc3714c05d8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "cbed5f4c4b88d94bcc36115f4c3bb3aa25da1563a5c3328aa3acebce2b083040"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d1de5eb04485110c5da4c657e49168995d55e076b1ce60f1a042e254f4186c4f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "dd61e64802d51d1e4f16531c64536354fc3bc67932dc0cff254044f72bf0f187"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "dd9d9a101bd8dbfad112170f009cd155e52bb8c936468821a0d03cbb96c0e426"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ded33b972cffdaf4ca0ac917338ab61d2bb10d68987dbcae641c313fbfdbf499"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e8e05549f3b30f9d8a8e28c5aba11cc2a4b90b90961ec685ca58444b0815fc09"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e9b61676116f755126b90e740a9cff36b91562f47ec330056cc88cc3b9f02f4b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "efa160215c4630836d3b1250af4c7a305acd8239e0d75aff986b8088c2fcacb6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f5c05a8fee59309f537590a1ff12d3c1009c485e96a50a9ac60dd085c09d0fc0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fb8644dc6d705e1269ed2842bf4dbe2b4e50d670de503bf79d5cef3a5148a4c7"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fbbad6b9b1da43f25c1f5b20cd5a268e028a2fc95d5a8d1ade6059973bc71584"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-10-07"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/orjson/3.13.0/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/playwright@1.64.1",
+   "name": "playwright",
+   "version": "1.64.1",
+   "purl": "pkg:pypi/playwright@1.64.1",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "Apache-2.0"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "29453ff76e25c17d0b45658cacd6b92e9eec46e8db21e134fb3b7143df50f013"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "577b8d88778c245cfbd145ae17cf53044f084b1b46c55c69081d4069d56057e2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "59f7b041284ce8d1b72098ae50ca48a2d83692eec25154ab5ba79d4b6b4fe8a9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5e240a79464434c9260957b9ef59a5808e02e96e3fcabdc717fd7485260b9730"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6a6f99adad1ae40e6ee62efe89785db861ce7ddd57651521cb31894183cc4ae3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "983ccd085453ea5a7588193657fc349a6ffbf7bf7ba663fd58dc81e4aa3af9d9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a29fda44725e11b0b625c4bff6458a1f6dbee97b88c9788d12e18a8344458c2d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d3c48b31da426c2f3562d0919cb9ea4e5415f6dbd29d7211fa4d66cca24fbd2f"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-10-22"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "browser"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/playwright/1.64.1/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/pycparser@3.11",
+   "name": "pycparser",
+   "version": "3.11",
+   "purl": "pkg:pypi/pycparser@3.11",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "BSD-3-Clause"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "51d5a8ba2be0bbe440b99d2112604c95bbbc3c2748a64260186c541e1729cd80"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d875f09c3507d00e1aba0eecc6dcadc1352f30fff09dc6bff2f1c2935e97c2bc"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-10-09"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "team"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/pycparser/3.11/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/pyee@13.0.1",
+   "name": "pyee",
+   "version": "13.0.1",
+   "purl": "pkg:pypi/pyee@13.0.1",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "MIT"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "0b931f7c14535667ed4c7e0d531716368715e860b988770fc7eb8578d1f67fc8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "af2f8fede4171ef667dfded53f96e2ed0d6e6bd7ee3bb46437f77e3b57689228"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-02-14"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "browser"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/pyee/13.0.1/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/python-dateutil@3.0.0",
+   "name": "python-dateutil",
+   "version": "3.0.0",
+   "purl": "pkg:pypi/python-dateutil@3.0.0",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "BSD-3-Clause"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "3c79630202e4152c6add678446984236efe4f57e84d8e892aab0637bab82e9fd"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7ebcb3c29a92f3ceafe79a7a48a5c45677e9e004bbeec5742ac0bbb00560b7a2"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-10-21"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/python-dateutil/3.0.0/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/pytz@2026.5",
+   "name": "pytz",
+   "version": "2026.5",
+   "purl": "pkg:pypi/pytz@2026.5",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "MIT"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "e658af3757f9e26a9d25dd2aff38335acd92bc9104f890a894b2c1ba28311b03"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fa23724b9c486543b9ff54a327ee7569ac83ade54bb9afd0fc18676620401c86"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-10-04"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/pytz/2026.5/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/rapidfuzz@3.14.5",
+   "name": "rapidfuzz",
+   "version": "3.14.5",
+   "purl": "pkg:pypi/rapidfuzz@3.14.5",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "MIT"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "0084b687b02b4e569b46d8d6d4ad25659528e6081cd6d067ca453a69035f07e4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "01550fe5f60fd176aa66b7611289d46dc4aa4b1b904874c7b6d1d54e581c5ec1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0298d357e2bc59d572da4db0bc631009b6f8f6c9bc8c11e99a12b833f16b6575"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "068b3e965ca9d9ee4debe40001ae7c3938ba646308afd33cf0c66618147db65c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "071d96b957a33b9296b9284b6350a0fb6d030b154a04efd7c15e56b98b79a517"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "09d6c9ba091854f07817055d795d604179c12a8f308ba4c7d56f3719dfea1646"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0d3378f471ef440473a396ce2f8e97ee12f89a78b495540e0a5617bbfe895638"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0ebd1a18e2e47bc0b292a07e6ed9c3642f8aaa672d12253885f599b50807a4f9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0f23e37019ec07712d58976b1ab2b889f8649a7f7c2f626a2f34ea9139e79279"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "11bfc2ed8fbe4ab86bd516fadefab126f90e6dcadffa761739fcb304707dfd35"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "13cb79c23ef5516e4c4e3830877be8b19aa75203636be1163d690d37803f6504"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "17a34330cd2a538c1ce5d400b61ba358c5b72c654b928ff87b362e88f8b864c7"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1a31cc6d7d03e7318a0974c038959c59e19c752b81115f2e9138b3331cd64d45"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1e910eebca9fd0eba245c0555e764597e8a0cccb673a92da2dc2397050725f48"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1e989f86113be66574113b9c7bdf4793f3f863d248e47d911b355e05ca6b6b10"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2e83cd2e25bb4edd97b689d9979d9c3acccdaaf26ceac08212ceece202febcfa"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "39ef8658aaf67d51667e7bdaf7096f432333377d8302ac43c70b5df8a4cf89b8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3d50e5861872935fece391351cbb5ba21d1bced277cf5e1143d207a0a35f1925"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3e91dcd2549b8f8d843f98ba03a17e01f3d8b72ce942adbbb6761bc58ffce813"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "419e4397a36e2665ec992d8d64c20ba4b2a42500c76ecadeca78a4f19cb9cc32"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "440d30faaf682ca496170a7f0cc5453ec942e3e079f0fd802c9a7f938dfb50a3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "46b92a9970dcc34f0096901c792644094cab49554ac3547f35e3aebbdf0a3610"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "478b59bb018a6780d73f33e38d0b3ec5e968a6c1ed42876b993dd456b7aa20e8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "48bee0b91bebfaec41e1081e351000659ab7570cc4598d617aa04d5bf827f9e6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4900143d82071bdda533b00300c40b14b963ff826b3642cc463b6dd0f036585e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4a60f0057231188e3bd30216f7b4e0f279b11fa4ec818bb6c1d9f014d1562fbc"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "56227a61fd3d17b0cd9793132431f3a3d07c8654be96794ba9f89fe0fc8b2d09"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "578e6051f6d5e6200c259b47a103cf06bb875ab5814d17333fc0b5c290b22f4c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "593c00dac4e30231c35bf3b4f1da8ec0998762e9e94425586a5d636fcd57f9d0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "59b3dba758661a318995655435c6ab20a04ade79fa51e75bc8dc107cac8df280"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5ab449c9abd0d4e1f8145dce0798a4c822a1a1933d613c764a641bea88b8bdab"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5dfa89d78f22cd773054caff44827b846161a29f2dcf7e78b8f90d086621e502"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "649712823f3abcdc48427147a5384fac15623ba435d0013959b52e6462521397"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "667f40fe9c81ad129b198d236881b00dd9e8314d9cc72d03c3e16bdfe5879051"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6737b35d5af7479c5bf9710f7b17edd9d2c43128d974d25fb4ea653e42c64609"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "67f3f9d2b444268ab53e47d31bab89954888d23c04c6789f2c727e51fe4b1d13"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7092a216728f80c960bd6b3807275d1ee318b168986bd5dc523349581d4890b8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "738c96944d076deeaff70e92b65696ab4f7ecb8081d7791c5403a3257dfaf8ff"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "77eac0526899b3c3ad1454bb2b03cdb491d67358ec8ef0c9c48bd61b632b431d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7d5ca9c7832e6879a707296d1463685f7c243a27846227044504741640caec66"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7e580cb04ad849ae9b786fa21383c6b994b6e6c1444ad1cb9f22392759d72741"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8166efddea49fdbc61185559f47593239e4794fd7c9044dd5a789d1a90af852d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "823b1b9d9230809d8edcc18872770764bfe8ef4357995e16744047c8ccf0e489"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "88b7d31ff1cc5e9bc0e4406e6b1fa00b6d37163d50bb58091e9b976ff1129faa"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8c90cdf8516d9057e502aa6003cea71cf5ec27cc44699ca52412b502a04761bb"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8ce1d850b3c0178440efde9e884d98421b5e87ff925f364d6d79e23910d7593f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8f4a8f5cc84c7ad6bffa0e9947b33eb343ad66e6b53e94fe54378a5508c5ed53"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "93d8da883a35116d6813432177f35e570db5b0a5e30ecb0cbd7cb39c815735df"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "95d937e74c1a7a1287dfb03b62a827be08ede10a155cf1af73bbf47f2b73ee6e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9669753caef7fdc6529f6adcc5883ed98d65976445d9322e7dbdb6b697feee13"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "97131ab2be39043054ee28d99e09efe316e6d53449b7e962dfcf3c2de8b2b246"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "97c6d85283629646fa87acc22c66b30ea9d4de7f6fdf887daa2e30fa041829b5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9981d38a703b86f0e315a3cd229fd1906fe1d91c989ed121fb975b3c849f89f5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9ad37a0be705b544af6296da8edddc260d10a8ae5462530fc9991f66498bb1f9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a2ae6f53f99c9a0eca7a0afc5b4e45fc73bc1dd4ac74c00509031d76df80ed98"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "aac0ad28c686a5e72b81668b906c030ee28050b244544b8af68e12fb32543895"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "af3b859726cd3374287e405e14b9634563c078c5531a4f62375508addebddad1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "af6a90a4ed2a48fa1a2d17e9d824e6c7c950bea5bad0b707c77fd55751e6bfef"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b002c7994cc9f2bc9d9856f0fbaee6e8072c983873846c92f25cefba5b2a925f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b486b5218808f6f4dc471b114b1054e63553db69705c97da0271f47bd706aedd"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b9c6bd754d11f6e78ac54e3d86b4b11dc1ba2f13e5fc958899574532897f5a99"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ba10ac57884ce82112f7ed910b67e7fb6072d8ef2c06e30dc63c0f604a112e0e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "bf5018938208d4597b2e679a4f8cff9fd252f1df53583130ae56281a21801b64"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c0919d1f89ddf91129906705723118ea09754171e4116f5a5dbc667c7bc9b261"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c5801a89604c65ab4cc9e91b23bc4076d0ca80efd8c976fb63843d7879a85d7f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c84af70bcf34e99aee894e46a0f1ac77f17d0ef828179c387407642e2466d28a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "cb2829fedd672dd7107267189dabe2bbe07972801d636014417c6861eb89e358"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d45e06f60729e07d9b20c205f7e5cff90b6ef2584e852eecf46e045aea69627d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d7ca16637c0ede8243f84074044bd0b2335a0341421f8227c85756de2d18c819"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d8375e3da319593389727c3187ccaf3e0e84199accc530866b8e0f2b79af05e9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "dfa552338f51aec280f17b02d28bace1e162d1a84ccd80e3339a57f98aedb56b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "dfef96543ced67d9513a422755db422ae1dc34dade0a1485e0b43e7342ed3ebf"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e012177c8e8a8a0754ae0d6027d63042aa5ff036d9f40f07cb3466a6082e21b8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e251126d48615e1f02b4a178f2cd0cd4f0332b8a019c01a2e10480f7552554b4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e52da10236aa6212de71b9e170bace65b64b129c0dea7fc243d6c9ce976f5074"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "eacb434410b8d9ca99a8d42352ef085cf423e3c76c1f0b86be2fcba3bff2952c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ebd8fd343bf8492a1e60bcb6dc99f90f74f65d98d8241a6b3e1fed225b76ecd6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f0b2af76b7e7060c09e1a0dfa9410eb19369cbe6164509bff2ef94094b54d2b6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f2073495a7f9b75e57e600747ac09510d67683fd64d3228e009740b7ef88f9fe"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f4c1bca487a17fe4226b4ffb2d30e799d2b274d692cffa76bd0746f56235fca3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f9fff308486bbd2c8c24f25e8e152c7594d3fe8db265a2d6a1ce24d58671127f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fbf1b8bb2695415b347f3727da1addca2acb82c9b97ac86bebf8b1bead1eb12d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "feedf219672eef83ea6be6f3bb093bba396a8560fc75be85ba225f082903df0a"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-04-07"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/rapidfuzz/3.14.5/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/regex@2026.9.29",
+   "name": "regex",
+   "version": "2026.9.29",
+   "purl": "pkg:pypi/regex@2026.9.29",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "Apache-2.0 AND CNRI-Python"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "01000ddf0e3ffef97f2413ceb514f6313040106b6d18a03ee00a4fe35c1eb1db"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0166844493626c5015c6088ee15c9ca2fd060ca15b7641d1657da6a58432ae33"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "044265d77d94f5e3cb2fd72c76723807c429cb8c533e9d4672d0334a6f14f588"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0476e5bcbe6e1ba3d1c4cc7bbb1c3ba78e3b979b5c8a88d0a6a8cdd4992b8c84"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "066d0e3dbfdd739bce2bf8c2a41dd16f73e3d8adc2eb06dd803a36a307f56075"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0b65c72739f981377c9c22e0c5c3cd7f42da7bd8a3c9209330fac772c7d893ed"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0c992c19cd45058a4b92f68f139c93db168b48fb1f322c9a7cd620806afb6b51"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0cc63b5e47c12a48d90c7e9d7de6a035dd14f62868aaedbb4e0ff8ba2b8bfe7b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0dd8af32e9f7b56b7f95cc1fd79b23054c3bdc172392ae560acc24d57b7ffe71"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0def9fb6abac55492d6d51cddb7225d07d6f279e774e0adc08569a54a5fc8d46"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "0fd2c901cc307a745ad4bc87f20060d7a0825a3371d1e93488af22e7a387f78f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1043aedf5917caa861bcb25a9c11460049656bdf0017a90a309fa8f255467725"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "121a76a0985db80ceae9e171c337f8c927868e37d01b54e3ce87bc87f9c6a208"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "143533cc4b6fbc5b95aca0a5b8d541088d374831593def000ec89322c220221d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "14e953ff3607c92d7675bf79c4d4509ef6782aa8c08509f179f9b3d6d0679e86"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "18ae8eed4526e35bdb754d61562b90bf5c00a67fdcf3cc1380dd59597486631b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "19959129885356df0e97556856f77eb2888380dac18bed075a7c05c5128c618d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1ba8c6a416569ce0d37e83e28a254a61dc99a419084dfb6476cea02d997f74fa"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1c2a0026062abcc321a53db4a185ceba0b59a66b5d37b0808917a88b55a5257f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "1d9fe8091b2e89d470df68a9331111ed008ae8aae6bf1e8e1fba4086a495c84e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2089fe39c406784d90101c726755ffa1497bb74638fd434300d2b88006186de8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "23ae6fdad9e63e54038f5ef78aba2933faca61e24d432786589e737bc5522ebb"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "26ec4ccce55aa533fbd603d08911b01101a8fcfec987845ac3ae2c7087b2bde3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "2f7f7aa47b229f2b39a2ae2596d2ad5625d77b5eb9856fac2dab3eb506cdd0a0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "31b003f9a070335e2a8233ee9b14a3ca8e6d792012ae011f741bf0aaf11744c5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "32ab11df9677ca80bcbb5fe4eb1da9109a5019239a054836efc6fa1c64e683cf"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "33026515aebc0e70d1c89978e53e8d695d35d9e472f8d5b34465ba3c74028650"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "34b6925af9853bf461950e6508910f179fd6e9b1a7ec8548e069606b7e51a26b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "352cf115a810b357caa35193ab656ecf5ef41056855e82f292c99e8514f8d954"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "39ab5894d971f9ac68baa6eca5c50387db579cfcacf36ae8df3feceb1815e6d0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3a21a9509d0ee88e7a70e1ad228cd2f0e0fd1e187458db132e8a8d18c97daf9d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3c5c2ef13797466aa64170cbb66ad98a32351dd4127694cea7199f80f213750d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3e778bfccd63075167709136afbc251c1f683758d5bf49c803c60ac3f894ce6b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "3f1e6cb402a89457582cd696f982559217d13484a193202c394015297968c86d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "42e82e578c904445d4c8a35b8f28052cf567593215fa5db06266fbc6f77aaa2e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4408b2b27a95ca8cc48b7411945753773353b5c93b307754781086c99d3a576f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "446654b29bfaa30500d80947eda42cef1449dc8a87f4e3cf061cc8485d3a1f0b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "45010bcfe66df41522d56c9b6114e87ecc597a08970ff6a2ced24415c141ae5f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "49ee178ca31c94621294bf9b8b676a92a2e6bba8af0529591753719e57edb621"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4d7d93613b01b0199961330e49cfc52d479b3d5776c56c691db31130c0a07d91"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4fb41211d2333eb930a51e0546a65999761cf1f572a4da56ef9b8a62966c06f2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4fe97894d1b306c919b4e50def1e6f6c522f4d03a7283811f4d108f1ce5d3ac2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "554bffadcbcb6d5f4e5fb10a61cc52084b9a63d1dab5f10bcd2c4343972e8e2c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "59b49507f47479e299a9e1bc41b5cb83a7afda0540625f1dbae886615978acbf"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "5eeb8edc6110d9194a4d0d54610f64c37a31c605b5dbb7e407fc6ec7fa34a4a1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "612b709381c0355b70d89cdb51b7f670591ed5cbbc0e3b5337488019dc667b65"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "61956f074ecd123f55adca68ee3eab46e6a07ad3f8e64e6db95dfacb444f55c4"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6398d5145689503412cc1748895242598d8846b8967b851133b20dc2ed1e21e8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "65b408d8fcb273e3499e7ef2ce796810da1becd208c7fb4373692a242d79d461"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "686ac5350fceae63830bb98805fcb8039325bf4c06d9f6f048ff65229d5bffa5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6a1a824fbed817e0a891103886b68f063b1e83cc51bc97192a90a60195a9291f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6abb75ab16bc3281714a5b99548a2225db70dba1f995f6d7f7419b76eb5a8fbe"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "6f7121a8914ed13fcfe2099f895341bfb789f004d4c5a0bdece8fa667da10849"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7020ed44df30b3aa492c00ee3b52d0548c1f30c2c6c5bb13ae897680900d3413"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "720537c7ea6f80dc61913184edb0ce2497a306b39ef19f28505b322553d52bdb"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "724184b4aafed865e4f13ca313fdcb43024300c028ec67319cfa16847d84685e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "7c03031610e3e6ed1768a2b7a8fc84637c1257b50c5eacaf094c6e17a84fc563"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "80a5ea3b4fd9d6a5b9a44f7976a9acaaab35aa3c1f6b29e5bd857dfabaded223"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "80c7cadd3fd2bfde5df8aa0787e315812cad0c313a753095d02f4c2b6c01677b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "80ea96f5c1a30bf09007d48466521d9c294bebe197c708c3359096e3e3691632"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "864e9b87ac33c3fb9fb4ad48166d4fdb579c351d5c77deb0d34bccb36a775cd9"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "87fb80cbe3557e27e7b28b995c2b2eedf689b8886f941ab93e0e288f0976518a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8873c4a11c50b9989168881aeb3f08859f469d809941866aa1feefd8be5431f6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "888d60953908dcf761aa320c3e390ab8556efbdb551ace63921de90f6ae0848d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8b5fcc4771732191b2b7d1dd68d8f0353f47f8d90b6150f6dce58bf1112442cb"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "8f39588af4731c8923c26810eb3b33f76f17633985e40f59c3cd45a33805a895"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9173db3be74a35cb6731701094b98120f7ee4876a287882a59cdea1fa7da342f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "92f05c9c42bde5785dc48770bc2194d9f7442544156f951e19cd31b096cec562"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "951733b1bbdb71e377cec567b409f1a7881b47cfcad84121aa74cb575fa425ea"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "957bb708e8057ab1649ba566456429d691ec9b90d1c9ad1af1ba7ffbbeaf05f2"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9916fda742cd4eede63b286f58c06718324265d727ce0856eb1aac86d0d150d6"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9e1d3a4cb7993b708f0ada8d0c84590efd853f169e7147d2202c9da503180242"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "9e4482589065c8ecd761cff522dcd85f2d39e62f551e37e025d1c7d54772def3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a5300757f8a68f5b6cc33f57338d72a0e3589c5cc9ad5f8504ea06f028be582a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a540abfab208e1b7ef2df231c40ef3b6cbb30a0aad6204e9b6a81c10a6794628"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a5758353650079898dc1b2b0e95aa51fa23a30d020e06f62c430dd08ee56cdd8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a64b85a4760337cfefdb27d42da6ed8b58e8cde3f2d57b6ef43e76ef6ea9ef47"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a655d34b2a6943af32401f3d94f72e9d731f6ad16285815550bf2b4ee69d420a"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a714befaacbd10092ffe4cea0d3c5f008fb9efe9bc322c715bcdfdee414b9a3d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a760da040b47767b4b873adfb7c3b691e9ba2fc60f113f9d0b88f1a62f323e85"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "addd736a0547d553283adaf4e05d7104e7f2c7b0b092e9b4d28756825f14531f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ae4613d7d9dda60fcba95f846cc6f808017f1843f392cf9daad14a6534493d71"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b11b589e00095ec69cf79841a76360f9b079e95b0368a25b5ebb951ab0c157ff"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b3e445b66c80b4eb4234e855ce94d9adc183eedbd632816228d89930b91b2c5b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b7b893976e7fe42053da64f2aa27239c24252fd2ec6df471e1be197c0addc3b1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b84f186a7f0536fe4ff9a9fa12d06d007b9b71d4b5352ddcc41f59ad6522a312"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b89efc38431793d28b7cd91227e2f952ad7c48df19132b17f43a5fec3c14143b"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b97a38fb4c732b6832db6bf108963adbcd82ef1268ba2025dce390f45af75efa"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b9d74e4eee9ddb64c2e92d5d61472c59c21684c059eb7b68767be9628e977859"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "bb90e7177944b6684738c1fc36aabd2dd00d1de3be7dbe09f91e196f1bc0dc81"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "bec37990e3d6121f29ecfb594bd8f1bf009e9f7926daba2e50e3b27d3892a783"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "bf3c49863c23a1ad6da9c30351aed6cff8d5ddbeb63c5c8420ae54e98c7d0138"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "bf48516e35cf848390ea68850aba53e7c333720d2945b4d2c25b69fc5171723f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "bfc71e6d970419c1309b3640305298643e2a734cad3f7cfb6d2ddee4175ab53d"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c0094897d7d01f184b2d7fe8c56c66d64efe01b31f4b7d34205b391387df1111"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c03c6eb6ece86dfdcbb34799efaa339b093132e1aceed491ba5e08fe06cdf699"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c1a9a6651197fbed6f0212591418b9def774fc3f8324f78d1bf0e6a63e5f8aa1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c3589f40749acce747510bf5d589d54e376cb0930ea58b35effac97e5312b0c1"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c4e38dd8f39c43a91d2410ad2b85610701b0979342c3df1d69eaf8e838c757d8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c6c8fabf1dafc1f1ddcbb67896d3f93efb092e8c4b6322d7389b944e76a484e5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c90fcf7804ea0a54b896ce0f2b9565350220b8d4890fd0db461a476a4c687963"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c9b602fae1e00b7c035d661ce85575365719192a7b46784bd71cf64c68053aa0"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ccb64d887a9db1cd76dbc0f92051a1a478a2a67e7f56c62d915cb881d7734704"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d06fcdecc10fc7954d7c8f27a03c96055fe525274dc84a7b0dbdc3d6b9e03dab"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d0c3082bf79bcd6a614d55916590ad4b8f93200e10b97f463ea5d9d07c9b5f23"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d49c18f1ea294cf4adde2e5ac256e98c82ea9d708462ce4bf799dffa7cfe8a2c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d60030baaa7bfbb02d650c126cdcddcb6e33dbff14d819434c8fa2fdcaeeeba5"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d7cab119d0df0b9413f106b4d7fc34f2872d3574ed3806fb48959c830b1537da"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d9b77b25b4f395f92de6099ab08e8ae2bc7e51dfe157f22900902243a5cc90c7"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "dabee8f4935e731fb46b2a3091bdda0d3d94b3bbfb907d2b4f12eefce4009619"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "db5e82ba15c142425b8406690032df89e39cca4a2e8afbbb9a3d84edc2373ac3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "dc79d36d0618752265f0d575915bdc5c5130ecb9c9f6b3bcefeae32e4bdfafcf"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ddfa987262763c3c22a8367d2a49c244b018a74c3a8e3ab1a864119ad45c5633"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e1172147d28d8fbcf8cb8d26c41506169f5ad8fe9ec969cb116835a19d4d8eca"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e11edba5bc344a32b029a7af9d4b3173982dd79eeafa0b9dbd787364414b0509"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e2c89e9b762c57f59d5e99ee8b20202adb892e35f8d3485741340999ca55058e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e31f72490b7c12f7790e1e25c3afffd20503ee1bfb43461d7838b871ff244b19"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "e8c65ef3862a8ad6e86492b6ed9327805dd66904c012bd3649dc67d822ed6c34"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ebb8912f565b8cdbbf27debfe00df04202c20e2f651b9e32767930c5eace3621"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ed511a0708e2297e1d6431e7fb217e3402791e491e02da800658ace4973df1bb"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "edf06545875f3efa31560d94121e95c7fd70d98b1dfedc0157097d79b13b52ea"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f0fe9834e5aeccaf19a0d8feb296d66a24be1a7c9922002f842a682cd5abb787"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f1a0d5117230dd46b399a30a38afa44f79c99f3168988fdc4f425c3f928b39df"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f37964e4a5e993d2fd45147741e9dff7f34a2d8c00ab94c4ea0514a4677f959e"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f57dc6b8fef170f105d2cf5cdce254f47b137d7755086cf7050f47e16582abba"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f93bc1c3486ef3747e07c9d7c1d0a147b8fbaab975f80e348aed6f71309dfaca"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fb00027a09a8f9f08028b40dce4c933cf73e4833240ed356583fdc9cfa721566"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fb99cc9d45f48895d9d67f6a0b8a57f08d39c174d9f25ad97a313e0470267b1c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fdd88ed5e20b1bcdd234421e454962c971aa44b653bdb7f1ea9ef683e90fb649"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "fe3fa1dd453ed5c7f5ea23a26218329790ed7197a99b90e94330e313959a7f52"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-09-29"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/regex/2026.9.29/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/scrapling@0.5.1",
+   "name": "scrapling",
+   "version": "0.5.1",
+   "purl": "pkg:pypi/scrapling@0.5.1",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "BSD-3-Clause"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "210e2b96cf2a67b0bb77e3671b2767bbad4ba41444b9a12adea7fd735b8cabaa"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "c9eb0ef22a05e00e19827a179544fea2bc91b663585f637d428453d3b00ceb17"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-11-04"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/scrapling/0.5.1/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/six@1.17.0",
+   "name": "six",
+   "version": "1.17.0",
+   "purl": "pkg:pypi/six@1.17.0",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "MIT"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2024-12-04"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/six/1.17.0/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/tld@0.13.2",
+   "name": "tld",
+   "version": "0.13.2",
+   "purl": "pkg:pypi/tld@0.13.2",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "MPL-1.1 OR GPL-2.0-only OR LGPL-2.1-or-later"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "9b8fdbdb880e7ba65b216a4937f2c94c49a7226723783d5838fc958ac76f4e0c"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "d983fa92b9d717400742fca844e29d5e18271079c7bcfabf66d01b39b4a14345"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-03-06"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/tld/0.13.2/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/trafilatura@2.3.1",
+   "name": "trafilatura",
+   "version": "2.3.1",
+   "purl": "pkg:pypi/trafilatura@2.3.1",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "Apache-2.0"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "2e5557aeab32d33b9da7ff0debbb677a676c5b648a927e50d91b8277011e1105"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "f86bad2ee36f82884e14dee84c83aae0f0ac0127da5c65764e82f3846716b822"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-10-06"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/trafilatura/2.3.1/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/typing-extensions@4.16.0",
+   "name": "typing-extensions",
+   "version": "4.16.0",
+   "purl": "pkg:pypi/typing-extensions@4.16.0",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "PSF-2.0"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "dc983d19a509c94dba722ee6abd33940f7c05a89e243c47e907eb4db6f1a43e5"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-07-02"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "browser"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/typing-extensions/4.16.0/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/tzdata@2026.5",
+   "name": "tzdata",
+   "version": "2026.5",
+   "purl": "pkg:pypi/tzdata@2026.5",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "Apache-2.0"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "8cc73c0a0bfca7dbfa59235d60b2eff82231dee33f53d206db1acd9173cfc0a7"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "b683bd1b6659ddcd810ff02ad09ba821d4bf1065072805063eb35c49617905ac"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-10-03"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/tzdata/2026.5/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/tzlocal@5.4.5",
+   "name": "tzlocal",
+   "version": "5.4.5",
+   "purl": "pkg:pypi/tzlocal@5.4.5",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "MIT"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "ba976898bad27945178c9ca25c222c19e322b30c10342b9f40b46714f70d2d5f"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "ecab534f6d65d9deb4c4ea52c121ab6dd5958e9b878e71dcb102578269752454"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-10-22"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/tzlocal/5.4.5/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/urllib3@2.8.0",
+   "name": "urllib3",
+   "version": "2.8.0",
+   "purl": "pkg:pypi/urllib3@2.8.0",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "MIT"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "63bf2ead4c879426ebf22ef2a781eeb4aa3b4ae798a0435506f8687fd5bb9b63"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-09-15"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/urllib3/2.8.0/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/w3lib@2.5.0",
+   "name": "w3lib",
+   "version": "2.5.0",
+   "purl": "pkg:pypi/w3lib@2.5.0",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "BSD-3-Clause"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "136fd5edfe64b53b8579838e2a7e803495bbbe6b69ddfaeed3c29a794b44f6ba"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "a7ddf714508ddc1b8563bd19ace2feb28080bbaca39326cbc964359f6754f615"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:released",
+     "value": "2026-09-30"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "research"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/w3lib/2.5.0/"
+    }
+   ]
+  }
+ ],
+ "services": [
+  {
+   "bom-ref": "service:1",
+   "name": "GLEIF API / Golden Copy",
+   "endpoints": [
+    "https://api.gleif.org/"
+   ],
+   "authenticated": false,
+   "x-trust-boundary": true,
+   "data": [
+    {
+     "flow": "inbound",
+     "classification": "public"
+    }
+   ],
+   "licenses": [
+    {
+     "expression": "CC0-1.0"
+    }
+   ]
+  },
+  {
+   "bom-ref": "service:2",
+   "name": "Wikidata SPARQL",
+   "endpoints": [
+    "https://query.wikidata.org/"
+   ],
+   "authenticated": false,
+   "x-trust-boundary": true,
+   "data": [
+    {
+     "flow": "inbound",
+     "classification": "public"
+    }
+   ],
+   "licenses": [
+    {
+     "expression": "CC0-1.0"
+    }
+   ]
+  },
+  {
+   "bom-ref": "service:3",
+   "name": "OpenStreetMap Overpass",
+   "endpoints": [
+    "https://overpass-api.de/"
+   ],
+   "authenticated": false,
+   "x-trust-boundary": true,
+   "data": [
+    {
+     "flow": "inbound",
+     "classification": "public"
+    }
+   ],
+   "licenses": [
+    {
+     "expression": "ODbL-1.0"
+    }
+   ]
+  },
+  {
+   "bom-ref": "service:4",
+   "name": "OpenStreetMap Nominatim",
+   "endpoints": [
+    "https://nominatim.openstreetmap.org/"
+   ],
+   "authenticated": false,
+   "x-trust-boundary": true,
+   "data": [
+    {
+     "flow": "inbound",
+     "classification": "public"
+    }
+   ],
+   "licenses": [
+    {
+     "expression": "ODbL-1.0"
+    }
+   ]
+  },
+  {
+   "bom-ref": "service:5",
+   "name": "TED – Tenders Electronic Daily",
+   "endpoints": [
+    "https://api.ted.europa.eu/"
+   ],
+   "authenticated": false,
+   "x-trust-boundary": true,
+   "data": [
+    {
+     "flow": "inbound",
+     "classification": "public"
+    }
+   ],
+   "licenses": [
+    {
+     "expression": "CC-BY-4.0"
+    }
+   ]
+  },
+  {
+   "bom-ref": "service:6",
+   "name": "GeoNames Postal Codes",
+   "endpoints": [
+    "https://download.geonames.org/export/zip/"
+   ],
+   "authenticated": false,
+   "x-trust-boundary": true,
+   "data": [
+    {
+     "flow": "inbound",
+     "classification": "public"
+    }
+   ],
+   "licenses": [
+    {
+     "expression": "CC-BY-4.0"
+    }
+   ]
+  }
+ ],
+ "dependencies": [
+  {
+   "ref": "signaldesk",
+   "dependsOn": [
+    "runtime:cpython",
+    "runtime:chromium",
+    "data:gemeinden_de.json",
+    "pkg:pypi/babel@2.18.0",
+    "pkg:pypi/certifi@2026.10.23",
+    "pkg:pypi/cffi@2.1.1",
+    "pkg:pypi/charset-normalizer@3.5.2",
+    "pkg:pypi/courlan@1.4.0",
+    "pkg:pypi/cryptography@46.0.7",
+    "pkg:pypi/cssselect@1.5.0",
+    "pkg:pypi/dateparser@1.4.3",
+    "pkg:pypi/greenlet@3.5.6",
+    "pkg:pypi/htmldate@1.11.0",
+    "pkg:pypi/justext@3.0.2",
+    "pkg:pypi/lxml-html-clean@0.4.5",
+    "pkg:pypi/lxml@6.1.3",
+    "pkg:pypi/orjson@3.13.0",
+    "pkg:pypi/playwright@1.64.1",
+    "pkg:pypi/pycparser@3.11",
+    "pkg:pypi/pyee@13.0.1",
+    "pkg:pypi/python-dateutil@3.0.0",
+    "pkg:pypi/pytz@2026.5",
+    "pkg:pypi/rapidfuzz@3.14.5",
+    "pkg:pypi/regex@2026.9.29",
+    "pkg:pypi/scrapling@0.5.1",
+    "pkg:pypi/six@1.17.0",
+    "pkg:pypi/tld@0.13.2",
+    "pkg:pypi/trafilatura@2.3.1",
+    "pkg:pypi/typing-extensions@4.16.0",
+    "pkg:pypi/tzdata@2026.5",
+    "pkg:pypi/tzlocal@5.4.5",
+    "pkg:pypi/urllib3@2.8.0",
+    "pkg:pypi/w3lib@2.5.0"
+   ]
+  }
+ ]
+}

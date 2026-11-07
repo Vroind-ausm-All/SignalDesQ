@@ -121,6 +121,9 @@ def _decode_content(body, encoding, policy):
 
 def robots_check(url, policy=pol.DEFAULT_POLICY):
     """True/False nach RFC 9309; Regeln je Website zwischengespeichert."""
+    from ... import netpolicy
+    if netpolicy.offline():
+        raise FetchError(netpolicy.MESSAGE.format(what='der Website-Abruf'), kind='offline')
     rules = pol.ROBOTS.get(url, policy.robots_ttl)
     if rules is None:
         p = urlsplit(url)

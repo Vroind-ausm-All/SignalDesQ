@@ -184,40 +184,10 @@ def _set(conn, rid, key, **kw):
 
 
 def _step_impressum(conn, db_path, lead):
-    from . import imprint_batch as ib
-    run = ib.create_run(conn, {'lead_id': lead['id'], 'label': f"Firmen-Bericht: {lead['company']}"[:120]}, db_path, start=False)
-    item = run['items'][0]
-    if item['status'] == 'pending':
-        ib._process(db_path, item['id'], True)
-    row = conn.execute('SELECT status, error, result_json FROM batch_items WHERE id=?', (item['id'],)).fetchone()
-    if row['status'] != 'done':
-        return 'fehler' if row['status'] == 'failed' else 'hinweis', row['error'] or 'Kein Impressum gefunden.', {'imprint_item': item['id']}
-    fields = (json.loads(row['result_json']).get('fields') or {})
-    found = [k for k, v in fields.items() if v and v.get('value')]
-    # v1.13: Firmendaten automatisch in LEERE Lead-Felder übernehmen (vorhandene Werte bleiben, Personen nicht automatisch)
-    auto_note = ''
-    try:
-        r = ib.review_item(conn, item['id'], {'decision': 'ergaenzen', 'lead_id': lead['id'], 'include_representatives': False})
-        auto_note = f" · {len(r['applied'])} automatisch übernommen" + (f", {len(r['kept_existing'])} vorhandene Werte behalten" if r['kept_existing'] else '')
-    except ValueError as exc:
-        auto_note = f' · nicht übernommen: {exc}'
-    # v1.16 (Sprint 2): strukturierte Angaben der Website (JSON-LD/Microdata) als UNGEPRÜFTE Fakten mit Beleg
-    from .company_data import add_fact
-    structured = json.loads(row['result_json']).get('structured') or {}
-    n_struct = 0
-    for ev in structured.get('evidence', [])[:20]:
-        if add_fact(conn, lead['id'], ev['field'], ev['value'], 'website_strukturiert', ev['source_url'], ev['evidence'], ev['method'],
-                    'mittel', 'ungeprueft'):
-            n_struct += 1
-    conn.commit()
-    if n_struct:
-        auto_note += f' · {n_struct} strukturierte Angaben der Website als Beleg gespeichert'
-    legal = (fields.get('legal_name') or {}).get('value')
-    if legal and lead['company'] == normalize_domain(lead['website']):
-        # Platzhalter aus „Bericht für Website“ durch den Namen laut Impressum ersetzen (kein bestätigter Registerwert)
-        conn.execute("UPDATE leads SET company=?, updated_at=datetime('now') WHERE id=?", (legal[:200], lead['id']))
-        conn.commit()
-    return 'fertig', f"{len(found)} Felder ausgelesen{auto_note}", {'imprint_item': item['id']}
+    # v1.19: gemeinsame Übertragung ins Firmenprofil (lead_imprint) – Firmendaten in LEERE Felder, Personen nie automatisch
+    from .lead_imprint import apply_for_lead
+    status, note, refs, _ = apply_for_lead(conn, db_path, lead)
+    return status, note, refs
 
 
 def _step_website(conn, db_path, lead):

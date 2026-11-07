@@ -2,14 +2,16 @@
 # Ohne diese Pakete arbeitet SignalDesk mit dem eingebauten Parser – gleiche Ergebnisse im Testgelände.
 # Bewusst NUR der Kern von Scrapling (kein „scrapling[fetchers]“): dessen Abruf tarnt sich als Chrome,
 # setzt einen Google-Referer und zieht patchright/browserforge/Playwright nach (≈ 362 MB) – nicht eingebaut.
-# Versionen fest gepinnt (geprüft am 06.11.2026); Lizenzen siehe docs/BERICHT_SPRINT_S0_S1.md.
+# Gemessene Hauptversionen fest; Abhängigkeiten als Bereich – die genaue, auf Windows/Linux und Python 3.10–3.13
+# installierbare Version mit Prüfsumme steht in requirements-lock-research.txt (tools/make_lock.py, v1.19).
+# Lizenzen siehe docs/BESTANDTEILE.md.
 scrapling==0.5.1          # BSD-3-Clause
-lxml==6.1.3               # BSD-3-Clause
-cssselect==1.6.0          # BSD-3-Clause
-orjson==3.13.0            # MPL-2.0 AND (Apache-2.0 OR MIT)
-tld==0.13.2               # MPL-1.1 OR GPL-2.0-only OR LGPL-2.1-or-later
-w3lib==2.6.0              # BSD-3-Clause
-typing_extensions==4.16.0 # PSF-2.0
+lxml>=5.3,<7              # BSD-3-Clause
+cssselect>=1.2,<2         # BSD-3-Clause (1.6 braucht Python ≥ 3.11)
+orjson>=3.10,<4           # MPL-2.0 AND (Apache-2.0 OR MIT)
+tld>=0.13,<1              # MPL-1.1 OR GPL-2.0-only OR LGPL-2.1-or-later
+w3lib>=2.1,<3             # BSD-3-Clause (2.6 braucht Python ≥ 3.11)
+typing_extensions>=4.12   # PSF-2.0
 
 # Optional ab v1.16: Trafilatura als Haupttext-Leser (Schalter „Haupttext“). Im Testgelände 23× langsamer als der
 # eingebaute Leser und verlor 12 von 60 Hauptüberschriften – daher nicht Standard. Lizenz Apache-2.0.
@@ -19,6 +21,6 @@ trafilatura==2.3.1        # Apache-2.0 (zieht htmldate, justext, courlan, lxml_h
 
 # Optional ab v1.17: RapidFuzz für den Dubletten-Abgleich (Namensähnlichkeit). Ohne RapidFuzz rechnet SignalDesk mit difflib –
 # gleiche Ergebnisse in allen Tests, RapidFuzz ist etwa doppelt so schnell (1,5 statt 2,9 ms je Abgleich bei 20 000 Firmen).
-rapidfuzz==3.14.6         # MIT
+rapidfuzz>=3.9,<4          # MIT (3.14.6 gemessen; ältere 3.x für Python 3.10)
 # DuckDB (Plan: großer Katalog) wurde gemessen und NICHT eingebaut: Import 14× schneller, aber 343 statt 31 MB Arbeitsspeicher
 # und 58 MB Zusatzpaket – der Katalog nutzt SQLite mit FTS5 (in Python enthalten). Messung: docs/bench/v1.17-catalog.json.

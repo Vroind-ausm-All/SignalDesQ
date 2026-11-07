@@ -133,10 +133,10 @@ def _row(r):
     city = _title_city((r.get('Entity.LegalAddress.City') or '').strip())
     reg = (r.get('Registration.RegistrationStatus') or '').strip().upper()
     active = (r.get('Entity.EntityStatus') or 'ACTIVE').strip().upper() == 'ACTIVE' and reg not in INACTIVE_REG
-    return {'lei': (r.get('LEI') or '').strip().upper(), 'name': name[:300], 'name_norm': ident.core_name(name)[:300],
+    return {'lei': (r.get('LEI') or '').strip().upper(), 'name': name[:300], 'name_norm': ident.core_name(name, cache=False)[:300],
             'legal_form': hit[0] if hit else '', 'elf': elf[:8], 'category': (r.get('Entity.EntityCategory') or '').strip()[:30],
             'street': street[:200], 'zip': (r.get('Entity.LegalAddress.PostalCode') or '').strip()[:12], 'city': city[:120],
-            'city_norm': ident.norm_city(city), 'country': (r.get('Entity.LegalAddress.Country') or '').strip().upper()[:2],
+            'city_norm': ident.norm_city.__wrapped__(city), 'country': (r.get('Entity.LegalAddress.Country') or '').strip().upper()[:2],
             'register_id': (r.get('Entity.RegistrationAuthority.RegistrationAuthorityEntityID') or '').strip()[:60],
             'created': (r.get('Entity.EntityCreationDate') or '')[:10], 'registered': (r.get('Registration.InitialRegistrationDate') or '')[:10],
             'last_update': (r.get('Registration.LastUpdateDate') or '')[:25], 'reg_status': reg[:20], 'active': 1 if active else 0}
