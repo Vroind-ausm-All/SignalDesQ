@@ -20,6 +20,20 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 ---
 
+## v1.19 – Windows-Release, Offline-Modus, Wiederherstellen (Masterplan 2.0, Sprint 6)
+
+- **Firmendaten kommen jetzt automatisch ins Firmenprofil:** Sobald eine Firma eine bestätigte Website hat, liest SignalDesk das Impressum und füllt leere Felder (Name, Anschrift, Register, USt-IdNr., Telefon, E-Mail). Website-Vorschläge bestätigst du in der Firmenakte mit „Website passt“. Vorhandene Werte bleiben, Personen werden nie automatisch angelegt.
+- **Ausstattung wählen:** Beim ersten Start fragt SignalDesk nach der Variante:
+  - **Standard:** mit Browser-Prüfung;
+  - **Schlank:** ohne Zusatzpakete;
+  - **Team:** mit verschlüsselter Sicherung;
+  - **Voll:** mit Recherche-Extras.
+
+  Später änderbar mit `SignalDesk_starten.bat --variante team`. Alle Pakete haben feste Versionen mit Prüfsummen.
+- **Offline arbeiten:** `SignalDesk_offline_starten.bat` oder der Schalter unter „Datenqualität & System“. Ohne Internet laufen CRM, Angebote, Buchhaltung und Sicherungen weiter; Recherchen warten.
+- **Sicherung zurückholen:** unter „Datenqualität & System → Wiederherstellen“ oder eine Sicherungsdatei auf `SignalDesk_wiederherstellen.bat` ziehen. Der aktuelle Stand wird vorher automatisch gesichert.
+- **Geprüft auf frischen Windows- und Linux-Maschinen** (automatisch bei jeder Änderung). Bestandteile und Lizenzen: [`docs/BESTANDTEILE.md`](docs/BESTANDTEILE.md) · Grenzen: [`docs/EINSCHRAENKUNGEN.md`](docs/EINSCHRAENKUNGEN.md) · Bericht: [`docs/BERICHT_SPRINT_S6.md`](docs/BERICHT_SPRINT_S6.md)
+
 ## v1.18 – Geführter Arbeitstag (Masterplan 2.0, Sprint 5)
 
 - **Firmenakte:** Im Lead-Fenster siehst du den Ablauf (Recherche → Kontaktweg → Gespräch → Termin → Bedarf → Angebot → Abschluss), den nächsten Schritt mit einem Klick, wie viel vom Score belegt ist, und alles Erledigte als Zeitleiste.

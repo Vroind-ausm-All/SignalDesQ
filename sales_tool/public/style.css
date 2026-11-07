@@ -459,3 +459,10 @@
 .td-close-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}.td-close-actions input[type=text]{flex:1 1 220px}
 @media(max-width:900px){.lf-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.lf-cols,.td-close-cols{grid-template-columns:1fr}.td-dead-row{grid-template-columns:1fr}.lf-need-row{grid-template-columns:1fr 1fr}}
 .lf-steps li b{overflow-wrap:anywhere;hyphens:auto}
+/* v1.19 Firmendaten aus dem Impressum in der Akte */
+.lf-cd{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;display:grid;gap:6px}
+.lf-cd-head{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.lf-cd small{font-size:12px;overflow-wrap:anywhere}
+.lf-cd-sug{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:8px 10px;border-radius:8px;background:#fdf5e6}
+.lf-cd-sug small{display:block;color:var(--muted);font-size:11px}
+/* v1.19 Offline-Hinweis */
+.offline-badge{font-size:11px;font-weight:700;padding:6px 8px;border-radius:8px;background:#fdf5e6;color:#7a5418;margin-bottom:8px}

@@ -419,7 +419,9 @@ def lead_file(conn, lead_id):
     steps, nxt = _steps(conn, lead, lock)
     open_tasks = [dict(r) for r in conn.execute("SELECT id, title, due_date FROM tasks WHERE lead_id=? AND done=0 ORDER BY (due_date=''), due_date", (lead_id,))]
     lv = as_lead(lead)
-    return {'lead': {k: lv[k] for k in ('id', 'company', 'stage', 'permission', 'contact_route', 'website', 'location', 'next_step', 'next_date', 'score')},
+    from .lead_imprint import status as company_data_status
+    return {'company_data': company_data_status(conn, lead_id),
+            'lead': {k: lv[k] for k in ('id', 'company', 'stage', 'permission', 'contact_route', 'website', 'location', 'next_step', 'next_date', 'score')},
             'score_reasons': lv['score_reasons'], 'lock': lock, 'steps': steps, 'next': nxt, 'need': need_status(conn, lead_id),
             'coverage': evidence_coverage(conn, lead), 'open_tasks': open_tasks, 'timeline': timeline(conn, lead_id)}
 

@@ -411,6 +411,9 @@ def validate_budget(b):
 
 
 def start_sweep(conn, data, db_path, start=True):
+    from . import netpolicy
+    if netpolicy.offline():
+        raise ValueError(netpolicy.MESSAGE.format(what='die Sammelsuche'))
     p = validate_params(data)
     today_count = conn.execute("SELECT COUNT(*) FROM sweeps WHERE kind='suche' AND created_at >= date('now')").fetchone()[0]
     if today_count >= DAILY_SWEEPS:
@@ -1154,7 +1157,7 @@ def _rehome_duplicates(conn, cid, decision, lead_id=None):
                      (f'ähnlich zum verworfenen Treffer #{cid}', cid))
 
 
-def decide(conn, cid, decision):
+def decide(conn, cid, decision, db_path=None):
     cand = conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (cid,)).fetchone()
     if not cand:
         raise LookupError('Treffer nicht gefunden.')
@@ -1172,7 +1175,10 @@ def decide(conn, cid, decision):
     conn.execute('UPDATE discovery_candidates SET dup_of=NULL, possible_lead_id=NULL WHERE id=?', (cid,))
     _rehome_duplicates(conn, cid, 'uebernehmen', lid)
     contact = json.loads(cand['contact_json'] or '{}')
-    upd = {'legal_name': cand['name'], 'legal_form': cand['legal_form'] if cand['source'] != 'ted' else '', 'street': cand['street'],
+    # v1.19: Registername nur, wenn die Quelle ihn wirklich liefert (GLEIF/Import oder Name mit Rechtsform) – sonst
+    # blockierte ein Anzeigename aus OSM („Kesselwerk“) den echten Namen aus dem Impressum
+    legal_name = cand['name'] if (cand['source'] in ('gleif', 'gleif_csv') or lf.legal_form_of(cand['name'])) else ''
+    upd = {'legal_name': legal_name, 'legal_form': cand['legal_form'] if cand['source'] != 'ted' else '', 'street': cand['street'],
            'zip': cand['zip'], 'city': cand['city'],
            'register_number': cand['register_id'] if register_key(cand['register_id'], 'x') else ''}
     if cand['legal_form'] and contact:
@@ -1187,12 +1193,19 @@ def decide(conn, cid, decision):
         conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
                      (lid, 'notiz', f"Website-Vorschlag {cand['website']} noch nicht bestätigt ({cand['website_evidence']}). Bitte prüfen."[:900]))
     auto = _apply_imprint(conn, lid, cand)
+    queued = None
+    if not auto and (cand['website_status'] in CONFIRMED_WEB or (cand['website'] and cand['website_status'] == '')):
+        # v1.19: Website laut Quelle/belegt, aber noch kein Impressum gelesen → jetzt automatisch nachholen
+        from . import lead_imprint
+        queued = lead_imprint.queue(conn, db_path, lid, 'Übernahme aus der Sichtung', start=bool(db_path))
     srcs = ', '.join(lf.SOURCES.get(s['source'], {}).get('title', s['source']) for s in json.loads(cand['sources_json'] or '[]'))
     conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
                  (lid, 'notiz', (f"Quellen: {srcs}. Website: {cand['website_evidence'] or 'noch nicht gefunden'}."
                                  + (f" Aus dem Impressum automatisch übernommen: {', '.join(auto)}." if auto else ''))[:900]))
     conn.commit()
     res['auto_applied'] = auto
+    res['imprint_queued'] = bool(queued)
+    res['website_suggestion'] = cand['website'] if cand['website_status'] in ('wahrscheinlich', 'nicht_bestaetigt') else ''
     return res
 
 
@@ -1226,7 +1239,7 @@ def _apply_imprint(conn, lead_id, cand):
     return applied
 
 
-def bulk(conn, data):
+def bulk(conn, data, db_path=None):
     if not isinstance(data, dict) or set(data) != {'ids', 'decision'} or not isinstance(data['ids'], list) or not 1 <= len(data['ids']) <= 200:
         raise ValueError('Erwartet: {ids: [...] (1–200), decision}.')
     done, errors, lead_ids = 0, [], []
@@ -1234,7 +1247,7 @@ def bulk(conn, data):
         if isinstance(cid, bool) or not isinstance(cid, int):
             raise ValueError('IDs müssen Zahlen sein.')
         try:
-            res = decide(conn, cid, data['decision'])
+            res = decide(conn, cid, data['decision'], db_path)
             done += 1
             if res.get('lead_id'):
                 lead_ids.append(res['lead_id'])
@@ -1490,7 +1503,7 @@ def route_sweep(h, conn, method, route, query, db_path):
         h._send(200, review_duplicate(conn, int(m.group(1)), b['decision']))
         return True
     if route == '/api/sweep-candidates/bulk' and method == 'POST':
-        h._send(200, bulk(conn, h._body()))
+        h._send(200, bulk(conn, h._body(), db_path))
         return True
     if route == '/api/sweep-candidates/find-websites' and method == 'POST':
         h._send(202, queue_websites(conn, h._body(), db_path))
@@ -1504,6 +1517,6 @@ def route_sweep(h, conn, method, route, query, db_path):
         b = h._body()
         if set(b) != {'decision'}:
             raise ValueError('Erwartet: {decision}.')
-        h._send(200, decide(conn, int(m.group(1)), b['decision']))
+        h._send(200, decide(conn, int(m.group(1)), b['decision'], db_path))
         return True
     return False

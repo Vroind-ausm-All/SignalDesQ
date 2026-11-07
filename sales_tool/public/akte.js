@@ -8,7 +8,25 @@
   const KIND_ICON = {aktivitaet: '✎', anruf: '☎', termin: '◷', angebot: '€', mail: '✉', aufgabe: '☐', bericht: '◎', beleg: '§', bewertung: '★',
     signal: '⚑', rechnung: '₠', fund: '⌕'};
   const NEED_SKIP = ['anreise', 'aufwand', 'tagessatz'];
-  let catalog = null, file = null, filter = '';
+  let catalog = null, file = null, filter = '', cdPoll = null;
+  const CD_STATE = {uebernommen: ['übertragen', 'ok'], laeuft: ['wird gelesen …', 'wait'], vorschlag: ['Website bestätigen', 'mid'],
+    ohne_website: ['keine Website', 'off'], kein_impressum: ['kein Impressum gefunden', 'mid'], fehler: ['nicht gelesen', 'off'], offen: ['noch nicht gelesen', 'mid']};
+  const CD_FIELDS = {legal_name: 'Firmenname', street: 'Straße', zip: 'PLZ', city: 'Ort', register_number: 'Registernr.', vat_id: 'USt-IdNr.',
+    business_phone: 'Telefon', business_email: 'E-Mail'};
+
+  // v1.19: Firmendaten aus dem Impressum – übertragen? wenn nein: warum, und was hilft
+  function companyData(cd) {
+    const st = CD_STATE[cd.state] || [cd.state, 'off'];
+    const sug = cd.suggestion;
+    return `<div class="lf-cd" id="lfCd"><div class="lf-cd-head"><b>Firmendaten aus dem Impressum</b><span class="sw-web ${st[1]}">${esc(st[0])}</span></div>
+      <small>${esc(cd.detail)}</small>
+      ${cd.filled.length ? `<small class="muted">Im Firmenprofil: ${cd.filled.map(k => esc(CD_FIELDS[k] || k)).join(', ')}${cd.imprint_url ? ` · <a href="${esc(cd.imprint_url)}" target="_blank" rel="noopener noreferrer">Impressum ↗</a>` : ''}</small>` : ''}
+      ${sug ? `<div class="lf-cd-sug"><span>Website-Vorschlag: <a href="${esc(sug.website)}" target="_blank" rel="noopener noreferrer">${esc(sug.website.replace(/^https?:\/\//, ''))} ↗</a>
+        <small>${esc(sug.evidence || '')}${sug.fields.length ? ` · ${sug.fields.length} Firmendaten schon gelesen` : ''}</small></span>
+        <span class="acc-btn-group"><button type="button" class="btn btn-primary" data-lf-sug="bestaetigen">✓ Website passt – Daten übernehmen</button><button type="button" class="text-button" data-lf-sug="ablehnen">✕ passt nicht</button></span></div>` : ''}
+      ${cd.can_run && cd.state !== 'laeuft' ? `<button type="button" class="text-button" data-lf-read>${cd.checked_at ? 'Impressum erneut lesen' : 'Impressum jetzt lesen'}</button>` : ''}
+      ${cd.auto ? '' : '<small class="muted">Automatische Übertragung ist ausgeschaltet (Datenqualität & System).</small>'}</div>`;
+  }
 
   async function services() {
     if (!catalog) catalog = await api('/pricing/catalog');
@@ -61,6 +79,7 @@
           ${n.action ? `<button type="button" class="btn btn-primary" data-lf-go='${esc(JSON.stringify(n.action))}'>${esc(n.action.label)} ▶</button>` : ''}</div></div>
         ${file.lock ? `<div class="lf-lock" role="alert">⛔ Kontaktsperre: Firma ist ${esc(file.lock)}. Anruf, Termin, Mail-Entwurf und Angebot sind gesperrt. Ein Widerspruch lässt sich immer dokumentieren.</div>` : ''}
         ${stepBar(file.steps)}
+        ${companyData(file.company_data)}
         <div class="lf-cols">${coverage(file.coverage)}
           <div class="lf-need" id="lfNeed"><b>Bedarf ${need.confirmed ? `bestätigt <span class="sw-web ok">am ${esc(fmtDate(need.confirmed_at.slice(0, 10)))}</span>` : '<span class="sw-web mid">noch nicht bestätigt</span>'}</b>
             ${need.confirmed ? `<small>${esc(need.note)}</small><ul class="lf-need-list">${need.needs.map(x => `<li>${esc(svcs.find(s => s.key === x.service)?.title || x.service)}${x.size ? ' · ' + esc({S: 'Basis', M: 'Standard', L: 'Umfangreich'}[x.size]) : ''}${x.qty ? ' · ' + x.qty + '×' : ''}</li>`).join('')}</ul>
@@ -77,6 +96,8 @@
       box.classList.remove('hidden');
       applyDataWidths(box);
       qa('.lf-need-row', box).forEach(r => syncRow(r, svcs));
+      clearTimeout(cdPoll);
+      if (file.company_data.state === 'laeuft') cdPoll = setTimeout(() => { if (currentLeadId === id && !$('#modal').classList.contains('hidden')) render(id).then(() => { if (file.company_data.state !== 'laeuft' && typeof reload === 'function') reload(); }); }, 3000);
     } catch (e) { box.innerHTML = `<div class="empty">${esc(e.message)}</div>`; box.classList.remove('hidden'); }
   }
 
@@ -109,6 +130,25 @@
       const g = e.target.closest('[data-lf-go]');
       if (g) return go(JSON.parse(g.dataset.lfGo));
       if (e.target.closest('[data-lf-quote]')) return quoteFromNeed();
+      const sg = e.target.closest('[data-lf-sug]');
+      if (sg) {
+        try {
+          const r = await api(`/leads/${currentLeadId}/website-suggestion`, 'POST', {decision: sg.dataset.lfSug});
+          toast(sg.dataset.lfSug === 'bestaetigen' ? (r.queued ? 'Website bestätigt – Impressum wird gelesen und ins Firmenprofil übertragen' : 'Website bestätigt – Firmendaten übertragen')
+            : 'Vorschlag abgelehnt – diese Domain wird nicht wieder vorgeschlagen');
+          if (typeof reload === 'function') await reload();
+          const lead = leads.find(x => x.id === currentLeadId);
+          if (lead && $('#leadForm')) for (const k of ['website', 'location']) if ($('#leadForm').elements[k]) $('#leadForm').elements[k].value = lead[k] || '';
+          render(currentLeadId);
+          if (window.loadCompanyFacts) window.loadCompanyFacts(currentLeadId);
+        } catch (err) { toast(err.message, true); }
+        return;
+      }
+      if (e.target.closest('[data-lf-read]')) {
+        try { await api(`/leads/${currentLeadId}/company-data/read`, 'POST', {}); toast('Impressum wird gelesen – Firmendaten kommen in leere Felder'); render(currentLeadId); }
+        catch (err) { toast(err.message, true); }
+        return;
+      }
       if (e.target.closest('[data-need-add]')) { const svcs = await services(); box.querySelector('.lf-need-rows').insertAdjacentHTML('beforeend', needRow(svcs)); qa('.lf-need-row', box).forEach(r => syncRow(r, svcs)); return; }
       const del = e.target.closest('[data-need-del]');
       if (del) { if (qa('.lf-need-row', box).length > 1) del.closest('.lf-need-row').remove(); return; }

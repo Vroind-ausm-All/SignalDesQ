@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.19.0 – Masterplan 2.0: Sprint 6 (Windows-Release, Offline, Wiederherstellung) + Firmendaten-Übertragung
+
+- **Behoben – automatische Datenübertragung ins Firmenprofil:**
+  - **Website-Vorschläge:** Die Website wurde bei „Übernehmen“ entfernt und die gelesenen Daten verworfen. Jetzt lässt sich der Vorschlag in der Firmenakte bestätigen, und die Daten werden übertragen.
+  - **Websites „laut Quelle“ oder von Hand eingetragen:** Das Impressum wird jetzt automatisch im Hintergrund gelesen.
+  - **„Impressum prüfen“** übernimmt jetzt automatisch statt manuell.
+  - **OSM-Anzeigenamen** blockieren den Registernamen nicht mehr.
+  - In der Akte steht, ob und warum (nicht) übertragen wurde.
+- **Installationsvarianten** `basis` / `browser` / `team` / `voll`; beim ersten Einrichten wählbar, später mit `--variante`.
+- **Feste Versionen mit SHA-256-Prüfsummen** (`requirements-lock-*.txt`): eine Version je Paket für Windows/Linux × Python 3.10–3.13, mitgezogene Pakete nur, wenn mindestens 14 Tage alt.
+- **SBOM** (CycloneDX 1.5) und Lizenzübersicht `docs/BESTANDTEILE.md`.
+- **Reproduzierbares Release-ZIP** (byte-gleich) mit Prüfsummenliste und Sicherheitsprüfung; optional Offline-Paket mit `wheels/`.
+- **Offline-Modus:** keine Abrufe aus dem Internet; Aufträge warten. Einschaltbar in der Oberfläche oder mit `--offline` bzw. `SignalDesk_offline_starten.bat`.
+- **Wiederherstellen** von Sicherungen (auch verschlüsselt, auch per Datei oder `SignalDesk_wiederherstellen.bat`):
+  - Prüfung und Vorab-Sicherung des aktuellen Stands;
+  - GoBD-Schutz für festgeschriebene Rechnungen;
+  - Migration älterer Stände.
+- **Automatische Prüfung (GitHub Actions):**
+  - Tests unter Windows und Linux;
+  - frische Installation aus dem Release-ZIP inkl. Sichern, Wiederherstellen und Neustart;
+  - Oberflächen-Test in Chromium;
+  - Reproduzierbarkeit.
+- **Schneller:** Dubletten-Abgleich 27×, Migration großer Datenbanken 32×.
+- **Behoben:** Die Server-Kennung zeigte seit v1.16 die falsche Version.
+- 413 Tests (25 neu) + UI-E2E + Installationsprüfung. Berichte: `docs/BERICHT_SPRINT_S6.md`, `docs/EINSCHRAENKUNGEN.md`.
+
 ## 1.18.0 – Masterplan 2.0: Sprint 5 (geführter Arbeitstag, CRM, Angebote)
 
 - **Beispieltag des Plans als Abnahmetest:** vom Suchprofil bis zum Tagesabschluss, über die Schnittstelle und im Browser, ohne Sackgasse.

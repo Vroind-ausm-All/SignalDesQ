@@ -1,0 +1,100 @@
+# SignalDesk – automatische Prüfung (Masterplan 2.0, Sprint 6)
+# unit:     alle Tests unter Windows und Linux, Python 3.10 und 3.13 (ohne Zusatzpakete, wie Variante „basis“)
+# install:  Release-ZIP bauen und auf einer frischen Maschine einrichten, starten, sichern, wiederherstellen, neu starten
+# e2e:      Oberflächen-Test in Chromium (Variante „browser“)
+# release:  ZIP byte-gleich reproduzierbar, SBOM und Lockdateien aktuell
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: unit (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        python: ["3.10", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Tests
+        run: python -m unittest discover -s tests
+
+  install:
+    name: install (${{ matrix.os }}, ${{ matrix.variant }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        variant: [basis, browser]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Release-ZIP bauen
+        run: python tools/build_release.py --out dist
+      - name: Frische Installation prüfen
+        shell: bash
+        run: python tools/install_check.py dist/SignalDesk-*[0-9].zip --variant ${{ matrix.variant }} --report install-${{ matrix.os }}-${{ matrix.variant }}.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: install-${{ matrix.os }}-${{ matrix.variant }}
+          path: install-*.json
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Variante „browser“ (feste Versionen)
+        run: |
+          python -m pip install --require-hashes -r requirements-lock-browser.txt
+          python -m playwright install --with-deps chromium
+      - name: Oberflächen-Test
+        run: python -m unittest tests/e2e/test_ui_workday.py
+
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Reproduzierbar (zweimal bauen, gleiche Prüfsumme)
+        run: |
+          python tools/build_release.py --out a
+          python tools/build_release.py --out b
+          cmp a/*.zip b/*.zip
+          cat a/*.sha256
+      - name: SBOM aktuell
+        run: |
+          python tools/make_sbom.py --out /tmp/sbom.json --md /tmp/BESTANDTEILE.md
+          diff -u sbom/signaldesk.cdx.json /tmp/sbom.json
+          diff -u docs/BESTANDTEILE.md /tmp/BESTANDTEILE.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-zip
+          path: a/

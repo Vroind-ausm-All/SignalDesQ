@@ -218,6 +218,10 @@ def claim(conn, kinds=None):
         if kinds:
             sql += f" AND t.kind IN ({','.join('?' * len(kinds))})"
             args += list(kinds)
+        from .. import netpolicy
+        if netpolicy.offline():  # v1.19: Aufträge mit Internetbedarf warten im Offline-Modus
+            sql += f" AND t.kind NOT IN ({','.join('?' * len(netpolicy.NETWORK_KINDS))})"
+            args += list(netpolicy.NETWORK_KINDS)
         row = conn.execute(sql + ' ORDER BY j.priority, t.id LIMIT 1', args).fetchone()
         if not row:
             conn.commit()
@@ -341,6 +345,12 @@ def ensure_workers(db_path):
             alive.append(t)
             t.start()
         _WORKERS[key] = alive
+
+
+def ensure_workers_all():
+    """Nach dem Ausschalten des Offline-Modus: Worker aller bekannten Datenbanken wieder anwerfen."""
+    for key in list(_WORKERS):
+        ensure_workers(key)
 
 
 def workers_alive(db_path):
