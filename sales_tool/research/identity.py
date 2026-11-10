@@ -12,6 +12,7 @@ ein Zusammenführen aus – Niederlassungen, Töchter, Verwaltungs-GmbH und KG b
 from __future__ import annotations
 
 import difflib
+import functools
 import itertools
 import re
 import unicodedata
@@ -43,6 +44,12 @@ STOP = {'und', 'the', 'der', 'die', 'das', 'fuer', 'von', 'in', 'am', 'an', 'co'
         'germany', 'gruppe', 'group', 'haftungsbeschraenkt'}
 
 
+try:  # v1.19: einmal importieren – ein fehlgeschlagener Import je Vergleich kostete ein Drittel der Rechenzeit
+    from rapidfuzz import fuzz as _FUZZ
+except Exception:  # noqa: BLE001 – RapidFuzz ist optional
+    _FUZZ = None
+
+
 def translit(s):
     s = unicodedata.normalize('NFKC', str(s or '')).casefold()
     for a, b in (('ä', 'ae'), ('ö', 'oe'), ('ü', 'ue'), ('ß', 'ss'), ('&', ' & ')):
@@ -50,6 +57,7 @@ def translit(s):
     return unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode()
 
 
+@functools.lru_cache(maxsize=50_000)
 def legal_family(name):
     t = translit(name)
     for rx, fam in _LEGAL_RX:
@@ -68,35 +76,50 @@ def family_of(item):
 
 def core_tokens(name):
     """Name ohne Rechtsform, Satzzeichen und Füllwörter – transliteriert (Müller = Mueller), sortierbar."""
+    return list(_core_tokens(name or ''))
+
+
+@functools.lru_cache(maxsize=50_000)
+def _core_tokens(name):
     t = translit(name)
     t = re.sub(r'["\'„“”‚‘’`´]', ' ', t)
     for rx, _ in _LEGAL_RX:
         t = rx.sub(' ', t)
-    tokens = [w for w in re.split(r'[^a-z0-9]+', t) if w and w not in STOP]
-    return tokens
+    return tuple(w for w in re.split(r'[^a-z0-9]+', t) if w and w not in STOP)
 
 
-def core_name(name):
-    return ' '.join(core_tokens(name))
+def core_name(name, cache=True):
+    """cache=False für Massenimporte (Katalog): nichts zwischenspeichern, damit der Speicher begrenzt bleibt."""
+    return ' '.join(_core_tokens(name or '') if cache else _core_tokens.__wrapped__(name or ''))
 
 
-def name_similarity(a, b):
-    ta, tb = core_tokens(a), core_tokens(b)
+def _ratio(x, y, floor):
+    """difflib-Ähnlichkeit; liegt schon die schnelle Obergrenze unter `floor`, wird diese zurückgegeben (Ergebnis < floor
+    bleibt < floor – die Entscheidung ist identisch, nur ohne teure Vollberechnung)."""
+    sm = difflib.SequenceMatcher(None, x, y)
+    upper = sm.real_quick_ratio()
+    if upper < floor:
+        return upper
+    upper = sm.quick_ratio()
+    if upper < floor:
+        return upper
+    return sm.ratio()
+
+
+def name_similarity(a, b, floor=0.0):
+    ta, tb = _core_tokens(a or ''), _core_tokens(b or '')
     if not ta or not tb:
         return 0.0
     sa, sb = ' '.join(sorted(ta)), ' '.join(sorted(tb))
-    if sa == sb:
+    if sa == sb or ''.join(ta) == ''.join(tb):  # gleiche Wörter bzw. „Reith-Spezialkabel“ = „Reith Spezialkabel“
         return 1.0
-    try:
-        from rapidfuzz import fuzz
-        sort = fuzz.token_sort_ratio(sa, sb) / 100
-        ratio = fuzz.ratio(' '.join(ta), ' '.join(tb)) / 100
-    except Exception:  # noqa: BLE001 – RapidFuzz ist optional
-        sort = difflib.SequenceMatcher(None, sa, sb).ratio()
-        ratio = difflib.SequenceMatcher(None, ' '.join(ta), ' '.join(tb)).ratio()
-    joined_a, joined_b = ''.join(ta), ''.join(tb)
-    glued = 1.0 if joined_a == joined_b else 0.0  # „Reith-Spezialkabel“ = „Reith Spezialkabel“
-    return round(max(sort, ratio, glued), 3)
+    if _FUZZ is not None:
+        sort = _FUZZ.token_sort_ratio(sa, sb) / 100
+        ratio = _FUZZ.ratio(' '.join(ta), ' '.join(tb)) / 100
+    else:
+        sort = _ratio(sa, sb, floor)
+        ratio = _ratio(' '.join(ta), ' '.join(tb), floor)
+    return round(max(sort, ratio), 3)
 
 
 def engine():
@@ -107,6 +130,7 @@ def engine():
         return 'difflib'
 
 
+@functools.lru_cache(maxsize=50_000)
 def norm_domain(url):
     url = (url or '').strip().lower()
     if not url:
@@ -118,11 +142,13 @@ def norm_domain(url):
     return host
 
 
+@functools.lru_cache(maxsize=50_000)
 def norm_register(reg):
     m = re.search(r'\b(HRA|HRB|GNR|GSR|PR|VR)\s*[-.:]?\s*(\d{1,7})\s?([A-Z]{0,2})\b', (reg or '').upper())
     return f'{m.group(1)}{m.group(2)}{m.group(3)}' if m else ''
 
 
+@functools.lru_cache(maxsize=50_000)
 def norm_city(city):
     t = translit(city)
     t = re.sub(r'\s+(am|an der|an den|bei|im|in der|ob der)\s.*$|\s*\(.*$', '', t)
@@ -158,14 +184,14 @@ def decide(a, b):
     fa, fb = family_of(a), family_of(b)
     if fa and fb and fa != fb:
         return 'different', 0.0, f'verschiedene Rechtsform ({fa} / {fb})'
-    da, db = norm_domain(a.get('website')), norm_domain(b.get('website'))
-    sim = name_similarity(a.get('name'), b.get('name'))
+    da, db = norm_domain(a.get('website') or ''), norm_domain(b.get('website') or '')
     if da and db and da == db:
-        if sim >= 0.6 or loc == 'same':
+        if loc == 'same' or name_similarity(a.get('name'), b.get('name'), 0.6) >= 0.6:
             return 'same', 1.0, f'gleiche Website {da}'
         return 'possible', 0.8, f'gleiche Website {da}, aber andere Namen'
     if loc == 'different':
         return 'different', 0.0, 'verschiedene Orte'
+    sim = name_similarity(a.get('name'), b.get('name'), 0.85)  # erst hier rechnen – vorher entscheiden harte Merkmale
     distinctive = len(''.join(core_tokens(a.get('name')))) >= 8 and len(core_tokens(a.get('name'))) >= 2
     if sim == 1.0:
         # Automatisch nur bei gleichem Kernnamen (Umlaute, Wortfolge, Bindestriche egal) UND gleichem Ort –

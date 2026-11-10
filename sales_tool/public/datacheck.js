@@ -148,7 +148,8 @@
     });
     $('#leadImprintBtn').addEventListener('click', async () => {
       if (!currentLeadId) return;
-      try { const run = await api(`/leads/${currentLeadId}/imprint`, 'POST', {}); closeModal(); switchView('datacheck'); openRun(run.id); toast('Impressum wird geprüft …'); }
+      // v1.19: liest das Impressum im Hintergrund und überträgt belegte Firmendaten automatisch in leere Felder
+      try { await api(`/leads/${currentLeadId}/company-data/read`, 'POST', {}); toast('Impressum wird gelesen – Firmendaten kommen automatisch in leere Felder'); if (window.refreshLeadFile) window.refreshLeadFile(); }
       catch (err) { toast(err.message, true); }
     });
     document.body.addEventListener('change', async e => {

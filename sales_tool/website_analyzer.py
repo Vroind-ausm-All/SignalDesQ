@@ -112,6 +112,9 @@ def crawl_site(url: str, purpose: str = "website") -> dict:
     statische Abruf keinen ausreichenden Text liefert. Kein Klicken, Absenden oder Anmelden."""
     if purpose not in ('website', 'contacts', 'full'):
         raise CrawlError('Unbekannter Recherchetyp.')
+    from . import netpolicy
+    if netpolicy.offline():
+        raise CrawlError(netpolicy.MESSAGE.format(what='die Website-Recherche'))
     initial = public_url(url)
     if not robots_allowed(initial):
         raise CrawlError("Die Website untersagt diesen Abruf in robots.txt.")
@@ -136,6 +139,9 @@ def crawl_site(url: str, purpose: str = "website") -> dict:
 def light_crawl(url: str, purpose: str = "website") -> dict:
     """Rückfall ohne Browser (v1.11): bis zu fünf Seiten derselben Firma per HTTP lesen – mit robots.txt, SSRF-Schutz
     und Größenlimit aus dem Impressums-Abruf. JavaScript-Inhalte fehlen; das steht in den Hinweisen."""
+    from . import netpolicy
+    if netpolicy.offline():
+        raise CrawlError(netpolicy.MESSAGE.format(what='die Website-Recherche'))
     from . import imprint
     pages, errors, queue, seen = [], [], [public_url(url)], set()
     while queue and len(pages) < MAX_PAGES:

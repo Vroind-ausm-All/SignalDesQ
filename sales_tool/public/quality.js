@@ -126,10 +126,42 @@
     return d.total;
   }
 
+  // v1.19: Wiederherstellen, Offline-Modus, automatische Firmendaten
+  async function loadRestore() {
+    const [b, off, ai] = await Promise.all([api('/backups/all'), api('/system/offline'), api('/settings/auto-imprint')]);
+    $('#qBackups').innerHTML = b.backups.length ? b.backups.slice(0, 12).map(x => `<div class="sales-item"><div><strong>${esc(x.name)}</strong>
+      <small>${esc(x.modified.replace('T', ' '))} · ${(x.size_bytes / 1e6).toFixed(1)} MB${x.encrypted ? ' · verschlüsselt' : ''}${x.before_restore ? ' · Stand vor einer Wiederherstellung' : ''}</small></div>
+      <button type="button" class="btn btn-ghost" data-q-restore="${esc(x.name)}" data-enc="${x.encrypted ? 1 : 0}">Wiederherstellen</button></div>`).join('')
+      : `<div class="empty">Noch keine Sicherung in ${esc(b.folder)}.</div>`;
+    $('#qOffline').checked = off.offline;
+    $('#qOffline').disabled = off.forced;
+    $('#qOfflineState').textContent = off.forced ? 'für diese Sitzung beim Start eingeschaltet (--offline)' : off.offline ? 'eingeschaltet' : '';
+    $('#qAutoImprint').checked = ai.enabled;
+    window.setOfflineBadge?.(off);
+  }
+
+  async function doRestore(name, encrypted, file) {
+    const what = file ? `die Datei „${file.name}“` : `„${name}“`;
+    if (!confirm(`${what} wiederherstellen?\n\nDer aktuelle Stand wird vorher automatisch gesichert. Danach lädt SignalDesk neu.`)) return;
+    const password = encrypted ? prompt('Passwort der verschlüsselten Sicherung') : null;
+    if (encrypted && !password) return;
+    try {
+      let r;
+      if (file) {
+        const resp = await fetch('/api/backups/restore-upload?confirm=1', {method: 'POST', body: file,
+          headers: {'Content-Type': 'application/octet-stream', ...(password ? {'X-Backup-Password': password} : {})}});
+        r = await resp.json();
+        if (!resp.ok) throw Error(r.error || 'Wiederherstellung fehlgeschlagen');
+      } else r = await api('/backups/restore', 'POST', {name, confirm: true, ...(password ? {password} : {})});
+      alert(`Wiederhergestellt: ${r.after.leads} Leads, ${r.after.invoices} Rechnungen.\nVorheriger Stand gesichert: ${r.safety_backup || '–'}`);
+      location.reload();
+    } catch (e) { toast(e.message, true); }
+  }
+
   window.refreshQuality = async function () {
     if (!$('#viewQuality')) return;
     try {
-      const [changes, stale] = await Promise.all([loadChanges(), loadStale(), loadJobs(), loadSettings(), loadSecurity(), loadAuth(), loadResearchTech(), loadDups()]);
+      const [changes, stale] = await Promise.all([loadChanges(), loadStale(), loadJobs(), loadSettings(), loadSecurity(), loadAuth(), loadResearchTech(), loadDups(), loadRestore()]);
       $('#qMetrics').innerHTML = `<div class="panel"><small>Offene Änderungen</small><strong>${changes}</strong></div><div class="panel"><small>Firmen mit veralteten Daten</small><strong>${stale.leads.length}</strong></div><div class="panel"><small>Abgelaufene Löschfristen</small><strong>${stale.privacy_expired.length}</strong></div>`;
       const badge = changes + stale.privacy_expired.length;
       $('#qNavBadge').textContent = badge ? String(badge) : '';
@@ -152,6 +184,9 @@
     if (!$('#viewQuality')) return;
     $('#qDupsReload').addEventListener('click', () => loadDups().then(n => toast(`${n} mögliche Dublette(n)`)).catch(e => toast(e.message, true)));
     $('#qDetect').addEventListener('click', () => act(() => api('/quality/changes/detect', 'POST', {}), r => `${r.impressum + r.website + r.register} neue Änderung(en) erkannt`));
+    $('#qRestoreFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) doRestore('', /\.sdenc$/i.test(f.name), f); });
+    $('#qOffline').addEventListener('change', e => act(() => api('/system/offline', 'PUT', {enabled: e.target.checked}), r => r.offline ? 'Offline-Modus an – keine Abrufe aus dem Internet' : 'Wieder online – wartende Aufträge laufen weiter'));
+    $('#qAutoImprint').addEventListener('change', e => act(() => api('/settings/auto-imprint', 'PUT', {enabled: e.target.checked}), r => r.enabled ? 'Firmendaten werden automatisch übertragen' : 'Automatische Übertragung aus'));
     $('#qBackup').addEventListener('click', () => act(() => api('/backup', 'POST', {}), r => 'Gesichert: ' + r.path));
     $('#qEncForm').addEventListener('submit', e => { e.preventDefault(); const pw = e.target.elements.password.value; e.target.reset(); act(() => api('/backup/encrypted', 'POST', {password: pw}), r => r.notice); });
     $('#qJobKind').addEventListener('change', e => {
@@ -195,6 +230,7 @@
       const t = e.target;
       const c = t.closest('[data-q-change]'); if (c) return act(() => api(`/quality/changes/${c.dataset.qChange}`, 'POST', {decision: c.dataset.d}), 'Gespeichert');
       const l = t.closest('[data-q-lead]'); if (l) return showModal(Number(l.dataset.qLead));
+      const rs = t.closest('[data-q-restore]'); if (rs) return doRestore(rs.dataset.qRestore, rs.dataset.enc === '1');
       const mg = t.closest('[data-q-merge]');
       if (mg) {
         const p = dupPairs[Number(mg.dataset.qMerge)];

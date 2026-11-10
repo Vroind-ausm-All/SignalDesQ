@@ -1,0 +1,179 @@
+{
+ "version": "1.19.0",
+ "python": "3.13.18",
+ "system": "Linux x86_64",
+ "fetch": {
+  "v1.14": {
+   "expected_behaviour": 25,
+   "field_accuracy": 79.6,
+   "p50_ms": 36.8,
+   "p95_ms": 102.7,
+   "requests": 123,
+   "robots_requests": 62,
+   "unvalidated_connects": 1,
+   "evidence_total": null,
+   "evidence_missing": null
+  },
+  "v1.16": {
+   "expected_behaviour": 33,
+   "field_accuracy": 100.0,
+   "p50_ms": 13.8,
+   "p95_ms": 24.1,
+   "requests": 91,
+   "robots_requests": 35,
+   "unvalidated_connects": 0,
+   "evidence_total": 187,
+   "evidence_missing": 0
+  },
+  "v1.19.0": {
+   "expected_behaviour": 33,
+   "field_accuracy": 100.0,
+   "p50_ms": 10.9,
+   "p95_ms": 16.2,
+   "requests": 91,
+   "robots_requests": 35,
+   "unvalidated_connects": 0,
+   "evidence_total": 187,
+   "evidence_missing": 0
+  }
+ },
+ "app": {
+  "start_fresh_db_ms": 81.2,
+  "dedupe_ms_per_candidate": 1.05,
+  "dedupe_result": {
+   "new": 1999,
+   "merged": 1,
+   "possible": 1127
+  },
+  "migrate_5000_leads_ms": 722.4,
+  "db_mb": 2.6,
+  "latency": {
+   "Leads (5.000)": {
+    "p50_ms": 101.4,
+    "p95_ms": 115.3
+   },
+   "Heute": {
+    "p50_ms": 17.9,
+    "p95_ms": 20.1
+   },
+   "Sichtung (50 je Seite)": {
+    "p50_ms": 6.1,
+    "p95_ms": 6.5
+   },
+   "Firmenakte": {
+    "p50_ms": 4.0,
+    "p95_ms": 4.7
+   },
+   "Tagesabschluss": {
+    "p50_ms": 8.6,
+    "p95_ms": 10.8
+   },
+   "Pipeline-Statistik": {
+    "p50_ms": 74.1,
+    "p95_ms": 82.2
+   }
+  },
+  "backup_ms": 9.0,
+  "restore_ms": 54.5,
+  "restore_leads": 5000,
+  "peak_rss_mb": 83.8
+ },
+ "catalog_v1.17": {
+  "sqlite": {
+   "import_s": 15.34,
+   "peak_rss_mb": 31.4
+  },
+  "duckdb 1.5.6": {
+   "import_s": 1.07,
+   "peak_rss_mb": 343.3
+  }
+ },
+ "install": [
+  {
+   "variant": "basis",
+   "platform": "linux",
+   "python": "/usr/local/bin/python3",
+   "setup_seconds": 2.0,
+   "startup_ms": 411,
+   "total_seconds": 2.8,
+   "checks": [
+    {
+     "check": "ZIP entpackt",
+     "ok": true,
+     "detail": "147 Dateien"
+    },
+    {
+     "check": "Prüfsummen laut MANIFEST",
+     "ok": true,
+     "detail": "146 Dateien"
+    },
+    {
+     "check": "Startdatei mit Windows-Zeilenenden",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "check": "Einrichtung (bootstrap --setup-only)",
+     "ok": true,
+     "detail": "2.0 s"
+    },
+    {
+     "check": "eigene Python-Umgebung",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "check": "Variante installiert",
+     "ok": true,
+     "detail": "{'requirements': 'basis:none', 'crawler_ok': True, 'variant': 'basis', 'python': '3.13.18', 'last_attempt': '2026-11-07'}"
+    },
+    {
+     "check": "Server startet",
+     "ok": true,
+     "detail": "SignalDesk/1.16 Python/3.13.18 in 411 ms"
+    },
+    {
+     "check": "Oberfläche ausgeliefert",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "check": "Lead anlegen",
+     "ok": true,
+     "detail": "1"
+    },
+    {
+     "check": "Sicherung anlegen",
+     "ok": true,
+     "detail": "signaldesk-20261107-003441.sqlite3"
+    },
+    {
+     "check": "Sicherung wiederherstellen",
+     "ok": true,
+     "detail": "{'leads': 1, 'invoices': 0, 'proposals': 0, 'tasks': 0}"
+    },
+    {
+     "check": "Stand nach Wiederherstellung",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "check": "Offline-Modus abfragbar",
+     "ok": true,
+     "detail": ""
+    },
+    {
+     "check": "Neustart ohne Datenverlust",
+     "ok": true,
+     "detail": "1 Lead(s), Start 403 ms"
+    },
+    {
+     "check": "Schema aktuell",
+     "ok": true,
+     "detail": "24"
+    }
+   ],
+   "ok": true
+  }
+ ]
+}

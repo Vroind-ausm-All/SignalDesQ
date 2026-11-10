@@ -2,6 +2,14 @@
 
 Aufruf (macht SignalDesk_starten.bat / .command / start.sh automatisch):
     python -m sales_tool.bootstrap [--no-browser] [--port 8765] [--reinstall] [--setup-only]
+                                   [--variante basis|browser|team|voll] [--offline] [--restore DATEI]
+
+Installationsvarianten (v1.19, Masterplan 2.0 Sprint 6) – feste Versionen mit Prüfsummen aus requirements-lock-*.txt:
+    basis    nur Python-Standardbibliothek, nichts aus dem Internet (Website-Recherche per HTTP funktioniert trotzdem)
+    browser  + Browser-Prüfung für JavaScript-Seiten (Playwright + Chromium, ca. 150 MB) – Standard
+    team     + verschlüsselte Sicherungen (cryptography)
+    voll     + Recherche-Extras (Scrapling-Auswertung, Trafilatura)
+Liegt ein Ordner `wheels/` neben dem Programm (Offline-Paket), wird nur daraus installiert – ganz ohne Internet.
 
 Ablauf
 1. Eigene virtuelle Umgebung `.venv` im Programmordner anlegen (nur beim ersten Start).
@@ -30,6 +38,47 @@ VENV = ROOT / '.venv'
 REQUIREMENTS = ROOT / 'requirements-ai.txt'
 MARKER = VENV / 'signaldesk-setup.json'
 MIN_PYTHON = (3, 10)
+WHEELS = ROOT / 'wheels'
+VARIANTS = {
+    'basis': {'locks': [], 'browser': False, 'label': 'Schlank – ohne Zusatzpakete'},
+    'browser': {'locks': ['browser'], 'browser': True, 'label': 'Standard – mit Browser-Prüfung (ca. 150 MB)'},
+    'team': {'locks': ['browser', 'team'], 'browser': True, 'label': 'Team – zusätzlich verschlüsselte Sicherungen'},
+    'voll': {'locks': ['browser', 'team', 'research'], 'browser': True, 'label': 'Voll – zusätzlich Recherche-Extras'},
+}
+DEFAULT_VARIANT = 'browser'
+
+
+def lock_files(variant):
+    return [ROOT / f'requirements-lock-{name}.txt' for name in VARIANTS[variant]['locks']]
+
+
+def variant_hash(variant):
+    files = lock_files(variant)
+    if not files:
+        return f'{variant}:none'
+    return variant + ':' + hashlib.sha256(b''.join(f.read_bytes() if f.exists() else b'-' for f in files)).hexdigest()[:16]
+
+
+def choose_variant(requested, marker, fresh, ask=None):
+    """Variante: ausdrücklich gewählt > beim letzten Mal gewählt > beim ersten Einrichten fragen > Standard."""
+    if requested:
+        return requested
+    if marker.get('variant') in VARIANTS:
+        return marker['variant']
+    if fresh and (ask or (sys.stdin and sys.stdin.isatty())):
+        ask = ask or input
+        say('')
+        say('Welche Ausstattung soll SignalDesk bekommen? (später änderbar mit --variante)')
+        keys = list(VARIANTS)
+        for i, k in enumerate(keys, 1):
+            say(f'  [{i}] {VARIANTS[k]["label"]}' + ('   ← Enter' if k == DEFAULT_VARIANT else ''))
+        try:
+            answer = (ask('Auswahl: ') or '').strip()
+        except EOFError:
+            answer = ''
+        if answer.isdigit() and 1 <= int(answer) <= len(keys):
+            return keys[int(answer) - 1]
+    return DEFAULT_VARIANT
 
 
 def say(msg=''):
@@ -44,14 +93,16 @@ def requirements_hash(path: Path = REQUIREMENTS) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()[:16] if path.exists() else 'none'
 
 
-def read_marker(path: Path = MARKER) -> dict:
+def read_marker(path: Path | None = None) -> dict:
+    path = path or MARKER
     try:
         return json.loads(path.read_text(encoding='utf-8'))
     except (OSError, ValueError):
         return {}
 
 
-def write_marker(data: dict, path: Path = MARKER):
+def write_marker(data: dict, path: Path | None = None):
+    path = path or MARKER
     path.write_text(json.dumps(data, indent=2), encoding='utf-8')
 
 
@@ -106,14 +157,36 @@ def ensure_venv() -> Path:
     return py
 
 
-def ensure_crawler(py: Path, reinstall=False) -> bool:
-    req_hash = requirements_hash()
+def pip_install_cmd(py: Path, lock: Path) -> list:
+    """pip mit festen Versionen und Prüfsummen; mit Offline-Paket (wheels/) ganz ohne Internet."""
+    cmd = [str(py), '-m', 'pip', 'install', '--disable-pip-version-check', '-q', '--require-hashes', '--prefer-binary', '-r', str(lock)]
+    if WHEELS.is_dir():
+        cmd += ['--no-index', '--find-links', str(WHEELS)]
+    return cmd
+
+
+def ensure_crawler(py: Path, reinstall=False, variant=DEFAULT_VARIANT) -> bool:
+    """Installiert die Pakete der gewählten Variante (Name aus Kompatibilitätsgründen beibehalten)."""
+    variant = variant if variant in VARIANTS else DEFAULT_VARIANT
+    req_hash = variant_hash(variant) if all(f.exists() for f in lock_files(variant)) else requirements_hash()
     marker = read_marker()
-    if not needs_install(marker, req_hash, reinstall):
+    if not needs_install({**marker, 'requirements': marker.get('requirements') if marker.get('variant', variant) == variant else None},
+                         req_hash, reinstall):
         return True
-    say('② Installiere den Website-Crawler (einmalig, benötigt Internet, 1–3 Minuten) …')
-    ok = run([str(py), '-m', 'pip', 'install', '--disable-pip-version-check', '-q', '-r', str(REQUIREMENTS)], quiet=True)
-    if ok:
+    if not VARIANTS[variant]['locks']:
+        say('② Variante „basis“: keine Zusatzpakete – SignalDesk nutzt nur die Python-Standardbibliothek.')
+        write_marker({**marker, 'requirements': req_hash, 'crawler_ok': True, 'variant': variant, 'python': sys.version.split()[0],
+                      'last_attempt': dt.date.today().isoformat()})
+        return True
+    say(f'② Installiere „{variant}“ ({VARIANTS[variant]["label"]}; feste Versionen mit Prüfsummen) …')
+    ok = True
+    for lock in lock_files(variant) or [REQUIREMENTS]:
+        target = lock if lock.exists() else REQUIREMENTS
+        if not run(pip_install_cmd(py, target) if target != REQUIREMENTS else
+                   [str(py), '-m', 'pip', 'install', '--disable-pip-version-check', '-q', '-r', str(REQUIREMENTS)], quiet=True):
+            ok = False
+            break
+    if ok and VARIANTS[variant]['browser']:
         say('   Lade den Browser für die Website-Recherche (Chromium, ca. 150 MB) …')
         ok = run([str(py), '-m', 'playwright', 'install', 'chromium'], quiet=True)
     if ok:
@@ -122,7 +195,7 @@ def ensure_crawler(py: Path, reinstall=False) -> bool:
         say('   ⚠ Website-Crawler konnte nicht installiert werden (keine Internetverbindung oder Firewall).')
         say('     SignalDesk startet trotzdem – nur die Website-Recherche fehlt. Neuer Versuch beim ersten Start morgen')
         say('     oder sofort mit: SignalDesk_starten --reinstall')
-    write_marker({**marker, 'requirements': req_hash, 'crawler_ok': ok, 'python': sys.version.split()[0],
+    write_marker({**marker, 'requirements': req_hash, 'crawler_ok': ok, 'variant': variant, 'python': sys.version.split()[0],
                   'last_attempt': dt.date.today().isoformat()})
     return ok
 
@@ -173,6 +246,9 @@ def main(argv=None):
     parser.add_argument('--db', default=None, help='Pfad zur Datenbank (Standard: ~/.akquise-tool/akquise.sqlite3)')
     parser.add_argument('--reinstall', action='store_true', help='Crawler-Installation erzwingen')
     parser.add_argument('--setup-only', action='store_true', help='Nur einrichten, nicht starten')
+    parser.add_argument('--variante', choices=list(VARIANTS), help='Installationsvariante (basis, browser, team, voll)')
+    parser.add_argument('--offline', action='store_true', help='Ohne Internet: nichts installieren, Offline-Modus einschalten')
+    parser.add_argument('--restore', metavar='DATEI', help='Sicherung wiederherstellen (aktueller Stand wird vorher gesichert)')
     args = parser.parse_args(argv)
 
     if sys.version_info < MIN_PYTHON:
@@ -188,8 +264,20 @@ def main(argv=None):
             webbrowser.open(url, new=2)
         return 0
     say('SignalDesk wird gestartet …')
+    fresh = not venv_python().exists()
     py = ensure_venv()
-    ensure_crawler(py, args.reinstall)
+    if args.restore:
+        cmd = [str(py), '-m', 'sales_tool.backup_restore', 'wiederherstellen', args.restore]
+        if args.db:
+            cmd += ['--db', args.db]
+        rc = subprocess.call(cmd, cwd=str(ROOT))
+        if rc != 0 or args.setup_only:
+            return rc
+    if args.offline:
+        say('② Offline: keine Installation, keine Abrufe aus dem Internet (Offline-Modus).')
+    else:
+        variant = choose_variant(args.variante, read_marker(), fresh)
+        ensure_crawler(py, args.reinstall, variant=variant)
     ensure_shortcut()
     if args.setup_only:
         say('Einrichtung abgeschlossen.')
@@ -199,6 +287,8 @@ def main(argv=None):
         cmd += ['--db', args.db]
     if not args.no_browser:
         cmd.append('--open-browser')
+    if args.offline:
+        cmd.append('--offline')
     say('③ Starte SignalDesk – der Browser öffnet sich gleich.')
     say('')
     try:

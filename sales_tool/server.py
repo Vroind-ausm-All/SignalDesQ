@@ -40,6 +40,10 @@ from .sweep import route_sweep, recover_sweeps, dedupe_candidates
 from .duplicates import route_duplicates
 from .research.catalog import route_catalog
 from .profiles import route_profiles
+from . import lead_imprint
+from . import __version__
+from . import netpolicy
+from .backup_restore import route_restore
 from .workday import route_workday, ContactLocked, check_stage_change, assert_contact_allowed, assert_need_confirmed, after_proposal_sent, after_meeting_done
 from .report import route_report, recover_reports
 from .pricing import route_pricing
@@ -181,7 +185,7 @@ def make_handler(db_path, allowed_hosts=None):
     hosts = LOOPBACK_HOSTS | {h.lower() for h in (allowed_hosts or ())}
 
     class Handler(BaseHTTPRequestHandler):
-        server_version = "SignalDesk/1.16"
+        server_version = "SignalDesk/" + __version__.rsplit(".", 1)[0]  # v1.19: aus der Paketversion statt fest eingetragen
         user = None
 
         def _security_headers(self):
@@ -333,6 +337,12 @@ def make_handler(db_path, allowed_hosts=None):
                 if route_workday(self, conn, method, route, query, db_path):
                     return
                 if route_profiles(self, conn, method, route, query, db_path):
+                    return
+                if lead_imprint.route_lead_imprint(self, conn, method, route, query, db_path):
+                    return
+                if netpolicy.route_netpolicy(self, conn, method, route):
+                    return
+                if route_restore(self, conn, method, route, query, db_path):
                     return
                 if route_report(self, conn, method, route, query, db_path):
                     return
@@ -516,6 +526,8 @@ def make_handler(db_path, allowed_hosts=None):
                             suppress_lead(conn, cursor.lastrowid)
                         row = conn.execute("SELECT * FROM leads WHERE id = ?", (cursor.lastrowid,)).fetchone()
                         conn.commit()
+                        if row["website"]:  # v1.19: Firmendaten automatisch aus dem Impressum (nur leere Felder)
+                            lead_imprint.queue(conn, db_path, row["id"], "neuer Lead mit Website")
                         return self._send(201, as_lead(row))
                 contact_list_match = re.fullmatch(r"/api/leads/(\d+)/contacts", route)
                 if contact_list_match:
@@ -660,6 +672,10 @@ def make_handler(db_path, allowed_hosts=None):
                         if data.get("stage") == "gesperrt":
                             suppress_lead(conn, ident)
                         conn.commit()
+                        if data.get("website") and data["website"] != row["website"]:  # v1.19: neue Website → Impressum lesen
+                            conn.execute("UPDATE leads SET imprint_checked_at='' WHERE id=? AND (legal_name='' OR legal_name IS NULL)", (ident,))
+                            conn.commit()
+                            lead_imprint.queue(conn, db_path, ident, "Website eingetragen")
                         return self._send(200, as_lead(conn.execute("SELECT * FROM leads WHERE id = ?", (ident,)).fetchone()))
                 brief_match = re.fullmatch(r"/api/leads/(\d+)/brief", route)
                 if brief_match and method == "GET":
@@ -840,6 +856,7 @@ def prepare_database(db):
         recover_sweeps(conn)
         recover_reports(conn)
         load_research_settings(conn)  # v1.15: Schalter für Abruf/Auswertung
+        netpolicy.load(conn)  # v1.19: Offline-Modus
         conn.commit()
     return backup
 
@@ -860,7 +877,7 @@ def security_status(conn, hosts, host_header=''):
          'Im Netzwerk nur hinter einem TLS-Proxy (HTTPS) betreiben – SignalDesk selbst spricht nur HTTP.'},
     ]
     return {'checks': checks, 'auth_required': required, 'users': conn.execute('SELECT COUNT(*) FROM users WHERE active=1').fetchone()[0],
-            'schema_version': SCHEMA_VERSION, 'server_version': 'SignalDesk/1.18'}
+            'schema_version': SCHEMA_VERSION, 'server_version': 'SignalDesk/' + __version__.rsplit('.', 1)[0]}
 
 
 def reset_login(conn):
@@ -917,6 +934,7 @@ def main():
     parser.add_argument("--host", default="127.0.0.1", help="Bind-Adresse. Andere als 127.0.0.1 nur mit eingeschaltetem Login (Team-Betrieb hinter TLS-Proxy)")
     parser.add_argument("--allowed-host", action="append", default=[], help="Zusätzlich erlaubter Hostname (z. B. signaldesk.firma.intern)")
     parser.add_argument("--no-scheduler", action="store_true", help="Wiederkehrende Rechercheaufträge nicht automatisch ausführen")
+    parser.add_argument("--offline", action="store_true", help="Offline-Modus für diese Sitzung: keine Abrufe aus dem Internet")
     parser.add_argument("--reset-login", action="store_true", help="Notfall: Login-Pflicht ausschalten (z. B. wenn die Administration ausgesperrt ist) und beenden")
     args = parser.parse_args()
     if args.reset_login:
@@ -934,6 +952,8 @@ def main():
         return
     db = Path(args.db).expanduser().resolve()
     db.parent.mkdir(parents=True, exist_ok=True)
+    netpolicy.STATE['forced'] = bool(args.offline)
+    lead_imprint.ENABLED = True  # v1.19: im laufenden Programm Firmendaten automatisch aus dem Impressum übertragen
     backup = prepare_database(db)
     if backup:
         print(f"Datenbank-Update erkannt – Sicherung angelegt: {backup}")

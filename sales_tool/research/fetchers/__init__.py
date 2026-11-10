@@ -16,4 +16,8 @@ def get_fetcher(name=None):
 
 
 def fetch(url, policy=None, origin=None, fetcher=None):
+    from ... import netpolicy
+    if netpolicy.offline():
+        from .base import FetchError
+        raise FetchError(netpolicy.MESSAGE.format(what='der Website-Abruf'), kind='offline')
     return get_fetcher(fetcher).fetch(url, policy or pol.DEFAULT_POLICY, origin)

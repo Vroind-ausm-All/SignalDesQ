@@ -153,6 +153,9 @@ def _user_agent(conn):
 
 
 def _http(url, user_agent, data=None, content_type=None, accept='application/json', timeout=None):
+    from . import netpolicy
+    if netpolicy.offline():
+        raise SourceError(netpolicy.MESSAGE.format(what='die Abfrage offener Quellen'))
     headers = {'User-Agent': user_agent, 'Accept': accept}
     if content_type:
         headers['Content-Type'] = content_type

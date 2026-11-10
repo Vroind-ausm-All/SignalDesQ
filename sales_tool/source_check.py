@@ -82,6 +82,14 @@ def _classify(exc):
 
 
 def run_check(conn):
+    from . import netpolicy
+    if netpolicy.offline():
+        return {'rows': [], 'ok': 0, 'total': 0, 'checked_at': '', 'cached': False, 'osm_any': False, 'offline': True,
+                'notice': netpolicy.MESSAGE.format(what='der Quellen-Check')}
+    return _run_check(conn)
+
+
+def _run_check(conn):
     with _LOCK:
         if _LAST['result'] and time.time() - _LAST['at'] < MIN_INTERVAL:
             return {**_LAST['result'], 'cached': True}
