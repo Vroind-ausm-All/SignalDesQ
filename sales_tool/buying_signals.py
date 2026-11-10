@@ -509,6 +509,8 @@ def scan_career(website, company=''):
     from . import imprint
     from .website_analyzer import CrawlError
     log, jobs = [], []
+    successful = 0
+    failed = 0
     url = website if '://' in website else 'https://' + website
     home, ctype, data = imprint.FETCH(url, None)
     _, links, _ = imprint.html_to_text(data)
@@ -525,13 +527,16 @@ def scan_career(website, company=''):
                 feed = f'{urlsplit(cand).scheme}://{urlsplit(cand).netloc}/xml'
                 _, _, raw = imprint.FETCH(feed, None)
                 found = _personio_jobs(raw)
+                successful += 1
                 for j in found:
                     j['source_url'] = cand
                 jobs += found
                 log.append(f'Personio-XML-Feed: {len(found)} Stelle(n).')
                 continue
             final, ctype, raw = imprint.FETCH(cand, home if not any(host.endswith(h) for h in ATS_HOSTS) else None)
+            successful += 1
         except CrawlError as exc:
+            failed += 1
             log.append(f'{cand}: {exc}')
             continue
         from .research.fetchers.base import decode_html
@@ -546,6 +551,10 @@ def scan_career(website, company=''):
         jobs += found
         if found:
             break
+    if candidates and not successful:
+        raise CrawlError('Karriereseiten konnten nicht geprüft werden: ' + '; '.join(log)[-700:])
+    if failed:
+        log.append(f'Unvollständige Prüfung: {failed} Karriereseite(n) nicht abrufbar.')
     seen, unique = set(), []
     for j in jobs:
         k = _norm_title(j['title'])

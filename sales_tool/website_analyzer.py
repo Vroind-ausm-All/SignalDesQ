@@ -89,18 +89,33 @@ def derive_links(origin: str, links: list[dict], purpose: str = "website") -> li
         groups = (("team", "people", "mitarbeiter", "ansprechpartner", "management", "geschaeftsfuehr", "geschäftsführ", "leadership"),
                   ("kontakt", "contact", "ansprech", "directory"),
                   ("ueber-uns", "über-uns", "about", "unternehmen", "impressum"),
-                  ("marketing", "presse", "press", "leistungen", "services", "produkte", "solutions")) if purpose in ("contacts", "full") else (
+                  ("marketing", "presse", "press", "leistungen", "services", "produkte", "solutions")) if purpose == "contacts" else (
+                  (("leistungen", "services", "produkte", "product", "solutions", "referenzen"),
+                   ("karriere", "career", "jobs", "stellen"),
+                   ("team", "people", "mitarbeiter", "management"),
+                   ("kontakt", "contact", "ansprech"),
+                   ("marketing", "presse", "press", "aktuelles", "news"),
+                   ("ueber-uns", "über-uns", "about", "unternehmen", "impressum")) if purpose == "full" else (
                   ("leistung", "service", "solution", "angebot", "services"),
                   ("produkt", "product", "software", "plattform"),
                   ("kontakt", "contact", "anfrage", "demo"),
-                  ("karriere", "career", "jobs", "about", "unternehmen"))
+                  ("karriere", "career", "jobs", "about", "unternehmen")))
         rank = next((i for i, keys in enumerate(groups) if any(x in label for x in keys)), None)
         if rank is None:
             continue
         full = urlunsplit((p.scheme, p.netloc, p.path, "", ""))
         if full != origin and full not in [x[1] for x in candidates]:
             candidates.append((rank, full))
-    return [u for _, u in sorted(candidates)[:MAX_PAGES-1]]
+    ordered = sorted(candidates)
+    if purpose == 'full':
+        # Erst je einen Bereich berücksichtigen, bevor weitere Seiten desselben Typs folgen.
+        first, seen = [], set()
+        for rank, url in ordered:
+            if rank not in seen:
+                seen.add(rank)
+                first.append((rank, url))
+        ordered = first + [item for item in ordered if item not in first]
+    return [u for _, u in ordered[:MAX_PAGES-1]]
 
 
 MIN_STATIC_TEXT = 200  # Zeichen: darunter gilt eine Seite als „ohne ausreichenden statischen Inhalt“

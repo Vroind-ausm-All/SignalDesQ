@@ -108,6 +108,17 @@
       + ` · Browser ${r.browser.installed ? 'installiert' : 'nicht installiert'}`;
   }
 
+  async function loadServiceProfile() {
+    const r = await api('/research/service-profile');
+    const form = $('#serviceProfileForm');
+    form.elements.name.value = r.profile.name;
+    $('#serviceProfileVersion').textContent = `Version ${r.version}`;
+    $('#serviceProfileThemes').innerHTML = Object.entries(r.themes).map(([key, label]) => {
+      const t = r.profile.themes[key];
+      return `<div class="sales-item" data-service-theme="${esc(key)}"><label><input type="checkbox" data-enabled ${t.enabled ? 'checked' : ''}> ${esc(label)}</label><label>Zusätzliche Suchbegriffe<input data-keywords maxlength="915" value="${esc(t.keywords.join(', '))}" placeholder="z. B. Fachmesse, Kundentag"></label></div>`;
+    }).join('');
+  }
+
   // v1.17: doppelte Firmen im CRM – nur Vorschläge, zusammengeführt wird erst auf Klick
   let dupPairs = [];
   async function loadDups() {
@@ -161,7 +172,7 @@
   window.refreshQuality = async function () {
     if (!$('#viewQuality')) return;
     try {
-      const [changes, stale] = await Promise.all([loadChanges(), loadStale(), loadJobs(), loadSettings(), loadSecurity(), loadAuth(), loadResearchTech(), loadDups(), loadRestore()]);
+      const [changes, stale] = await Promise.all([loadChanges(), loadStale(), loadJobs(), loadSettings(), loadSecurity(), loadAuth(), loadResearchTech(), loadDups(), loadRestore(), loadServiceProfile()]);
       $('#qMetrics').innerHTML = `<div class="panel"><small>Offene Änderungen</small><strong>${changes}</strong></div><div class="panel"><small>Firmen mit veralteten Daten</small><strong>${stale.leads.length}</strong></div><div class="panel"><small>Abgelaufene Löschfristen</small><strong>${stale.privacy_expired.length}</strong></div>`;
       const badge = changes + stale.privacy_expired.length;
       $('#qNavBadge').textContent = badge ? String(badge) : '';
@@ -212,6 +223,15 @@
       const f = e.target.elements;
       act(() => api('/research/settings', 'POST', {fetcher: f.fetcher.value, parser: f.parser.value, content: f.content.value, browser_fallback: f.browser_fallback.value === 'true'}),
         'Recherche-Technik gespeichert');
+    });
+    $('#serviceProfileForm')?.addEventListener('submit', e => {
+      e.preventDefault();
+      const themes = {};
+      $$('#serviceProfileThemes [data-service-theme]').forEach(row => {
+        themes[row.dataset.serviceTheme] = {enabled: row.querySelector('[data-enabled]').checked,
+          keywords: row.querySelector('[data-keywords]').value.split(',').map(x => x.trim()).filter(Boolean)};
+      });
+      act(() => api('/research/service-profile', 'POST', {name: e.target.elements.name.value.trim(), themes}), 'Leistungsprofil gespeichert – gilt für neue Analysen');
     });
     $('#qSettingsForm').addEventListener('submit', e => {
       e.preventDefault();

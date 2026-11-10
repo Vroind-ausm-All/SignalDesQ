@@ -209,6 +209,18 @@ class ChangeTests(QBase):
 # ---------------------------------------------------------------- Wiederkehrende Aufträge
 
 class JobTests(QBase):
+    def test_career_interval_and_failed_scans(self):
+        due = self.lead('Faellig GmbH')
+        recent = self.lead('Frisch GmbH')
+        failed = self.lead('Fehlerhaft GmbH')
+        busy = self.lead('Laufend GmbH')
+        for lid, status, days in ((due, 'done', 7), (recent, 'done', 6), (failed, 'failed', 1), (busy, 'running', 20)):
+            date = (dt.date.today() - dt.timedelta(days=days)).isoformat()
+            self.conn.execute('INSERT INTO signal_scans(lead_id, status, finished_at) VALUES (?,?,?)', (lid, status, date))
+        self.conn.commit()
+        ids = {r['id'] for r in q.candidates(self.conn, 'karriereseiten_pruefen', 20, career_interval=7)}
+        self.assertEqual(ids, {due, failed})
+
     def test_validation(self):
         for bad in ({'kind': 'spam_versand'}, {'kind': 'impressum_aktualisieren', 'interval_days': 0},
                     {'kind': 'impressum_aktualisieren', 'params': {'limit': 500}}, {'kind': 'lead_finder_suche', 'params': {'source': 'google_maps'}},

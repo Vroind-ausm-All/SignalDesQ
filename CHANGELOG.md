@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev1 – Entwicklungsstand für die Übergabe
+
+- Regelbasierte Inhaltsrecherche mit gespeicherten Themenprofilen, zusätzlichen Suchbegriffen und Profilstand im Bericht.
+- Manuell gefundene Website als ungeprüften Vorschlag eintragen; Registertreffer ohne Registergericht benötigen Bestätigung.
+- Fehler und unvollständige Website- sowie Karriereprüfungen sichtbar machen; Website-Aufträge erneut ausführbar.
+- Erfolgreiche Berichtsschritte bei Wiederholung erhalten, Empfehlungen anschließend neu verknüpfen.
+- Karriere-Überwachung berücksichtigt das gewählte Intervall. Fehlgeschlagene Prüfungen gelten nicht als aktueller Erfolg.
+- Unbekannter Portalbedarf wird nicht als Mangel bewertet; neue Bewertungslogik erhält eine eigene Score-Version.
+- Kein abgeschlossenes Release: Live-Test und weitere Grenzen siehe `docs/UEBERGABE_FABLE.md` und `docs/V2_ENTWICKLUNGSSTAND.md`.
+
 ## 1.19.0 – Masterplan 2.0: Sprint 6 (Windows-Release, Offline, Wiederherstellung) + Firmendaten-Übertragung
 
 - **Behoben – automatische Datenübertragung ins Firmenprofil:**

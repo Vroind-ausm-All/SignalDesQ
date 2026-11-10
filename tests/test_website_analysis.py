@@ -44,7 +44,27 @@ class SourceEvidenceTests(unittest.TestCase):
         self.assertIn('Regelmodus ohne KI', result['summary'])
         self.assertEqual(len(result['findings']),1)
 
+    def test_recruitment_not_displaced_by_other_signals(self):
+        crawl = {'pages': [{'url': 'https://example.org/', 'text':
+            'Unsere Kampagne zeigt Fotografie. PDF Produktblätter und das Kontaktformular helfen. '
+            'Manuell per E-Mail bearbeiten wir Anfragen. Karriere und Bewerbung finden Sie hier.'}]}
+        result = rules_analysis(crawl)
+        self.assertGreater(len(result['findings']), 3)
+        self.assertTrue(any('Recruiting' in f['observation'] for f in result['findings']))
+        for finding in result['findings']:
+            self.assertIn(finding['evidence'], crawl['pages'][0]['text'])
+
 class PublicUrlTests(unittest.TestCase):
+    def test_full_research_spreads_page_budget_across_topics(self):
+        links = [{'href': '/produkte', 'text': 'Produkte'}, {'href': '/leistungen', 'text': 'Leistungen'},
+                 {'href': '/jobs', 'text': 'Karriere'}, {'href': '/team', 'text': 'Team'},
+                 {'href': '/kontakt', 'text': 'Kontakt'}]
+        found = derive_links('https://example.org/', links, 'full')
+        self.assertEqual(len(found), 4)
+        self.assertIn('https://example.org/jobs', found)
+        self.assertIn('https://example.org/team', found)
+        self.assertIn('https://example.org/kontakt', found)
+
     def test_blocks_private_hosts(self):
         for url in ['http://localhost/', 'http://127.0.0.1/', 'http://192.168.0.2/',
                     'http://[::1]/', 'http://printer.local/', 'file:///etc/passwd',

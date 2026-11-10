@@ -283,6 +283,33 @@ class ImportTests(SweepBase):
 
 
 class DecisionAndWebsiteTests(SweepBase):
+    def test_register_number_alone_does_not_prove_website(self):
+        c = {'name': 'Muster GmbH', 'register_id': 'HRB 123', 'zip': '70173'}
+        fields = {'legal_name': {'value': 'Muster GmbH'}, 'register_number': {'value': 'HRB 123'},
+                  'zip': {'value': '70173'}, 'register_court': {'value': 'Amtsgericht Stuttgart'}}
+        self.assertEqual(sw._match(c, fields)[0], 'wahrscheinlich')
+        c['register_court'] = 'Amtsgericht Stuttgart'
+        self.assertEqual(sw._match(c, fields)[0], 'belegt')
+        c['register_court'] = 'Amtsgericht Berlin'
+        self.assertIsNone(sw._match(c, fields)[0])
+        c['register_court'] = ''
+        fields['legal_name'] = {'value': 'Andere Firma GmbH'}
+        self.assertIsNone(sw._match(c, fields)[0])
+
+    def test_manual_website_needs_confirmation_and_does_not_replace_confirmed(self):
+        sw.import_file(self.conn, GLEIF_CSV, {'plz': '70'})
+        c = self.cands()[0]
+        proposal = sw.propose_website(self.conn, c['id'], {'url': 'marke.example/kontakt'})
+        self.assertEqual(proposal['website_status'], 'nicht_bestaetigt')
+        self.assertEqual(proposal['website'], 'https://marke.example/kontakt')
+        self.assertFalse(proposal['contact'])
+        for bad in ('http://127.0.0.1/', 'https://localhost/', 'https://user:pass@marke.example/'):
+            with self.assertRaises(ValueError):
+                sw.propose_website(self.conn, c['id'], {'url': bad})
+        sw.review_website(self.conn, c['id'], {'decision': 'bestaetigen'})
+        with self.assertRaises(ValueError):
+            sw.propose_website(self.conn, c['id'], {'url': 'andere.example'})
+
     def test_take_over_creates_enriched_lead(self):
         sw.import_file(self.conn, GLEIF_CSV, {'plz': '70'})
         c = next(x for x in self.cands() if x['name'] == 'Reith Spezialkabel GmbH')
@@ -320,13 +347,14 @@ class DecisionAndWebsiteTests(SweepBase):
             sw._web_worker(self.db)
         cs = {c['name']: c for c in self.cands()}
         r = cs['Reith Spezialkabel GmbH']
-        self.assertEqual((r['website'], r['website_status']), ('https://reith-spezialkabel.de', 'belegt'))
+        self.assertEqual((r['website'], r['website_status']), ('https://reith-spezialkabel.de', 'wahrscheinlich'))
         self.assertIn('HRB 14671', r['website_evidence'])
         self.assertEqual(r['contact']['business_email'], 'info@reith-spezialkabel.de')
         self.assertEqual(cs['"Frisch-Lamm" Metzgereigesellschaft mbH']['website_status'], 'wahrscheinlich')
         n = cs['Nirgendwo Technik GmbH']
         self.assertEqual((n['website'], n['website_status']), ('', 'nicht_gefunden'), 'fremdes Impressum wird nicht zugeordnet')
         self.assertIn('nirgendwotechnik.de', n['website_evidence'])
+        sw.review_website(self.conn, r['id'], {'decision': 'bestaetigen'})
         sw.decide(self.conn, r['id'], 'uebernehmen')
         lead = self.conn.execute("SELECT * FROM leads WHERE company='Reith Spezialkabel GmbH'").fetchone()
         self.assertEqual((lead['website'], lead['business_email']), ('https://reith-spezialkabel.de', 'info@reith-spezialkabel.de'))

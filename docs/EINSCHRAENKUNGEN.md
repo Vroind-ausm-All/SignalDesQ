@@ -1,5 +1,7 @@
 # Bekannte Einschränkungen (Stand v1.19)
 
+**Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
+
 Der Masterplan verlangt für Sprint 6 „dokumentierte offene Einschränkungen“. Diese Liste nennt sie ehrlich, mit Grund und
 Ausweg. Sie wird mit jeder Version aktualisiert.
 

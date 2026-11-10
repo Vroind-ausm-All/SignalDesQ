@@ -1,5 +1,7 @@
 # SignalDesk – Sales, Lead-Finder & Buchhaltung (lokal)
 
+> **2.0.0-dev1: Entwicklungsstand für die Übergabe.** Die neue Inhaltsrecherche und Website-Zuordnung sind mit automatisierten Tests geprüft. Der Praxistest an Handwerksbetrieben im Raum Stuttgart und die vollständige Abnahme stehen noch aus. Details: [`docs/V2_ENTWICKLUNGSSTAND.md`](docs/V2_ENTWICKLUNGSSTAND.md), [`docs/UEBERGABE_FABLE.md`](docs/UEBERGABE_FABLE.md). Vor der Nutzung vorhandener Daten eine Sicherung erstellen.
+
 ## Starten in zwei Schritten
 
 1. **Herunterladen und entpacken**: auf GitHub *Code → Download ZIP*, danach Rechtsklick auf die ZIP-Datei → **„Alle extrahieren…“**.

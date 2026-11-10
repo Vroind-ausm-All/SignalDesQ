@@ -145,7 +145,9 @@ class ReportTests(ReportBase):
         with mock.patch.object(ws, 'CAPTURE_FALLBACK', boom):
             rp.create_reports(self.conn, {'lead_ids': [lid]}, self.db, start=False)
             self.run_all()
-        steps = rp.report_view(self.conn, lead_id=lid)['report']['steps']
+        report = rp.report_view(self.conn, lead_id=lid)['report']
+        self.assertEqual(report['status'], 'teilweise')
+        steps = report['steps']
         self.assertEqual(steps['website']['status'], 'fehler')
         self.assertIn('nicht erreichbar', steps['website']['detail'])
         self.assertEqual(steps['impressum']['status'], 'fertig')

@@ -41,7 +41,7 @@ class SuggestionTests(tb.SweepBase):
         self.assertEqual(f['website_status'], 'wahrscheinlich')
         self.assertTrue(f['website_evidence'].startswith('Vorschlag:'))
         self.assertEqual(f['register_id'], '', 'keine Registernummer aus einem nur vorgeschlagenen Impressum')
-        self.assertEqual(self.cands_by()['Reith Spezialkabel GmbH']['website_status'], 'belegt')
+        self.assertEqual(self.cands_by()['Reith Spezialkabel GmbH']['website_status'], 'wahrscheinlich')
 
     def test_takeover_keeps_suggestion_out_of_lead(self):
         res = sw.decide(self.conn, self.frisch['id'], 'uebernehmen')
@@ -50,8 +50,9 @@ class SuggestionTests(tb.SweepBase):
         self.assertTrue(self.conn.execute("SELECT 1 FROM activities WHERE lead_id=? AND detail LIKE 'Website-Vorschlag%noch nicht bestätigt%'",
                                           (res['lead_id'],)).fetchone())
         reith = self.cands_by()['Reith Spezialkabel GmbH']
+        sw.review_website(self.conn, reith['id'], {'decision': 'bestaetigen'})
         lead2 = self.conn.execute('SELECT website FROM leads WHERE id=?', (sw.decide(self.conn, reith['id'], 'uebernehmen')['lead_id'],)).fetchone()
-        self.assertEqual(lead2['website'], 'https://reith-spezialkabel.de', '„belegt“ wird übernommen')
+        self.assertEqual(lead2['website'], 'https://reith-spezialkabel.de', 'bestätigte Website wird übernommen')
 
     def test_confirm_after_takeover_fills_lead(self):
         lid = sw.decide(self.conn, self.frisch['id'], 'uebernehmen')['lead_id']

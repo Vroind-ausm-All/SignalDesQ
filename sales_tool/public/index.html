@@ -31,7 +31,7 @@
         <button class="nav" data-view="playbook"><span>▤</span> Sales-Playbook</button>
       </details>
     </nav>
-    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small id="sideVersion">v1.19 · Arbeitstag von oben nach unten</small><div id="authBar" class="auth-bar hidden"></div></div>
+    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small id="sideVersion">v2.0 · Entwicklungsstand</small><div id="authBar" class="auth-bar hidden"></div></div>
   </aside>
   <main class="main">
     <header class="topbar"><div class="breadcrumb">SALES <span>/</span> <span id="sectionBreadcrumb">Heute</span></div><div class="top-actions"><div class="date-chip" id="today"></div><button class="btn btn-primary" id="newLeadBtn">＋ Neuer Lead</button></div></header>
@@ -517,6 +517,10 @@
     <label>Haupttext<select name="content"><option value="stdlib">Eingebaut (empfohlen)</option><option value="trafilatura">Trafilatura, wenn installiert</option></select></label>
     <label>Browser-Rückfall<select name="browser_fallback"><option value="true">An – nur bei Seiten ohne Text</option><option value="false">Aus</option></select></label>
    </div><button type="submit" class="btn btn-primary">Speichern</button> <span class="muted" id="rtStatus"></span></form></section>
+  <section class="panel sales-section"><span class="eyebrow">INHALTSRECHERCHE</span><h2>Dein Leistungsprofil</h2>
+   <p class="muted">Wähle Themen für die regelbasierte Inhaltsanalyse und ergänze eigene Suchbegriffe, durch Komma getrennt. Die Erwähnung ist nur ein Gesprächsanlass. Technische Website-Bewertung, Stellenklassifikation und KI-Modus verwenden eigene Regeln. Änderungen gelten für neue Analysen.</p>
+   <form id="serviceProfileForm" class="sales-form"><label>Profilname<input name="name" maxlength="80" required></label><div id="serviceProfileThemes"></div><button type="submit" class="btn btn-primary">Leistungsprofil speichern</button> <span class="muted" id="serviceProfileVersion"></span></form>
+  </section>
   <section class="panel sales-section"><span class="eyebrow">TEAM & SICHERHEIT</span><h2>Zugang, Rollen, Backups</h2>
    <div id="qSecurity" class="sales-list"></div>
    <div class="sales-subhead">Login & Benutzer</div><div id="qAuth"></div>

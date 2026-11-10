@@ -69,8 +69,10 @@ class RubricAndScoreTests(unittest.TestCase):
         flagged = {f['rubric'] for f in r['findings'] if f['result'] == 'auffaellig'}
         for rid in ('A1_mobile_overflow', 'A2_small_text', 'A3_heading_hierarchy', 'A4_alt_texts', 'A5_tap_targets', 'A6_font_consistency',
                     'A7_freshness', 'B1_load_time', 'B2_page_weight', 'B3_cta_above_fold', 'B4_contact_options', 'B6_broken_links',
-                    'B9_technical', 'C1_pdf_workflows', 'C2_manual_requests', 'C3_self_service'):
+                    'B9_technical', 'C1_pdf_workflows', 'C2_manual_requests'):
             self.assertIn(rid, flagged, rid)
+        no_portal = next(f for f in r['findings'] if f['rubric'] == 'C3_self_service')
+        self.assertEqual(no_portal['result'], 'unbekannt')
         self.assertGreaterEqual(r['area_scores']['design']['score'], 90)
         self.assertGreater(r['potential'], 70)
         c1 = next(f for f in r['findings'] if f['rubric'] == 'C1_pdf_workflows')
@@ -137,6 +139,19 @@ class ScoringDbTests(unittest.TestCase):
         ws.CAPTURE, ws.CAPTURE_FALLBACK, ws.playwright_available = self._orig
         self.conn.close()
         self.tmp.cleanup()
+
+    def test_engine_upgrade_preserves_old_version_and_custom_config(self):
+        cfg = ws.validate_config({'overall_weights': {'potential': 60, 'fit': 20, 'signal': 20}})
+        self.conn.execute('UPDATE score_versions SET active=0')
+        old = self.conn.execute('INSERT INTO score_versions(hash, config_json, active) VALUES (?, ?, 1)',
+                                ('legacy', json.dumps(cfg))).lastrowid
+        ws.init_website_scorer(self.conn)
+        new_id, new_cfg = ws.active_version(self.conn)
+        self.assertNotEqual(new_id, old)
+        self.assertEqual(new_cfg, cfg)
+        self.assertIsNotNone(self.conn.execute('SELECT id FROM score_versions WHERE id=?', (old,)).fetchone())
+        ws.init_website_scorer(self.conn)
+        self.assertEqual(ws.active_version(self.conn)[0], new_id)
 
     def lead(self, **over):
         data = {'company': 'Testfirma GmbH', 'website': 'https://firma.example', 'industry': 'Industrie & B2B-Technik', 'employees': 50, **over}

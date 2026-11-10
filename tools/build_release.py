@@ -21,24 +21,51 @@ import sys
 import tempfile
 import time
 import zipfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 EXCLUDE_DIRS = ('tests/', 'tools/', '.github/', 'docs/bench/')
-EXCLUDE_FILES = ('.gitignore', '.gitattributes')
+EXCLUDE_FILES = ('.gitignore', '.gitattributes', '.source-date-epoch')
+# Neue, noch nicht eingecheckte Dateien müssen im lokalen Entwicklungs-Release enthalten sein.
+# Eine feste Liste verhindert, dass beliebige Nutzerdaten in das Paket geraten.
+RELEASE_ADDITIONS = ('sales_tool/research/service_profile.py', 'docs/MASTERPLAN_SOLOSELBSTAENDIGE.md',
+                     'docs/V2_ENTWICKLUNGSSTAND.md', 'docs/UEBERGABE_FABLE.md')
 FORBIDDEN = re.compile(r'(\.sqlite3(-wal|-shm)?|\.sdenc|\.db|\.env|\.pem|\.key|id_rsa)$', re.I)
 SECRET = re.compile(rb'(-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|sk-ant-[A-Za-z0-9]{10}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30})')
 EXECUTABLE = ('.sh', '.command')
 
 
 def git_files():
-    out = subprocess.run(['git', 'ls-files', '-z'], cwd=ROOT, capture_output=True, check=True).stdout.decode('utf-8')
-    return sorted(f for f in out.split('\0') if f)
+    try:
+        proc = subprocess.run(['git', 'ls-files', '-z'], cwd=ROOT, capture_output=True, check=False)
+        if proc.returncode == 0:
+            return sorted(f for f in proc.stdout.decode('utf-8').split('\0') if f)
+    except FileNotFoundError:
+        pass
+    # Quellpakete enthalten keine Git-Metadaten. Das Manifest dient hier nur als
+    # Dateiliste: bearbeitete Quelldateien dürfen neu gebaut werden.
+    manifest = ROOT / 'MANIFEST.sha256'
+    if not manifest.is_file():
+        raise SystemExit('Weder Git-Dateiliste noch Quellpaket-MANIFEST.sha256 vorhanden.')
+    files = []
+    for line in manifest.read_text(encoding='utf-8').splitlines():
+        parts = line.split('  ', 1)
+        if len(parts) != 2 or not re.fullmatch(r'[0-9a-f]{64}', parts[0]):
+            raise SystemExit('Ungültige Dateiliste im Quellpaket-Manifest.')
+        name = parts[1]
+        path = PurePosixPath(name)
+        if path.is_absolute() or '..' in path.parts or '\\' in name or not (ROOT / name).is_file():
+            raise SystemExit(f'Ungültiger Dateiname im Quellpaket-Manifest: {name}')
+        if not (ROOT / name).resolve().is_relative_to(ROOT.resolve()):
+            raise SystemExit(f'Datei außerhalb des Quellpakets: {name}')
+        files.append(name)
+    return sorted(set(files))
 
 
 def release_files():
     files = [f for f in git_files() if not f.startswith(EXCLUDE_DIRS) and f not in EXCLUDE_FILES]
+    files.extend(f for f in RELEASE_ADDITIONS if (ROOT / f).is_file())
     for extra in sorted(ROOT.glob('requirements-lock-*.txt')) + [ROOT / 'sbom' / 'signaldesk.cdx.json']:
         rel = extra.relative_to(ROOT).as_posix()
         if extra.exists() and rel not in files:
@@ -49,6 +76,12 @@ def release_files():
 def source_epoch():
     if os.environ.get('SOURCE_DATE_EPOCH', '').isdigit():
         return int(os.environ['SOURCE_DATE_EPOCH'])
+    snapshot_epoch = ROOT / '.source-date-epoch'
+    if snapshot_epoch.is_file():
+        value = snapshot_epoch.read_text(encoding='ascii').strip()
+        if not value.isdigit():
+            raise SystemExit('Ungültiger Zeitstempel im Quellpaket.')
+        return int(value)
     try:
         return int(subprocess.run(['git', 'log', '-1', '--format=%ct'], cwd=ROOT, capture_output=True, check=True).stdout.strip())
     except (subprocess.CalledProcessError, ValueError, OSError):

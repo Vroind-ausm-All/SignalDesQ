@@ -1274,12 +1274,28 @@ def domain_guesses(name, city=''):
 
 
 def _match(cand, fields):
+    from .company_data import normalize_register
     val = lambda k: ((fields.get(k) or {}).get('value') or '')
     reg = re.sub(r'\s+', '', val('register_number').upper())
-    if reg and cand['register_id'] and reg == re.sub(r'\s+', '', cand['register_id'].upper()):
-        return 'belegt', f"Registernummer {val('register_number')} im Impressum stimmt überein"
+    wanted_reg = re.sub(r'\s+', '', (cand['register_id'] or '').upper())
     nm, nm2 = normalize_name(cand['name']), normalize_name(val('legal_name'))
-    if nm and nm2 and (nm == nm2 or nm in nm2 or nm2 in nm) and (not cand['zip'] or val('zip') == cand['zip']):
+    names_match = bool(nm and nm2 and (nm == nm2 or (min(len(nm), len(nm2)) >= 5 and (nm in nm2 or nm2 in nm))))
+    if wanted_reg and reg and wanted_reg != reg:
+        return None, ''
+    if nm and nm2 and not names_match:
+        return None, ''
+    if cand['zip'] and val('zip') and cand['zip'] != val('zip'):
+        return None, ''
+    if reg and wanted_reg == reg:
+        court = cand['register_court'] if 'register_court' in cand.keys() else ''
+        expected = normalize_register(court, wanted_reg)
+        observed = normalize_register(val('register_court'), reg)
+        if expected and observed and expected != observed:
+            return None, ''
+        if expected and observed and names_match:
+            return 'belegt', f"Registernummer und Registergericht stimmen überein: {val('register_number')} · {val('register_court')}"
+        return 'wahrscheinlich', f"Registernummer {val('register_number')} stimmt überein; Registergericht oder Firmenname nicht sicher verglichen"
+    if names_match and (not cand['zip'] or val('zip') == cand['zip']):
         return 'wahrscheinlich', f"Firmenname{' und PLZ' if cand['zip'] else ''} im Impressum stimmen überein"
     return None, ''
 
@@ -1289,14 +1305,18 @@ def find_website(conn, cid):
     from . import imprint
     cand = conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (cid,)).fetchone()
     tried = []
+    errors = 0
+    inspected = 0
     rejected = set(json.loads(cand['imprint_json'] or '{}').get('rejected_domains', []))
     targets = [cand['website']] if cand['website'] else [d for d in domain_guesses(cand['name'], cand['city']) if d not in rejected]
     for dom in targets:
         tried.append(dom)
         try:
             res = imprint.research_domain(dom, include_persons=False)
-        except Exception:  # Domain existiert nicht, gesperrt durch robots.txt o. Ä.
+        except Exception:  # Fehler bedeutet nicht, dass die Website nicht existiert.
+            errors += 1
             continue
+        inspected += 1
         if res.get('status') != 'ok':
             continue
         status, why = _match(cand, res.get('fields') or {})
@@ -1317,17 +1337,48 @@ def find_website(conn, cid):
                           (f.get('register_number') or {}).get('value') or '', _now(), cid))
             conn.commit()
             return {'status': status, 'website': web, 'evidence': why}
+    if errors:
+        why = (f'{inspected} Domain(s) geprüft, {errors} Abruf(e) fehlgeschlagen – '
+               'Website-Zuordnung unvollständig; später erneut versuchen.')
+        conn.execute("UPDATE discovery_candidates SET website_status='pruefung_fehlgeschlagen', website_evidence=? WHERE id=?", (why, cid))
+        conn.commit()
+        return {'status': 'pruefung_fehlgeschlagen', 'tried': tried, 'evidence': why}
     if cand['website']:
         conn.execute("UPDATE discovery_candidates SET website_status='nicht_bestaetigt', website_evidence=? WHERE id=?",
-                     ('Impressum gefunden, aber Firma nicht eindeutig zuzuordnen – bitte selbst prüfen', cid))
+                     ('Website geprüft, aber Firma nicht eindeutig zuzuordnen – bitte selbst prüfen', cid))
     else:
         conn.execute("UPDATE discovery_candidates SET website_status='nicht_gefunden', website_evidence=? WHERE id=?",
-                     (('Geprüft: ' + ', '.join(tried))[:300] if tried else 'Kein sinnvoller Domainname ableitbar', cid))
+                     ((f'Geprüft: {inspected}; Abrufe fehlgeschlagen: {errors}. Domains: ' + ', '.join(tried))[:300] if tried else 'Kein sinnvoller Domainname ableitbar', cid))
     conn.commit()
     return {'status': 'nicht_gefunden', 'tried': tried}
 
 
 CONFIRMED_WEB = ('quelle', 'belegt', 'bestaetigt')
+
+
+def propose_website(conn, cid, data):
+    """Manuell gefundene URL als ungeprüften Vorschlag speichern, ohne sie abzurufen."""
+    from .research.safe_urls import check_url
+    if not isinstance(data, dict) or set(data) != {'url'} or not isinstance(data['url'], str):
+        raise ValueError('Erwartet: {url}.')
+    raw = data['url'].strip()
+    if not re.match(r'^https?://', raw, re.I):
+        raw = 'https://' + raw
+    url = check_url(raw)
+    cand = conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (cid,)).fetchone()
+    if not cand:
+        raise LookupError('Treffer nicht gefunden.')
+    if cand['status'] != 'neu' or cand['website_status'] in ('wartet', 'laeuft'):
+        raise ValueError('Nur offene Firmen ohne laufende Website-Suche können bearbeitet werden.')
+    if cand['website_status'] in ('belegt', 'bestaetigt'):
+        raise ValueError('Eine belegte oder bestätigte Website kann hier nicht überschrieben werden.')
+    previous = json.loads(cand['imprint_json'] or '{}')
+    info = {'rejected_domains': previous.get('rejected_domains', [])}
+    conn.execute("""UPDATE discovery_candidates SET website=?, website_status='nicht_bestaetigt', website_evidence=?,
+                    contact_json='{}', imprint_json=?, updated_at=? WHERE id=?""",
+                 (url, 'Manuell eingetragen – Firmenzuordnung bitte prüfen und bestätigen.', json.dumps(info, ensure_ascii=False), _now(), cid))
+    conn.commit()
+    return _cand_view(conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (cid,)).fetchone())
 
 
 def review_website(conn, cid, data):
@@ -1363,7 +1414,7 @@ def queue_websites(conn, data, db_path, start=True):
     marked = []
     for cid in ids:
         if conn.execute("""UPDATE discovery_candidates SET website_status='wartet' WHERE id=? AND status='neu'
-                           AND website_status IN ('', 'quelle', 'nicht_gefunden', 'nicht_bestaetigt', 'abgelehnt')""", (cid,)).rowcount:
+                           AND website_status IN ('', 'quelle', 'nicht_gefunden', 'nicht_bestaetigt', 'abgelehnt', 'pruefung_fehlgeschlagen')""", (cid,)).rowcount:
             marked.append(cid)
     conn.commit()
     job = None
@@ -1401,9 +1452,12 @@ def _job_website(db_path, payload, ctx):
         conn.execute("UPDATE discovery_candidates SET website_status='laeuft' WHERE id=?", (payload['cid'],))
         conn.commit()
         try:
-            return find_website(conn, payload['cid'])
+            result = find_website(conn, payload['cid'])
+            if result.get('status') == 'pruefung_fehlgeschlagen':
+                return {**result, '_status': 'failed', '_error': result['evidence']}
+            return result
         except Exception as exc:  # nie hängen bleiben – Fehler gehört zu genau dieser Firma
-            conn.execute("UPDATE discovery_candidates SET website_status='nicht_gefunden', website_evidence=? WHERE id=?",
+            conn.execute("UPDATE discovery_candidates SET website_status='pruefung_fehlgeschlagen', website_evidence=? WHERE id=?",
                          (f'Fehler bei der Suche: {exc.__class__.__name__}', payload['cid']))
             conn.commit()
             return {'_status': 'failed', '_error': f'{exc.__class__.__name__}: {exc}'}
@@ -1412,7 +1466,7 @@ def _job_website(db_path, payload, ctx):
 @jobs.handler('website:retry')
 def _job_website_retry(conn, job_id):
     for t in conn.execute("SELECT payload_json FROM research_tasks WHERE job_id=? AND status='queued'", (job_id,)).fetchall():
-        conn.execute("UPDATE discovery_candidates SET website_status='wartet' WHERE id=? AND status='neu' AND website_status IN ('nicht_gefunden','')",
+        conn.execute("UPDATE discovery_candidates SET website_status='wartet' WHERE id=? AND status='neu' AND website_status IN ('nicht_gefunden','pruefung_fehlgeschlagen','')",
                      (json.loads(t['payload_json'])['cid'],))
 
 
@@ -1510,7 +1564,9 @@ def route_sweep(h, conn, method, route, query, db_path):
         return True
     m = re.fullmatch(r'/api/sweep-candidates/(\d+)/website', route)
     if m and method == 'POST':
-        h._send(200, review_website(conn, int(m.group(1)), h._body()))
+        data = h._body()
+        h._send(200, propose_website(conn, int(m.group(1)), data) if isinstance(data, dict) and 'url' in data
+                else review_website(conn, int(m.group(1)), data))
         return True
     m = re.fullmatch(r'/api/sweep-candidates/(\d+)/decision', route)
     if m and method == 'POST':

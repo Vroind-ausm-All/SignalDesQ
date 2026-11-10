@@ -34,8 +34,11 @@ def company_guess(url: str, pages: list[dict]) -> str:
     return name[:160]
 
 
-def research(crawl: dict, provider: str = 'rules', model: str = 'qwen3:8b') -> dict:
-    analysis = analyze(crawl, provider=provider, model=model)
+def research(crawl: dict, provider: str = 'rules', model: str = 'qwen3:8b', profile=None) -> dict:
+    analysis = analyze(crawl, provider=provider, model=model, profile=profile)
+    if provider == 'rules':
+        from .research.service_profile import default_profile, fingerprint
+        profile = profile if profile is not None else default_profile()
     best_offer = (analysis['findings'][0]['offer'] if analysis['findings'] else 'pilot')
     public = extract_public_contacts(crawl, offer=best_offer)
     pages = [{'url': p['url'], 'title': p.get('title', '')} for p in crawl['pages']]
@@ -55,6 +58,7 @@ def research(crawl: dict, provider: str = 'rules', model: str = 'qwen3:8b') -> d
         'site': {'url': crawl['source'], 'company_label': company_guess(crawl['source'], crawl['pages']),
                  'pages': pages},
         'audit': {'summary': analysis['summary'], 'findings': analysis['findings'], 'provider': provider,
+                  'service_profile': {'name': profile['name'], 'version': fingerprint(profile), 'snapshot': profile} if provider == 'rules' else None,
                   'discarded': analysis.get('discarded', 0)},
         'decision_makers': {'people': public['people'], 'suggested_roles': role_suggestions({'offer':best_offer,'employees':0}),
                             'note': 'Recherchekandidaten – Funktion und Entscheidungsbefugnis bitte manuell verifizieren.',
@@ -72,7 +76,10 @@ def run_job(db_path: str | Path, run_id: int, url: str, provider: str, model: st
         conn.commit()
     try:
         crawl = crawl_site(url, purpose='full')
-        result = research(crawl, provider, model)
+        from .research.service_profile import load as load_service_profile
+        with connect(db_path) as conn:
+            profile = load_service_profile(conn)
+        result = research(crawl, provider, model, profile=profile)
         with connect(db_path) as conn:
             conn.execute("UPDATE quick_scans SET status='done', result_json=?, finished_at=datetime('now') WHERE id=?",
                          (json.dumps(result, ensure_ascii=False),run_id))

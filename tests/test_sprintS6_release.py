@@ -103,8 +103,20 @@ class ReleaseZipTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             br.check_safe('daten/akquise.sqlite3', b'')
         with self.assertRaises(SystemExit):
-            br.check_safe('notes.txt', b'key: -----BEGIN PRIVATE KEY-----')
+            br.check_safe('notes.txt', b'key: ' + b'-----BEGIN ' + b'PRIVATE KEY-----')
         br.check_safe('README.md', b'Alles gut')
+
+    def test_exported_source_manifest_can_build_without_git(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / 'README.md').write_text('source', encoding='utf-8')
+            manifest = root / 'MANIFEST.sha256'
+            manifest.write_text('a' * 64 + '  README.md\n', encoding='utf-8')
+            with mock.patch.object(br, 'ROOT', root), mock.patch.object(br.subprocess, 'run', side_effect=FileNotFoundError):
+                self.assertEqual(br.git_files(), ['README.md'])
+                manifest.write_text('a' * 64 + '  ../README.md\n', encoding='utf-8')
+                with self.assertRaises(SystemExit):
+                    br.git_files()
 
 
 class VariantTests(unittest.TestCase):

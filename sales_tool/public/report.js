@@ -49,7 +49,7 @@
         <div class="acc-btn-group"><button type="button" class="text-button" data-rp-audit="${w.audit_id}">Alle Rubriken in der Website-Bewertung ansehen ↗</button></div>`
       : '<div class="empty">Keine Website-Bewertung.</div>';
     const inh = d.inhalte;
-    const inhBody = inh ? `<h4>Hypothesen zum Bedarf (Interpretation, mit Beleg)</h4><ul class="rp-list">${inh.findings.map(f => `<li><b>${esc(f.hypothesis)}</b><br><small>Beobachtung: ${esc(f.observation)} · Beleg: „${esc((f.evidence || '').slice(0, 160))}“ ${link(f.source_url, 'Quelle')}</small></li>`).join('') || '<li>Keine belegten Hinweise gefunden.</li>'}</ul>
+    const inhBody = inh ? `${inh.service_profile ? `<p class="muted">Leistungsprofil: ${esc(inh.service_profile.name)} · Version ${esc(inh.service_profile.version)}</p>` : ''}<h4>Hypothesen zum Bedarf (Interpretation, mit Beleg)</h4><ul class="rp-list">${inh.findings.map(f => `<li><b>${esc(f.hypothesis)}</b><br><small>Beobachtung: ${esc(f.observation)} · Beleg: „${esc((f.evidence || '').slice(0, 160))}“ ${link(f.source_url, 'Quelle')}${f.question ? `<br>Frage: ${esc(f.question)}` : ''}</small></li>`).join('') || '<li>Keine belegten Hinweise gefunden.</li>'}</ul>
         ${inh.channels.length ? `<h4>Öffentliche Kontaktwege der Firma</h4><ul class="rp-list">${inh.channels.map(c => `<li>${esc(c.label || c.type || '')}: ${esc(c.value || '')} ${link(c.source_url, 'Quelle')}</li>`).join('')}</ul>` : ''}
         <p class="muted">Gelesen: ${inh.pages.map(p => link(p.url, p.title || p.url)).join(' · ')}</p>${inh.warnings.length ? `<p class="muted">${inh.warnings.map(esc).join(' · ')}</p>` : ''}`
       : '<div class="empty">Website-Inhalte nicht gelesen.</div>';
@@ -101,7 +101,7 @@
       const rows = await api('/reports');
       const show = rows.slice(0, 8);
       $('#rpRecent').classList.toggle('hidden', !show.length);
-      $('#rpRecentList').innerHTML = show.map(r => `<button type="button" class="rp-chip ${esc(r.status)}" data-report-open="${r.lead_id}">${esc(r.company)} <small>${esc({queued: 'wartet', running: 'läuft', fertig: 'fertig', fehler: 'Fehler'}[r.status] || r.status)}</small></button>`).join('');
+      $('#rpRecentList').innerHTML = show.map(r => `<button type="button" class="rp-chip ${esc(r.status)}" data-report-open="${r.lead_id}">${esc(r.company)} <small>${esc({queued: 'wartet', running: 'läuft', fertig: 'fertig', teilweise: 'teilweise geprüft', fehler: 'Fehler'}[r.status] || r.status)}</small></button>`).join('');
       if (rows.some(r => ['queued', 'running'].includes(r.status)) && currentView === 'center') setTimeout(window.refreshReportsList, 4000);
     } catch { /* still */ }
   };
