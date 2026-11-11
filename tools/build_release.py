@@ -25,12 +25,13 @@ from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-EXCLUDE_DIRS = ('tests/', 'tools/', '.github/', 'docs/bench/')
+EXCLUDE_DIRS = ('tests/', 'tools/', '.github/', 'docs/bench/', 'ausgabe/', '.claude/')  # ausgabe/: fertige Pakete gehören nicht ins Paket
 EXCLUDE_FILES = ('.gitignore', '.gitattributes', '.source-date-epoch')
 # Neue, noch nicht eingecheckte Dateien müssen im lokalen Entwicklungs-Release enthalten sein.
 # Eine feste Liste verhindert, dass beliebige Nutzerdaten in das Paket geraten.
 RELEASE_ADDITIONS = ('sales_tool/research/service_profile.py', 'docs/MASTERPLAN_SOLOSELBSTAENDIGE.md',
-                     'docs/V2_ENTWICKLUNGSSTAND.md', 'docs/UEBERGABE_FABLE.md')
+                     'docs/V2_ENTWICKLUNGSSTAND.md', 'docs/UEBERGABE_FABLE.md', 'sales_tool/qualification.py',
+                     'sales_tool/public/assessment.js', 'docs/LAUNCH_AUDIT.md', 'docs/ARCHITECTURE_DECISIONS.md', 'docs/SELF_REVIEW_LOG.md')
 FORBIDDEN = re.compile(r'(\.sqlite3(-wal|-shm)?|\.sdenc|\.db|\.env|\.pem|\.key|id_rsa)$', re.I)
 SECRET = re.compile(rb'(-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|sk-ant-[A-Za-z0-9]{10}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30})')
 EXECUTABLE = ('.sh', '.command')

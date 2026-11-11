@@ -238,6 +238,8 @@ def init_db(conn: sqlite3.Connection):
     init_workday(conn)  # v1.18: bestätigter Bedarf, Tagesabschluss
     from .profiles import init_profiles
     init_profiles(conn)  # v1.18: Suchprofile mit Budget
+    from .qualification import init_qualification
+    init_qualification(conn)  # 2.0.0-dev2: Zeitfenster je Anrufversuch, Verlustgrund
     conn.commit()
 
 

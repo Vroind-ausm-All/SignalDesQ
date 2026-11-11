@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.0-dev2 – Kundenbewertung und Erreichbarkeit
+
+- **Zielkundenprofil** (Datenqualität & System): Zielbranchen und Ausschlüsse aus dem Branchenkatalog, Wunschgröße, Standort und Einzugsgebiet, Mindestauftrag, Wochenstunden, Zahl der Anrufversuche.
+- **Bewertung in drei getrennten Teilen** in der Firmenakte:
+  - Passung vor dem Gespräch als A, B oder C mit Begründung je Kriterium;
+  - Qualifizierung nach dem Gespräch (Bedarf, Budget, Zeitpunkt, Entscheider, Auftragswert) mit offenen Fragen fürs nächste Gespräch;
+  - Erreichbarkeit mit belegten Kontaktwegen und bisherigen Versuchen.
+- **Unbekannt ist nicht schlecht:** Fehlende Angaben senken die Note nicht. Bei zu dünner Datenlage gibt es keine Note.
+- **K.-o.-Kriterien:** Kontaktsperre, Auflösung laut Register, ausgeschlossene Branche, kein Budget, kein Bedarf.
+- **Behoben – „Nicht erreicht“ und „Mailbox“ blieben folgenlos:** Jetzt entsteht eine Wiedervorlage an einem Werktag zu einer anderen Tageszeit. Nach der eingestellten Zahl an Versuchen schlägt SignalDesk Kanalwechsel oder Parken vor.
+- **„Verloren“ nur mit Grund**, dazu eine Übersicht der Verlustgründe und der Erreichbarkeit nach Tageszeit (erst ab 20 Versuchen).
+- **Note in der Lead-Liste.** Der bisherige Lead-Fit bleibt unverändert bestehen.
+- Schema 25 (Zeitfenster je Anrufversuch, Verlustgrund). 454 Tests (28 neu) und 3 Browser-Tests (1 neu).
+- Neu: `docs/LAUNCH_AUDIT.md`, `docs/ARCHITECTURE_DECISIONS.md`, `docs/SELF_REVIEW_LOG.md`, zwei Projekt-Skills unter `.claude/skills/`.
+- Kein abgeschlossenes Release. Nicht an echten Firmen und nicht unter Windows geprüft.
+
 ## 2.0.0-dev1 – Entwicklungsstand für die Übergabe
 
 - Regelbasierte Inhaltsrecherche mit gespeicherten Themenprofilen, zusätzlichen Suchbegriffen und Profilstand im Bericht.

@@ -128,6 +128,7 @@
     <section class="panel sales-section"><span class="eyebrow">TELEFON / MANUELLES LOG</span><h2>Call-Arbeitsplatz</h2><p class="muted">Keine automatische Anwahl, keine Aufzeichnung. Erst Rechtsgrundlage für den konkreten Anruf prüfen; Gesprächsergebnis nach dem Gespräch protokollieren.</p>
       <form id="wsCallForm" class="sales-form"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><div id="wsCallPermission" class="sales-banner">Bitte einen Lead auswählen.</div>
       <label>Gesprächsergebnis<select name="outcome"><option value="erreicht">Gespräch geführt</option><option value="rueckruf_vereinbart">Rückruf ausdrücklich vereinbart</option><option value="termin_vereinbart">Termin vereinbart</option><option value="nicht_erreicht">Nicht erreicht</option><option value="mailbox">Mailbox</option><option value="kein_bedarf">Kein Bedarf</option><option value="widerspruch">Kontaktaufnahme untersagt</option></select></label>
+      <label>Uhrzeit des Versuchs<select name="slot"><option value="">gerade eben</option><option value="vormittag">vormittags (8–11 Uhr)</option><option value="mittag">mittags (11–14 Uhr)</option><option value="nachmittag">nachmittags (14–17 Uhr)</option><option value="abend">früher Abend (17–19 Uhr)</option></select></label>
       <label>Notizen / konkrete Vereinbarung<textarea name="notes" rows="3" maxlength="2000" placeholder="Wörtliche Aussage, Ergebnis, Absprachen"></textarea></label>
       <label>Kontakt-Rechtsprüfung / Dokumentation<input name="legal_note" maxlength="1000" placeholder="Grundlage für den erfolgten Anruf (falls zutreffend)"></label>
       <label>Vereinbarter Rückruf am<input type="date" name="callback_date"></label><button class="btn btn-primary" type="submit">Gespräch dokumentieren</button></form></section>
@@ -517,6 +518,24 @@
     <label>Haupttext<select name="content"><option value="stdlib">Eingebaut (empfohlen)</option><option value="trafilatura">Trafilatura, wenn installiert</option></select></label>
     <label>Browser-Rückfall<select name="browser_fallback"><option value="true">An – nur bei Seiten ohne Text</option><option value="false">Aus</option></select></label>
    </div><button type="submit" class="btn btn-primary">Speichern</button> <span class="muted" id="rtStatus"></span></form></section>
+  <section class="panel sales-section" id="targetProfile"><span class="eyebrow">KUNDENBEWERTUNG</span><h2>Dein Zielkundenprofil</h2>
+   <p class="muted">Danach bewertet SignalDesk jede Firma: Passung vor dem Gespräch (A, B, C) und Qualifizierung danach. Fehlende Angaben zählen als „unbekannt“, nicht als schlecht. Die Bewertung ist keine Kaufwahrscheinlichkeit und keine Kontakterlaubnis.</p>
+   <form id="targetProfileForm" class="sales-form"><div class="tp-grid">
+    <label>Profilname<input name="name" maxlength="80" required></label>
+    <label>Dein Standort (PLZ oder Ort)<input name="home" maxlength="80" placeholder="z. B. 70173"></label>
+    <label>Einzugsgebiet (km)<input name="radius_km" type="number" min="1" max="1000" required></label>
+    <label>Mitarbeiter von<input name="employees_min" type="number" min="0" required></label>
+    <label>Mitarbeiter bis<input name="employees_max" type="number" min="1" required></label>
+    <label>Mindestauftrag netto (€)<input name="min_order_eur" type="number" min="0" required></label>
+    <label>Deine Wochenstunden<input name="weekly_hours" type="number" min="1" max="80" required></label>
+    <label>Anrufversuche, bevor du den Kanal wechselst<input name="max_attempts" type="number" min="1" max="10" required></label>
+    <label>Neuer Versuch nach (Werktagen)<input name="retry_days" type="number" min="1" max="30" required></label>
+    <label>Parken für (Tage)<input name="park_days" type="number" min="7" max="730" required></label>
+    <label class="tp-check"><input type="checkbox" name="prefer_owner_led"> Inhabergeführte Betriebe bevorzugen (kurzer Entscheidungsweg)</label></div>
+    <details><summary>Branchen wählen: Zielbranche oder „nicht bedienen“</summary><div id="targetIndustries" class="tp-industries"></div></details>
+    <button type="submit" class="btn btn-primary">Zielkundenprofil speichern</button></form>
+   <div id="asStats" class="as-stats"></div>
+  </section>
   <section class="panel sales-section"><span class="eyebrow">INHALTSRECHERCHE</span><h2>Dein Leistungsprofil</h2>
    <p class="muted">Wähle Themen für die regelbasierte Inhaltsanalyse und ergänze eigene Suchbegriffe, durch Komma getrennt. Die Erwähnung ist nur ein Gesprächsanlass. Technische Website-Bewertung, Stellenklassifikation und KI-Modus verwenden eigene Regeln. Änderungen gelten für neue Analysen.</p>
    <form id="serviceProfileForm" class="sales-form"><label>Profilname<input name="name" maxlength="80" required></label><div id="serviceProfileThemes"></div><button type="submit" class="btn btn-primary">Leistungsprofil speichern</button> <span class="muted" id="serviceProfileVersion"></span></form>
@@ -649,6 +668,11 @@
 <script src="/pipeline.js" defer></script>
 <script src="/jobs.js" defer></script>
 <script src="/catalog.js" defer></script>
+<script src="/assessment.js" defer></script>
 <script src="/akte.js" defer></script>
 <script src="/workday.js" defer></script>
+<dialog id="lostDialog" class="lost-dialog"><form id="lostForm" class="sales-form"><h3>Warum verloren?</h3><p class="muted">Firma: <b id="lostCompany"></b>. Der Grund hilft dir später zu sehen, woran Chancen scheitern.</p>
+ <label>Grund<select name="lost_reason" required><option value="kein_bedarf">Kein Bedarf</option><option value="kein_budget">Kein Budget</option><option value="zeitpunkt">Falscher Zeitpunkt – später wieder</option><option value="wettbewerber">Anderer Anbieter gewählt</option><option value="inhouse">Wird intern gelöst</option><option value="preis">Preis zu hoch</option><option value="nicht_erreicht">Niemanden erreicht</option><option value="passt_nicht">Passt nicht zu meinem Angebot</option><option value="sonstiges">Sonstiges</option></select></label>
+ <label>Notiz (bei „Sonstiges“ nötig)<textarea name="lost_note" rows="2" maxlength="500"></textarea></label>
+ <div class="acc-btn-group"><button type="submit" class="btn btn-primary">Als verloren speichern</button><button type="button" class="text-button" id="lostCancel">Abbrechen</button></div></form></dialog>
 </body></html>

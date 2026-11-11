@@ -79,6 +79,7 @@
           ${n.action ? `<button type="button" class="btn btn-primary" data-lf-go='${esc(JSON.stringify(n.action))}'>${esc(n.action.label)} ▶</button>` : ''}</div></div>
         ${file.lock ? `<div class="lf-lock" role="alert">⛔ Kontaktsperre: Firma ist ${esc(file.lock)}. Anruf, Termin, Mail-Entwurf und Angebot sind gesperrt. Ein Widerspruch lässt sich immer dokumentieren.</div>` : ''}
         ${stepBar(file.steps)}
+        ${window.renderAssessment ? window.renderAssessment(file.assessment) : ''}
         ${companyData(file.company_data)}
         <div class="lf-cols">${coverage(file.coverage)}
           <div class="lf-need" id="lfNeed"><b>Bedarf ${need.confirmed ? `bestätigt <span class="sw-web ok">am ${esc(fmtDate(need.confirmed_at.slice(0, 10)))}</span>` : '<span class="sw-web mid">noch nicht bestätigt</span>'}</b>

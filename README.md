@@ -1,6 +1,6 @@
 # SignalDesk – Sales, Lead-Finder & Buchhaltung (lokal)
 
-> **2.0.0-dev1: Entwicklungsstand für die Übergabe.** Die neue Inhaltsrecherche und Website-Zuordnung sind mit automatisierten Tests geprüft. Der Praxistest an Handwerksbetrieben im Raum Stuttgart und die vollständige Abnahme stehen noch aus. Details: [`docs/V2_ENTWICKLUNGSSTAND.md`](docs/V2_ENTWICKLUNGSSTAND.md), [`docs/UEBERGABE_FABLE.md`](docs/UEBERGABE_FABLE.md). Vor der Nutzung vorhandener Daten eine Sicherung erstellen.
+> **2.0.0-dev2: Entwicklungsstand, kein fertiges Release.** Neu: Zielkundenprofil, Bewertung jeder Firma (Passung, Qualifizierung, Erreichbarkeit), Wiedervorlage nach „nicht erreicht“, Verlustgrund. Geprüft mit automatischen Tests und im Browser, **nicht** an echten Firmen und nicht unter Windows. Stand und Lücken: [`docs/LAUNCH_AUDIT.md`](docs/LAUNCH_AUDIT.md) · Entscheidungen: [`docs/ARCHITECTURE_DECISIONS.md`](docs/ARCHITECTURE_DECISIONS.md) · Selbstprüfung: [`docs/SELF_REVIEW_LOG.md`](docs/SELF_REVIEW_LOG.md) · Übergabe: [`docs/UEBERGABE_FABLE.md`](docs/UEBERGABE_FABLE.md). Vor der Nutzung vorhandener Daten eine Sicherung erstellen.
 
 ## Starten in zwei Schritten
 

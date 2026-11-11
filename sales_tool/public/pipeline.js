@@ -46,7 +46,9 @@
     moving = null;
     if (!lead || lead.stage === stage) { window.renderPipeline(); return; }
     if (stage === 'gewonnen' && !confirm('Ist der Auftrag tatsächlich verbindlich gewonnen?')) { window.renderPipeline(); return; }
-    try { await api(`/leads/${id}`, 'PATCH', {stage}); await reload(); toast(`${lead.company} → ${label(stage)}`); }
+    const data = window.withLostReason ? await window.withLostReason(lead, {stage}) : {stage};  // 2.0.0-dev2: „verloren“ nur mit Grund
+    if (!data) { window.renderPipeline(); return; }
+    try { await api(`/leads/${id}`, 'PATCH', data); await reload(); toast(`${lead.company} → ${label(stage)}`); }
     catch (e) { window.renderPipeline(); toast(e.message, true); }
   }
 
