@@ -30,6 +30,11 @@ from sales_tool.server import make_handler, prepare_database  # noqa: E402
 FRI = dt.datetime(2026, 11, 13, 10, 0)  # ein Freitag
 PROFILE = {**q.default_profile(), 'industries': ['elektro'], 'home': '70173'}
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class Base(unittest.TestCase):
     def setUp(self):
@@ -40,7 +45,7 @@ class Base(unittest.TestCase):
 
     def tearDown(self):
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def lead(self, company='Elektro Beispiel e.K.', **kw):
         fields = {'company': company, 'employees': 6, 'zip': '70173', 'city': 'Stuttgart', 'stage': 'kontakt', 'business_phone': '0711 000000', **kw}
@@ -115,6 +120,21 @@ class InboundTests(Base):
         reach.complete_inbound(self.conn, r['id'], {}, now=FRI)
         self.assertEqual(wiedervorlage(self.conn, today=FRI.date()), [])
 
+    def test_done_entries_lose_personal_data_after_retention_but_keep_statistics(self):
+        r = reach.create_inbound(self.conn, {'who': 'Frau Beispiel', 'channel': 'anruf', 'contact': '0711 111111', 'note': 'privat'}, now=FRI)
+        still_open = reach.create_inbound(self.conn, {'who': 'Herr Offen', 'channel': 'anruf'}, now=FRI)
+        reach.complete_inbound(self.conn, r['id'], {'result': 'Rückruf erfolgt'}, now=FRI + dt.timedelta(hours=2))
+        reach.inbound_view(self.conn, now=FRI + dt.timedelta(days=89))
+        self.assertEqual(self.conn.execute('SELECT who FROM inbound WHERE id=?', (r['id'],)).fetchone()[0], 'Frau Beispiel')
+        v = reach.inbound_view(self.conn, now=FRI + dt.timedelta(days=91))
+        row = self.conn.execute('SELECT who, contact, note, result FROM inbound WHERE id=?', (r['id'],)).fetchone()
+        self.assertEqual(tuple(row), ('(gelöscht)', '', '', ''))
+        self.assertEqual(v['stats']['median_hours'], 2.0)  # Statistik bleibt
+        self.assertEqual([i['who'] for i in v['open']], ['Herr Offen'])  # Offenes wird nie anonymisiert
+        del still_open
+        with self.assertRaises(ValueError):
+            reach.validate({**reach.default_availability(), 'inbound_keep_days': 3})
+
     def test_validation(self):
         for bad in ({'channel': 'anruf'}, {'who': 'x', 'channel': 'fax'}, {'who': 'x', 'channel': 'anruf', 'lead_id': 999},
                     {'who': 'x', 'channel': 'anruf', 'received_at': '2099-01-01T10:00'}, {'who': 'x', 'channel': 'anruf', 'extra': 1}):
@@ -182,7 +202,8 @@ class CapacityTests(Base):
         self.offer(lid, 'gesendet_manuell', 200, key='hours')  # altes Paketformat
         c = reach.capacity(self.conn, today=today)
         self.assertEqual((c['offered_hours'], c['level']), (200.0, 'voll'))
-        self.assertIn('kalkulierten Stunden', c['notice'])
+        self.assertIn('vollen Kalkulation', c['notice'])  # nennt weiter die Grundlage (seit dev5: solange keine Zeiten erfasst sind)
+        self.assertEqual(c['untracked_projects'], 1)
 
     def test_offers_of_lost_leads_do_not_count(self):
         lid = self.lead(stage='verloren')
@@ -201,7 +222,7 @@ class ApiTests(unittest.TestCase):
     def tearDown(self):
         self.server.shutdown()
         self.server.server_close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def call(self, method, path, body=None):
         c = HTTPConnection('127.0.0.1', self.server.server_address[1], timeout=10)

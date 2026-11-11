@@ -76,6 +76,8 @@ def main(argv=None):
     ap.add_argument('--python', default=sys.executable)
     ap.add_argument('--report', default='')
     a = ap.parse_args(argv)
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(errors='replace')  # Windows-Konsole ohne UTF-8: Häkchen ersetzen statt abbrechen
     report, checks = {'variant': a.variant, 'platform': sys.platform, 'python': a.python}, []
 
     def ok(name, cond, detail=''):

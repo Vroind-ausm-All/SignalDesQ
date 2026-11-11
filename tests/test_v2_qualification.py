@@ -32,6 +32,11 @@ PROFILE = {'name': 'Handwerk Stuttgart', 'industries': ['elektro', 'shk'], 'excl
            'home': '70173', 'radius_km': 30, 'min_order_eur': 1500, 'weekly_hours': 30, 'prefer_owner_led': True,
            'max_attempts': 3, 'retry_days': 2, 'park_days': 90}
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class Base(unittest.TestCase):
     def setUp(self):
@@ -43,7 +48,7 @@ class Base(unittest.TestCase):
 
     def tearDown(self):
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def lead(self, company='Elektro Beispiel e.K.', **kw):
         fields = {'company': company, **kw}
@@ -258,7 +263,7 @@ class ApiTests(unittest.TestCase):
     def tearDown(self):
         self.server.shutdown()
         self.server.server_close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def call(self, method, path, body=None):
         c = HTTPConnection('127.0.0.1', self.server.server_address[1], timeout=10)

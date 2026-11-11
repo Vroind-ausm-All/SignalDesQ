@@ -4,6 +4,7 @@ Löschfristen, Login/Rollen, Sicherheitsprüfung, Last-/Fehlertests, Migration u
 Alle Daten sind fiktiv; keine Netzwerkzugriffe (wiederkehrende Aufträge laufen mit start=False bzw. Stubs).
 """
 import datetime as dt
+import contextlib
 import hashlib
 import json
 import re
@@ -27,6 +28,11 @@ FIXTURES = Path(__file__).resolve().parent / 'fixtures' / 'migration'
 OLD = (dt.date.today() - dt.timedelta(days=500)).isoformat() + ' 10:00:00'
 RECENT = (dt.date.today() - dt.timedelta(days=3)).isoformat() + ' 10:00:00'
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class QBase(unittest.TestCase):
     def setUp(self):
@@ -37,7 +43,7 @@ class QBase(unittest.TestCase):
 
     def tearDown(self):
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def lead(self, company='Fiktiv Werkzeugbau GmbH', **extra):
         slug = re.sub(r'[^a-z]', '', company.split()[0].lower())
@@ -442,7 +448,7 @@ class SecurityTests(HttpBase):
         self.assertGreater(len(routes), 80, 'Routen-Erkennung unvollständig')
 
         def digest():
-            with sqlite3.connect(self.db) as raw:
+            with contextlib.closing(sqlite3.connect(self.db)) as raw, raw:
                 return hashlib.sha256('\n'.join(l for l in raw.iterdump() if 'audit_log' not in l).encode()).hexdigest()
         before = digest()
         statuses = {}
@@ -555,7 +561,7 @@ class MigrationTests(unittest.TestCase):
         db = self.load(name, version)
         backup = prepare_database(db)
         self.assertTrue(backup and Path(backup).exists(), 'Sicherung vor der Migration')
-        with sqlite3.connect(backup) as b:
+        with contextlib.closing(sqlite3.connect(backup)) as b, b:
             self.assertEqual(b.execute('PRAGMA user_version').fetchone()[0], version, 'Sicherung enthält den Altstand')
         conn = connect(db)
         self.addCleanup(conn.close)
@@ -603,7 +609,7 @@ class EncryptedBackupTests(QBase):
         self.assertNotIn(b'SQLite format 3', blob)
         target = Path(self.tmp.name) / 'wieder.sqlite3'
         backup_crypto.decrypt_file(out['path'], target, 'Backup-Passwort-2026')
-        with sqlite3.connect(target) as raw:
+        with contextlib.closing(sqlite3.connect(target)) as raw, raw:
             self.assertEqual(raw.execute('SELECT company FROM leads').fetchone()[0], 'Geheim GmbH')
         with self.assertRaises(ValueError):
             backup_crypto.decrypt_file(out['path'], Path(self.tmp.name) / 'x.sqlite3', 'falsches-Passwort')

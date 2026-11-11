@@ -7,6 +7,7 @@ import json
 import re
 import tempfile
 import threading
+import time
 import unittest
 import urllib.parse
 from http.client import HTTPConnection
@@ -31,6 +32,11 @@ def gleif_record(lei, name, city, zip_, register='', status='ACTIVE', category='
     return {'id': lei, 'attributes': {'lei': lei, 'entity': {'legalName': {'name': name}, 'status': status, 'category': category,
             'legalAddress': {'addressLines': ['Industriestraße 1'], 'postalCode': zip_, 'city': city, 'country': 'DE'},
             'registeredAs': register}, 'registration': {'initialRegistrationDate': '2019-05-01T00:00:00Z'}}}
+
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
 
 
 class FakeNet:
@@ -124,7 +130,7 @@ class SweepBase(unittest.TestCase):
         lf.FETCH, lf.SLEEP, sw.GLEIF_DELAY, sw.AUTO_WEB_START = self._orig
         gm._STATE['rows'] = None
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def run_sweep(self, **params):
         p = {'place': '70173', 'radius_km': 30, **params}

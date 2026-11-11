@@ -1,3 +1,4 @@
+import contextlib
 import json
 import sqlite3
 import tempfile
@@ -70,7 +71,7 @@ class DiscoveryTests(unittest.TestCase):
 
     def test_migrate_v01_database(self):
         legacy = Path(self.temp.name) / 'legacy.db'
-        with sqlite3.connect(legacy) as con:
+        with contextlib.closing(sqlite3.connect(legacy)) as con, con:
             con.execute('''CREATE TABLE leads (id INTEGER PRIMARY KEY, company TEXT, website TEXT, contact_name TEXT,
                  industry TEXT, employees INTEGER, signal_type TEXT, signal_date TEXT, signal_source TEXT, signal_note TEXT,
                  offer TEXT, estimated_budget INTEGER, stage TEXT, permission TEXT, permission_evidence TEXT, note TEXT,

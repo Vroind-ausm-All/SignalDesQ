@@ -38,6 +38,11 @@ GEM_ROWS = [  # Auswahl im Format von data/gemeinden_de.json (Name, Kreis, lat, 
     ['Ulm', '08421', 48.4011, 9.9876, 7, '89073-89081'],
 ]
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class Fixture:
     def __init__(self, rows=GEM_ROWS):
@@ -55,7 +60,7 @@ class Fixture:
     def __exit__(self, *a):
         self.p.stop()
         gm._STATE['rows'] = None
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
 
 class GemeindenTests(unittest.TestCase):
@@ -331,7 +336,7 @@ class SourceCheckTests(unittest.TestCase):
 
     def tearDown(self):
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
         sc._LAST.update(at=0.0, result=None)
         lf.wikidata_reset()
 

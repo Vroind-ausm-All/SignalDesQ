@@ -13,6 +13,11 @@ from sales_tool.model import connect, init_db
 from sales_tool.server import make_handler
 from sales_tool.quickscan import research
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class DecisionFinderV2Tests(unittest.TestCase):
     def setUp(self):
@@ -28,7 +33,7 @@ class DecisionFinderV2Tests(unittest.TestCase):
             c.commit()
 
     def tearDown(self):
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def test_plan_offer_aware_manual_links(self):
         plan=research_plan('Beispiel GmbH','portal',100)

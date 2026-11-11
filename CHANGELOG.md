@@ -1,5 +1,30 @@
 # Changelog
 
+## 2.0.0-dev5 – Nachkalkulation
+
+- **Nachkalkulation** unter „Angebote & Preise“: Für jedes angenommene Angebot erfasst du die tatsächlich gebrauchten Stunden (einzeln oder als Sammeleintrag) und siehst kalkuliert, gebraucht und übrig.
+- **Auftrag abschließen** mit den tatsächlichen Fremdkosten. SignalDesk zeigt deinen Verdienst je Stunde und ob er über deinem Mindestverdienst liegt.
+- **Überziehung fällt auf:** Sobald du mehr Stunden gebraucht hast als kalkuliert, steht der Auftrag oben.
+- **Lernwert ab drei abgeschlossenen Aufträgen:** „Im Mittel brauchst du X % mehr Zeit als kalkuliert.“
+- **Auslastung genauer:** Aufträge mit erfassten Zeiten zählen mit den verbleibenden Stunden, abgeschlossene gar nicht mehr. Bisher zählte jedes angenommene Angebot acht Wochen lang voll und fiel danach ganz heraus.
+- Abgeschlossene Aufträge sind gegen Änderungen geschützt, bis du sie wieder öffnest. Angebote und Rechnungen bleiben unberührt; der Kunde sieht nichts davon.
+- Schema 27 (zwei Tabellen ergänzt). 485 Tests (10 neu) und 5 Browser-Tests (1 neu).
+- Kein abgeschlossenes Release. Nicht an echten Firmen geprüft.
+
+## 2.0.0-dev4 – Läuft wieder auf Python 3.10/3.11 und unter Windows-CI; aufgeräumt
+
+- **Behoben – SignalDesk startete unter Python 3.10 und 3.11 nicht** (Syntaxfehler in der Impressumserkennung, seit Anfang November). Ein Test verhindert die Wiederholung.
+- **Behoben – Abbruch in Windows-Konsolen ohne UTF-8:** Einrichtung und Installationsprüfung scheiterten an Sonderzeichen in der Ausgabe.
+- **Behoben – Datenbank blieb nach dem Start kurz gesperrt:** Beim Prüfen der Schema-Version wurde eine Verbindung nicht geschlossen. Unter Windows konnte die Datei dadurch nicht sofort gesichert, ersetzt oder gelöscht werden.
+- **Behoben – Sicherheitskopie konnte überschrieben werden:** Zwei Wiederherstellungen in derselben Sekunde nutzten denselben Dateinamen. Jetzt bleibt jede Sicherheitskopie erhalten.
+- Recherche-Worker lassen sich sauber beenden (`jobs.stop_workers`).
+- **Eingang mit Löschfrist:** Erledigte Einträge verlieren nach 90 Tagen (einstellbar) Name, Kontakt und Notiz; die Antwortzeit-Statistik bleibt.
+- **Note in den Firmen-Berichten.**
+- **README neu:** 82 Zeilen statt 432; die Versionsgeschichte steht im Changelog. **Roadmap neu** auf dem heutigen Stand.
+- Ordner `ausgabe/` mit alten Paketen entfernt.
+- 475 Tests (6 neu), geprüft unter Python 3.10, 3.12 und 3.13.
+- Kein abgeschlossenes Release. Nicht an echten Firmen geprüft.
+
 ## 2.0.0-dev3 – Eigene Erreichbarkeit und Auslastung
 
 - **Eingang & Rückrufe** ganz oben auf „Heute“: verpassten Anruf oder Anfrage in einem Schritt festhalten, auch ohne angelegte Firma. Die Rückruffrist ergibt sich aus deinen Zeiten; Fälliges steht zusätzlich in der Wiedervorlage.

@@ -23,7 +23,7 @@ FMT = '%Y-%m-%dT%H:%M'
 
 def default_availability():
     return {'days': [0, 1, 2, 3, 4], 'callback_from': '16:00', 'callback_to': '17:30', 'meeting_from': '09:00', 'meeting_to': '16:00',
-            'meeting_minutes': 45, 'delivery_share_pct': 70, 'absences': [], 'display_name': ''}
+            'meeting_minutes': 45, 'delivery_share_pct': 70, 'absences': [], 'display_name': '', 'inbound_keep_days': 90}
 
 
 def _t(text):
@@ -47,6 +47,8 @@ def validate(data):
         raise ValueError('Termindauer: 15–180 Minuten.')
     if type(out['delivery_share_pct']) is not int or not 10 <= out['delivery_share_pct'] <= 100:
         raise ValueError('Anteil für Kundenprojekte: 10–100 %.')
+    if type(out['inbound_keep_days']) is not int or not 7 <= out['inbound_keep_days'] <= 730:
+        raise ValueError('Aufbewahrung des Eingangs: 7–730 Tage.')
     if not isinstance(out['display_name'], str) or len(out['display_name']) > 80:
         raise ValueError('Name: höchstens 80 Zeichen.')
     out['display_name'] = out['display_name'].strip()
@@ -250,8 +252,21 @@ def delete_inbound(conn, ident):
     return {'deleted': True}
 
 
+def anonymize_old_inbound(conn, av=None, now=None):
+    """Datensparsamkeit: erledigte Einträge verlieren nach der eingestellten Frist Name, Kontakt und Notiz.
+    Zeitpunkte bleiben für die Antwortzeit-Statistik. Offene Einträge werden nie angetastet."""
+    av, now = av or load(conn), now or dt.datetime.now()
+    limit = (now - dt.timedelta(days=av['inbound_keep_days'])).strftime(FMT)
+    cur = conn.execute("""UPDATE inbound SET who='(gelöscht)', contact='', note='', result='', lead_id=NULL
+                          WHERE status='erledigt' AND done_at<>'' AND done_at<? AND who<>'(gelöscht)'""", (limit,))
+    if cur.rowcount:
+        conn.commit()
+    return cur.rowcount
+
+
 def inbound_view(conn, now=None):
     now = now or dt.datetime.now()
+    anonymize_old_inbound(conn, now=now)
     stamp = now.strftime(FMT)
     items = []
     for r in conn.execute("""SELECT i.*, l.company FROM inbound i LEFT JOIN leads l ON l.id=i.lead_id WHERE i.status='offen' ORDER BY i.due_at, i.id"""):
@@ -287,7 +302,14 @@ def capacity(conn, profile=None, av=None, today=None):
     profile, av = profile or ql.load(conn), av or load(conn)
     today = today or dt.date.today()
     since = (today - dt.timedelta(days=56)).isoformat()
-    accepted = sum(_hours(r['internal_json']) for r in conn.execute("SELECT internal_json FROM proposals WHERE status='angenommen' AND substr(updated_at,1,10)>=?", (since,)))
+    from .postcalc import remaining_by_proposal
+    tracked = remaining_by_proposal(conn)  # 2.0.0-dev5: wo Zeiten erfasst sind, zählt der Rest statt der vollen Kalkulation
+    accepted = sum(tracked.values())
+    untracked = 0
+    for r in conn.execute("SELECT id, internal_json FROM proposals WHERE status='angenommen' AND substr(updated_at,1,10)>=?", (since,)):
+        if r['id'] not in tracked:
+            accepted += _hours(r['internal_json'])
+            untracked += 1
     open_rows = conn.execute("""SELECT p.internal_json FROM proposals p JOIN leads l ON l.id=p.lead_id
                                 WHERE p.status IN ('entwurf','gesendet_manuell') AND l.stage NOT IN ('verloren','gesperrt')""").fetchall()
     offered = sum(_hours(r['internal_json']) for r in open_rows)
@@ -306,8 +328,10 @@ def capacity(conn, profile=None, av=None, today=None):
         level, hint = 'luft', f'Zugesagt sind rund {weeks_accepted:g} Wochen. Es ist Platz für neue Aufträge.'
     return {'weekly_hours': profile['weekly_hours'], 'delivery_hours_per_week': per_week, 'accepted_hours': round(accepted, 1), 'offered_hours': round(offered, 1),
             'offers_open': len(open_rows), 'weeks_accepted': weeks_accepted, 'weeks_if_all_accepted': weeks_all, 'level': level, 'hint': hint,
-            'notice': 'Grundlage sind die kalkulierten Stunden der Angebote, nicht tatsächlich gearbeitete Zeit. Angenommene Angebote zählen 8 Wochen lang; '
-                      'bereits erledigte Arbeit wird nicht abgezogen.'}
+            'tracked_projects': len(tracked), 'untracked_projects': untracked,
+            'notice': 'Aufträge mit erfassten Zeiten zählen mit ihren verbleibenden Stunden, abgeschlossene gar nicht mehr. '
+                      + (f'{untracked} Auftrag/Aufträge ohne erfasste Zeiten zählen 8 Wochen lang mit der vollen Kalkulation – Zeiten unter „Angebote & Preise → Nachkalkulation“ erfassen.'
+                         if untracked else 'Grundlage sind die kalkulierten Stunden der Angebote.')}
 
 
 # ---------------------------------------------------------------- als Nächstes kontaktieren

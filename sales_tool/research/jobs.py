@@ -27,6 +27,12 @@ CLOCK = time.time  # in Tests ersetzbar
 HANDLERS = {}
 _LOCK = threading.Lock()
 _WORKERS = {}  # Datenbankpfad → Worker-Threads (je Datenbank eigene Worker)
+_STOP = {}  # Datenbankpfad → Ereignis „Worker beenden“ (sauberes Beenden; unter Windows gibt das die Datei frei)
+
+
+def _stop_event(key):
+    with _LOCK:
+        return _STOP.setdefault(key, threading.Event())
 
 
 class Retry(Exception):
@@ -319,13 +325,16 @@ def run_until_idle(db_path, kinds=None, max_tasks=10_000):
 def _worker_loop(db_path):
     from ..model import connect
     idle_since = None
+    stop = _stop_event(db_path)
     while True:
+        if stop.is_set():
+            return
         try:
             if run_one(db_path):
                 idle_since = None
                 continue
         except Exception:  # noqa: BLE001 – Datenbank kurz gesperrt o. Ä.: kurz warten, nicht abstürzen
-            time.sleep(POLL)
+            stop.wait(POLL)
             continue
         with connect(db_path) as conn:
             n, nxt = pending(conn)
@@ -333,11 +342,12 @@ def _worker_loop(db_path):
             idle_since = idle_since or time.monotonic()
             if time.monotonic() - idle_since > 5:
                 return
-        time.sleep(POLL if not nxt else max(0.2, min(POLL * 5, (nxt or 0) - CLOCK())))
+        stop.wait(POLL if not nxt else max(0.2, min(POLL * 5, (nxt or 0) - CLOCK())))  # wacht beim Beenden sofort auf
 
 
 def ensure_workers(db_path):
     key = str(db_path)
+    _stop_event(key).clear()
     with _LOCK:
         alive = [t for t in _WORKERS.get(key, []) if t.is_alive()]
         for _ in range(MAX_WORKERS - len(alive)):
@@ -345,6 +355,29 @@ def ensure_workers(db_path):
             alive.append(t)
             t.start()
         _WORKERS[key] = alive
+
+
+def stop_workers(db_path, timeout=10):
+    """Worker dieser Datenbank beenden und warten. Laufende Schritte werden zu Ende geführt; offene bleiben eingereiht
+    und laufen beim nächsten Start weiter. Gibt True zurück, wenn alle Worker beendet sind."""
+    key = str(db_path)
+    _stop_event(key).set()
+    with _LOCK:
+        threads = list(_WORKERS.get(key, []))
+    end = time.monotonic() + timeout
+    for t in threads:
+        t.join(max(0.0, end - time.monotonic()))
+    alive = [t for t in threads if t.is_alive()]
+    with _LOCK:
+        _WORKERS[key] = alive
+    return not alive
+
+
+def stop_all_workers(timeout=10):
+    """Worker aller Datenbanken beenden (Programmende, Tests). Gibt True zurück, wenn keiner mehr läuft."""
+    with _LOCK:
+        keys = [k for k, threads in _WORKERS.items() if any(t.is_alive() for t in threads)]
+    return all([stop_workers(k, timeout) for k in keys])
 
 
 def ensure_workers_all():

@@ -49,6 +49,11 @@ TED = {'notices': [
      'links': {'html': {'DEU': 'https://ted.europa.eu/de/notice/-/detail/654321-2026'}}},
 ], 'totalNoticeCount': 1}
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class FakeFetch:
     def __init__(self):
@@ -81,7 +86,7 @@ class LeadFinderTests(unittest.TestCase):
     def tearDown(self):
         lf.FETCH, lf.MIN_SECONDS_BETWEEN_RUNS = self._orig
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def test_wikidata_merges_rows_and_drops_unlabeled(self):
         run = lf.run_search(self.conn, {'source': 'wikidata', 'place': 'Stuttgart'})
@@ -219,7 +224,7 @@ class LeadFinderHttpTests(unittest.TestCase):
         lf.FETCH, lf.MIN_SECONDS_BETWEEN_RUNS = self._orig
         self.server.shutdown()
         self.server.server_close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def call(self, path, method='GET', body=None):
         data = json.dumps(body).encode() if body is not None else None

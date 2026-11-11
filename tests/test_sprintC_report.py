@@ -43,6 +43,11 @@ PAGES = {
     SITE + '/karriere': ('text/html', CAREER),
 }
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class FakeWeb:
     def __call__(self, url, origin=None):
@@ -70,7 +75,7 @@ class ReportBase(unittest.TestCase):
         for p in reversed(self.patches):
             p.stop()
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def lead(self, company='Kesselwerk', website=SITE, **extra):
         data = {'company': company, 'website': website, 'industry': 'Industrie & B2B-Technik', 'employees': 80, **extra}

@@ -5,6 +5,11 @@ from pathlib import Path
 from sales_tool.model import init_db, connect, as_lead, score_lead, stats
 from sales_tool.server import validate
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class ScoringTests(unittest.TestCase):
     def test_signal_fit_and_evidence_increase_priority(self):
@@ -52,7 +57,7 @@ class StorageTests(unittest.TestCase):
             init_db(con)
 
     def tearDown(self):
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def test_insert_and_stats(self):
         with connect(self.db) as con:

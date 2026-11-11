@@ -19,6 +19,12 @@ PAGES={'source':'https://demo.example/','pages':[
   {'url':'https://demo.example/kontakt','title':'Kontakt','raw_text':'Kontakt\nTel: +49 711 3334440\nE-Mail: info@demo.example'}
  ],'warnings':[]}
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
+
 class PublicRulesTests(unittest.TestCase):
  def test_role_matches_and_office_phone_not_misattributed(self):
   r=extract_public_contacts(PAGES,offer='conversion')
@@ -51,7 +57,7 @@ class PublicHTTPTests(unittest.TestCase):
   self.http=ThreadingHTTPServer(('127.0.0.1',0),make_handler(self.db))
   self.thread=threading.Thread(target=self.http.serve_forever,daemon=True);self.thread.start()
  def tearDown(self):
-  self.http.shutdown();self.http.server_close();self.thread.join(timeout=2);self.tmp.cleanup()
+  self.http.shutdown();self.http.server_close();self.thread.join(timeout=2);cleanup_tmp(self.tmp)
  def request(self,method,url,payload=None):
   data=json.dumps(payload).encode() if payload is not None else None
   req=Request(f'http://127.0.0.1:{self.http.server_port}{url}',data=data,method=method,headers={'Content-Type':'application/json'} if data else {})

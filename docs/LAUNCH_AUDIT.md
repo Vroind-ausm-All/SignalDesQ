@@ -24,7 +24,7 @@ Alles, was hier nicht selbst ausgeführt wurde, ist als „laut Doku“ gekennze
 | Übersprungen | 2 Browser-Tests des Website-Scorings (Playwright fehlt in der Grundausstattung), Scrapling, Trafilatura (beide optional) |
 | Browser-Tests `tests/e2e` mit den festgeschriebenen Paketen (`requirements-lock-browser.txt`, Chromium vorinstalliert) | 2 von 2 bestanden (Arbeitstag, Leistungsprofil) |
 | Quellen-Check des Programms, live | GLEIF ok, Nominatim ok, TED ok; **Wikidata HTTP 429** (Sperre ca. 17 min); **alle drei OpenStreetMap-Server überlastet oder nicht erreichbar** |
-| Windows, macOS | hier nicht ausführbar. GitHub Actions prüft Windows/Linux laut Workflow; das Ergebnis des letzten Laufs konnte nicht abgerufen werden (Zeitüberschreitung der Abfrage). |
+| Windows, macOS | hier nicht ausführbar. **Nachtrag 2.0.0-dev4:** Die CI war schon bei v1.19 rot (Python 3.10 und Windows); Ursachen und Behebung stehen im `SELF_REVIEW_LOG.md`, Arbeitspaket 3. |
 | Reale Firmen-Websites | **nicht getestet.** Alle automatischen Tests nutzen fiktive Seiten. Der in der Übergabe verlangte Praxistest (50–100 Handwerksbetriebe, Raum Stuttgart) steht weiter aus. |
 
 ## 3. Matrix: Vorhanden / Teilweise / Defekt / Fehlt / Nicht erforderlich
@@ -86,7 +86,7 @@ Grundlage ist die Code- und Ablaufprüfung. **Tests mit echten Nutzern gab es ni
 ## 5. Die fünf größten technischen Risiken
 
 1. **Keine Messung an echten Firmen.** Alle Qualitätszahlen stammen von 33 fiktiven Seiten.
-2. **Öffentliches Repository mit Paketen im Verlauf.** `ausgabe/` enthält zwei ZIP-Dateien (2,3 MB), die mit jedem weiteren Commit veralten. Empfehlung: aus dem Repo nehmen und als Release-Anhang führen – Entscheidung des Eigentümers.
+2. **Öffentliches Repository mit Paketen im Verlauf.** `ausgabe/` enthielt zwei ZIP-Dateien (2,3 MB). Mit 2.0.0-dev4 entfernt; im Git-Verlauf bleiben sie abrufbar.
 3. **Ein Prozess, eine SQLite-Datei, eine Datei mit allen Routen.** Für den Einzelplatz richtig; für SaaS fehlt jede Trennung nach Organisation.
 4. **Fünf Hintergrund-Module ohne Wiederaufnahme** (siehe Matrix). Bei einem Absturz bleiben Läufe hängen.
 5. **Abhängigkeit von überlasteten öffentlichen Diensten** (Overpass, Wikidata) ohne lokalen Ersatz.

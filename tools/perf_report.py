@@ -9,6 +9,7 @@ Alles lokal und fiktiv, keine Netzabfragen.
 """
 from __future__ import annotations
 
+import contextlib
 import argparse
 import json
 import platform
@@ -95,7 +96,7 @@ def app_bench():
         out['dedupe_ms_per_candidate'] = per_item
         out['dedupe_result'] = {k: counts.get(k, 0) for k in ('new', 'merged', 'possible')}
         import sqlite3
-        with sqlite3.connect(db) as c:
+        with contextlib.closing(sqlite3.connect(db)) as c, c:
             c.execute('PRAGMA user_version = 22')
         t0 = time.perf_counter()
         prepare_database(db)  # Migration 22 → aktuell inkl. Sicherung und Dubletten-Bereinigung

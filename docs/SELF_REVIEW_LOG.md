@@ -135,6 +135,129 @@ Implementiert und lokal getestet (Linux, Chromium). Nicht live verifiziert, nich
 
 **Entscheid:** weiter. Vorschlag für Arbeitspaket 3: Praxistest an echten Firmen (nach Freigabe) oder, ohne Freigabe, Löschfrist für den Eingang und README-Neufassung.
 
+## Arbeitspaket 3 – Plattformfestigkeit und Aufräumen (2.0.0-dev4)
+
+Auslöser: Die CI des Pull Requests #19 war rot. Die Prüfung zeigte, dass sie schon bei v1.19 auf `main` rot war – die Fehler waren älter als die Arbeitspakete 1 und 2, wurden aber bisher nicht bemerkt. Im Audit stand dazu nur „Ergebnis des letzten Laufs konnte nicht abgerufen werden“; das war eine Lücke im Wahrheitscheck.
+
+### Befunde und Behebung
+
+| Befund | Wirkung | Behebung | Schutz |
+|---|---|---|---|
+| Backslash im Ausdruck eines f-Strings (`imprint.py`, seit 04.11.) | **SignalDesk startet unter Python 3.10 und 3.11 nicht**, obwohl 3.10+ zugesagt ist | Ausdruck in eine Variable gelegt | Test durchsucht alle Dateien nach diesem Muster |
+| Sonderzeichen (②, ←, ✓) in der Konsolenausgabe | Abbruch von Einrichtung und Installationsprüfung in Windows-Konsolen ohne UTF-8 | Ausgabe ersetzt nicht darstellbare Zeichen | Test mit cp1252-Konsole |
+| `with sqlite3.connect(...)` schließt die Verbindung nicht | Datenbankdatei bleibt nach dem Start gesperrt, bis Python aufräumt; unter Windows scheitern Löschen und Ersetzen | Verbindung wird ausdrücklich geschlossen (1 Stelle im Programm, 8 in Tests und Werkzeugen) | Test: keine offene Verbindung nach der Datenbank-Vorbereitung |
+| Test baute unter Python < 3.12 einen Windows-Pfad auf Linux | 1 Testfehler unter 3.10 | Pfad vor dem Umschalten angelegt | – |
+
+### Tatsächlich ausgeführt
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13, 3.12 und 3.10 (Linux) | je 473 Tests bestanden; 4 bzw. 6 übersprungen (optionale Pakete) |
+| Warnungen „unclosed database“ im Gesamtlauf | 0 (vorher 27) |
+| Die drei neuen Schutz-Tests ohne die Behebungen | schlagen fehl – sie prüfen also wirklich |
+| Browser-Tests | 4 von 4 |
+| Python 3.11 in dieser Umgebung | 4 Fehler durch ein defektes System-Paket `cryptography` der Testmaschine, nicht durch SignalDesk; ohne dieses Paket nicht nachgeprüft |
+| Windows | **hier nicht ausführbar.** Die Ursachen wurden aus den CI-Protokollen abgelesen und unter Linux nachgestellt. Ob die Windows-CI jetzt grün ist, zeigt erst der Lauf nach dem Push. |
+
+### Außerdem erledigt
+
+- Eingang: erledigte Einträge werden nach 90 Tagen (einstellbar) anonymisiert – Schwachstelle 1 aus Arbeitspaket 2.
+- Note in den Firmen-Berichten.
+- README neu (82 statt 432 Zeilen), Roadmap neu.
+- Ordner `ausgabe/` entfernt. Die Dateien bleiben im Git-Verlauf abrufbar; sie ganz zu tilgen hieße den Verlauf umzuschreiben und wurde nicht gemacht.
+
+### Bewertung
+
+| Kriterium | Note | Beleg |
+|---|---|---|
+| Nutzen | 5 | Ohne die erste Behebung startet das Programm auf zwei von vier zugesagten Python-Versionen nicht. |
+| Robustheit | 4 | Drei Fehlerklassen mit Schutz-Test abgedeckt; Windows selbst nur über die CI prüfbar. |
+| Testabdeckung | 4 | Jetzt lokal auf drei Python-Versionen ausgeführt statt auf einer. |
+| Bedienbarkeit | 4 | README führt in 82 Zeilen zum Start und zu den Dokumenten. |
+
+### Die drei wichtigsten verbleibenden Schwachstellen
+
+1. **Windows bleibt unbewiesen, bis die CI grün ist.** Weitere Windows-Fehler können hinter den jetzt behobenen liegen (der Lauf zeigte 19 Fehler; nicht alle Protokollzeilen waren abrufbar).
+2. **Der Wahrheitscheck in Sprint 0 war unvollständig:** Der CI-Zustand wurde nicht geklärt. Künftig gehört „CI-Ergebnis gelesen“ zum Prüfverfahren (im Skill ergänzt).
+3. **Weiterhin keine Messung an echten Firmen.**
+
+### Nachtrag: CI-Ergebnis für Commit `352d7c8` gelesen
+
+8 von 10 Jobs grün (vorher 4): beide Windows-Installationen, Python 3.10 und 3.13 unter Linux, Browser-Test, Release. Die Unit-Tests unter Windows fielen von 19 auf 2 Fehler. Beide sind in einer zweiten Nachbesserung behoben:
+
+| Befund | Wirkung | Behebung | Schutz |
+|---|---|---|---|
+| Zwei Wiederherstellungen in derselben Sekunde erzeugten denselben Namen für die Sicherheitskopie | Unter Windows Abbruch; **unter Linux wurde die erste Sicherheitskopie stillschweigend überschrieben** | eindeutiger Name, nie überschreiben | Test: beide Sicherheitskopien bleiben erhalten |
+| Recherche-Worker fragen die Datenbank noch Sekunden nach dem letzten Auftrag ab | Unter Windows blieb die Datei beim Aufräumen eines Tests gesperrt | `jobs.stop_workers()` beendet die Worker sauber; laufende Schritte werden zu Ende geführt, offene bleiben eingereiht | Test: Beenden und Neustart der Worker |
+
+Danach lokal: 475 Tests unter Python 3.13 und 3.10 bestanden. Ob Windows damit vollständig grün ist, zeigt der nächste CI-Lauf.
+
+**Entscheid:** nachbessern abgeschlossen; CI des neuen Commits lesen.
+
+### Nachtrag: CI-Ergebnis für Commit `cc584f2` gelesen
+
+9 von 10 Jobs grün. **Die Unit-Tests unter Windows mit Python 3.13 sind erstmals vollständig grün.** Unter Windows mit Python 3.10 blieb 1 Fehler: derselbe Sammelsuche-Test konnte seine Datenbankdatei beim Aufräumen nicht löschen (unter 3.13 im selben Lauf bestanden – ein Zeitproblem, kein fester Fehler). Der Test versucht das Aufräumen jetzt bis zu zehn Sekunden lang erneut; die Worker enden beim Beenden sofort statt nach bis zu fünf Sekunden. Die Prüfungen des Tests selbst sind unverändert. Ob das reicht, zeigt der nächste Lauf; die eigentliche Ursache (welcher Hintergrund-Thread die Datei kurz hält) ist nicht nachgewiesen.
+
+### Nachtrag: CI-Ergebnis für Commit `5db25ba` – Ursache belegt
+
+Wieder 1 Fehler unter Windows, diesmal in einem **anderen** Test (`test_sprintS3_jobs`, startet echte Recherche-Worker). Damit ist die Ursache belegt statt vermutet: Die Worker fragen die Datenbank weiter ab, während der Test sie löscht. Welcher Test es trifft, hängt vom Zeitpunkt ab. Behebung an einer Stelle statt Test für Test: `tests/tmpclean.py` beendet vor dem Löschen alle Worker (`jobs.stop_all_workers`) und wird von allen 27 Testdateien mit temporärer Datenbank verwendet. Laufzeit unverändert (137 s). Prüfungen der Tests unverändert.
+
+**Eigener Fehler in dieser Runde:** Commit `02a3a0d` wurde gepusht, bevor das Testergebnis gelesen war. Er wartete auch auf Sammelsuchen früherer Tests und brach 20 Tests. Im Folge-Commit behoben; der erste Versuch der Korrektur verdreifachte außerdem die Laufzeit (400 statt 140 Sekunden) und wurde zurückgenommen. Regel im Prüfverfahren ergänzt: Commit und Push nie im selben Befehl wie den Testlauf ausführen.
+
+## Arbeitspaket 4 – Nachkalkulation (2.0.0-dev5)
+
+Entspricht aus dem Auftrag: Abschnitt 6 („verfügbare Kapazität, Nachkalkulation bei abgeschlossenen Projekten“). Behebt Schwachstelle 2 aus Arbeitspaket 2 (grobe Auslastung).
+
+### Tatsächlich ausgeführt
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 (Linux) | je 485 Tests bestanden; 4 bzw. 6 übersprungen (optionale Pakete) |
+| davon neu: `tests/test_v2_postcalc.py` | 10 Tests |
+| Browser-Tests | 5 von 5, davon 1 neu (Zeit erfassen → Rest sichtbar → abschließen → Urteil → Auslastung auf „Heute“ folgt) |
+| Release-Paket | zweimal gebaut, byte-gleich |
+| Windows, echte Firmen | nicht geprüft; Windows nur über die CI |
+
+### Bewertung
+
+| Kriterium | Note | Beleg |
+|---|---|---|
+| Nutzen | 4 | Beantwortet erstmals „Hat sich der Festpreis gelohnt?“ (Test: 74,00 € je Stunde gegen 66 € Mindestverdienst). Wert hängt davon ab, dass Zeiten wirklich eingetragen werden. |
+| Bedienbarkeit | 4 | Ein Feld und ein Knopf je Auftrag; Sammeleinträge erlaubt. Bildschirmfoto geprüft. |
+| Quellenqualität | 4 | Soll kommt aus der gespeicherten Kalkulation des Angebots, Ist aus den Einträgen; der Lernwert erscheint erst ab drei Aufträgen. |
+| Robustheit | 4 | Abgeschlossene Aufträge sind geschützt; Angebote ohne kalkulierte Stunden führen nicht zu Fehlern (Tests). |
+| Sicherheit | 5 | Keine Netzabfrage; Angebote und Rechnungen bleiben unverändert (Test); nichts davon erscheint im Kundendokument. |
+| Kostenkontrolle | 5 | Keine Fremdpakete, keine KI. |
+| Erweiterbarkeit | 3 | Zeiten hängen am Auftrag, nicht an der einzelnen Leistung. |
+| Testabdeckung | 4 | 10 Unit-/API-Tests, 1 Browser-Test. |
+
+### Nachbesserungsschleife 1
+
+Auslöser: der neue Browser-Test.
+
+1. **Das Stundenfeld lehnte „12,5“ ab.** Der Browser erlaubte wegen der eingestellten Schrittweite nur Werte wie 0,1 / 0,35 / 0,6. Das Formular ließ sich nicht absenden – ohne Fehlermeldung. Alle Unit-Tests waren grün. Behoben.
+2. Meldungen nutzten den Dezimalpunkt („7.5 von 20“). Jetzt deutsche Schreibweise.
+3. Die Grenze von 24 Stunden je Eintrag verhinderte Sammeleinträge („diese Woche 30 Stunden“). Auf 200 angehoben.
+
+### Nachbesserungsschleife 2
+
+1. „1 Einträge“ → „1 Eintrag“.
+2. Der bestehende Auslastungs-Test prüfte einen Hinweistext, der sich mit der neuen Rechnung geändert hat; die Prüfung wurde auf die neue Aussage umgestellt und um die Zahl der Aufträge ohne Zeiten ergänzt.
+
+Schleife beendet: alle Prüfungen bestehen.
+
+### Die drei wichtigsten verbleibenden Schwachstellen
+
+1. **Zeiten je Auftrag, nicht je Leistung.** Welche Katalogleistung regelmäßig länger dauert, lässt sich noch nicht ablesen – genau das würde die Preise verbessern.
+2. **Aufträge ohne erfasste Zeiten** fallen nach acht Wochen weiterhin still aus der Auslastung.
+3. **Weiterhin keine Messung an echten Firmen**; Windows nur über die CI belegt.
+
+### Stufe
+
+Implementiert und lokal getestet (Linux, Python 3.10 und 3.13, Chromium). Nicht live verifiziert, nicht pilotfähig, nicht öffentlich launchfähig.
+
+**Entscheid:** weiter.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Roadmap und README-Neufassung stehen ebenfalls aus.

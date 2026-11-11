@@ -1,6 +1,7 @@
 """Minimal dependency-free local HTTP+JSON server. Not a public multi-user deployment."""
 from __future__ import annotations
 
+import contextlib
 import argparse
 import json
 import ipaddress
@@ -44,6 +45,7 @@ from . import lead_imprint
 from . import __version__
 from . import qualification
 from . import reach
+from . import postcalc
 from . import netpolicy
 from .backup_restore import route_restore
 from .workday import route_workday, ContactLocked, check_stage_change, assert_contact_allowed, assert_need_confirmed, after_proposal_sent, after_meeting_done
@@ -170,7 +172,7 @@ def validate(fields: dict, partial=False):
 
 STATIC_FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
     "/style.css": ("style.css", "text/css"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
 
 LOOPBACK_HOSTS = frozenset({'127.0.0.1', 'localhost', '::1'})
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
@@ -341,6 +343,8 @@ def make_handler(db_path, allowed_hosts=None):
                 if qualification.route(self, conn, method, route):  # 2.0.0-dev2: Zielkundenprofil, Bewertung, Erreichbarkeit
                     return
                 if reach.route(self, conn, method, route):  # 2.0.0-dev3: eigene Erreichbarkeit, Eingang, Auslastung
+                    return
+                if postcalc.route(self, conn, method, route):  # 2.0.0-dev5: Nachkalkulation
                     return
                 if route_profiles(self, conn, method, route, query, db_path):
                     return
@@ -830,14 +834,14 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 26  # 2.0.0-dev3 – bei Schemaänderungen erhöhen (Eingang mit Rückruffrist)
+SCHEMA_VERSION = 27  # 2.0.0-dev5 – bei Schemaänderungen erhöhen (Nachkalkulation: Ist-Zeiten, Auftragsabschluss)
 
 
 def backup_before_migration(db):
     """Sichert eine bestehende Datenbank automatisch, bevor ein neueres Schema ergänzt wird."""
     if not Path(db).exists() or Path(db).stat().st_size == 0:
         return None
-    with sqlite3.connect(str(db)) as raw:
+    with contextlib.closing(sqlite3.connect(str(db))) as raw, raw:
         version = raw.execute("PRAGMA user_version").fetchone()[0]
     if version >= SCHEMA_VERSION:
         return None
