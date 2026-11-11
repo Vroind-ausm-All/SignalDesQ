@@ -272,6 +272,48 @@ Erste Messung gegen die echten Quellen, mit Freigabe des Eigentümers. Vollstän
 
 **Entscheid:** weiter mit dem lokalen OpenStreetMap-Auszug.
 
+## Arbeitspaket 6 – OpenStreetMap manuell und offline (2.0.0-dev7)
+
+Vorgabe des Eigentümers: Suche ohne festgelegte Branche; OpenStreetMap auf „manuell“; Wege mit geringem Aufwand zeigen, die Quelle nutzbar zu machen.
+
+### Tatsächlich ausgeführt
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 504 Tests bestanden |
+| davon neu: `tests/test_v2_osm_local.py` | 13 Tests |
+| Browser-Tests | 6 von 6, davon 1 neu: Anleitung, Datei einlesen, Suche in einer PLZ – **ohne einen einzigen Abruf außerhalb des eigenen Rechners** |
+| Leser gegen das offizielle Werkzeug `osmium` | Knoten, Koordinaten (auch negative), Umlaute, Gebäudeumrisse stimmen überein |
+| Tempo an erzeugter Datei (3 Mio. Knoten, 200.000 Wege) | 4,5 s, 59 MB Arbeitsspeicher |
+| Echter Geofabrik-Auszug | **nicht geprüft** – Download in der Testumgebung nach Freigabe des Hosts weiterhin abgebrochen |
+
+### Bewertung
+
+| Kriterium | Note | Beleg |
+|---|---|---|
+| Nutzen | 4 | Die einzige Quelle mit kleinen Betrieben ist nicht mehr von überlasteten Servern abhängig. Der Nachweis an echten Daten fehlt. |
+| Bedienbarkeit | 4 | Ein Kasten mit Stand, drei Wegen samt Aufwand und einem Knopf; Bildschirmfoto geprüft. |
+| Quellenqualität | 4 | Lizenz und Stand des Bestands werden genannt; Einträge ohne PLZ werden bei PLZ-genauer Suche ehrlich als fehlend gemeldet. |
+| Robustheit | 4 | Kaputte, abgeschnittene und fremde Dateien führen zu einer Meldung (Tests). |
+| Sicherheit | 4 | Obergrenzen für Block- und Dateigröße; keine E-Mail-Adressen und Betreibernamen gespeichert (Test). |
+| Kostenkontrolle | 5 | Keine Abhängigkeit, kein Netz nötig. |
+| Erweiterbarkeit | 3 | Gebäudeumrisse ohne Koordinaten; PLZ-Zuordnung nur über die Adressangabe. |
+| Testabdeckung | 4 | Echtes Dateiformat als Testdatei, aber kein großer echter Auszug. |
+
+### Nachbesserung
+
+1. Sieben bestehende Tests prüften den Online-Abruf, der jetzt nur noch auf Wunsch läuft; sie fordern ihn nun ausdrücklich an. Ihre Prüfungen sind unverändert.
+2. Gebäudeumrisse fielen in der Umkreissuche ganz heraus; sie zählen jetzt über den Ortsnamen.
+3. Bei widersprüchlicher PLZ-Angabe am Eintrag gilt die Angabe, nicht das abgefragte Gebiet.
+
+### Die drei wichtigsten verbleibenden Schwachstellen
+
+1. **Kein Test an einem echten Auszug.** Der erste Lauf beim Eigentümer ist der eigentliche Nachweis.
+2. **Einträge ohne PLZ** fehlen bei PLZ-genauer Suche; wie viele das sind, ist ungemessen.
+3. **Telefon und Öffnungszeiten** liegen im Bestand, erscheinen aber noch nirgends.
+
+**Entscheid:** weiter; Praxistest mit echtem Auszug durch den Eigentümer.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Roadmap und README-Neufassung stehen ebenfalls aus.

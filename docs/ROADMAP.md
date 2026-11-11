@@ -1,18 +1,18 @@
 # Roadmap
 
-Stand 2.0.0-dev6. Was erledigt ist, steht im [`CHANGELOG.md`](../CHANGELOG.md); die Lücken im Einzelnen in [`LAUNCH_AUDIT.md`](LAUNCH_AUDIT.md).
+Stand 2.0.0-dev7. Was erledigt ist, steht im [`CHANGELOG.md`](../CHANGELOG.md); die Lücken im Einzelnen in [`LAUNCH_AUDIT.md`](LAUNCH_AUDIT.md).
 
 ## Als Nächstes – lokaler Pilot
 
-Reihenfolge nach dem Praxistest ([`PRAXISTEST_70191.md`](PRAXISTEST_70191.md)): erst die Quelle für Handwerksbetriebe, dann alles Weitere.
+Reihenfolge nach dem Praxistest ([`PRAXISTEST_70191.md`](PRAXISTEST_70191.md)). Die Suche bleibt grundsätzlich ohne festgelegte Branche; Handwerk war nur der Probelauf.
 
 | Nr. | Arbeitspaket | Warum jetzt | Voraussetzung |
 |---|---|---|---|
-| 1 | **OpenStreetMap lokal:** Auszug für Baden-Württemberg laden, auf Betriebe vorfiltern, offline durchsuchen | einzige Handwerksquelle; öffentliche Server am Testtag in 4 von 4 Versuchen nicht verlässlich | Entscheidung zu Dateigröße und Lesewerkzeug (E5) |
-| 2 | **Praxistest auf dem eigenen Rechner:** Website-Zuordnung und Firmen-Berichte an 50–100 Betrieben prüfen, mit von Hand geprüfter Referenzliste | in der Cloud-Umgebung nicht messbar | Eigentümer führt aus, Paket 1 hilft |
-| 3 | **Handwerks-Suche als Voreinstellung:** Gewerke vorbelegt, Umgang mit Betrieben ohne Rechtsform bewusst entscheiden | 3 von 4 OSM-Einträgen wurden aussortiert | Entscheidung des Eigentümers (Datenschutz) |
+| 1 | ~~OpenStreetMap lokal~~ – erledigt in 2.0.0-dev7 (lokaler Auszug, Handexport, online nur auf Wunsch) | – | – |
+| 2 | **Praxistest auf dem eigenen Rechner:** echten Auszug einlesen, dann Website-Zuordnung und Firmen-Berichte an 50–100 Betrieben prüfen, mit von Hand geprüfter Referenzliste | in der Cloud-Umgebung nicht messbar | Eigentümer führt aus |
+| 3 | **Telefon und Öffnungszeiten aus OpenStreetMap** in Firmenakte und Erreichbarkeitsprofil zeigen | liegen seit dev7 im lokalen Bestand | – |
 | 4 | **Branche besser bestimmen:** OSM-Merkmale bevorzugen, Impressum und Website-Inhalt auswerten | 64 % der Treffer ohne Branche | – |
-| 5 | **Geschäftszeiten und Telefon aus OpenStreetMap** in das Erreichbarkeitsprofil übernehmen | fällt mit Paket 1 fast nebenbei an | Paket 1 |
+| 5 | **Viele Firmen in einem Zug übernehmen:** Sammelübernahme und Sichtung für große Trefferlisten prüfen und beschleunigen | Suche bleibt bewusst ohne Branche; ganze Städte liefern Tausende Treffer | Messung aus Nr. 2 |
 | 6 | **Bewertung an echten Ergebnissen prüfen;** Gewichte einstellbar | – | genug gewonnene und verlorene Chancen |
 | 7 | **Ein Leistungskatalog** statt drei Listen | – | – |
 | 8 | **Zeiten je Leistung** in der Nachkalkulation; Katalogwerte aus Ist-Zeiten vorschlagen | – | genug abgeschlossene Aufträge |

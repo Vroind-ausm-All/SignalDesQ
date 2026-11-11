@@ -244,6 +244,8 @@ def init_db(conn: sqlite3.Connection):
     init_reach(conn)  # 2.0.0-dev3: Eingang (verpasste Anrufe, Anfragen) mit Rückruffrist
     from .postcalc import init_postcalc
     init_postcalc(conn)  # 2.0.0-dev5: Nachkalkulation (Ist-Zeiten je Auftrag)
+    from .research.osm_local import init_osm_local
+    init_osm_local(conn)  # 2.0.0-dev7: OpenStreetMap-Betriebe aus lokalem Auszug
     conn.commit()
 
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0-dev7 – OpenStreetMap manuell und offline
+
+- **OpenStreetMap läuft manuell:** Die Firmensuche fragt die öffentlichen Server nicht mehr von selbst ab. Sie waren im Praxistest bei jedem Versuch überlastet. Online-Abfrage nur noch per Häkchen.
+- **Lokaler Auszug:** Eine `.osm.pbf`-Datei (z. B. Regierungsbezirk Stuttgart von Geofabrik) einmal einlesen, danach sucht SignalDesk offline und sofort. Ohne Zusatzprogramm.
+- **Handexport:** Für eine PLZ oder einen Ort öffnet ein Klick die fertige Abfrage in Overpass Turbo; die gespeicherte Datei (`.json`, `.geojson`) liest SignalDesk ein.
+- **„OpenStreetMap nutzbar machen“** unter „Firmen finden“: Stand des lokalen Bestands, drei Wege mit Aufwand, Datei einlesen.
+- **Ganze Stadt:** Ein Ortsname mit „nur dieser Ort“ deckt beim lokalen Bestand alle Postleitzahlen der Stadt ab.
+- Gespeichert werden nur benannte Betriebe, dazu Telefon und Öffnungszeiten; keine E-Mail-Adressen, keine Betreibernamen.
+- Die Suche bleibt ohne festgelegte Branche; die Roadmap sieht keine Branchen-Voreinstellung mehr vor.
+- Schema 28. 504 Tests (13 neu) unter Python 3.10 und 3.13, 6 Browser-Tests (1 neu). Anleitung: `docs/OPENSTREETMAP_LOKAL.md`.
+
 ## 2.0.0-dev6 – Praxistest 70191: PLZ-genaue Suche, faires Budget
 
 - **Behoben – PLZ wurde ignoriert:** „70191“ mit „nur dieser Ort“ lieferte ganz Stuttgart (300 Treffer, davon 2 in 70191). Jetzt gilt genau diese PLZ; nach der Behebung lagen 56 von 56 Treffern in 70191.

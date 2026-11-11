@@ -137,7 +137,7 @@ class SweepBase(unittest.TestCase):
         cleanup_tmp(self.tmp)
 
     def run_sweep(self, **params):
-        p = {'place': '70173', 'radius_km': 30, **params}
+        p = {'place': '70173', 'radius_km': 30, 'osm_online': True, **params}  # diese Tests prüfen den Online-Abruf (seit dev7 nur auf Wunsch)
         s = sw.start_sweep(self.conn, p, self.db, start=False)
         sw.run_sweep(self.db, s['id'])
         return sw.sweep_detail(self.conn, s['id'])

@@ -32,7 +32,7 @@
     const f = $('#swForm').elements;
     return {place: f.place.value.trim(), radius_km: Number(f.radius_km.value), industries: [...selectedInd], keywords: f.keywords.value.trim(),
       sources: $$('#swForm [name=src]:checked').map(x => x.value), operative: f.operative.checked, include_sole: f.include_sole.checked,
-      find_websites: f.find_websites.checked, ted_nationwide: f.ted_nationwide.checked,
+      find_websites: f.find_websites.checked, ted_nationwide: f.ted_nationwide.checked, osm_online: f.osm_online.checked,
       org_kinds: $$('#swForm [name=org]:checked').map(x => x.value),
       budget: {max_companies: Number(f.max_companies.value), max_websites: Number(f.max_websites.value), max_minutes: Number(f.max_minutes.value)}};
   }
@@ -88,7 +88,7 @@
     f.keywords.value = Array.isArray(p.keywords) ? p.keywords.join(', ') : (p.keywords || '');
     $$('#swForm [name=src]').forEach(x => { x.checked = (p.sources || []).includes(x.value); });
     $$('#swForm [name=org]').forEach(x => { x.checked = (p.org_kinds || ['unternehmen']).includes(x.value); });
-    f.operative.checked = p.operative !== false; f.include_sole.checked = !!p.include_sole; f.find_websites.checked = p.find_websites !== false;
+    f.operative.checked = p.operative !== false; f.include_sole.checked = !!p.include_sole; f.find_websites.checked = p.find_websites !== false; f.osm_online.checked = !!p.osm_online;
     f.ted_nationwide.checked = !!p.ted_nationwide;
     if (budget) { f.max_companies.value = budget.max_companies; f.max_websites.value = budget.max_websites; f.max_minutes.value = budget.max_minutes; }
     selectedInd = new Set(p.industries || []);

@@ -368,7 +368,7 @@ def _add_keys(conn, cid, keys):
 
 def validate_params(data):
     allowed = {'place', 'radius_km', 'industries', 'keywords', 'sources', 'operative', 'include_sole', 'ted_presets', 'find_websites',
-               'org_kinds', 'ted_nationwide', 'budget', 'profile_id'}
+               'org_kinds', 'ted_nationwide', 'budget', 'profile_id', 'osm_online'}
     if not isinstance(data, dict) or set(data) - allowed:
         raise ValueError('Ungültige Suchparameter.')
     place = str(data.get('place') or '').strip()
@@ -385,13 +385,14 @@ def validate_params(data):
     kinds = data.get('org_kinds', list(ORG_KINDS_DEFAULT))
     if not isinstance(kinds, list) or not kinds or any(k not in ORG_KIND_CHOICES for k in kinds):
         raise ValueError('Organisationsart: ' + ', '.join(ORG_KIND_CHOICES) + '.')
-    for flag in ('operative', 'include_sole', 'find_websites', 'ted_nationwide'):
+    for flag in ('operative', 'include_sole', 'find_websites', 'ted_nationwide', 'osm_online'):
         if flag in data and not isinstance(data[flag], bool):
             raise ValueError(f'{flag}: true/false.')
     return {'place': place, 'radius_km': radius, 'industries': ind.validate_keys(data.get('industries', [])),
             'keywords': ind.parse_keywords(data.get('keywords', '')), 'sources': sources, 'operative': data.get('operative', True),
             'include_sole': data.get('include_sole', False), 'ted_presets': presets, 'find_websites': data.get('find_websites', True),
-            'org_kinds': kinds, 'ted_nationwide': data.get('ted_nationwide', False), 'budget': validate_budget(data.get('budget')),
+            'org_kinds': kinds, 'ted_nationwide': data.get('ted_nationwide', False), 'osm_online': data.get('osm_online', False),
+            'budget': validate_budget(data.get('budget')),
             'profile_id': data['profile_id'] if isinstance(data.get('profile_id'), int) and not isinstance(data.get('profile_id'), bool) else None}
 
 
@@ -763,7 +764,23 @@ def _osm_sel(key, value):
 
 
 def _run_osm(conn, sid, run_id, ctx, area, ua, index):
-    """OpenStreetMap im Umkreis – in kleinen Teilabfragen (je 6 Merkmale), damit überlastete Server eher antworten."""
+    """OpenStreetMap. 2.0.0-dev7: zuerst der lokale Bestand (eingelesener Auszug, offline und sofort). Die öffentlichen Server
+    werden nur noch auf ausdrücklichen Wunsch abgefragt (osm_online) – im Praxistest waren sie bei jedem Versuch überlastet.
+    Online: im Umkreis in kleinen Teilabfragen (je 6 Merkmale), damit überlastete Server eher antworten."""
+    from .research import osm_local
+    if osm_local.has_data(conn) and not ctx.get('osm_online'):
+        items, info = osm_local.area_items(conn, ctx, area, ar.haversine)
+        counts = store_items(conn, sid, run_id, 'osm', items, ctx, index)
+        note = f"{len(items)} Betriebe aus dem lokalen Auszug (offline)"
+        if ctx.get('postcode_only'):
+            note += ' · Einträge ohne PLZ-Angabe lassen sich keiner PLZ zuordnen und fehlen'
+        elif info.get('no_address'):
+            note += f" · davon {info['no_address']} ohne Adresse, nach Lage zugeordnet"
+        return counts, note
+    if not ctx.get('osm_online'):
+        return ({'found': 0, 'new': 0, 'merged': 0, 'known': 0, 'dismissed': 0, 'suppressed': 0, 'filtered': 0},
+                'Nicht abgefragt: OpenStreetMap läuft manuell. Einen Auszug einlesen (unten „OpenStreetMap nutzbar machen“) '
+                'oder dort „jetzt online abfragen“ ankreuzen.')
     c = area['center']
     selectors = ind.osm_selectors(ctx['industries']) or DEFAULT_OSM
     r = int(max(ctx['radius_km'], 3) * 1000)

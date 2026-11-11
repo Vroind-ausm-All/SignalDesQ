@@ -1,0 +1,82 @@
+"""Browserprüfung 2.0.0-dev7: OpenStreetMap manuell – Anleitung sehen, Auszug einlesen, Suche in einer PLZ läuft offline
+aus dem lokalen Bestand. Fiktive Betriebe; es wird kein öffentlicher Server abgefragt."""
+import os
+import tempfile
+import threading
+import unittest
+from http.server import ThreadingHTTPServer
+from pathlib import Path
+
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    sync_playwright = None
+
+from sales_tool.model import connect, init_db
+from sales_tool.research import jobs
+from sales_tool.server import make_handler
+
+PBF = Path(__file__).resolve().parent.parent / 'fixtures' / 'osm' / 'beispiel.osm.pbf'
+SHOTS = os.environ.get('SIGNALDESK_E2E_SHOTS')
+
+
+@unittest.skipUnless(sync_playwright, 'Playwright optional')
+class OsmLocalBrowserTests(unittest.TestCase):
+    def test_howto_import_and_offline_search(self):
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
+            db = Path(tmp) / 'o.sqlite3'
+            with connect(db) as conn:
+                init_db(conn)
+            server = ThreadingHTTPServer(('127.0.0.1', 0), make_handler(db))
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                with sync_playwright() as playwright:
+                    browser = playwright.chromium.launch(executable_path=os.environ.get('PLAYWRIGHT_CHROMIUM_EXECUTABLE') or None)
+                    try:
+                        page = browser.new_page(viewport={'width': 1400, 'height': 1100})
+                        errors, outside = [], []
+                        page.on('pageerror', lambda exc: errors.append(str(exc)))
+                        page.on('request', lambda r: outside.append(r.url) if '127.0.0.1' not in r.url else None)
+                        page.goto(f'http://127.0.0.1:{server.server_port}')
+                        page.locator('[data-view="finder"]').click()
+                        page.locator('#swForm input[name="place"]').fill('70191')
+                        page.locator('#swForm select[name="radius_km"]').select_option('0')
+                        self.assertFalse(page.locator('#swForm input[name="osm_online"]').is_checked())  # online nur auf Wunsch
+
+                        page.locator('#osmBox > summary').click()
+                        page.locator('#osmState', has_text='noch kein lokaler Bestand').wait_for(timeout=15000)
+                        self.assertEqual(page.locator('#osmHowto .osm-how').count(), 3)
+                        link = page.locator('#osmTurbo')
+                        link.wait_for(state='visible', timeout=15000)
+                        self.assertIn('overpass-turbo.eu', link.get_attribute('href'))
+                        self.assertIn('70191', link.get_attribute('href'))
+
+                        page.locator('#osmFile').set_input_files(str(PBF))
+                        page.locator('#osmState', has_text='6 Betriebe').wait_for(timeout=30000)
+                        if SHOTS:
+                            page.locator('#osmBox').screenshot(path=str(Path(SHOTS) / 'osm.png'))
+
+                        # Suche nur über OpenStreetMap, offline aus dem lokalen Bestand
+                        for src in ('gleif', 'wikidata', 'ted'):
+                            page.locator(f'#swForm input[name="src"][value="{src}"]').uncheck()
+                        page.locator('#swForm input[name="include_sole"]').check()
+                        page.locator('#swForm input[name="find_websites"]').uncheck()
+                        page.locator('#swGo').click()
+                        page.wait_for_function("""async () => {
+                          const r = await (await fetch('/api/sweep-candidates?status=neu')).json();
+                          return r.items.length === 3 && r.items.every(i => i.zip === '70191');
+                        }""", timeout=30000)
+                        self.assertEqual(outside, [], 'kein Abruf außerhalb des eigenen Rechners')
+                        self.assertFalse(errors, errors)
+                    finally:
+                        browser.close()
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=5)
+                jobs.stop_all_workers()
+
+
+if __name__ == '__main__':
+    unittest.main()
