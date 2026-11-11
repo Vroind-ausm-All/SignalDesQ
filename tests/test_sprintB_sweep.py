@@ -67,7 +67,11 @@ class FakeNet:
                                   gleif_record('E' * 18 + '05', 'Rentenfonds Süd', 'Stuttgart', '70176', category='FUND'),
                                   gleif_record('F' * 18 + '06', 'Gesperrte Muster AG', 'Stuttgart', '70176', 'HRB 555'),
                                   gleif_record('J' * 18 + '10', 'Stuttgarter Versicherung AG', 'Köln', '50667', 'HRB 4')],
-                    'Esslingen am Neckar': [gleif_record(LEI_C, 'Neckar Präzisionsteile GmbH', 'Esslingen am Neckar', '73728', 'HRB 7300')]}.get(term, [])
+                    'Esslingen am Neckar': [gleif_record(LEI_C, 'Neckar Präzisionsteile GmbH', 'Esslingen am Neckar', '73728', 'HRB 7300')]}
+            if re.fullmatch(r'\d{5}', term):  # wie die echte Schnittstelle: Volltext findet auch die PLZ (live geprüft mit 70191)
+                recs = [r for group in recs.values() for r in group if r['attributes']['entity']['legalAddress']['postalCode'] == term]
+            else:
+                recs = recs.get(term, [])
             if q.get('filter[entity.status]') == ['ACTIVE']:
                 recs = [r for r in recs if r['attributes']['entity']['status'] == 'ACTIVE']
             return {'data': recs, 'meta': {'pagination': {'lastPage': 1}}}

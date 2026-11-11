@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0-dev6 – Praxistest 70191: PLZ-genaue Suche, faires Budget
+
+- **Behoben – PLZ wurde ignoriert:** „70191“ mit „nur dieser Ort“ lieferte ganz Stuttgart (300 Treffer, davon 2 in 70191). Jetzt gilt genau diese PLZ; nach der Behebung lagen 56 von 56 Treffern in 70191.
+- **Behoben – die erste Quelle verbrauchte das ganze Budget:** OpenStreetMap lief dadurch nie. Das Budget wird jetzt auf die gewählten Quellen verteilt; Ungenutztes geht an die nächste Quelle.
+- OpenStreetMap fragt bei einer PLZ das PLZ-Gebiet ab statt einen Umkreis um die Stadtmitte.
+- Bericht mit allen Messwerten und Folgerungen: `docs/PRAXISTEST_70191.md`.
+- 491 Tests (6 neu), geprüft unter Python 3.10 und 3.13.
+- Website-Zuordnung und Handwerks-Abdeckung waren in der Testumgebung nicht messbar; siehe Bericht.
+
 ## 2.0.0-dev5 – Nachkalkulation
 
 - **Nachkalkulation** unter „Angebote & Preise“: Für jedes angenommene Angebot erfasst du die tatsächlich gebrauchten Stunden (einzeln oder als Sammeleintrag) und siehst kalkuliert, gebraucht und übrig.

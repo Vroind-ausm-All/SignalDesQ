@@ -248,6 +248,12 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None, cindex=N
                 c['filtered'] += 1
                 continue
             item['industry_key'] = ikey or item.get('industry_key') or ind.guess(f"{name} {item.get('industry', '')}")
+        if ctx.get('postcode_only') and source != 'ted':
+            plz = (item.get('zip') or '').strip()
+            # passt, wenn die PLZ stimmt – oder wenn die Quelle das PLZ-Gebiet abgefragt hat und am Eintrag keine PLZ steht
+            if plz != ctx['postcode_only'] and not (item.get('_in_postcode') and not plz):
+                c['filtered'] += 1  # außerhalb der gewünschten PLZ (oder PLZ unbekannt)
+                continue
         dist = item.get('distance_km')
         if dist is None and ctx.get('place_distance'):
             dist = ctx['place_distance'].get((item.get('city') or '').casefold())
@@ -513,7 +519,12 @@ def run_sweep(db_path, sid, only=None, finalize=True):
             conn.commit()
             return
         ctx = {**p, 'center': area['center'], 'place_distance': {pl['name'].casefold(): pl['distance_km'] for pl in area['places']}}
-        _progress(conn, sid, '_area', places=len(area['places']), center=area['center']['label'], via=area['source'])
+        # 2.0.0-dev6: Wer eine PLZ mit „nur dieser Ort“ eingibt, meint diese PLZ – nicht die ganze Gemeinde (Praxistest 70191:
+        # 300 Treffer aus ganz Stuttgart, davon 2 in 70191)
+        if p['radius_km'] == 0 and re.fullmatch(r'\d{5}', p['place'].strip()):
+            ctx['postcode_only'] = p['place'].strip()
+        _progress(conn, sid, '_area', places=len(area['places']), center=area['center']['label'], via=area['source'],
+                  postcode_only=ctx.get('postcode_only', ''))
         index = LeadIndex(conn)
         ctx['_cindex'] = CandidateIndex(conn)
         ctx['_catalog'] = catalog.catalog_path(db_path)
@@ -524,11 +535,16 @@ def run_sweep(db_path, sid, only=None, finalize=True):
         ctx['_budget_left'] = max(0, budget['max_companies'] - used)
         ctx['_deadline'] = started + budget['max_minutes'] * 60
         _progress(conn, sid, '_budget', started=started, **budget, companies=used)
-        for source in sources:
+        total_left = ctx['_budget_left']
+        for pos, source in enumerate(sources):
+            # 2.0.0-dev6: Budget fair verteilen – sonst verbraucht die erste Quelle alles und die nächste läuft nie
+            # (Praxistest: GLEIF 300 von 300, OpenStreetMap übersprungen). Ungenutztes geht an die folgenden Quellen.
+            share = -(-total_left // (len(sources) - pos)) if total_left > 0 else 0
+            ctx['_budget_left'] = share
             if time.time() > ctx['_deadline']:
                 _progress(conn, sid, source, status='übersprungen', error='', detail=f"Zeitbudget von {budget['max_minutes']} Min. erreicht")
                 continue
-            if ctx['_budget_left'] <= 0:
+            if total_left <= 0:
                 _progress(conn, sid, source, status='übersprungen', error='', detail=f"Budget von {budget['max_companies']} neuen Firmen erreicht")
                 continue
             _progress(conn, sid, source, status='läuft', error='', detail='')
@@ -560,6 +576,7 @@ def run_sweep(db_path, sid, only=None, finalize=True):
                     _finish_run(conn, run_id, error=f'Unerwarteter Fehler: {exc.__class__.__name__}')
                     _progress(conn, sid, source, status='fehler', error=f'Unerwarteter Fehler: {exc.__class__.__name__}')
                     break
+            total_left -= share - max(0, ctx['_budget_left'])  # tatsächlich verbrauchter Anteil dieser Quelle
         used = conn.execute("SELECT COUNT(*) FROM discovery_candidates WHERE sweep_id=? AND status='neu' AND dup_of IS NULL", (sid,)).fetchone()[0]
         _progress(conn, sid, '_budget', companies=used, minutes=round((time.time() - started) / 60, 1))
         if finalize:
@@ -653,12 +670,12 @@ def _run_gleif_api(conn, sid, run_id, ctx, area, ua, index, state):
                 break
             if requests:
                 lf.SLEEP(GLEIF_DELAY)
-            data = lf.gleif_page(ua, city=pl['name'], page=page, attempt_from=attempt)
+            data = lf.gleif_page(ua, city=pl['name'], postcode=ctx.get('postcode_only', ''), page=page, attempt_from=attempt)
             requests += 1
             attempt = data.get('_attempt', attempt)
             if attempt:
                 filters_note = ' (GLEIF-Filter vereinfacht, Rest lokal gefiltert)'
-            items = lf.gleif_items(data, city=pl['name'])
+            items = lf.gleif_items(data, city=pl['name'], postcode=ctx.get('postcode_only', ''))
             for it in items:
                 it['distance_km'] = pl['distance_km']
             c = store_items(conn, sid, run_id, 'gleif', items, ctx, index)
@@ -755,8 +772,11 @@ def _run_osm(conn, sid, run_id, ctx, area, ua, index):
     for n, chunk in enumerate(chunks):
         if n:
             lf.SLEEP(2)
-        parts = [f'nwr{_osm_sel(key, value)}["name"]{need_web}(around:{r},{c["lat"]},{c["lon"]});' for key, value in chunk]
-        query = f'[out:json][timeout:60];\n(\n  {chr(10).join(parts)}\n);\nout center tags 1500;'
+        pc = ctx.get('postcode_only')
+        where = '(area.plz)' if pc else f'(around:{r},{c["lat"]},{c["lon"]})'
+        head = f'area["boundary"="postal_code"]["postal_code"="{pc}"]->.plz;\n' if pc else ''
+        parts = [f'nwr{_osm_sel(key, value)}["name"]{need_web}{where};' for key, value in chunk]
+        query = f'[out:json][timeout:60];\n{head}(\n  {chr(10).join(parts)}\n);\nout center tags 1500;'
         try:
             for el in lf.overpass(query, ua).get('elements', []):
                 elements[f"{el.get('type')}/{el.get('id')}"] = el
@@ -778,10 +798,11 @@ def _run_osm(conn, sid, run_id, ctx, area, ua, index):
                       'street': ' '.join(x for x in (tags.get('addr:street', ''), tags.get('addr:housenumber', '')) if x)[:200],
                       'zip': tags.get('addr:postcode', '')[:10], 'city': (tags.get('addr:city') or '')[:120],
                       'industry': kind.replace('_', ' ')[:200], 'industry_key': ikey, '_industry_matched': bool(ikey),
+                      '_in_postcode': bool(ctx.get('postcode_only')),  # aus dem PLZ-Gebiet abgefragt, auch wenn am Eintrag keine PLZ steht
                       'distance_km': round(ar.haversine(c['lat'], c['lon'], lat, lon), 1) if lat and lon else None,
                       'source_url': f"https://www.openstreetmap.org/{el.get('type', 'node')}/{el.get('id', '')}"})
     counts = store_items(conn, sid, run_id, 'osm', items, ctx, index)
-    return counts, f'{len(items)} Einträge im Umkreis' + (f' ({len(errors)} von {len(chunks)} Teilabfragen überlastet)' if errors else '')
+    return counts, (f"{len(items)} Einträge in PLZ {ctx['postcode_only']}" if ctx.get('postcode_only') else f'{len(items)} Einträge im Umkreis') + (f' ({len(errors)} von {len(chunks)} Teilabfragen überlastet)' if errors else '')
 
 
 def _run_ted(conn, sid, run_id, ctx, area, ua, index):

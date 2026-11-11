@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev5)
+# Bekannte Einschränkungen (Stand 2.0.0-dev6)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -57,3 +57,9 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - **Aufträge ohne kalkulierte Stunden** (z. B. sehr alte Angebote) zeigen nur die erfassten Stunden, kein Soll/Ist.
 - **Der Lernwert** („im Mittel X % mehr Zeit“) erscheint erst ab drei abgeschlossenen Aufträgen und bleibt bei wenigen Aufträgen eine grobe Zahl.
 - **Zeiteinträge sind keine Buchhaltungsbelege** und nicht festgeschrieben; sie lassen sich ändern, solange der Auftrag offen ist.
+
+## Firmensuche (Praxistest 70191, 2.0.0-dev6)
+- **Handwerksbetriebe findet die Suche derzeit kaum** (1 von 56 in PLZ 70191). GLEIF enthält fast nur Kapitalgesellschaften mit LEI; OpenStreetMap ist die einzige Handwerksquelle und war am Testtag nicht verlässlich erreichbar. Einzelheiten: `PRAXISTEST_70191.md`.
+- **Betriebe ohne Rechtsform im Namen** werden bei OpenStreetMap und Wikidata vorsorglich ausgelassen, weil dahinter eine Einzelperson stehen kann. Für Handwerks-Suchen „auch Betriebe ohne Rechtsform“ bewusst einschalten.
+- **PLZ-genaue Suche** gilt nur für „PLZ + nur dieser Ort“. Einträge ohne PLZ-Angabe aus GLEIF und Wikidata fallen dabei heraus; bei OpenStreetMap zählt das abgefragte PLZ-Gebiet.
+- **Bei rund zwei Dritteln der GLEIF-Treffer bleibt die Branche unbekannt**, weil sie aus dem Firmennamen geschätzt wird.

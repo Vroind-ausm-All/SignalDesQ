@@ -258,6 +258,20 @@ Implementiert und lokal getestet (Linux, Python 3.10 und 3.13, Chromium). Nicht 
 
 **Entscheid:** weiter.
 
+## Arbeitspaket 5 – Praxistest 70191 (2.0.0-dev6)
+
+Erste Messung gegen die echten Quellen, mit Freigabe des Eigentümers. Vollständiger Bericht: `PRAXISTEST_70191.md`.
+
+- **Stufe „live verifiziert“ erstmals für einen Teil erreicht:** die Firmensuche gegen GLEIF (und teilweise OpenStreetMap). Website-Zuordnung, Impressum und Firmen-Bericht bleiben ungemessen.
+- **Zwei Programmfehler gefunden, die kein Test mit Attrappen zeigen konnte:** PLZ wurde ignoriert (2 von 300 Treffern in der gewünschten PLZ); die erste Quelle verbrauchte das ganze Budget. Beide behoben, mit 6 neuen Tests; Wiederholung live: 56 von 56 Treffern in 70191, alle drei Quellen gelaufen.
+- **Wichtigste Erkenntnis:** Für die Zielgruppe Handwerk liefert die Suche heute praktisch nichts (1 von 56). Ursache sind die Quellen, nicht die Bewertung oder die Oberfläche. Die Arbeitspakete 1 und 2 haben damit an einem Teil gearbeitet, der erst nach einer brauchbaren Quelle Wert entfaltet – die Reihenfolge der Roadmap ist entsprechend umgestellt.
+- **Ausgeführt:** 491 Tests unter Python 3.13 und 3.10 bestanden.
+- **Nicht umgangen:** Der sichere Website-Abruf scheiterte in der Testumgebung an fehlender Namensauflösung. Der Schutz (Verbindung nur zur selbst geprüften Adresse) wurde nicht gelockert, um ein Messergebnis zu erzwingen.
+
+**Die drei wichtigsten Schwachstellen:** (1) keine verlässliche Quelle für Handwerksbetriebe; (2) Website-Zuordnung weiter ungemessen; (3) Branche bei zwei Dritteln der Treffer unbekannt.
+
+**Entscheid:** weiter mit dem lokalen OpenStreetMap-Auszug.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Roadmap und README-Neufassung stehen ebenfalls aus.
