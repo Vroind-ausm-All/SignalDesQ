@@ -1,4 +1,6 @@
-# Bekannte Einschränkungen (Stand v1.19)
+# Bekannte Einschränkungen (Stand 2.0.0-dev3)
+
+**Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
 Der Masterplan verlangt für Sprint 6 „dokumentierte offene Einschränkungen“. Diese Liste nennt sie ehrlich, mit Grund und
 Ausweg. Sie wird mit jeder Version aktualisiert.
@@ -32,3 +34,19 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 ## Offline-Modus
 - Der Offline-Modus verhindert Abrufe durch SignalDesk. Er ist **keine Firewall**: Andere Programme und der Browser des Nutzers gehen weiter ins Netz.
 - Die lokale KI (Ollama auf 127.0.0.1) bleibt erlaubt.
+
+## Kundenbewertung und Erreichbarkeit (2.0.0-dev2)
+- **Die Bewertung ist ein Raster, keine Vorhersage.** Gewichte und Schwellen (A ab 70, B ab 45 Punkten) sind gesetzt, nicht aus echten Abschlüssen abgeleitet. Erst mit genug gewonnenen und verlorenen Chancen lässt sich prüfen, ob A-Firmen wirklich häufiger Kunden werden.
+- **Branche oft nur geschätzt:** Ohne Angabe aus der Firmensuche wird die Branche aus dem Firmennamen abgeleitet. „Müller GmbH“ bleibt „unbekannt“.
+- **Entfernung ist Luftlinie** zwischen den Gemeinden laut Ortsverzeichnis, keine Fahrzeit.
+- **Geschäftszeiten der Firmen fehlen.** Der nächste Anrufversuch richtet sich nur nach den eigenen bisherigen Versuchen.
+- **Zeitfenster eines Versuchs** ist die Uhrzeit des Eintrags, wenn du nichts anderes wählst. Wer abends nachträgt, sollte die Uhrzeit auswählen.
+- **Ältere verlorene Leads** haben keinen Verlustgrund und erscheinen in der Übersicht als „ohne Grund“.
+
+## Eigene Erreichbarkeit und Auslastung (2.0.0-dev3)
+- **Kein Kalenderabgleich.** Terminvorschläge kennen nur deine eingestellten Zeiten und die in SignalDesk eingetragenen Termine. Private oder externe Termine musst du selbst ausschließen.
+- **Keine Telefonanbindung.** Verpasste Anrufe trägst du selbst ein; SignalDesk liest keine Anrufliste.
+- **Auslastung ist eine Schätzung** aus kalkulierten Stunden. Angenommene Angebote zählen 8 Wochen lang voll, erledigte Arbeit wird nicht abgezogen. Genauer wird es erst mit einer Zeiterfassung (Nachkalkulation).
+- **Feiertage** kennt SignalDesk nicht. Trag sie als Abwesenheit ein, sonst fallen Fristen und Terminvorschläge darauf.
+- **Einträge im Eingang** können Namen und Telefonnummern von Personen enthalten. Sie fallen noch nicht unter die automatischen Löschfristen; erledigte Einträge bitte selbst löschen.
+- **Die Kontaktliste** zeigt nur Firmen in den Phasen Qualifiziert, Kontakt geprüft und Rückmeldung. Firmen in der Recherche erscheinen erst nach der Übergabe.

@@ -31,13 +31,24 @@
         <button class="nav" data-view="playbook"><span>▤</span> Sales-Playbook</button>
       </details>
     </nav>
-    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small id="sideVersion">v1.19 · Arbeitstag von oben nach unten</small><div id="authBar" class="auth-bar hidden"></div></div>
+    <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small id="sideVersion">v2.0 · Entwicklungsstand</small><div id="authBar" class="auth-bar hidden"></div></div>
   </aside>
   <main class="main">
     <header class="topbar"><div class="breadcrumb">SALES <span>/</span> <span id="sectionBreadcrumb">Heute</span></div><div class="top-actions"><div class="date-chip" id="today"></div><button class="btn btn-primary" id="newLeadBtn">＋ Neuer Lead</button></div></header>
     <div class="content" id="viewDashboard">
       <div class="eyebrow" id="tdGreeting">DEIN ARBEITSTAG</div>
       <div class="page-title td-title"><div><h1>Heute.</h1><p>Von oben nach unten: erst Zugesagtes und Termine, dann Angebote und Freigaben, danach Recherche und neue Firmen. Jeder Punkt führt direkt zur passenden Stelle.</p></div><button class="btn btn-primary" id="tdNext">Nächster Schritt →</button></div>
+      <div class="td-cols" id="erreichbarkeit">
+        <section class="panel" aria-labelledby="rcInTitle"><div class="panel-header"><h3 id="rcInTitle">Eingang &amp; Rückrufe</h3><span class="muted" id="rcInCount"></span></div>
+          <form id="rcInForm" class="sales-form rc-in-form"><input name="who" maxlength="120" placeholder="Wer hat sich gemeldet?" aria-label="Wer hat sich gemeldet?">
+            <select name="channel" aria-label="Eingangsweg"></select><input name="contact" maxlength="120" placeholder="Rückrufnummer / E-Mail" aria-label="Rückrufnummer oder E-Mail">
+            <select name="lead_id" aria-label="Bekannte Firma"><option value="">– keine bekannte Firma –</option></select>
+            <input name="note" maxlength="1000" placeholder="Worum ging es?" aria-label="Worum ging es?"><button type="submit" class="btn btn-primary">Festhalten</button></form>
+          <div class="td-list" id="rcInList"></div><p class="muted td-note" id="rcInStats"></p></section>
+        <section class="panel" aria-labelledby="rcListTitle"><div class="panel-header"><h3 id="rcListTitle">Als Nächstes kontaktieren</h3><span class="muted" id="rcListCount"></span></div>
+          <div class="td-list" id="rcList"></div><p class="muted td-note" id="rcListNote"></p></section>
+      </div>
+      <div class="panel rc-cap" id="rcCap"></div>
       <section class="panel td-plan" aria-labelledby="tdPlanTitle"><div class="panel-header"><h3 id="tdPlanTitle">Tagesplan</h3><span class="muted" id="tdPlanState"></span></div><ol class="td-steps" id="tdSteps"></ol></section>
       <div class="td-cols">
         <section class="panel" id="wiedervorlage" aria-labelledby="tdWvTitle"><div class="panel-header"><h3 id="tdWvTitle">Wiedervorlage</h3><span class="muted" id="tdWvCount"></span></div><div class="td-list" id="tdWv"></div></section>
@@ -128,6 +139,7 @@
     <section class="panel sales-section"><span class="eyebrow">TELEFON / MANUELLES LOG</span><h2>Call-Arbeitsplatz</h2><p class="muted">Keine automatische Anwahl, keine Aufzeichnung. Erst Rechtsgrundlage für den konkreten Anruf prüfen; Gesprächsergebnis nach dem Gespräch protokollieren.</p>
       <form id="wsCallForm" class="sales-form"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><div id="wsCallPermission" class="sales-banner">Bitte einen Lead auswählen.</div>
       <label>Gesprächsergebnis<select name="outcome"><option value="erreicht">Gespräch geführt</option><option value="rueckruf_vereinbart">Rückruf ausdrücklich vereinbart</option><option value="termin_vereinbart">Termin vereinbart</option><option value="nicht_erreicht">Nicht erreicht</option><option value="mailbox">Mailbox</option><option value="kein_bedarf">Kein Bedarf</option><option value="widerspruch">Kontaktaufnahme untersagt</option></select></label>
+      <label>Uhrzeit des Versuchs<select name="slot"><option value="">gerade eben</option><option value="vormittag">vormittags (8–11 Uhr)</option><option value="mittag">mittags (11–14 Uhr)</option><option value="nachmittag">nachmittags (14–17 Uhr)</option><option value="abend">früher Abend (17–19 Uhr)</option></select></label>
       <label>Notizen / konkrete Vereinbarung<textarea name="notes" rows="3" maxlength="2000" placeholder="Wörtliche Aussage, Ergebnis, Absprachen"></textarea></label>
       <label>Kontakt-Rechtsprüfung / Dokumentation<input name="legal_note" maxlength="1000" placeholder="Grundlage für den erfolgten Anruf (falls zutreffend)"></label>
       <label>Vereinbarter Rückruf am<input type="date" name="callback_date"></label><button class="btn btn-primary" type="submit">Gespräch dokumentieren</button></form></section>
@@ -517,6 +529,41 @@
     <label>Haupttext<select name="content"><option value="stdlib">Eingebaut (empfohlen)</option><option value="trafilatura">Trafilatura, wenn installiert</option></select></label>
     <label>Browser-Rückfall<select name="browser_fallback"><option value="true">An – nur bei Seiten ohne Text</option><option value="false">Aus</option></select></label>
    </div><button type="submit" class="btn btn-primary">Speichern</button> <span class="muted" id="rtStatus"></span></form></section>
+  <section class="panel sales-section" id="targetProfile"><span class="eyebrow">KUNDENBEWERTUNG</span><h2>Dein Zielkundenprofil</h2>
+   <p class="muted">Danach bewertet SignalDesk jede Firma: Passung vor dem Gespräch (A, B, C) und Qualifizierung danach. Fehlende Angaben zählen als „unbekannt“, nicht als schlecht. Die Bewertung ist keine Kaufwahrscheinlichkeit und keine Kontakterlaubnis.</p>
+   <form id="targetProfileForm" class="sales-form"><div class="tp-grid">
+    <label>Profilname<input name="name" maxlength="80" required></label>
+    <label>Dein Standort (PLZ oder Ort)<input name="home" maxlength="80" placeholder="z. B. 70173"></label>
+    <label>Einzugsgebiet (km)<input name="radius_km" type="number" min="1" max="1000" required></label>
+    <label>Mitarbeiter von<input name="employees_min" type="number" min="0" required></label>
+    <label>Mitarbeiter bis<input name="employees_max" type="number" min="1" required></label>
+    <label>Mindestauftrag netto (€)<input name="min_order_eur" type="number" min="0" required></label>
+    <label>Deine Wochenstunden<input name="weekly_hours" type="number" min="1" max="80" required></label>
+    <label>Anrufversuche, bevor du den Kanal wechselst<input name="max_attempts" type="number" min="1" max="10" required></label>
+    <label>Neuer Versuch nach (Werktagen)<input name="retry_days" type="number" min="1" max="30" required></label>
+    <label>Parken für (Tage)<input name="park_days" type="number" min="7" max="730" required></label>
+    <label class="tp-check"><input type="checkbox" name="prefer_owner_led"> Inhabergeführte Betriebe bevorzugen (kurzer Entscheidungsweg)</label></div>
+    <details><summary>Branchen wählen: Zielbranche oder „nicht bedienen“</summary><div id="targetIndustries" class="tp-industries"></div></details>
+    <button type="submit" class="btn btn-primary">Zielkundenprofil speichern</button></form>
+   <div id="asStats" class="as-stats"></div>
+  </section>
+  <section class="panel sales-section" id="ownTimes"><span class="eyebrow">ERREICHBARKEIT</span><h2>Deine Zeiten</h2>
+   <p class="muted">Daraus entstehen die Rückruffrist für verpasste Anrufe, Terminvorschläge und Textbausteine. SignalDesk versendet nichts und kennt keinen Kalender außerhalb des Programms.</p>
+   <form id="availabilityForm" class="sales-form"><div id="avDays" class="rc-days"></div><div class="tp-grid">
+    <label>Rückrufe von<input name="callback_from" type="time" required></label><label>Rückrufe bis<input name="callback_to" type="time" required></label>
+    <label>Kundentermine von<input name="meeting_from" type="time" required></label><label>Kundentermine bis<input name="meeting_to" type="time" required></label>
+    <label>Termindauer (Minuten)<input name="meeting_minutes" type="number" min="15" max="180" required></label>
+    <label>Anteil deiner Wochenstunden für Kundenprojekte (%)<input name="delivery_share_pct" type="number" min="10" max="100" required></label>
+    <label>Dein Name für Textbausteine<input name="display_name" maxlength="80"></label></div>
+    <b>Abwesenheiten</b><div id="avAbsences"></div><button type="button" class="text-button" id="avAddAbsence">+ Abwesenheit</button>
+    <button type="submit" class="btn btn-primary">Zeiten speichern</button></form>
+   <div class="rc-tpl"><b>Terminvorschläge</b><pre id="avSlots"></pre><button type="button" class="text-button" id="avCopySlots">Kopieren</button></div>
+   <div id="avTemplates"></div>
+  </section>
+  <section class="panel sales-section"><span class="eyebrow">INHALTSRECHERCHE</span><h2>Dein Leistungsprofil</h2>
+   <p class="muted">Wähle Themen für die regelbasierte Inhaltsanalyse und ergänze eigene Suchbegriffe, durch Komma getrennt. Die Erwähnung ist nur ein Gesprächsanlass. Technische Website-Bewertung, Stellenklassifikation und KI-Modus verwenden eigene Regeln. Änderungen gelten für neue Analysen.</p>
+   <form id="serviceProfileForm" class="sales-form"><label>Profilname<input name="name" maxlength="80" required></label><div id="serviceProfileThemes"></div><button type="submit" class="btn btn-primary">Leistungsprofil speichern</button> <span class="muted" id="serviceProfileVersion"></span></form>
+  </section>
   <section class="panel sales-section"><span class="eyebrow">TEAM & SICHERHEIT</span><h2>Zugang, Rollen, Backups</h2>
    <div id="qSecurity" class="sales-list"></div>
    <div class="sales-subhead">Login & Benutzer</div><div id="qAuth"></div>
@@ -645,6 +692,12 @@
 <script src="/pipeline.js" defer></script>
 <script src="/jobs.js" defer></script>
 <script src="/catalog.js" defer></script>
+<script src="/assessment.js" defer></script>
+<script src="/reach.js" defer></script>
 <script src="/akte.js" defer></script>
 <script src="/workday.js" defer></script>
+<dialog id="lostDialog" class="lost-dialog"><form id="lostForm" class="sales-form"><h3>Warum verloren?</h3><p class="muted">Firma: <b id="lostCompany"></b>. Der Grund hilft dir später zu sehen, woran Chancen scheitern.</p>
+ <label>Grund<select name="lost_reason" required><option value="kein_bedarf">Kein Bedarf</option><option value="kein_budget">Kein Budget</option><option value="zeitpunkt">Falscher Zeitpunkt – später wieder</option><option value="wettbewerber">Anderer Anbieter gewählt</option><option value="inhouse">Wird intern gelöst</option><option value="preis">Preis zu hoch</option><option value="nicht_erreicht">Niemanden erreicht</option><option value="passt_nicht">Passt nicht zu meinem Angebot</option><option value="sonstiges">Sonstiges</option></select></label>
+ <label>Notiz (bei „Sonstiges“ nötig)<textarea name="lost_note" rows="2" maxlength="500"></textarea></label>
+ <div class="acc-btn-group"><button type="submit" class="btn btn-primary">Als verloren speichern</button><button type="button" class="text-button" id="lostCancel">Abbrechen</button></div></form></dialog>
 </body></html>

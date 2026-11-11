@@ -161,6 +161,24 @@ class ReportJobTests(tc.ReportBase):
     def facts(self):
         return self.conn.execute('SELECT COUNT(*) FROM company_facts').fetchone()[0]
 
+    def test_retry_keeps_successful_steps_and_recomputes_recommendations(self):
+        lid = self.lead()
+        result = rp.create_reports(self.conn, {'lead_ids': [lid]}, self.db, start=False)
+        original = rp.RUNNERS['signale']
+        with mock.patch.dict(rp.RUNNERS, {'signale': mock.Mock(side_effect=CrawlError('HTTP 403'))}):
+            rp._worker(self.db)
+        audit_count = self.conn.execute('SELECT COUNT(*) FROM website_audits').fetchone()[0]
+        scan_count = self.conn.execute('SELECT COUNT(*) FROM quick_scans').fetchone()[0]
+        self.assertEqual(jobs.job_view(self.conn, result['job_id'])['status'], 'failed')
+        jobs.retry_failed(self.conn, result['job_id'])
+        with mock.patch.dict(rp.RUNNERS, {'signale': original}):
+            rp._worker(self.db)
+        report = rp.report_view(self.conn, lead_id=lid)['report']
+        self.assertEqual(report['steps']['signale']['status'], 'fertig')
+        self.assertEqual(report['steps']['verknuepfen']['status'], 'fertig')
+        self.assertEqual(self.conn.execute('SELECT COUNT(*) FROM website_audits').fetchone()[0], audit_count)
+        self.assertEqual(self.conn.execute('SELECT COUNT(*) FROM quick_scans').fetchone()[0], scan_count)
+
     def test_restart_mid_report_no_loss_no_duplicates(self):
         ids = [self.lead(), self.lead(company='Zweite Firma', website='https://zweite-beispiel.example')]
         r = rp.create_reports(self.conn, {'lead_ids': ids}, self.db, start=False)
@@ -256,8 +274,10 @@ class SweepJobTests(tb.SweepBase):
         with mock.patch('sales_tool.imprint.research_domain', side_effect=CrawlError('HTTP 403')):
             sw._web_worker(self.db)
         v = jobs.job_view(self.conn, q['job_id'])
-        self.assertEqual(v['status'], 'done', '403 je Firma = „nicht gefunden“, Auftrag läuft durch')
-        self.assertTrue(all(c['website_status'] == 'nicht_gefunden' for c in self.cands()))
+        self.assertEqual(v['status'], 'failed', '403 je Firma wird erfasst und bleibt erneut ausführbar')
+        self.assertTrue(all(c['website_status'] == 'pruefung_fehlgeschlagen' for c in self.cands()))
+        jobs.retry_failed(self.conn, q['job_id'])
+        self.assertTrue(all(c['website_status'] == 'wartet' for c in self.cands()))
 
 
 class JobHttpTests(JobBase):

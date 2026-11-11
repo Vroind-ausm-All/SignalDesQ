@@ -447,7 +447,7 @@ def _open_leads(conn):
                             AND permission<>'nicht_kontaktieren' ORDER BY updated_at""", OPEN_STAGES).fetchall()
 
 
-def candidates(conn, kind, limit, today=None):
+def candidates(conn, kind, limit, today=None, career_interval=None):
     cfg = stale_days(conn)
     out = []
     for lead in _open_leads(conn):
@@ -473,8 +473,14 @@ def candidates(conn, kind, limit, today=None):
                 continue
         elif kind == 'karriereseiten_pruefen':
             s = conn.execute("SELECT status, finished_at FROM signal_scans WHERE lead_id=? ORDER BY id DESC LIMIT 1", (lead['id'],)).fetchone()
-            if s and (s['status'] in ('queued', 'running') or (_age_days(s['finished_at'], today) or 0) <= cfg['career']):
-                continue
+            if s:
+                if s['status'] in ('queued', 'running'):
+                    continue
+                age = _age_days(s['finished_at'], today)
+                # Laufintervall steuert die Überwachung; Veraltungsfrist bleibt eine Anzeigeeinstellung.
+                threshold = career_interval if career_interval is not None else cfg['career']
+                if s['status'] == 'done' and age is not None and age < threshold:
+                    continue
         out.append(lead)
     return out
 
@@ -498,7 +504,7 @@ def run_job(conn, job_id, db_path, start=True):
                 r = run_search(conn, {**params, 'force': True})
                 detail = f"{r.get('result_count', len(r.get('candidates', [])))} Treffer zur Prüfung im Lead-Finder"
             else:
-                leads = candidates(conn, job['kind'], params.get('limit', 20))
+                leads = candidates(conn, job['kind'], params.get('limit', 20), career_interval=job['interval_days'])
                 if not leads:
                     status, detail = 'nichts_zu_tun', 'Keine Firma fällig.'
                 elif job['kind'] == 'impressum_aktualisieren':

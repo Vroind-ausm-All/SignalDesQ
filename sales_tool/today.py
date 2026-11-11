@@ -101,6 +101,11 @@ def wiedervorlage(conn, today=None):
         if 0 < answered < 5:
             add('bedarfsanalyse', 'Begonnene Bedarfsanalyse vervollständigen', r['company'], r['lead_id'], '', 'Lead öffnen', 'lead', r['lead_id'],
                 f'{answered} von 5 Kernfragen beantwortet')
+    # 2.0.0-dev3: eingegangene Anrufe/Anfragen mit fälliger Rückruffrist gehören zum Zugesagten
+    for r in conn.execute("SELECT i.*, l.company FROM inbound i LEFT JOIN leads l ON l.id=i.lead_id WHERE i.status='offen' AND substr(i.due_at,1,10)<=? ORDER BY i.due_at", (t,)):
+        add('rueckruf', f"Zurückmelden: {r['who']}", r['company'] or r['who'], r['lead_id'], r['due_at'][:10], 'Zum Eingang', 'today', r['id'],
+            (r['note'] or r['contact'] or '')[:140], None)
+        items[-1]['anchor'] = 'erreichbarkeit'
     for r in conn.execute("""SELECT m.*, l.company FROM meetings m JOIN leads l ON l.id=m.lead_id WHERE m.status IN ('geplant','bestaetigt')
                              AND substr(m.starts_at,1,10) BETWEEN ? AND ? ORDER BY m.starts_at""", (t, tomorrow)):
         add('termin', m_title(r), r['company'], r['lead_id'], r['starts_at'][:10], 'Vorbereiten', 'lead', r['lead_id'],

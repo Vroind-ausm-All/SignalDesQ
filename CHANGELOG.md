@@ -1,5 +1,42 @@
 # Changelog
 
+## 2.0.0-dev3 – Eigene Erreichbarkeit und Auslastung
+
+- **Eingang & Rückrufe** ganz oben auf „Heute“: verpassten Anruf oder Anfrage in einem Schritt festhalten, auch ohne angelegte Firma. Die Rückruffrist ergibt sich aus deinen Zeiten; Fälliges steht zusätzlich in der Wiedervorlage.
+- **Als Nächstes kontaktieren:** Firmen mit Passung A oder B in den Phasen Qualifiziert bis Rückmeldung, A zuerst, „jetzt passendes Zeitfenster“ vorn. Gesperrte, ausgeschlossene und ausgeschöpfte Firmen erscheinen nicht.
+- **Auslastung** aus den kalkulierten Stunden angenommener und offener Angebote gegen deine Wochenstunden.
+- **Deine Zeiten** (Datenqualität & System): Arbeitstage, Rückruf- und Terminzeiten, Abwesenheiten. Daraus entstehen Terminvorschläge und Textbausteine (Mailbox-Ansage, Signaturzeile, Abwesenheitsnotiz) zum Kopieren.
+- **Die Note steuert die Reihenfolge:** Pipeline-Karten sortieren nach Passung und zeigen die Note; die Firmenakte nennt die Passung statt des alten Scores.
+- Antwortzeit als Kennzahl: mittlere Zeit bis zur Rückmeldung und Anteil innerhalb der Frist.
+- Schema 26 (Tabelle für den Eingang). 469 Tests (15 neu) und 4 Browser-Tests (1 neu).
+- Kein abgeschlossenes Release. Nicht an echten Firmen und nicht unter Windows geprüft.
+
+## 2.0.0-dev2 – Kundenbewertung und Erreichbarkeit
+
+- **Zielkundenprofil** (Datenqualität & System): Zielbranchen und Ausschlüsse aus dem Branchenkatalog, Wunschgröße, Standort und Einzugsgebiet, Mindestauftrag, Wochenstunden, Zahl der Anrufversuche.
+- **Bewertung in drei getrennten Teilen** in der Firmenakte:
+  - Passung vor dem Gespräch als A, B oder C mit Begründung je Kriterium;
+  - Qualifizierung nach dem Gespräch (Bedarf, Budget, Zeitpunkt, Entscheider, Auftragswert) mit offenen Fragen fürs nächste Gespräch;
+  - Erreichbarkeit mit belegten Kontaktwegen und bisherigen Versuchen.
+- **Unbekannt ist nicht schlecht:** Fehlende Angaben senken die Note nicht. Bei zu dünner Datenlage gibt es keine Note.
+- **K.-o.-Kriterien:** Kontaktsperre, Auflösung laut Register, ausgeschlossene Branche, kein Budget, kein Bedarf.
+- **Behoben – „Nicht erreicht“ und „Mailbox“ blieben folgenlos:** Jetzt entsteht eine Wiedervorlage an einem Werktag zu einer anderen Tageszeit. Nach der eingestellten Zahl an Versuchen schlägt SignalDesk Kanalwechsel oder Parken vor.
+- **„Verloren“ nur mit Grund**, dazu eine Übersicht der Verlustgründe und der Erreichbarkeit nach Tageszeit (erst ab 20 Versuchen).
+- **Note in der Lead-Liste.** Der bisherige Lead-Fit bleibt unverändert bestehen.
+- Schema 25 (Zeitfenster je Anrufversuch, Verlustgrund). 454 Tests (28 neu) und 3 Browser-Tests (1 neu).
+- Neu: `docs/LAUNCH_AUDIT.md`, `docs/ARCHITECTURE_DECISIONS.md`, `docs/SELF_REVIEW_LOG.md`, zwei Projekt-Skills unter `.claude/skills/`.
+- Kein abgeschlossenes Release. Nicht an echten Firmen und nicht unter Windows geprüft.
+
+## 2.0.0-dev1 – Entwicklungsstand für die Übergabe
+
+- Regelbasierte Inhaltsrecherche mit gespeicherten Themenprofilen, zusätzlichen Suchbegriffen und Profilstand im Bericht.
+- Manuell gefundene Website als ungeprüften Vorschlag eintragen; Registertreffer ohne Registergericht benötigen Bestätigung.
+- Fehler und unvollständige Website- sowie Karriereprüfungen sichtbar machen; Website-Aufträge erneut ausführbar.
+- Erfolgreiche Berichtsschritte bei Wiederholung erhalten, Empfehlungen anschließend neu verknüpfen.
+- Karriere-Überwachung berücksichtigt das gewählte Intervall. Fehlgeschlagene Prüfungen gelten nicht als aktueller Erfolg.
+- Unbekannter Portalbedarf wird nicht als Mangel bewertet; neue Bewertungslogik erhält eine eigene Score-Version.
+- Kein abgeschlossenes Release: Live-Test und weitere Grenzen siehe `docs/UEBERGABE_FABLE.md` und `docs/V2_ENTWICKLUNGSSTAND.md`.
+
 ## 1.19.0 – Masterplan 2.0: Sprint 6 (Windows-Release, Offline, Wiederherstellung) + Firmendaten-Übertragung
 
 - **Behoben – automatische Datenübertragung ins Firmenprofil:**

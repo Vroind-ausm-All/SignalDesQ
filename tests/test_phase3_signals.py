@@ -8,6 +8,7 @@ import json
 import tempfile
 import threading
 import unittest
+from unittest import mock
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 from urllib.error import HTTPError
@@ -146,6 +147,27 @@ class RegisterTests(Base):
 
 
 class JobTests(Base):
+    def test_partial_career_failure_is_disclosed(self):
+        def fetch(url, origin):
+            if url == 'https://example.org':
+                return url, 'text/html', b'<a href="/karriere">Karriere</a><a href="/jobs">Jobs</a>'
+            if url.endswith('/karriere'):
+                raise CrawlError('HTTP 403')
+            return url, 'text/html', b'<html><body>Keine passenden Stellen</body></html>'
+        with mock.patch.object(imprint, 'FETCH', side_effect=fetch):
+            jobs, log = bs.scan_career('https://example.org')
+        self.assertEqual(jobs, [])
+        self.assertTrue(any('Unvollständige Prüfung' in item for item in log))
+
+    def test_career_fetch_failure_is_not_an_empty_result(self):
+        def fetch(url, origin):
+            if url == 'https://example.org':
+                return url, 'text/html', b'<a href="/karriere">Karriere</a>'
+            raise CrawlError('HTTP 403')
+        with mock.patch.object(imprint, 'FETCH', side_effect=fetch):
+            with self.assertRaisesRegex(CrawlError, 'Karriereseiten konnten nicht geprüft'):
+                bs.scan_career('https://example.org')
+
     def test_classification_with_pro_and_contra(self):
         hits = bs.classify_job('Online-Marketing Manager (m/w/d)', 'SEO und Content')
         self.assertEqual(list(hits)[0], 'web')

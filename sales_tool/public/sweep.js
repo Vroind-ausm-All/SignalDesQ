@@ -5,9 +5,9 @@
   const esc = v => escapeHTML(String(v ?? ''));
   const SRC = {gleif: 'GLEIF', gleif_csv: 'GLEIF-Import', liste: 'Eigene Liste', wikidata: 'Wikidata', osm: 'OSM', ted: 'TED'};
   // Empfehlung A (v1.15): nur „belegt“, „laut Quelle“ oder von dir bestätigt gilt als Website der Firma – alles andere ist ein Vorschlag
-  const WEB = {quelle: ['laut Quelle', 'ok'], belegt: ['belegt: Registernr. im Impressum', 'ok'], bestaetigt: ['von dir bestätigt', 'ok'],
+  const WEB = {quelle: ['laut Quelle', 'ok'], belegt: ['belegt: Register und Gericht', 'ok'], bestaetigt: ['von dir bestätigt', 'ok'],
     wahrscheinlich: ['Vorschlag – bitte prüfen', 'mid'], nicht_bestaetigt: ['Vorschlag – nicht eindeutig', 'mid'], abgelehnt: ['Vorschlag abgelehnt', 'off'],
-    wartet: ['Suche wartet …', 'wait'], laeuft: ['wird gesucht …', 'wait'], nicht_gefunden: ['nicht gefunden', 'off']};
+    wartet: ['Suche wartet …', 'wait'], laeuft: ['wird gesucht …', 'wait'], nicht_gefunden: ['nicht gefunden', 'off'], pruefung_fehlgeschlagen: ['Prüfung fehlgeschlagen – erneut versuchen', 'off']};
   const SUGGESTION = ['wahrscheinlich', 'nicht_bestaetigt'];
   const PAGE = 50;
   const KIND = {verein: 'Verein/Stiftung', oeffentlich: 'öffentlich'};
@@ -102,7 +102,7 @@
     const link = c.website ? `<a href="${esc(c.website)}" target="_blank" rel="noopener noreferrer" data-sw-open>${esc(c.website.replace(/^https?:\/\//, ''))} ↗</a>` : '<span class="muted">keine Website bekannt</span>';
     const review = c.website && SUGGESTION.includes(c.website_status)
       ? ` <span class="sw-suggest"><button type="button" class="text-button" data-sw-web="bestaetigen" data-id="${c.id}">✓ Website passt</button><button type="button" class="text-button" data-sw-web="ablehnen" data-id="${c.id}">✕ passt nicht</button></span>` : '';
-    return `${link}${st ? ` <span class="sw-web ${st[1]}" title="${esc(c.website_evidence)}">${esc(st[0])}</span>` : ''}${review}`;
+    return `${link}${st ? ` <span class="sw-web ${st[1]}" title="${esc(c.website_evidence)}">${esc(st[0])}</span>` : ''}${review}${c.website_evidence ? `<small> ${esc(c.website_evidence)}</small>` : ''}`;
   }
 
   // v1.17: mögliche Dubletten stehen beim Haupteintrag – nie als eigener, doppelter Eintrag
@@ -143,7 +143,7 @@
         <small>${KIND[c.org_kind] && c.source !== 'ted' ? `<span class="sw-web mid">${esc(KIND[c.org_kind])}</span> ` : ''}${c.legal_form && c.source !== 'ted' && !c.name.toLowerCase().includes(c.legal_form.toLowerCase().replace(/\s*\(.*$/, '')) ? esc(c.legal_form) + ' · ' : ''}${esc(addr || c.city || '')}${c.distance_km != null ? ` · ${c.distance_km.toLocaleString('de-DE')} km` : ''}${c.register_id ? ' · ' + esc(c.register_id) : ''}${c.industry_label ? ` · <i>${esc(c.industry_label)}</i>` : c.industry ? ' · ' + esc(c.industry) : ''}</small>
         <div class="sw-web-line">${webCell(c)}${contact.business_phone ? ` · ☎ ${esc(contact.business_phone)}` : ''}${contact.business_email ? ` · ✉ ${esc(contact.business_email)}` : ''}${contact.imprint_url ? ` · <a href="${esc(contact.imprint_url)}" target="_blank" rel="noopener noreferrer">Impressum ↗</a>` : ''}</div>
         <div class="sw-srcs">${srcs}${c.signal_note ? `<small>${esc(c.signal_note.slice(0, 140))}</small>` : ''}</div>${dupBlock(c)}</div>
-      <div class="sw-btns">${open ? `<button type="button" class="btn btn-primary" data-sw-do="uebernehmen" data-id="${c.id}">Übernehmen</button><button type="button" class="btn btn-ghost" data-sw-do="verwerfen" data-id="${c.id}">Verwerfen</button>${['belegt', 'quelle', 'bestaetigt', 'wartet', 'laeuft'].includes(c.website_status) ? '' : `<button type="button" class="text-button" data-sw-do="website" data-id="${c.id}">Website suchen</button>`}` :
+      <div class="sw-btns">${open ? `<button type="button" class="btn btn-primary" data-sw-do="uebernehmen" data-id="${c.id}">Übernehmen</button><button type="button" class="btn btn-ghost" data-sw-do="verwerfen" data-id="${c.id}">Verwerfen</button>${['belegt', 'quelle', 'bestaetigt', 'wartet', 'laeuft'].includes(c.website_status) ? '' : `<button type="button" class="text-button" data-sw-do="website" data-id="${c.id}">Website suchen</button>`}${['belegt', 'bestaetigt', 'wartet', 'laeuft'].includes(c.website_status) ? '' : `<button type="button" class="text-button" data-sw-do="website-eintragen" data-id="${c.id}">Website eintragen</button>`}` :
         `<span class="sw-st">${esc({uebernommen: 'übernommen', verworfen: 'verworfen', dublette: 'schon Lead', gesperrt: 'Sperrliste'}[c.status] || c.status)}</span>${c.lead_id || c.duplicate_lead_id ? `<button type="button" class="text-button" data-lead="${c.lead_id || c.duplicate_lead_id}">Lead öffnen</button>` : ''}`}</div>
     </article>`;
   }
@@ -279,6 +279,13 @@
       if (d) {
         const id = Number(d.dataset.id);
         if (d.dataset.swDo === 'website') { try { await api('/sweep-candidates/find-websites', 'POST', {ids: [id]}); loadList(); } catch (err) { toast(err.message, true); } return; }
+        if (d.dataset.swDo === 'website-eintragen') {
+          const url = prompt('Website-Adresse eingeben. Die Zuordnung bleibt bis zur Bestätigung ungeprüft:');
+          if (url === null) return;
+          try { await api(`/sweep-candidates/${id}/website`, 'POST', {url}); toast('Website eingetragen – bitte Zuordnung prüfen und bestätigen.'); loadList(); }
+          catch (err) { toast(err.message, true); }
+          return;
+        }
         return decideOne(id, d.dataset.swDo);
       }
       const dp = e.target.closest('[data-sw-dup]');

@@ -1,2 +1,2 @@
 """Akquise-Tool - local-first, no external dependencies."""
-__version__ = "1.19.0"
+__version__ = "2.0.0-dev3"

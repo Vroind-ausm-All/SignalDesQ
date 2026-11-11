@@ -176,7 +176,7 @@ def call_permission(lead):
 
 
 def create_call(conn, data):
-    if not isinstance(data,dict) or set(data)-{'lead_id','outcome','notes','legal_note','callback_date'}:
+    if not isinstance(data,dict) or set(data)-{'lead_id','outcome','notes','legal_note','callback_date','slot'}:
         raise ValueError('Ungültige Anrufdaten.')
     lead=_lead(conn,data.get('lead_id'))
     outcome=data.get('outcome')
@@ -184,22 +184,28 @@ def create_call(conn, data):
     notes=_optional_text(data,'notes')
     legal=_optional_text(data,'legal_note',1000)
     callback=_valid_date(_optional_text(data,'callback_date',10))
+    follow=None
     from .workday import assert_contact_allowed, after_call
     if outcome!='widerspruch':  # v1.18: Widerspruch lässt sich immer dokumentieren, alles andere nicht bei Sperre
         assert_contact_allowed(conn,lead,'Gespräch dokumentieren')
     if outcome=='rueckruf_vereinbart' and (not callback or not notes):
         raise ValueError('Vereinbarten Rückruf mit Datum und Gesprächsnotiz belegen.')
-    cur=conn.execute('INSERT INTO calls(lead_id,outcome,notes,legal_note,callback_date) VALUES (?,?,?,?,?)',(lead['id'],outcome,notes,legal,callback))
+    from .qualification import SLOTS, MISSED, slot_of, after_missed_call
+    slot=data.get('slot') or slot_of()  # 2.0.0-dev2: Zeitfenster des Versuchs (für den nächsten Versuch zu anderer Tageszeit)
+    if slot not in SLOTS: raise ValueError('Ungültiges Zeitfenster.')
+    cur=conn.execute('INSERT INTO calls(lead_id,outcome,notes,legal_note,callback_date,slot) VALUES (?,?,?,?,?,?)',(lead['id'],outcome,notes,legal,callback,slot))
     if outcome=='widerspruch':
         conn.execute("UPDATE leads SET permission='nicht_kontaktieren',stage='gesperrt',next_step='',next_date='',updated_at=datetime('now') WHERE id=?",(lead['id'],))
         from .company_data import suppress_lead
         suppress_lead(conn,lead['id'],'Widerspruch im Gespräch')
     elif outcome=='rueckruf_vereinbart':
         conn.execute('INSERT INTO tasks (lead_id,title,due_date) VALUES (?,?,?)',(lead['id'],'Vereinbarten Rückruf prüfen: '+notes[:100],callback))
+    elif outcome in MISSED:
+        follow=after_missed_call(conn,lead['id'])  # nicht erreicht: neuer Versuch bzw. Kanalwechsel statt Sackgasse
     else:
         after_call(conn,lead['id'],outcome)
     conn.commit()
-    return {'id':cur.lastrowid,'saved':True,'blocked':outcome=='widerspruch'}
+    return {'id':cur.lastrowid,'saved':True,'blocked':outcome=='widerspruch','follow_up':follow}
 
 
 def create_meeting(conn,data):

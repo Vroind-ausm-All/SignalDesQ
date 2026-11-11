@@ -182,8 +182,12 @@ def validate_config(cfg):
     return out
 
 
+SCORE_ENGINE_VERSION = '2.0-no-portal-inference'
+
+
 def config_hash(cfg):
-    return hashlib.sha256(json.dumps(cfg, sort_keys=True).encode()).hexdigest()[:12]
+    # Gleiches Regelgewicht mit anderer Bewertungslogik darf nicht vergleichbar erscheinen.
+    return hashlib.sha256((SCORE_ENGINE_VERSION + ':' + json.dumps(cfg, sort_keys=True)).encode()).hexdigest()[:12]
 
 
 # ---------------------------------------------------------------- Erfassung: gerenderte Seiten
@@ -552,7 +556,7 @@ def rubric_results(cap, cfg):
     res['C2_manual_requests'] = _r('auffaellig' if manual else 'ok', (f'Textstelle: „{_ctx(text_all, manual)}“. Hypothese: manueller Zwischenschritt.' if manual else 'Keine Hinweise auf manuelle Anfrage-/Freigabeschritte im Seitentext.'), url, None, 'heuristik', 'hypothese')
     login = sum(p.get('loginLinks') or 0 for p in allp)
     res['C3_self_service'] = _r('ok', f'{login} Link(s) zu Login/Portal/Kundenbereich gefunden.', url, None, 'dom', 'beobachtet') if login else _r(
-        'auffaellig', 'Kein Login, Portal oder Kundenbereich verlinkt. Hypothese: Kundenanliegen laufen über E-Mail/Telefon.', url, None, 'heuristik', 'hypothese')
+        'unbekannt', 'Auf den geprüften Seiten kein Login gefunden. Daraus lässt sich kein Bedarf für ein Portal ableiten.', url, None, 'dom', 'beobachtet')
     complex_forms = [f for f in forms if f['fields'] > 12 or f.get('file')]
     res['C4_complex_forms'] = _r('unbekannt', 'Kein Formular auf den geprüften Seiten.', method='dom') if not forms else _r(
         'auffaellig' if complex_forms else 'ok', (f'Formular mit {complex_forms[0]["fields"]} Feldern{" und Datei-Upload" if complex_forms[0].get("file") else ""}. Hypothese: Daten werden anschließend manuell übertragen.' if complex_forms else 'Keine aufwendigen Formulare.'),
@@ -733,8 +737,13 @@ def init_website_scorer(conn):
       CREATE INDEX IF NOT EXISTS idx_website_audits_lead ON website_audits(lead_id, id);
       CREATE INDEX IF NOT EXISTS idx_website_scores_lead ON website_scores(lead_id, id);
     ''')
-    if not conn.execute('SELECT 1 FROM score_versions WHERE active=1').fetchone():
+    active = conn.execute('SELECT hash, config_json FROM score_versions WHERE active=1').fetchone()
+    if not active:
         activate_config(conn, DEFAULT_CONFIG)
+    else:
+        cfg = json.loads(active['config_json'])
+        if active['hash'] != config_hash(cfg):
+            activate_config(conn, cfg)
 
 
 def activate_config(conn, cfg):

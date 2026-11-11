@@ -143,10 +143,22 @@ def _job_report(db_path, payload, ctx):
 
 @jobs.handler('report:retry')
 def _job_report_retry(conn, job_id):
-    """„Fehlgeschlagene erneut“: betroffene Berichte wieder einreihen (Schritte laufen idempotent erneut)."""
+    """Nur fehlgeschlagene bzw. unterbrochene Schritte wieder einreihen."""
     for t in conn.execute("SELECT payload_json FROM research_tasks WHERE job_id=? AND status='queued'", (job_id,)).fetchall():
         rid = json.loads(t['payload_json'])['report_id']
-        steps = {k: {'label': v, 'status': 'wartet'} for k, v in STEPS}
+        row = conn.execute('SELECT steps_json FROM company_reports WHERE id=?', (rid,)).fetchone()
+        if not row:
+            continue
+        steps = json.loads(row['steps_json'] or '{}')
+        retry_upstream = False
+        for key, label in STEPS:
+            old = steps.get(key, {})
+            if old.get('status') not in ('fertig', 'hinweis'):
+                steps[key] = {'label': label, 'status': 'wartet'}
+                retry_upstream = retry_upstream or key != 'verknuepfen'
+        # Empfehlungen hängen von den übrigen Ergebnissen ab und müssen danach neu berechnet werden.
+        if retry_upstream:
+            steps['verknuepfen'] = {'label': dict(STEPS)['verknuepfen'], 'status': 'wartet'}
         conn.execute("UPDATE company_reports SET status='queued', started_at='', finished_at='', steps_json=? WHERE id=? AND status<>'running'",
                      (json.dumps(steps, ensure_ascii=False), rid))
 
@@ -207,8 +219,9 @@ def _step_website(conn, db_path, lead):
 
 def _step_inhalte(conn, db_path, lead):
     from . import quickscan
+    from .research.service_profile import load as load_service_profile
     crawl = wa.crawl_site(lead['website'], purpose='full')
-    result = quickscan.research(crawl, 'rules')
+    result = quickscan.research(crawl, 'rules', profile=load_service_profile(conn))
     cur = conn.execute("INSERT INTO quick_scans(url, provider, status, result_json, lead_id, finished_at) VALUES (?, 'rules', 'done', ?, ?, datetime('now'))",
                        (lead['website'], json.dumps(result, ensure_ascii=False), lead['id']))
     scan_id = cur.lastrowid
@@ -243,7 +256,11 @@ def _step_signale(conn, db_path, lead):
     conn.execute("INSERT INTO signal_scans(lead_id, status, found, log_json, finished_at) VALUES (?, 'done', ?, ?, datetime('now'))",
                  (lead['id'], found, json.dumps(log, ensure_ascii=False)))
     conn.commit()
-    return 'fertig', f"{len(jobs)} Stellenanzeige(n) gefunden, {found} mit Bezug zu deinen Leistungen" if jobs else 'Keine Stellenanzeigen auf der Website gefunden.', {}
+    note = (f"{len(jobs)} Stellenanzeige(n) gefunden, {found} neu mit Bezug zu deinen Leistungen" if jobs
+            else 'Auf den geprüften Karriereseiten keine Stellenanzeigen erkannt.')
+    if any(item.startswith('Unvollständige Prüfung:') for item in log):
+        note += ' Einzelne Karriereseiten waren nicht abrufbar.'
+    return 'fertig', note, {}
 
 
 def _step_verknuepfen(conn, db_path, lead):
@@ -263,8 +280,11 @@ def run_report(db_path, rid):
         rep = conn.execute('SELECT * FROM company_reports WHERE id=?', (rid,)).fetchone()
         for key, _ in STEPS:
             lead = conn.execute('SELECT * FROM leads WHERE id=?', (rep['lead_id'],)).fetchone()
-            if not lead or lead['stage'] == 'gesperrt':
+            if not lead or lead['stage'] == 'gesperrt' or lead['permission'] == 'nicht_kontaktieren' or check_suppressed(conn, website=lead['website'], name=lead['company']):
                 _set(conn, rid, key, status='übersprungen', detail='Lead gesperrt oder gelöscht.')
+                continue
+            current = json.loads(conn.execute('SELECT steps_json FROM company_reports WHERE id=?', (rid,)).fetchone()['steps_json'])
+            if current.get(key, {}).get('status') in ('fertig', 'hinweis'):
                 continue
             _set(conn, rid, key, status='läuft')
             try:
@@ -277,7 +297,9 @@ def run_report(db_path, rid):
                 _set(conn, rid, key, status='fehler', detail=f'Unerwarteter Fehler: {exc.__class__.__name__}')
         steps = json.loads(conn.execute('SELECT steps_json FROM company_reports WHERE id=?', (rid,)).fetchone()['steps_json'])
         ok = sum(1 for s in steps.values() if s['status'] == 'fertig')
-        conn.execute("UPDATE company_reports SET status=?, finished_at=datetime('now') WHERE id=?", ('fertig' if ok else 'fehler', rid))
+        failed = any(s['status'] == 'fehler' for s in steps.values())
+        state = ('teilweise' if failed else 'fertig') if ok else 'fehler'
+        conn.execute("UPDATE company_reports SET status=?, finished_at=datetime('now') WHERE id=?", (state, rid))
         conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
                      (rep['lead_id'], 'notiz', f'Firmen-Bericht erstellt: {ok} von {len(STEPS)} Schritten erfolgreich.'))
         if ok:  # v1.13: Recherche-Schritt ist erledigt → nächster Schritt Kontaktweg
@@ -335,8 +357,9 @@ def report_view(conn, rid=None, lead_id=None):
         q = conn.execute('SELECT result_json FROM quick_scans WHERE id=?', (refs['scan'],)).fetchone()
         r = json.loads(q['result_json'] or '{}') if q else {}
         out['inhalte'] = {'findings': [{'category': f.get('category'), 'observation': f.get('observation'), 'hypothesis': f.get('hypothesis'),
-                                        'evidence': f.get('evidence'), 'source_url': f.get('source_url'), 'offer': f.get('offer')}
-                                       for f in (r.get('audit') or {}).get('findings', [])[:6]],
+                                        'evidence': f.get('evidence'), 'source_url': f.get('source_url'), 'offer': f.get('offer'), 'question': f.get('question')}
+                                       for f in (r.get('audit') or {}).get('findings', [])[:8]],
+                          'service_profile': (r.get('audit') or {}).get('service_profile'),
                           'channels': r.get('contact_channels', [])[:8], 'pages': (r.get('site') or {}).get('pages', [])[:6],
                           'warnings': r.get('warnings', [])[:5]}
     out['candidates'] = [dict(c) for c in conn.execute("""SELECT id, full_name, job_title, role_hint, source_url, evidence, business_email, business_phone

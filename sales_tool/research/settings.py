@@ -81,6 +81,9 @@ def status():
 
 
 def route_research(h, conn, method, route, query):
+    from .service_profile import route as route_service_profile
+    if route_service_profile(h, conn, method, route):
+        return True
     if route != '/api/research/settings':
         return False
     if method == 'GET':
