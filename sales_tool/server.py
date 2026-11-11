@@ -1,6 +1,7 @@
 """Minimal dependency-free local HTTP+JSON server. Not a public multi-user deployment."""
 from __future__ import annotations
 
+import contextlib
 import argparse
 import json
 import ipaddress
@@ -837,7 +838,7 @@ def backup_before_migration(db):
     """Sichert eine bestehende Datenbank automatisch, bevor ein neueres Schema ergänzt wird."""
     if not Path(db).exists() or Path(db).stat().st_size == 0:
         return None
-    with sqlite3.connect(str(db)) as raw:
+    with contextlib.closing(sqlite3.connect(str(db))) as raw, raw:
         version = raw.execute("PRAGMA user_version").fetchone()[0]
     if version >= SCHEMA_VERSION:
         return None

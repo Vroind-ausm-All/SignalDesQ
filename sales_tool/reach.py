@@ -23,7 +23,7 @@ FMT = '%Y-%m-%dT%H:%M'
 
 def default_availability():
     return {'days': [0, 1, 2, 3, 4], 'callback_from': '16:00', 'callback_to': '17:30', 'meeting_from': '09:00', 'meeting_to': '16:00',
-            'meeting_minutes': 45, 'delivery_share_pct': 70, 'absences': [], 'display_name': ''}
+            'meeting_minutes': 45, 'delivery_share_pct': 70, 'absences': [], 'display_name': '', 'inbound_keep_days': 90}
 
 
 def _t(text):
@@ -47,6 +47,8 @@ def validate(data):
         raise ValueError('Termindauer: 15–180 Minuten.')
     if type(out['delivery_share_pct']) is not int or not 10 <= out['delivery_share_pct'] <= 100:
         raise ValueError('Anteil für Kundenprojekte: 10–100 %.')
+    if type(out['inbound_keep_days']) is not int or not 7 <= out['inbound_keep_days'] <= 730:
+        raise ValueError('Aufbewahrung des Eingangs: 7–730 Tage.')
     if not isinstance(out['display_name'], str) or len(out['display_name']) > 80:
         raise ValueError('Name: höchstens 80 Zeichen.')
     out['display_name'] = out['display_name'].strip()
@@ -250,8 +252,21 @@ def delete_inbound(conn, ident):
     return {'deleted': True}
 
 
+def anonymize_old_inbound(conn, av=None, now=None):
+    """Datensparsamkeit: erledigte Einträge verlieren nach der eingestellten Frist Name, Kontakt und Notiz.
+    Zeitpunkte bleiben für die Antwortzeit-Statistik. Offene Einträge werden nie angetastet."""
+    av, now = av or load(conn), now or dt.datetime.now()
+    limit = (now - dt.timedelta(days=av['inbound_keep_days'])).strftime(FMT)
+    cur = conn.execute("""UPDATE inbound SET who='(gelöscht)', contact='', note='', result='', lead_id=NULL
+                          WHERE status='erledigt' AND done_at<>'' AND done_at<? AND who<>'(gelöscht)'""", (limit,))
+    if cur.rowcount:
+        conn.commit()
+    return cur.rowcount
+
+
 def inbound_view(conn, now=None):
     now = now or dt.datetime.now()
+    anonymize_old_inbound(conn, now=now)
     stamp = now.strftime(FMT)
     items = []
     for r in conn.execute("""SELECT i.*, l.company FROM inbound i LEFT JOIN leads l ON l.id=i.lead_id WHERE i.status='offen' ORDER BY i.due_at, i.id"""):

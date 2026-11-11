@@ -67,7 +67,7 @@
     const r = await api('/availability'), a = r.availability;
     weekdays = r.weekdays;
     $('#avDays').innerHTML = weekdays.map((d, i) => `<label class="rc-day"><input type="checkbox" data-day="${i}" ${a.days.includes(i) ? 'checked' : ''}> ${esc(d)}</label>`).join('');
-    for (const k of ['callback_from', 'callback_to', 'meeting_from', 'meeting_to', 'meeting_minutes', 'delivery_share_pct', 'display_name']) form.elements[k].value = a[k];
+    for (const k of ['callback_from', 'callback_to', 'meeting_from', 'meeting_to', 'meeting_minutes', 'delivery_share_pct', 'display_name', 'inbound_keep_days']) form.elements[k].value = a[k];
     $('#avAbsences').innerHTML = a.absences.map(absenceRow).join('');
     renderHelpers(r);
   }
@@ -77,7 +77,7 @@
     const f = e.target.elements;
     const body = {days: [...document.querySelectorAll('#avDays [data-day]')].filter(c => c.checked).map(c => Number(c.dataset.day)),
       callback_from: f.callback_from.value, callback_to: f.callback_to.value, meeting_from: f.meeting_from.value, meeting_to: f.meeting_to.value,
-      meeting_minutes: Number(f.meeting_minutes.value), delivery_share_pct: Number(f.delivery_share_pct.value), display_name: f.display_name.value.trim(),
+      meeting_minutes: Number(f.meeting_minutes.value), delivery_share_pct: Number(f.delivery_share_pct.value), display_name: f.display_name.value.trim(), inbound_keep_days: Number(f.inbound_keep_days.value),
       absences: [...document.querySelectorAll('#avAbsences .rc-abs')].map(r => ({from: r.querySelector('[data-abs=from]').value, to: r.querySelector('[data-abs=to]').value, note: r.querySelector('[data-abs=note]').value.trim()})).filter(a => a.from || a.to)};
     try { renderHelpers(await api('/availability', 'POST', body)); toast('Deine Zeiten sind gespeichert'); await refresh(); }
     catch (err) { toast(err.message, true); }

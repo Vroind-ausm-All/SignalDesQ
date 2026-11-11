@@ -298,7 +298,8 @@ def _register_at(lines, idx, m):
                 break
     if cm:
         court = 'Amtsgericht ' + re.sub(r'\s+', ' ', cm.group(1)).strip(' ,.;')
-    number = f"{m.group(1)} {re.sub(r'\s+', ' ', m.group(2)).strip()}"
+    digits = re.sub(r'\s+', ' ', m.group(2)).strip()  # eigener Schritt: Python 3.10/3.11 erlauben keinen Backslash im f-String-Ausdruck
+    number = f"{m.group(1)} {digits}"
     return number, court, excerpt
 
 

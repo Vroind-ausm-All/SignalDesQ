@@ -1,4 +1,5 @@
 """Ein-Klick-Start: Bootstrap-Entscheidungen, Port-Ausweichen, Erkennung laufender Instanz."""
+import contextlib
 import os
 import socket
 import tempfile
@@ -46,9 +47,10 @@ class BootstrapTests(unittest.TestCase):
 
     def test_zip_preview_detection_only_on_windows(self):
         temp_zip = Path('C:/Users/Alex/AppData/Local/Temp/Temp1_SignalDesk.zip/SignalDesk')
+        documents = Path('C:/Users/Alex/Documents/SignalDesk')  # vor dem Umschalten anlegen: Python < 3.12 baut sonst einen WindowsPath
         with mock.patch.object(bootstrap.os, 'name', 'nt'):
             self.assertTrue(bootstrap.is_inside_zip_preview(temp_zip))
-            self.assertFalse(bootstrap.is_inside_zip_preview(Path('C:/Users/Alex/Documents/SignalDesk')))
+            self.assertFalse(bootstrap.is_inside_zip_preview(documents))
         with mock.patch.object(bootstrap.os, 'name', 'posix'):
             self.assertFalse(bootstrap.is_inside_zip_preview(temp_zip))
 
@@ -108,11 +110,11 @@ class MigrationBackupTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             db = Path(tmp) / 'akquise.sqlite3'
             self.assertIsNone(backup_before_migration(db))  # neue Installation
-            with sqlite3.connect(db) as raw:
+            with contextlib.closing(sqlite3.connect(db)) as raw, raw:
                 raw.execute('CREATE TABLE leads (id INTEGER)')
             path = backup_before_migration(db)  # alte Version (user_version 0)
             self.assertTrue(path and Path(path).exists())
-            with sqlite3.connect(db) as raw:
+            with contextlib.closing(sqlite3.connect(db)) as raw, raw:
                 raw.execute(f'PRAGMA user_version = {SCHEMA_VERSION}')
             self.assertIsNone(backup_before_migration(db))
 

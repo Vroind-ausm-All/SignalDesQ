@@ -36,7 +36,9 @@ Die Regeln selbst (Kontaktsperre, Belegpflicht, GoBD-Schutz) stehen im Programmc
    ```
    Die erste Überschrift in `CHANGELOG.md` muss mit `sales_tool.__version__` beginnen. `dist/` nicht einchecken.
    Nach einem Versionswechsel `__pycache__` leeren – veralteter Bytecode kann die alte Versionsnummer vortäuschen.
-6. **Bericht**: Zahl der Tests, Überspringungen mit Grund, Browser-Tests, was nicht geprüft werden konnte (Windows, macOS, echte Websites).
+6. **Weitere Python-Versionen**: Zugesagt ist 3.10 bis 3.13. Mindestens die älteste und die neueste ausführen, z. B. `uv python install 3.10` und dann die Regression mit diesem Interpreter. Syntax, die erst ab 3.12 gilt (Backslash oder gleiches Anführungszeichen im f-String-Ausdruck), fällt sonst nicht auf.
+7. **CI lesen**: Nach dem Push das Ergebnis der GitHub-Actions-Läufe abrufen, auch für Windows. „Nicht abrufbar“ ist kein Ergebnis – erneut versuchen und im Bericht nennen. Raw-Verbindungen immer mit `contextlib.closing(sqlite3.connect(...))` öffnen, sonst bleibt die Datei unter Windows gesperrt.
+8. **Bericht**: Zahl der Tests, Überspringungen mit Grund, Browser-Tests, was nicht geprüft werden konnte (Windows, macOS, echte Websites).
 
 ## Ausgabe
 Eine Tabelle `Prüfung | Ergebnis | Beleg` und ein Urteil `weiter / nachbessern / blockiert`.

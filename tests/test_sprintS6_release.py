@@ -4,6 +4,7 @@ Abnahme laut Plan: reproduzierbare Installation auf frischem Windows-Rechner (�
 tools/install_check.py), keine Datenbankverluste, dokumentierte Einschränkungen. Diese Tests prüfen alles, was ohne
 Netz und ohne Windows prüfbar ist; die echte Windows-Installation läuft in .github/workflows/tests.yml.
 """
+import contextlib
 import json
 import re
 import sqlite3
@@ -287,7 +288,7 @@ class RestoreTests(unittest.TestCase):
         with connect(self.db) as c:
             self.assertTrue(c.execute("SELECT 1 FROM sqlite_master WHERE name='search_profiles'").fetchone(), 'auf aktuelles Schema migriert')
         newer = Path(self.tmp.name) / 'neu.sqlite3'
-        with sqlite3.connect(newer) as c:
+        with contextlib.closing(sqlite3.connect(newer)) as c, c:
             for t in ('leads', 'activities', 'tasks'):
                 c.execute(f'CREATE TABLE {t}(id INTEGER PRIMARY KEY)')
             c.execute(f'PRAGMA user_version = {SCHEMA_VERSION + 1}')

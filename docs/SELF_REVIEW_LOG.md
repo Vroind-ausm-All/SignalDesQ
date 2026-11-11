@@ -135,6 +135,54 @@ Implementiert und lokal getestet (Linux, Chromium). Nicht live verifiziert, nich
 
 **Entscheid:** weiter. Vorschlag für Arbeitspaket 3: Praxistest an echten Firmen (nach Freigabe) oder, ohne Freigabe, Löschfrist für den Eingang und README-Neufassung.
 
+## Arbeitspaket 3 – Plattformfestigkeit und Aufräumen (2.0.0-dev4)
+
+Auslöser: Die CI des Pull Requests #19 war rot. Die Prüfung zeigte, dass sie schon bei v1.19 auf `main` rot war – die Fehler waren älter als die Arbeitspakete 1 und 2, wurden aber bisher nicht bemerkt. Im Audit stand dazu nur „Ergebnis des letzten Laufs konnte nicht abgerufen werden“; das war eine Lücke im Wahrheitscheck.
+
+### Befunde und Behebung
+
+| Befund | Wirkung | Behebung | Schutz |
+|---|---|---|---|
+| Backslash im Ausdruck eines f-Strings (`imprint.py`, seit 04.11.) | **SignalDesk startet unter Python 3.10 und 3.11 nicht**, obwohl 3.10+ zugesagt ist | Ausdruck in eine Variable gelegt | Test durchsucht alle Dateien nach diesem Muster |
+| Sonderzeichen (②, ←, ✓) in der Konsolenausgabe | Abbruch von Einrichtung und Installationsprüfung in Windows-Konsolen ohne UTF-8 | Ausgabe ersetzt nicht darstellbare Zeichen | Test mit cp1252-Konsole |
+| `with sqlite3.connect(...)` schließt die Verbindung nicht | Datenbankdatei bleibt nach dem Start gesperrt, bis Python aufräumt; unter Windows scheitern Löschen und Ersetzen | Verbindung wird ausdrücklich geschlossen (1 Stelle im Programm, 8 in Tests und Werkzeugen) | Test: keine offene Verbindung nach der Datenbank-Vorbereitung |
+| Test baute unter Python < 3.12 einen Windows-Pfad auf Linux | 1 Testfehler unter 3.10 | Pfad vor dem Umschalten angelegt | – |
+
+### Tatsächlich ausgeführt
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13, 3.12 und 3.10 (Linux) | je 473 Tests bestanden; 4 bzw. 6 übersprungen (optionale Pakete) |
+| Warnungen „unclosed database“ im Gesamtlauf | 0 (vorher 27) |
+| Die drei neuen Schutz-Tests ohne die Behebungen | schlagen fehl – sie prüfen also wirklich |
+| Browser-Tests | 4 von 4 |
+| Python 3.11 in dieser Umgebung | 4 Fehler durch ein defektes System-Paket `cryptography` der Testmaschine, nicht durch SignalDesk; ohne dieses Paket nicht nachgeprüft |
+| Windows | **hier nicht ausführbar.** Die Ursachen wurden aus den CI-Protokollen abgelesen und unter Linux nachgestellt. Ob die Windows-CI jetzt grün ist, zeigt erst der Lauf nach dem Push. |
+
+### Außerdem erledigt
+
+- Eingang: erledigte Einträge werden nach 90 Tagen (einstellbar) anonymisiert – Schwachstelle 1 aus Arbeitspaket 2.
+- Note in den Firmen-Berichten.
+- README neu (82 statt 432 Zeilen), Roadmap neu.
+- Ordner `ausgabe/` entfernt. Die Dateien bleiben im Git-Verlauf abrufbar; sie ganz zu tilgen hieße den Verlauf umzuschreiben und wurde nicht gemacht.
+
+### Bewertung
+
+| Kriterium | Note | Beleg |
+|---|---|---|
+| Nutzen | 5 | Ohne die erste Behebung startet das Programm auf zwei von vier zugesagten Python-Versionen nicht. |
+| Robustheit | 4 | Drei Fehlerklassen mit Schutz-Test abgedeckt; Windows selbst nur über die CI prüfbar. |
+| Testabdeckung | 4 | Jetzt lokal auf drei Python-Versionen ausgeführt statt auf einer. |
+| Bedienbarkeit | 4 | README führt in 82 Zeilen zum Start und zu den Dokumenten. |
+
+### Die drei wichtigsten verbleibenden Schwachstellen
+
+1. **Windows bleibt unbewiesen, bis die CI grün ist.** Weitere Windows-Fehler können hinter den jetzt behobenen liegen (der Lauf zeigte 19 Fehler; nicht alle Protokollzeilen waren abrufbar).
+2. **Der Wahrheitscheck in Sprint 0 war unvollständig:** Der CI-Zustand wurde nicht geklärt. Künftig gehört „CI-Ergebnis gelesen“ zum Prüfverfahren (im Skill ergänzt).
+3. **Weiterhin keine Messung an echten Firmen.**
+
+**Entscheid:** weiter, sobald die CI des Branches gelesen ist.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Roadmap und README-Neufassung stehen ebenfalls aus.

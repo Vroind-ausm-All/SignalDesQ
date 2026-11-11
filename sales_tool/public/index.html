@@ -554,7 +554,8 @@
     <label>Kundentermine von<input name="meeting_from" type="time" required></label><label>Kundentermine bis<input name="meeting_to" type="time" required></label>
     <label>Termindauer (Minuten)<input name="meeting_minutes" type="number" min="15" max="180" required></label>
     <label>Anteil deiner Wochenstunden für Kundenprojekte (%)<input name="delivery_share_pct" type="number" min="10" max="100" required></label>
-    <label>Dein Name für Textbausteine<input name="display_name" maxlength="80"></label></div>
+    <label>Dein Name für Textbausteine<input name="display_name" maxlength="80"></label>
+    <label>Erledigte Eingänge anonymisieren nach (Tagen)<input name="inbound_keep_days" type="number" min="7" max="730" required></label></div>
     <b>Abwesenheiten</b><div id="avAbsences"></div><button type="button" class="text-button" id="avAddAbsence">+ Abwesenheit</button>
     <button type="submit" class="btn btn-primary">Zeiten speichern</button></form>
    <div class="rc-tpl"><b>Terminvorschläge</b><pre id="avSlots"></pre><button type="button" class="text-button" id="avCopySlots">Kopieren</button></div>

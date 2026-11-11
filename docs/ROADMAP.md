@@ -1,90 +1,34 @@
-# Roadmap – nicht mit dem MVP verwechseln
+# Roadmap
 
-## V0.1 – tatsächlich implementiert
-- [x] Lokale SQLite-Persistenz, CRUD Leads
-- [x] Beleg-/Signal-Erfassung mit Heuristik-Score
-- [x] Pipeline, Filter, Kennzahlen
-- [x] Aktivitäten und fällige Aufgaben
-- [x] Zielgruppenspezifische Angebote und manuell nutzbare Gesprächsentwürfe
-- [x] Opt-in-/Sperrstatus, **kein Nachrichtenversand**
-- [x] Unit-Tests und Dokumentation
+Stand 2.0.0-dev4. Was erledigt ist, steht im [`CHANGELOG.md`](../CHANGELOG.md); die Lücken im Einzelnen in [`LAUNCH_AUDIT.md`](LAUNCH_AUDIT.md).
 
-## V0.2 – implementiert für den Start bei 0 € Umsatz
-- [x] CSV-Import (bis 50 Zeilen, Formatvalidierung, einfache Dublettenprüfung)
-- [x] Getrennte strukturierte Bedarfsanalyse pro Lead mit fünf Kernfragen
-- [x] Standort, Kontaktrolle und Kontaktweg im Lead, inklusive Alt-Datenbank-Migration
+## Als Nächstes – lokaler Pilot
 
-## V0.3 – nach ersten 30 echten Leads
-- [ ] Erweiterter CSV-Import mit Rechtsgrundlagenprüfung und Import-Audit-Log
-- [ ] Angebotsvorlagen und Opportunity-Werte **getrennt** von Lead-Budget-Hypothesen
-- [ ] Audit-Trail, Datenexport/-löschung und Aufbewahrungsfristen
-- [ ] Branchenspezifische Score-Gewichte konfigurierbar machen, echte Outcome-Daten zur Kalibrierung
-- [ ] Weekly Review: Deals nach Herkunft, Segment, Abschlussgründen und Deckungsbeitrag
-- [ ] Customer Delivery-SOPs und Time-to-first-value
+| Nr. | Arbeitspaket | Voraussetzung |
+|---|---|---|
+| 1 | **Praxistest an 50–100 echten Betrieben** im Zielgebiet: Homepage-Zuordnung, Berichtsqualität und Bewertung messen | Freigabe und Suchgebiet vom Eigentümer |
+| 2 | **Bewertung an echten Ergebnissen prüfen:** Werden A-Firmen häufiger Kunden? Gewichte einstellbar machen | genug gewonnene und verlorene Chancen |
+| 3 | **Nachkalkulation:** Ist-Zeiten je Auftrag; macht die Auslastung verlässlich | – |
+| 4 | **Ein Leistungskatalog** statt drei Listen (`model.OFFERS`, `sales_workspace.PACKAGES`, `pricing`) | – |
+| 5 | **Geschäftszeiten der Firmen** aus OpenStreetMap und hinterlegten Website-Daten | – |
+| 6 | **OpenStreetMap ohne öffentliche Server** (lokaler Auszug), falls der Praxistest häufige Ausfälle zeigt | Messung aus Nr. 1 |
+| 7 | **Übrige Hintergrund-Module auf die neustartfeste Auftragsliste** (Quickscan, KI-Analyse, Kontakt-Recherche, Website-Scoring, Kaufsignal-Scan) | – |
+| 8 | **Navigation auf sechs Bereiche** verdichten; alten Lead-Fit in der Anzeige ablösen | – |
+| 9 | **Windows-Abnahme** auf einem echten Gerät: frische Installation, Update, Wiederherstellung | grüne CI |
 
-## V0.4 – optional, erst nach Nachweis der Nachfrage
-- [ ] n8n-Workflow für **Zulieferung öffentlich verifizierter, erlaubter Firmensignale**, erst menschliche Freigabe, dann Speicherung
-- [ ] Quellenadapter für lizenzierte Datenquellen (ohne Scraping persönlicher Profile)
-- [ ] LLM für Vorschläge zur Signal- und Angebotszuordnung nur auf freigegebenen Daten, Quellenverweise, Fehlerkontrolle
-- [ ] Inbound-Formulare und Terminbuchung
-- [ ] ggf. CRM-Integration über offizielle APIs mit Consent-/Opt-out-Synchronisation
-- [ ] Separates Multi-User-Produkt mit Login, Rollen, Verschlüsselung, Backups, TLS, Limits, Datenschutz-/Sicherheitsanalyse
+## Danach – Buchhaltung
 
-## V1.0 – Rechnungen & Buchhaltung (implementiert)
-- [x] Rechnungen nach § 14 UStG, lückenlose Nummern, GoBD-Festschreibung, Storno, Änderungsprotokoll
-- [x] Zahlungen, Mahnwesen, Ausgaben inkl. § 13b, UStVA-/EÜR-Vorbereitung, CSV-Exporte, Backup
-- [x] XRechnung-Export und E-Rechnungs-Empfang mit Archivierung
-- [x] Angebotsnummern, Bindefrist, Angebot → Rechnung
+Bankumsatz-Import mit Abgleich, Belegupload mit Prüfsumme, GiroCode, Vorlage Verfahrensdokumentation, DATEV-Export nach Testimport mit der Steuerberatung.
 
-## V1.1 – Lead-Finder (implementiert)
-- [x] Offene Quellen: Wikidata, OpenStreetMap, GLEIF, TED-Ausschreibungen
-- [x] Quellen-Ampel mit manuellen Links, Fair-Use-Limits, Dublettenprüfung, datensparsame Übernahme
+## Später – SaaS
 
-## V1.2 – Ein-Klick-Start (implementiert)
-- [x] Doppelklick-Start mit automatischer Einrichtung, Desktop-Verknüpfung und Browserstart
+Erst nach einem bestandenen lokalen Piloten und nachgewiesener Zahlungsbereitschaft (Entscheidung E1 in [`ARCHITECTURE_DECISIONS.md`](ARCHITECTURE_DECISIONS.md)). Nötig sind dann: Trennung nach Organisation, PostgreSQL, getrennte Recherche-Worker mit Budgets, Anmeldung über OIDC, Überwachung, externe Sicherungen, Datenschutzprüfung, Abrechnung über einen etablierten Anbieter. Ein Plan dafür (`SAAS_LAUNCH_PLAN.md`) ist noch nicht geschrieben.
 
-## V1.3 – Phase 1 Datenbasis (implementiert)
-- [x] Impressum-Extraktor, Batch mit Prüfwarteschlange, Feldbelege, Sperrliste, Datenschutz-Nachweise, Backup vor Migration
-
-## V1.4 – Phase 2 Website-Bedarfs-Scorer v2 (implementiert)
-- [x] Gerenderte Erfassung, Screenshots, 21 Rubriken, Teil-Scores, Bewertungsversionen
-
-## V1.5 – Phase 3 Buying Signals (implementiert)
-- [x] Registerereignisse (manueller Import), Job-Signale, Signal-Korrelation, Anbindung an das Scoring
-
-## V1.6 – Phase 4 Research Command Center (implementiert)
-- [x] Zentrale Arbeitsfläche, Priorisierung, Prüfliste, Quellen, Dossier, Übergabe
-
-## V1.7 – Phase 5 Sales-Integration (implementiert)
-- [x] Angebots-Matching aus bestätigten Problemen, Paket „Automatisierungsprojekt“, Entscheider v3 mit Kontaktbeschränkungen, Aufgabenvorschläge und Freigabe je Kontaktaktion
-
-## V1.8 – Phase 6 Qualität & Skalierung (implementiert)
-- [x] Änderungserkennung, wiederkehrende Rechercheaufträge (inkl. gespeicherter Lead-Finder-Suchen), Veraltungs-Kennzeichen, Löschfristen, konfigurierbare Gewichte
-- [x] Last-, Fehler-, Sicherheits- und Migrationstests; Login mit Rollen, verschlüsselte Sicherungen
-
-## Weiter: Live-Betrieb (siehe docs/MASTERPLAN_V2.md)
-
-## Danach – weitere sinnvolle Schritte (siehe docs/GAP_ANALYSE_V10.md)
-- [ ] Signierte Windows-Installationsdatei (.exe) ohne vorinstalliertes Python
-- [ ] Live-Test der Quellen-Adapter und ggf. Feldanpassungen (TED-Feldnamen)
-- [x] Gespeicherte Suchprofile („jeden Montag: neue Ausschreibungen Web/Design“) – als wiederkehrender Auftrag in v1.8
-- [ ] Lizenzierter Anbieter als optionaler Adapter (North Data o. Ä., eigener API-Key)
-- [ ] Bankumsatz-Import (CSV/CAMT.053) und Abgleich mit offenen Posten
-- [ ] Nachkalkulation: Ist-Zeit je Festpreisprojekt vs. Kalkulation
-- [ ] Belegupload mit Hash und unveränderbarer Ablage
-- [ ] Vorlage Verfahrensdokumentation (GoBD)
-- [ ] GiroCode auf Rechnungen, ZUGFeRD-PDF
-- [ ] DATEV-EXTF-Export nach Testimport mit der Steuerberatung
-- [ ] Win/Loss-Grund beim Status „verloren“
+**Kein öffentlicher Start**, bevor Mandantentrennung, Rechteprüfung, Anmeldung, Sicherung und Wiederherstellung sowie die Datenschutzprüfung nachweislich bestanden sind.
 
 ## Absichtlich kein Feature
-- Massenhafte Kalt-E-Mails, LinkedIn-Bots, gekaufte unqualifizierte Leadlisten oder WhatsApp-Spam
-- Blindes Kopieren eines Wettbewerber-Templates oder dessen Markenauftritt
-- KI-Bewertung, die ihr eigenes Ergebnis ohne Quellenbeleg als Fakt ausgibt
-- Direkte ELSTER-Übermittlung und automatischer Rechnungs-/Mahnungsversand
 
-## Definition of Done für ein mögliches kommerzielles Release
-- mindestens 30 anonymisiert ausgewertete echte Leads, ein klarer ICP, messbarer Delivery-Nutzen
-- Rechtsprüfung für Kanäle und Datenquellen, Datenschutzkonzept und Verträge
-- Vulnerability-Test / Security Review, Backup- und Restore-Test, Benutzerrollen
-- klarer Produktumfang, Support- und Datenlöschprozess
+- Massenhafte Kalt-E-Mails, LinkedIn-Bots, gekaufte Kontaktlisten, WhatsApp-Spam
+- Auslesen von Google Maps, LinkedIn oder Suchmaschinen; Umgehen von Sperren, Captchas oder robots.txt
+- KI-Bewertung, die ihr Ergebnis ohne Quellenbeleg als Tatsache ausgibt
+- Direkte ELSTER-Übermittlung, automatischer Versand von Rechnungen oder Mahnungen

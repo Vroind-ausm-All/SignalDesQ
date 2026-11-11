@@ -115,6 +115,21 @@ class InboundTests(Base):
         reach.complete_inbound(self.conn, r['id'], {}, now=FRI)
         self.assertEqual(wiedervorlage(self.conn, today=FRI.date()), [])
 
+    def test_done_entries_lose_personal_data_after_retention_but_keep_statistics(self):
+        r = reach.create_inbound(self.conn, {'who': 'Frau Beispiel', 'channel': 'anruf', 'contact': '0711 111111', 'note': 'privat'}, now=FRI)
+        still_open = reach.create_inbound(self.conn, {'who': 'Herr Offen', 'channel': 'anruf'}, now=FRI)
+        reach.complete_inbound(self.conn, r['id'], {'result': 'Rückruf erfolgt'}, now=FRI + dt.timedelta(hours=2))
+        reach.inbound_view(self.conn, now=FRI + dt.timedelta(days=89))
+        self.assertEqual(self.conn.execute('SELECT who FROM inbound WHERE id=?', (r['id'],)).fetchone()[0], 'Frau Beispiel')
+        v = reach.inbound_view(self.conn, now=FRI + dt.timedelta(days=91))
+        row = self.conn.execute('SELECT who, contact, note, result FROM inbound WHERE id=?', (r['id'],)).fetchone()
+        self.assertEqual(tuple(row), ('(gelöscht)', '', '', ''))
+        self.assertEqual(v['stats']['median_hours'], 2.0)  # Statistik bleibt
+        self.assertEqual([i['who'] for i in v['open']], ['Herr Offen'])  # Offenes wird nie anonymisiert
+        del still_open
+        with self.assertRaises(ValueError):
+            reach.validate({**reach.default_availability(), 'inbound_keep_days': 3})
+
     def test_validation(self):
         for bad in ({'channel': 'anruf'}, {'who': 'x', 'channel': 'fax'}, {'who': 'x', 'channel': 'anruf', 'lead_id': 999},
                     {'who': 'x', 'channel': 'anruf', 'received_at': '2099-01-01T10:00'}, {'who': 'x', 'channel': 'anruf', 'extra': 1}):

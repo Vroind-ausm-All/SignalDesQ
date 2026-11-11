@@ -82,7 +82,12 @@ def choose_variant(requested, marker, fresh, ask=None):
 
 
 def say(msg=''):
-    print(msg, flush=True)
+    """Ausgabe, die auch in einer Windows-Konsole ohne UTF-8 (cp1252) nicht abbricht: nicht darstellbare Zeichen werden ersetzt."""
+    try:
+        print(msg, flush=True)
+    except UnicodeEncodeError:
+        enc = getattr(sys.stdout, 'encoding', None) or 'ascii'
+        print(str(msg).encode(enc, 'replace').decode(enc), flush=True)
 
 
 def venv_python(venv_dir: Path = VENV) -> Path:
