@@ -7,6 +7,7 @@ import json
 import re
 import tempfile
 import threading
+import time
 import unittest
 import urllib.parse
 from http.client import HTTPConnection
@@ -125,8 +126,18 @@ class SweepBase(unittest.TestCase):
         gm._STATE['rows'] = None
         self.conn.close()
         from sales_tool.research import jobs
+        for t in list(sw._THREADS.values()):  # laufende Sammelsuchen dieser Datenbank zu Ende laufen lassen
+            if hasattr(t, 'join'):
+                t.join(10)
         jobs.stop_workers(self.db)  # Worker fragen die Datenbank noch Sekunden nach dem letzten Auftrag ab – unter Windows wäre die Datei gesperrt
-        self.tmp.cleanup()
+        for attempt in range(40):  # Windows gibt eine eben geschlossene Datei manchmal erst nach einem Moment frei
+            try:
+                self.tmp.cleanup()
+                break
+            except PermissionError:
+                if attempt == 39:
+                    raise
+                time.sleep(0.25)
 
     def run_sweep(self, **params):
         p = {'place': '70173', 'radius_km': 30, **params}

@@ -194,6 +194,10 @@ Danach lokal: 475 Tests unter Python 3.13 und 3.10 bestanden. Ob Windows damit v
 
 **Entscheid:** nachbessern abgeschlossen; CI des neuen Commits lesen.
 
+### Nachtrag: CI-Ergebnis für Commit `cc584f2` gelesen
+
+9 von 10 Jobs grün. **Die Unit-Tests unter Windows mit Python 3.13 sind erstmals vollständig grün.** Unter Windows mit Python 3.10 blieb 1 Fehler: derselbe Sammelsuche-Test konnte seine Datenbankdatei beim Aufräumen nicht löschen (unter 3.13 im selben Lauf bestanden – ein Zeitproblem, kein fester Fehler). Der Test wartet jetzt auf laufende Sammelsuchen und versucht das Aufräumen bis zu zehn Sekunden lang erneut. Die Prüfungen des Tests selbst sind unverändert. Ob das reicht, zeigt der nächste Lauf; die eigentliche Ursache (welcher Hintergrund-Thread die Datei kurz hält) ist nicht nachgewiesen.
+
 ## Arbeitspaket 4 – Nachkalkulation (2.0.0-dev5)
 
 Entspricht aus dem Auftrag: Abschnitt 6 („verfügbare Kapazität, Nachkalkulation bei abgeschlossenen Projekten“). Behebt Schwachstelle 2 aus Arbeitspaket 2 (grobe Auslastung).
