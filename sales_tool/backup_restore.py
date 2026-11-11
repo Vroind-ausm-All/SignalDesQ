@@ -127,6 +127,10 @@ def restore(db_path, source, password=None, confirm=False):
         if db_path.exists() and current:
             safety = create_backup(db_path)['path']
             renamed = Path(safety).with_name(Path(safety).stem + '-vor-wiederherstellung.sqlite3')
+            n = 1
+            while renamed.exists():  # zwei Wiederherstellungen in derselben Sekunde: nie eine frühere Sicherung überschreiben
+                n += 1
+                renamed = Path(safety).with_name(f'{Path(safety).stem}-vor-wiederherstellung-{n}.sqlite3')
             Path(safety).rename(renamed)
             safety = str(renamed)
         elif db_path.exists():

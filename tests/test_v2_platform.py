@@ -73,5 +73,44 @@ class ConnectionHygieneTests(unittest.TestCase):
             self.assertEqual(leaks, [])
 
 
+class RestoreSafetyTests(unittest.TestCase):
+    def test_two_restores_in_one_second_keep_both_safety_backups(self):
+        """Früher überschrieb die zweite Wiederherstellung die Sicherheitskopie der ersten (unter Windows: Abbruch)."""
+        from sales_tool import backup_restore as bkr
+        from sales_tool.accounting_api import create_backup
+        from sales_tool.model import connect
+        with tempfile.TemporaryDirectory() as tmp:
+            db = Path(tmp) / 'live.sqlite3'
+            prepare_database(db)
+            name = Path(create_backup(db)['path']).name
+            with connect(db) as c:
+                c.execute("INSERT INTO leads(company) VALUES ('Nachher GmbH')")
+                c.commit()
+            first = bkr.restore_named(db, name, confirm=True)
+            second = bkr.restore_named(db, Path(first['safety_backup']).name, confirm=True)
+            self.assertNotEqual(first['safety_backup'], second['safety_backup'])
+            self.assertTrue(Path(first['safety_backup']).exists() and Path(second['safety_backup']).exists())
+            with connect(db) as c:
+                self.assertEqual(c.execute('SELECT COUNT(*) FROM leads').fetchone()[0], 1)
+            # die erste Sicherheitskopie enthält weiterhin den Stand vor der ersten Wiederherstellung
+            with connect(first['safety_backup']) as c:
+                self.assertEqual(c.execute('SELECT COUNT(*) FROM leads').fetchone()[0], 1)
+
+
+class WorkerShutdownTests(unittest.TestCase):
+    def test_stop_workers_ends_polling_and_restart_is_possible(self):
+        from sales_tool.research import jobs
+        with tempfile.TemporaryDirectory() as tmp:
+            db = str(Path(tmp) / 'w.sqlite3')
+            prepare_database(db)
+            jobs.ensure_workers(db)
+            self.assertGreater(jobs.workers_alive(db), 0)
+            self.assertTrue(jobs.stop_workers(db, timeout=10))
+            self.assertEqual(jobs.workers_alive(db), 0)
+            jobs.ensure_workers(db)  # nach dem Beenden wieder startbar
+            self.assertGreater(jobs.workers_alive(db), 0)
+            self.assertTrue(jobs.stop_workers(db, timeout=10))
+
+
 if __name__ == '__main__':
     unittest.main()

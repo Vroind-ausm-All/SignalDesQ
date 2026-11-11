@@ -27,6 +27,7 @@ CLOCK = time.time  # in Tests ersetzbar
 HANDLERS = {}
 _LOCK = threading.Lock()
 _WORKERS = {}  # Datenbankpfad → Worker-Threads (je Datenbank eigene Worker)
+_STOP = set()  # Datenbankpfade, deren Worker enden sollen (sauberes Beenden; unter Windows gibt das die Datei frei)
 
 
 class Retry(Exception):
@@ -320,6 +321,8 @@ def _worker_loop(db_path):
     from ..model import connect
     idle_since = None
     while True:
+        if db_path in _STOP:
+            return
         try:
             if run_one(db_path):
                 idle_since = None
@@ -339,12 +342,29 @@ def _worker_loop(db_path):
 def ensure_workers(db_path):
     key = str(db_path)
     with _LOCK:
+        _STOP.discard(key)
         alive = [t for t in _WORKERS.get(key, []) if t.is_alive()]
         for _ in range(MAX_WORKERS - len(alive)):
             t = threading.Thread(target=_worker_loop, args=(key,), daemon=True, name=f'research-worker-{len(alive) + 1}')
             alive.append(t)
             t.start()
         _WORKERS[key] = alive
+
+
+def stop_workers(db_path, timeout=10):
+    """Worker dieser Datenbank beenden und warten. Laufende Schritte werden zu Ende geführt; offene bleiben eingereiht
+    und laufen beim nächsten Start weiter. Gibt True zurück, wenn alle Worker beendet sind."""
+    key = str(db_path)
+    with _LOCK:
+        _STOP.add(key)
+        threads = list(_WORKERS.get(key, []))
+    end = time.monotonic() + timeout
+    for t in threads:
+        t.join(max(0.0, end - time.monotonic()))
+    alive = [t for t in threads if t.is_alive()]
+    with _LOCK:
+        _WORKERS[key] = alive
+    return not alive
 
 
 def ensure_workers_all():

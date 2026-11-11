@@ -124,6 +124,8 @@ class SweepBase(unittest.TestCase):
         lf.FETCH, lf.SLEEP, sw.GLEIF_DELAY, sw.AUTO_WEB_START = self._orig
         gm._STATE['rows'] = None
         self.conn.close()
+        from sales_tool.research import jobs
+        jobs.stop_workers(self.db)  # Worker fragen die Datenbank noch Sekunden nach dem letzten Auftrag ab – unter Windows wäre die Datei gesperrt
         self.tmp.cleanup()
 
     def run_sweep(self, **params):

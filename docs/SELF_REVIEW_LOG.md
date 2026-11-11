@@ -181,7 +181,18 @@ Auslöser: Die CI des Pull Requests #19 war rot. Die Prüfung zeigte, dass sie s
 2. **Der Wahrheitscheck in Sprint 0 war unvollständig:** Der CI-Zustand wurde nicht geklärt. Künftig gehört „CI-Ergebnis gelesen“ zum Prüfverfahren (im Skill ergänzt).
 3. **Weiterhin keine Messung an echten Firmen.**
 
-**Entscheid:** weiter, sobald die CI des Branches gelesen ist.
+### Nachtrag: CI-Ergebnis für Commit `352d7c8` gelesen
+
+8 von 10 Jobs grün (vorher 4): beide Windows-Installationen, Python 3.10 und 3.13 unter Linux, Browser-Test, Release. Die Unit-Tests unter Windows fielen von 19 auf 2 Fehler. Beide sind in einer zweiten Nachbesserung behoben:
+
+| Befund | Wirkung | Behebung | Schutz |
+|---|---|---|---|
+| Zwei Wiederherstellungen in derselben Sekunde erzeugten denselben Namen für die Sicherheitskopie | Unter Windows Abbruch; **unter Linux wurde die erste Sicherheitskopie stillschweigend überschrieben** | eindeutiger Name, nie überschreiben | Test: beide Sicherheitskopien bleiben erhalten |
+| Recherche-Worker fragen die Datenbank noch Sekunden nach dem letzten Auftrag ab | Unter Windows blieb die Datei beim Aufräumen eines Tests gesperrt | `jobs.stop_workers()` beendet die Worker sauber; laufende Schritte werden zu Ende geführt, offene bleiben eingereiht | Test: Beenden und Neustart der Worker |
+
+Danach lokal: 475 Tests unter Python 3.13 und 3.10 bestanden. Ob Windows damit vollständig grün ist, zeigt der nächste CI-Lauf.
+
+**Entscheid:** nachbessern abgeschlossen; CI des neuen Commits lesen.
 
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 

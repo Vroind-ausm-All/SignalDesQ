@@ -5,11 +5,13 @@
 - **Behoben – SignalDesk startete unter Python 3.10 und 3.11 nicht** (Syntaxfehler in der Impressumserkennung, seit Anfang November). Ein Test verhindert die Wiederholung.
 - **Behoben – Abbruch in Windows-Konsolen ohne UTF-8:** Einrichtung und Installationsprüfung scheiterten an Sonderzeichen in der Ausgabe.
 - **Behoben – Datenbank blieb nach dem Start kurz gesperrt:** Beim Prüfen der Schema-Version wurde eine Verbindung nicht geschlossen. Unter Windows konnte die Datei dadurch nicht sofort gesichert, ersetzt oder gelöscht werden.
+- **Behoben – Sicherheitskopie konnte überschrieben werden:** Zwei Wiederherstellungen in derselben Sekunde nutzten denselben Dateinamen. Jetzt bleibt jede Sicherheitskopie erhalten.
+- Recherche-Worker lassen sich sauber beenden (`jobs.stop_workers`).
 - **Eingang mit Löschfrist:** Erledigte Einträge verlieren nach 90 Tagen (einstellbar) Name, Kontakt und Notiz; die Antwortzeit-Statistik bleibt.
 - **Note in den Firmen-Berichten.**
 - **README neu:** 82 Zeilen statt 432; die Versionsgeschichte steht im Changelog. **Roadmap neu** auf dem heutigen Stand.
 - Ordner `ausgabe/` mit alten Paketen entfernt.
-- 473 Tests (4 neu), geprüft unter Python 3.10, 3.12 und 3.13.
+- 475 Tests (6 neu), geprüft unter Python 3.10, 3.12 und 3.13.
 - Kein abgeschlossenes Release. Nicht an echten Firmen geprüft.
 
 ## 2.0.0-dev3 – Eigene Erreichbarkeit und Auslastung
