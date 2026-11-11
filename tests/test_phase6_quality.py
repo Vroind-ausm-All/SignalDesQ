@@ -28,6 +28,11 @@ FIXTURES = Path(__file__).resolve().parent / 'fixtures' / 'migration'
 OLD = (dt.date.today() - dt.timedelta(days=500)).isoformat() + ' 10:00:00'
 RECENT = (dt.date.today() - dt.timedelta(days=3)).isoformat() + ' 10:00:00'
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class QBase(unittest.TestCase):
     def setUp(self):
@@ -38,7 +43,7 @@ class QBase(unittest.TestCase):
 
     def tearDown(self):
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def lead(self, company='Fiktiv Werkzeugbau GmbH', **extra):
         slug = re.sub(r'[^a-z]', '', company.split()[0].lower())

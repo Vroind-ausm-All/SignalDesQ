@@ -32,6 +32,11 @@ def make_pdf(lines):
     return (b'%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\n4 0 obj << /Length ' + str(len(stream)).encode() +
             b' /Filter /FlateDecode >>\nstream\n' + stream + b'\nendstream\nendobj\ntrailer << >>\n%%EOF')
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class FakeWeb:
     """Bildet Websites als Dict url → (content_type, bytes) ab. Fehlende URLs → HTTP 404."""
@@ -180,7 +185,7 @@ class BatchTests(unittest.TestCase):
     def tearDown(self):
         imprint.FETCH, imprint.SLEEP = self._orig
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def run_all(self, domains, **opts):
         run = ib.create_run(self.conn, {'domains': domains, **opts}, self.db)
@@ -287,7 +292,7 @@ class SuppressionTests(unittest.TestCase):
     def tearDown(self):
         imprint.FETCH, imprint.SLEEP = self._orig
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def blocked_lead(self):
         cur = self.conn.execute("""INSERT INTO leads(company, website, register_court, register_number, stage, permission)
@@ -359,7 +364,7 @@ class Phase1HttpTests(unittest.TestCase):
         imprint.FETCH, imprint.SLEEP = self._orig
         self.server.shutdown()
         self.server.server_close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def call(self, path, method='GET', body=None):
         data = json.dumps(body).encode() if body is not None else None

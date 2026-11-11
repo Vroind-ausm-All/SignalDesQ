@@ -24,6 +24,11 @@ USER_SERVICES = {  # Angaben des Nutzers → Katalogschlüssel
     'Werbung': 'werbung', 'SEO + GEO': 'seo_geo', 'KI-Chatbot': 'chatbot', 'Telefon-Sprachbot': 'voicebot', 'Webseiten-Analyse': 'website_analyse',
     'Anreise': 'anreise', 'Tagespauschale': 'tagessatz'}
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class PricingBase(unittest.TestCase):
     def setUp(self):
@@ -36,7 +41,7 @@ class PricingBase(unittest.TestCase):
 
     def tearDown(self):
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def pos(self, **p):
         return pr.price_position(p, pr.pricing_settings(self.conn), pr.overrides(self.conn))

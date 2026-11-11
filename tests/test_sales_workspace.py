@@ -15,6 +15,11 @@ from sales_tool.model import connect, init_db
 from sales_tool.server import make_handler
 from sales_tool.sales_workspace import quote_preview, customer_markdown, daily_view, create_call, create_mail_draft
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class PricingUnitTests(unittest.TestCase):
     def test_package_scope_and_addons_are_explicit(self):
@@ -68,7 +73,7 @@ class WorkspaceApiTests(unittest.TestCase):
         self.thread.start()
 
     def tearDown(self):
-        self.server.shutdown();self.server.server_close();self.thread.join(timeout=2);self.tmp.cleanup()
+        self.server.shutdown();self.server.server_close();self.thread.join(timeout=2);cleanup_tmp(self.tmp)
 
     def call(self,method,path,body=None):
         data=json.dumps(body).encode() if body is not None else None

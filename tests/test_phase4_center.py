@@ -20,6 +20,11 @@ from sales_tool.server import make_handler
 
 TODAY = dt.date.today()
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class CenterBase(unittest.TestCase):
     def setUp(self):
@@ -30,7 +35,7 @@ class CenterBase(unittest.TestCase):
 
     def tearDown(self):
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def lead(self, company, **extra):
         data = {'company': company, 'website': 'https://' + company.split()[0].lower() + '-beispiel.de', 'industry': 'Industrie & B2B-Technik',

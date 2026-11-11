@@ -30,6 +30,11 @@ from sales_tool.server import make_handler, prepare_database  # noqa: E402
 FRI = dt.datetime(2026, 11, 13, 10, 0)  # ein Freitag
 PROFILE = {**q.default_profile(), 'industries': ['elektro'], 'home': '70173'}
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class Base(unittest.TestCase):
     def setUp(self):
@@ -40,7 +45,7 @@ class Base(unittest.TestCase):
 
     def tearDown(self):
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def lead(self, company='Elektro Beispiel e.K.', **kw):
         fields = {'company': company, 'employees': 6, 'zip': '70173', 'city': 'Stuttgart', 'stage': 'kontakt', 'business_phone': '0711 000000', **kw}
@@ -217,7 +222,7 @@ class ApiTests(unittest.TestCase):
     def tearDown(self):
         self.server.shutdown()
         self.server.server_close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def call(self, method, path, body=None):
         c = HTTPConnection('127.0.0.1', self.server.server_address[1], timeout=10)

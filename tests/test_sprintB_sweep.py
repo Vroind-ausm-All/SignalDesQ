@@ -33,6 +33,11 @@ def gleif_record(lei, name, city, zip_, register='', status='ACTIVE', category='
             'legalAddress': {'addressLines': ['Industriestraße 1'], 'postalCode': zip_, 'city': city, 'country': 'DE'},
             'registeredAs': register}, 'registration': {'initialRegistrationDate': '2019-05-01T00:00:00Z'}}}
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class FakeNet:
     """Leitet Anfragen nach URL an Antworten weiter und zählt sie."""
@@ -125,16 +130,7 @@ class SweepBase(unittest.TestCase):
         lf.FETCH, lf.SLEEP, sw.GLEIF_DELAY, sw.AUTO_WEB_START = self._orig
         gm._STATE['rows'] = None
         self.conn.close()
-        from sales_tool.research import jobs
-        jobs.stop_workers(self.db)  # Worker fragen die Datenbank noch Sekunden nach dem letzten Auftrag ab – unter Windows wäre die Datei gesperrt
-        for attempt in range(40):  # Windows gibt eine eben geschlossene Datei manchmal erst nach einem Moment frei
-            try:
-                self.tmp.cleanup()
-                break
-            except PermissionError:
-                if attempt == 39:
-                    raise
-                time.sleep(0.25)
+        cleanup_tmp(self.tmp)
 
     def run_sweep(self, **params):
         p = {'place': '70173', 'radius_km': 30, **params}

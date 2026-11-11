@@ -373,6 +373,13 @@ def stop_workers(db_path, timeout=10):
     return not alive
 
 
+def stop_all_workers(timeout=10):
+    """Worker aller Datenbanken beenden (Programmende, Tests). Gibt True zurück, wenn keiner mehr läuft."""
+    with _LOCK:
+        keys = [k for k, threads in _WORKERS.items() if any(t.is_alive() for t in threads)]
+    return all([stop_workers(k, timeout) for k in keys])
+
+
 def ensure_workers_all():
     """Nach dem Ausschalten des Offline-Modus: Worker aller bekannten Datenbanken wieder anwerfen."""
     for key in list(_WORKERS):

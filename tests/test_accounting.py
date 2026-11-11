@@ -35,6 +35,11 @@ def buyer(**extra):
     data.update(extra)
     return data
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class AccountingBase(unittest.TestCase):
     def setUp(self):
@@ -45,7 +50,7 @@ class AccountingBase(unittest.TestCase):
 
     def tearDown(self):
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def configure(self, **extra):
         return acc.save_settings(self.conn, {**SELLER, **extra})
@@ -391,7 +396,7 @@ class AccountingHttpTests(unittest.TestCase):
     def tearDown(self):
         self.server.shutdown()
         self.server.server_close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def call(self, path, method='GET', body=None, raw=False):
         data = json.dumps(body).encode() if body is not None else None

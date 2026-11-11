@@ -43,6 +43,11 @@ def capture(desktop=None, mobile=None, renderer='playwright', broken=(), checked
             'pages': [page], 'screenshots': [], 'errors': [], 'console_errors': console if renderer == 'playwright' else None,
             'link_check': {'checked': checked, 'broken': [{'url': u, 'status': 404, 'found_on': 'https://firma.example/'} for u in broken], 'skipped': 0}}
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class RubricAndScoreTests(unittest.TestCase):
     cfg = copy.deepcopy(ws.DEFAULT_CONFIG)
@@ -138,7 +143,7 @@ class ScoringDbTests(unittest.TestCase):
     def tearDown(self):
         ws.CAPTURE, ws.CAPTURE_FALLBACK, ws.playwright_available = self._orig
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def test_engine_upgrade_preserves_old_version_and_custom_config(self):
         cfg = ws.validate_config({'overall_weights': {'potential': 60, 'fit': 20, 'signal': 20}})

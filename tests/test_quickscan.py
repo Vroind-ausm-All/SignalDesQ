@@ -33,6 +33,11 @@ CRAWL = {
     ]
 }
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class QuickScanTests(unittest.TestCase):
     def setUp(self):
@@ -40,7 +45,7 @@ class QuickScanTests(unittest.TestCase):
         self.db=Path(self.tmp.name)/'test.sqlite3'
         with connect(self.db) as c:init_db(c)
 
-    def tearDown(self):self.tmp.cleanup()
+    def tearDown(self):cleanup_tmp(self.tmp)
 
     def _completed_scan(self):
         with connect(self.db) as c:

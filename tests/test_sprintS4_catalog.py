@@ -26,6 +26,11 @@ from sales_tool.research import catalog as cat  # noqa: E402
 from sales_tool.research import jobs  # noqa: E402
 from sales_tool.server import make_handler  # noqa: E402
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class CatalogBase(unittest.TestCase):
     def setUp(self):
@@ -38,7 +43,7 @@ class CatalogBase(unittest.TestCase):
 
     def tearDown(self):
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
 
 class StreamingImportTests(CatalogBase):

@@ -35,6 +35,11 @@ from sales_tool.research.fetchers.base import FetchError  # noqa: E402
 from sales_tool.server import SCHEMA_VERSION, make_handler, prepare_database  # noqa: E402
 from sales_tool.website_analyzer import CrawlError, crawl_site  # noqa: E402
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class VersionAndLockTests(unittest.TestCase):
     def test_versions_are_consistent(self):
@@ -179,7 +184,7 @@ class OfflineTests(unittest.TestCase):
     def tearDown(self):
         netpolicy.STATE.update(stored=False, forced=False)
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def test_offline_blocks_every_network_path(self):
         netpolicy.set_offline(self.conn, True)
@@ -250,7 +255,7 @@ class RestoreTests(unittest.TestCase):
             c.commit()
 
     def tearDown(self):
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def count(self):
         with connect(self.db) as c:

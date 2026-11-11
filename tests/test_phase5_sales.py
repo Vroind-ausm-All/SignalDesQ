@@ -28,6 +28,11 @@ FULL_DISCOVERY = {
     'decision_process': 'Leitung Innendienst prüft fachlich, Geschäftsführung gibt frei.',
 }
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class SalesBase(unittest.TestCase):
     def setUp(self):
@@ -38,7 +43,7 @@ class SalesBase(unittest.TestCase):
 
     def tearDown(self):
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def lead(self, company='Fiktiv Antriebstechnik GmbH', **extra):
         data = {'company': company, 'website': 'https://fiktiv-antrieb.example', 'industry': 'Industrie & B2B-Technik', 'employees': 90, **extra}

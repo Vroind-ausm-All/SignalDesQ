@@ -26,6 +26,11 @@ from sales_tool.server import SCHEMA_VERSION, make_handler, prepare_database  # 
 
 TODAY = dt.date(2026, 11, 13)
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class Base(unittest.TestCase):
     def setUp(self):
@@ -36,7 +41,7 @@ class Base(unittest.TestCase):
 
     def tearDown(self):
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def offer(self, status='angenommen', hours=20, net=2000, ext=100, minimum=66):
         cur = self.conn.execute("INSERT INTO proposals(lead_id, status, internal_json, customer_json, number, updated_at) VALUES (?,?,?,?,?,?)",
@@ -168,7 +173,7 @@ class ApiTests(unittest.TestCase):
     def tearDown(self):
         self.server.shutdown()
         self.server.server_close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def call(self, method, path, body=None):
         c = HTTPConnection('127.0.0.1', self.server.server_address[1], timeout=10)

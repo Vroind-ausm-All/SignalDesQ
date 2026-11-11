@@ -26,6 +26,11 @@ from sales_tool.research.fetchers.base import decode_html  # noqa: E402
 from sales_tool.research.safe_urls import UnsafeURL, check_url  # noqa: E402
 from sales_tool.server import make_handler  # noqa: E402
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class RobotsRulesTests(unittest.TestCase):
     def test_rfc9309_matching(self):
@@ -237,7 +242,7 @@ class SettingsTests(unittest.TestCase):
     def tearDown(self):
         settings.reset()
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def test_validate_save_load(self):
         with self.assertRaises(ValueError):

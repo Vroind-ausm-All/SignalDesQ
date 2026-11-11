@@ -67,6 +67,11 @@ WEB = {
     'https://liste-beispiel.de/karriere': ('text/html', '<html><body><h2>Offene Stellen</h2><ul><li>UX/UI Designer (m/w/d)</li><li>Initiativbewerbung</li><li>Kaufmännische Sachbearbeitung (w/m/d)</li></ul></body></html>'.encode()),
 }
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class FakeWeb:
     def __init__(self, pages):
@@ -94,7 +99,7 @@ class Base(unittest.TestCase):
     def tearDown(self):
         imprint.FETCH, imprint.SLEEP = self._orig
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def lead(self, company, website, court='', number='', **extra):
         data = {'company': company, 'website': website, 'register_court': court, 'register_number': number, **extra}

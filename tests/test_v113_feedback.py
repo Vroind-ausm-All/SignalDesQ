@@ -27,6 +27,11 @@ import test_sprintC_report as tc  # noqa: E402
 
 GLEIF_CSV = tb.GLEIF_CSV
 
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen (Windows)
+
 
 class SourceErrorTests(unittest.TestCase):
     def test_retryable_flags(self):
@@ -212,7 +217,7 @@ class TaskOverviewTests(unittest.TestCase):
 
     def tearDown(self):
         self.conn.close()
-        self.tmp.cleanup()
+        cleanup_tmp(self.tmp)
 
     def lead(self, company, stage='recherche', next_step='', next_date='', website=''):
         cur = self.conn.execute('INSERT INTO leads(company, stage, next_step, next_date, website, industry) VALUES (?,?,?,?,?,?)',
