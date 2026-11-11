@@ -486,3 +486,11 @@
 .tp-group legend{font-size:11px;font-weight:800;padding:0 4px}.tp-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:12px;padding:2px 0}
 .lost-dialog{border:1px solid var(--line);border-radius:12px;padding:16px 18px;max-width:440px;width:calc(100% - 32px)}.lost-dialog::backdrop{background:rgba(20,30,28,.45)}.lost-dialog h3{margin:0 0 4px}
 @media(max-width:900px){.as-cols,.as-stats{grid-template-columns:1fr}}
+
+/* 2.0.0-dev3: eigene Erreichbarkeit */
+.rc-in-form{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px 20px 4px;margin:0}.td-item.rc-item{grid-template-columns:1fr auto}.rc-item small{display:block}#erreichbarkeit{margin-bottom:0}.rc-cap{padding:12px 20px}.rc-cap .sw-web{justify-self:start}.rc-in-form input[name=note]{grid-column:1/-1}.rc-in-form button{grid-column:1/-1;justify-self:start}
+.rc-late{color:#a33b2c;font-weight:700}.rc-cap{display:grid;gap:4px;font-size:13px;margin:12px 0}.rc-cap small{color:var(--muted);font-size:11px}
+.rc-days{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}.rc-day{display:flex;flex-direction:row;gap:4px;align-items:center}.rc-day input{width:auto;margin:0}
+.rc-abs{display:grid;grid-template-columns:auto auto 1fr auto;gap:6px;margin:4px 0}.rc-tpl{margin-top:12px;font-size:12px}
+.rc-tpl pre{white-space:pre-wrap;background:#f4f7f5;border-radius:8px;padding:8px 10px;margin:4px 0;font:inherit}
+@media(max-width:700px){.rc-in-form,.rc-abs{grid-template-columns:1fr}}

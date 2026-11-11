@@ -12,7 +12,7 @@
     const isOpen = expanded.has(l.id);
     return `<article class="pipeline-card pc ${isOpen ? 'open' : ''} ${moving === l.id ? 'moving' : ''}" draggable="true" data-pcard="${l.id}">
       <div class="pc-head"><button type="button" class="pc-toggle" data-pc-toggle="${l.id}" aria-expanded="${isOpen}" title="Details ${isOpen ? 'zuklappen' : 'aufklappen'}">
-        <span class="pc-name">${esc(short(l.company, 34))}</span><span class="score ${l.score < 40 ? 'low' : ''}">${l.score}</span><span class="pc-chev" aria-hidden="true">▾</span></button>
+        ${window.leadGradeChip ? window.leadGradeChip(l.id) : ''}<span class="pc-name">${esc(short(l.company, 34))}</span><span class="score ${l.score < 40 ? 'low' : ''}">${l.score}</span><span class="pc-chev" aria-hidden="true">▾</span></button>
         <button type="button" class="pc-move" data-pc-move="${l.id}" aria-label="${esc(l.company)} verschieben" title="Verschieben: antippen, dann Zielspalte anklicken">⇄</button></div>
       ${isOpen ? `<div class="pc-body">
         <small>${esc(short(l.signal_note || config.signals[l.signal_type][1], 120))}</small>
@@ -35,7 +35,8 @@
       if (stage === 'verloren') {
         return `<section class="pipeline-column pc-lost" data-pcol="verloren" ${mv ? 'tabindex="0" role="button"' : ''} aria-label="Spalte Verloren"><div class="pipeline-col-head"><span>Verloren</span><b>${lost}</b></div><div class="pipeline-empty">Hierher ziehen, wenn eine Chance nicht weiterverfolgt wird</div></section>`;
       }
-      const cards = open.filter(l => l.stage === stage).sort((a, b) => b.score - a.score);
+      const rank = window.leadGradeRank || (() => 0);  // 2.0.0-dev3: Passung (A vor B) vor dem alten Score
+      const cards = open.filter(l => l.stage === stage).sort((a, b) => rank(a.id) - rank(b.id) || b.score - a.score);
       const sa = (window.leadStageAction || {})[stage];
       return `<section class="pipeline-column" data-pcol="${stage}" ${mv ? 'tabindex="0" role="button"' : ''} aria-label="Spalte ${esc(stageNames[stage])}"><div class="pipeline-col-head"><span>${stageNames[stage]}</span><b>${cards.length}</b></div>${sa ? `<button type="button" class="text-button pipeline-col-action" data-go-action="${esc(JSON.stringify({view: sa.view === 'lead' ? 'leads' : sa.view, section: sa.section, stage}))}">${esc(sa.label)} ↗</button>` : ''}<div class="pipeline-cards">${cards.map(l => card(l, sa)).join('') || '<div class="pipeline-empty">Noch keine Firma in dieser Phase</div>'}</div></section>`;
     }).join('');

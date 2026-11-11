@@ -86,7 +86,7 @@
     $('#tdWv').innerHTML = items.length ? items.map(i => `<div class="td-item ${i.overdue ? 'overdue' : ''}">
       <span class="td-kind ${esc(i.kind)}">${esc(KIND[i.kind] || i.kind)}</span>
       <div><b>${esc(i.title)}</b><small>${esc(i.company)}${i.due ? ' · ' + esc(fmtDate(i.due)) : ''}${i.overdue ? ' · <span class="late">überfällig</span>' : ''}${i.detail ? ' · ' + esc(i.detail) : ''}</small></div>
-      <button type="button" class="btn btn-ghost" data-go-action="${enc({view: i.view, section: i.section, lead_id: i.lead_id, ref: i.view === 'quotes' ? i.ref : null})}">${esc(i.action)}</button></div>`).join('')
+      <button type="button" class="btn btn-ghost" data-go-action="${enc({view: i.view, section: i.section, lead_id: i.lead_id, anchor: i.anchor, ref: i.view === 'quotes' ? i.ref : null})}">${esc(i.action)}</button></div>`).join('')
       : '<div class="empty">Nichts fällig. Gut so – weiter mit dem Tagesplan.</div>';
     const overdue = items.filter(i => i.overdue).length;
     $('#tdNavBadge').textContent = overdue ? String(overdue) : '';

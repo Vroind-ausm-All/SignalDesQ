@@ -38,6 +38,17 @@
     <div class="content" id="viewDashboard">
       <div class="eyebrow" id="tdGreeting">DEIN ARBEITSTAG</div>
       <div class="page-title td-title"><div><h1>Heute.</h1><p>Von oben nach unten: erst Zugesagtes und Termine, dann Angebote und Freigaben, danach Recherche und neue Firmen. Jeder Punkt führt direkt zur passenden Stelle.</p></div><button class="btn btn-primary" id="tdNext">Nächster Schritt →</button></div>
+      <div class="td-cols" id="erreichbarkeit">
+        <section class="panel" aria-labelledby="rcInTitle"><div class="panel-header"><h3 id="rcInTitle">Eingang &amp; Rückrufe</h3><span class="muted" id="rcInCount"></span></div>
+          <form id="rcInForm" class="sales-form rc-in-form"><input name="who" maxlength="120" placeholder="Wer hat sich gemeldet?" aria-label="Wer hat sich gemeldet?">
+            <select name="channel" aria-label="Eingangsweg"></select><input name="contact" maxlength="120" placeholder="Rückrufnummer / E-Mail" aria-label="Rückrufnummer oder E-Mail">
+            <select name="lead_id" aria-label="Bekannte Firma"><option value="">– keine bekannte Firma –</option></select>
+            <input name="note" maxlength="1000" placeholder="Worum ging es?" aria-label="Worum ging es?"><button type="submit" class="btn btn-primary">Festhalten</button></form>
+          <div class="td-list" id="rcInList"></div><p class="muted td-note" id="rcInStats"></p></section>
+        <section class="panel" aria-labelledby="rcListTitle"><div class="panel-header"><h3 id="rcListTitle">Als Nächstes kontaktieren</h3><span class="muted" id="rcListCount"></span></div>
+          <div class="td-list" id="rcList"></div><p class="muted td-note" id="rcListNote"></p></section>
+      </div>
+      <div class="panel rc-cap" id="rcCap"></div>
       <section class="panel td-plan" aria-labelledby="tdPlanTitle"><div class="panel-header"><h3 id="tdPlanTitle">Tagesplan</h3><span class="muted" id="tdPlanState"></span></div><ol class="td-steps" id="tdSteps"></ol></section>
       <div class="td-cols">
         <section class="panel" id="wiedervorlage" aria-labelledby="tdWvTitle"><div class="panel-header"><h3 id="tdWvTitle">Wiedervorlage</h3><span class="muted" id="tdWvCount"></span></div><div class="td-list" id="tdWv"></div></section>
@@ -536,6 +547,19 @@
     <button type="submit" class="btn btn-primary">Zielkundenprofil speichern</button></form>
    <div id="asStats" class="as-stats"></div>
   </section>
+  <section class="panel sales-section" id="ownTimes"><span class="eyebrow">ERREICHBARKEIT</span><h2>Deine Zeiten</h2>
+   <p class="muted">Daraus entstehen die Rückruffrist für verpasste Anrufe, Terminvorschläge und Textbausteine. SignalDesk versendet nichts und kennt keinen Kalender außerhalb des Programms.</p>
+   <form id="availabilityForm" class="sales-form"><div id="avDays" class="rc-days"></div><div class="tp-grid">
+    <label>Rückrufe von<input name="callback_from" type="time" required></label><label>Rückrufe bis<input name="callback_to" type="time" required></label>
+    <label>Kundentermine von<input name="meeting_from" type="time" required></label><label>Kundentermine bis<input name="meeting_to" type="time" required></label>
+    <label>Termindauer (Minuten)<input name="meeting_minutes" type="number" min="15" max="180" required></label>
+    <label>Anteil deiner Wochenstunden für Kundenprojekte (%)<input name="delivery_share_pct" type="number" min="10" max="100" required></label>
+    <label>Dein Name für Textbausteine<input name="display_name" maxlength="80"></label></div>
+    <b>Abwesenheiten</b><div id="avAbsences"></div><button type="button" class="text-button" id="avAddAbsence">+ Abwesenheit</button>
+    <button type="submit" class="btn btn-primary">Zeiten speichern</button></form>
+   <div class="rc-tpl"><b>Terminvorschläge</b><pre id="avSlots"></pre><button type="button" class="text-button" id="avCopySlots">Kopieren</button></div>
+   <div id="avTemplates"></div>
+  </section>
   <section class="panel sales-section"><span class="eyebrow">INHALTSRECHERCHE</span><h2>Dein Leistungsprofil</h2>
    <p class="muted">Wähle Themen für die regelbasierte Inhaltsanalyse und ergänze eigene Suchbegriffe, durch Komma getrennt. Die Erwähnung ist nur ein Gesprächsanlass. Technische Website-Bewertung, Stellenklassifikation und KI-Modus verwenden eigene Regeln. Änderungen gelten für neue Analysen.</p>
    <form id="serviceProfileForm" class="sales-form"><label>Profilname<input name="name" maxlength="80" required></label><div id="serviceProfileThemes"></div><button type="submit" class="btn btn-primary">Leistungsprofil speichern</button> <span class="muted" id="serviceProfileVersion"></span></form>
@@ -669,6 +693,7 @@
 <script src="/jobs.js" defer></script>
 <script src="/catalog.js" defer></script>
 <script src="/assessment.js" defer></script>
+<script src="/reach.js" defer></script>
 <script src="/akte.js" defer></script>
 <script src="/workday.js" defer></script>
 <dialog id="lostDialog" class="lost-dialog"><form id="lostForm" class="sales-form"><h3>Warum verloren?</h3><p class="muted">Firma: <b id="lostCompany"></b>. Der Grund hilft dir später zu sehen, woran Chancen scheitern.</p>

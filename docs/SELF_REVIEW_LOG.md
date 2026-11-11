@@ -75,6 +75,66 @@ Schleife beendet, weil alle Prüfungen bestehen und die verbleibenden Schwächen
 
 **Entscheid:** weiter mit Arbeitspaket 2 (Note in „Heute“ und Pipeline, eigene Erreichbarkeit), sobald freigegeben.
 
+## Arbeitspaket 2 – Eigene Erreichbarkeit und Auslastung (2.0.0-dev3)
+
+Entspricht aus dem Auftrag: Abschnitt 3 („Heute“ mit priorisierten nächsten Aktionen), Abschnitt 6 (Rückrufzusagen, Zeitfenster, verfügbare Kapazität). Behebt die Schwachstellen 2 und 3 aus Arbeitspaket 1 zum Teil.
+
+### Tatsächlich ausgeführt
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression (Python 3.13, Linux) | 469 Tests bestanden, 4 übersprungen (optionale Pakete) |
+| davon neu: `tests/test_v2_reach.py` | 15 Tests |
+| Browser-Tests `tests/e2e` | 4 von 4 bestanden, davon 1 neu (Eingang festhalten und erledigen, Kontaktliste, Auslastung, Note in der Pipeline, eigene Zeiten) |
+| Release-Paket | zweimal gebaut, byte-gleich |
+| Prüfliste `privacy-and-contact-guardrails` | Punkte 2–5 und 7 eingehalten (Tests: gesperrte Firma nie auf der Kontaktliste, Liste legt nichts an, kein Versand). Punkt 1 bewusst abweichend: ein Eingang lässt sich auch bei gesperrter Firma festhalten, mit Warnhinweis. Punkt 6 verletzt, siehe Schwachstelle 1. |
+| Windows, macOS, echte Firmen | **nicht geprüft** |
+
+### Bewertung
+
+| Kriterium | Note | Beleg |
+|---|---|---|
+| Nutzen | 4 | Ein verpasster Anruf ist in einem Schritt mit Frist festgehalten (Browser-Test). Ob die Fristen im Alltag passen, zeigt erst die Nutzung. |
+| Bedienbarkeit | 4 | Eingang und Kontaktliste stehen ganz oben auf „Heute“; ein Feld genügt. Bildschirmfotos geprüft. |
+| Quellenqualität | 3 | Die Auslastung nennt ihre Grundlage, bleibt aber eine Schätzung aus kalkulierten Stunden. |
+| Robustheit | 4 | Kaputte Einstellungen fallen auf Vorgaben zurück; Fristen überspringen Wochenenden und Abwesenheiten (Tests). Feiertage fehlen. |
+| Sicherheit | 4 | Kein Versand, keine Netzabfrage. Gesperrte Firmen erscheinen nie als Kontaktvorschlag (Test). |
+| Kostenkontrolle | 5 | Keine Netzabfragen, keine KI, keine Fremdpakete. |
+| Erweiterbarkeit | 3 | Modul ohne globalen Zustand; Kalender- und Telefonanbindung hätten klare Anschlussstellen, existieren aber nicht. |
+| Testabdeckung | 4 | 15 Unit-/API-Tests, 1 Browser-Test. Kein Test auf Windows. |
+
+### Nachbesserungsschleife 1
+
+Auslöser: Bildschirmfoto von „Heute“.
+
+1. Das Eingabeformular war ungestaltet und klebte am Rand. Behoben.
+2. Der Eingang stand unter dem sechszeiligen Tagesplan – für „in zehn Sekunden festhalten“ zu weit unten. Jetzt ganz oben.
+3. Listenzeilen nutzten ein dreispaltiges Raster mit zwei Elementen. Behoben.
+
+### Nachbesserungsschleife 2
+
+Auslöser: zweites Bildschirmfoto.
+
+1. **Widerspruch im Tagesplan:** „Wiedervorlagen erledigen“ galt als erledigt, obwohl ein Rückruf offen war. Fällige Rückrufe aus dem Eingang stehen jetzt in der Wiedervorlage (Test).
+2. Die Auslastung meldete „Zugesagt sind rund 0 Wochen“, obwohl 40 Stunden angeboten waren. Text korrigiert.
+3. Das Etikett „Auslastung“ zog sich über die ganze Breite. Behoben.
+
+Schleife beendet: alle Prüfungen bestehen, die verbleibenden Punkte sind neue Arbeit.
+
+### Die drei wichtigsten verbleibenden Schwachstellen
+
+1. **Einträge im Eingang haben keine Löschfrist.** Sie können Namen und Telefonnummern enthalten und müssen bisher von Hand gelöscht werden. Sollte als Nächstes an die Löschfristen in `quality.py` angeschlossen werden.
+2. **Die Auslastung ist grob.** Ohne erfasste Ist-Zeiten zählt jedes angenommene Angebot 8 Wochen lang voll. Verlässlich wird sie erst mit der Nachkalkulation.
+3. **Weiterhin ungemessen an echten Firmen und ungetestet unter Windows.** Das gilt für beide Arbeitspakete; der Praxistest braucht eine Freigabe.
+
+Offen aus Arbeitspaket 1 bleibt: „Heute → Offenes Potenzial“ und die Firmen-Berichte sortieren noch nach dem alten Lead-Fit; Geschäftszeiten der Firmen fehlen.
+
+### Stufe
+
+Implementiert und lokal getestet (Linux, Chromium). Nicht live verifiziert, nicht pilotfähig, nicht öffentlich launchfähig.
+
+**Entscheid:** weiter. Vorschlag für Arbeitspaket 3: Praxistest an echten Firmen (nach Freigabe) oder, ohne Freigabe, Löschfrist für den Eingang und README-Neufassung.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Roadmap und README-Neufassung stehen ebenfalls aus.

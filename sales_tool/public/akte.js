@@ -74,7 +74,7 @@
       const n = file.next, need = file.need;
       const svcs = await services();
       box.innerHTML = `<div class="lf-head"><div><span class="eyebrow">FIRMENAKTE</span><h3>${esc(file.lead.company)}</h3>
-          <small class="muted">Score ${file.lead.score} · Belege ${file.coverage.pct} % · Phase ${esc(file.lead.stage)}${file.lead.next_step ? ` · nächster Schritt: ${esc(file.lead.next_step)}${file.lead.next_date ? ' (' + esc(fmtDate(file.lead.next_date)) + ')' : ''}` : ''}</small></div>
+          <small class="muted">Passung ${file.assessment?.fit.grade === 'X' ? 'Ausschluss' : (file.assessment?.fit.grade || 'offen')} · Belege ${file.coverage.pct} % · Phase ${esc(file.lead.stage)}${file.lead.next_step ? ` · nächster Schritt: ${esc(file.lead.next_step)}${file.lead.next_date ? ' (' + esc(fmtDate(file.lead.next_date)) + ')' : ''}` : ''}</small></div>
         <div class="lf-next ${n.blocked ? 'blocked' : ''}"><small>${n.blocked ? 'Gesperrt' : 'Als Nächstes'}</small><b>${esc(n.label)}</b><small>${esc(n.detail || '')}</small>
           ${n.action ? `<button type="button" class="btn btn-primary" data-lf-go='${esc(JSON.stringify(n.action))}'>${esc(n.action.label)} ▶</button>` : ''}</div></div>
         ${file.lock ? `<div class="lf-lock" role="alert">⛔ Kontaktsperre: Firma ist ${esc(file.lock)}. Anruf, Termin, Mail-Entwurf und Angebot sind gesperrt. Ein Widerspruch lässt sich immer dokumentieren.</div>` : ''}

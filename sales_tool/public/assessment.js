@@ -77,6 +77,9 @@
   };
 
   window.leadGradeChip = id => (id in grades ? gradeChip(grades[id].grade) : '');
+  const RANK = {A: 0, B: 1, C: 3, X: 4};
+  // Reihenfolge für Listen: A, B, unbekannt, C, Ausschluss
+  window.leadGradeRank = id => (id in grades ? (RANK[grades[id].grade] ?? 2) : 2);
 
   async function loadGrades() {
     try {
@@ -134,7 +137,7 @@
     $('#lostCancel')?.addEventListener('click', () => $('#lostDialog').close());
     document.body.addEventListener('click', e => { if (e.target.closest('[data-as-profile]')) openProfile(); });
     const orig = window.reload;
-    if (typeof orig === 'function') window.reload = async function (...args) { const r = await orig.apply(this, args); await loadGrades(); if (typeof renderLeads === 'function') renderLeads(); return r; };
+    if (typeof orig === 'function') window.reload = async function (...args) { const r = await orig.apply(this, args); await loadGrades(); if (typeof renderLeads === 'function') renderLeads(); if (typeof window.renderPipeline === 'function') window.renderPipeline(); return r; };
     loadProfile().catch(() => {});
     loadGrades().then(() => { if (typeof renderLeads === 'function' && typeof leads !== 'undefined' && leads.length) renderLeads(); });
   });

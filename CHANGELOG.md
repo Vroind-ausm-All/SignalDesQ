@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0-dev3 – Eigene Erreichbarkeit und Auslastung
+
+- **Eingang & Rückrufe** ganz oben auf „Heute“: verpassten Anruf oder Anfrage in einem Schritt festhalten, auch ohne angelegte Firma. Die Rückruffrist ergibt sich aus deinen Zeiten; Fälliges steht zusätzlich in der Wiedervorlage.
+- **Als Nächstes kontaktieren:** Firmen mit Passung A oder B in den Phasen Qualifiziert bis Rückmeldung, A zuerst, „jetzt passendes Zeitfenster“ vorn. Gesperrte, ausgeschlossene und ausgeschöpfte Firmen erscheinen nicht.
+- **Auslastung** aus den kalkulierten Stunden angenommener und offener Angebote gegen deine Wochenstunden.
+- **Deine Zeiten** (Datenqualität & System): Arbeitstage, Rückruf- und Terminzeiten, Abwesenheiten. Daraus entstehen Terminvorschläge und Textbausteine (Mailbox-Ansage, Signaturzeile, Abwesenheitsnotiz) zum Kopieren.
+- **Die Note steuert die Reihenfolge:** Pipeline-Karten sortieren nach Passung und zeigen die Note; die Firmenakte nennt die Passung statt des alten Scores.
+- Antwortzeit als Kennzahl: mittlere Zeit bis zur Rückmeldung und Anteil innerhalb der Frist.
+- Schema 26 (Tabelle für den Eingang). 469 Tests (15 neu) und 4 Browser-Tests (1 neu).
+- Kein abgeschlossenes Release. Nicht an echten Firmen und nicht unter Windows geprüft.
+
 ## 2.0.0-dev2 – Kundenbewertung und Erreichbarkeit
 
 - **Zielkundenprofil** (Datenqualität & System): Zielbranchen und Ausschlüsse aus dem Branchenkatalog, Wunschgröße, Standort und Einzugsgebiet, Mindestauftrag, Wochenstunden, Zahl der Anrufversuche.

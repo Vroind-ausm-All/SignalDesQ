@@ -240,6 +240,8 @@ def init_db(conn: sqlite3.Connection):
     init_profiles(conn)  # v1.18: Suchprofile mit Budget
     from .qualification import init_qualification
     init_qualification(conn)  # 2.0.0-dev2: Zeitfenster je Anrufversuch, Verlustgrund
+    from .reach import init_reach
+    init_reach(conn)  # 2.0.0-dev3: Eingang (verpasste Anrufe, Anfragen) mit Rückruffrist
     conn.commit()
 
 
