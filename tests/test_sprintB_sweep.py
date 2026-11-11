@@ -126,9 +126,6 @@ class SweepBase(unittest.TestCase):
         gm._STATE['rows'] = None
         self.conn.close()
         from sales_tool.research import jobs
-        for t in list(sw._THREADS.values()):  # laufende Sammelsuchen dieser Datenbank zu Ende laufen lassen
-            if hasattr(t, 'join'):
-                t.join(10)
         jobs.stop_workers(self.db)  # Worker fragen die Datenbank noch Sekunden nach dem letzten Auftrag ab – unter Windows wäre die Datei gesperrt
         for attempt in range(40):  # Windows gibt eine eben geschlossene Datei manchmal erst nach einem Moment frei
             try:

@@ -44,6 +44,7 @@ Die Regeln selbst (Kontaktsperre, Belegpflicht, GoBD-Schutz) stehen im Programmc
 Eine Tabelle `Prüfung | Ergebnis | Beleg` und ein Urteil `weiter / nachbessern / blockiert`.
 
 ## Sicherheitsregeln
+- Testlauf und Push nie in einem Befehl verketten. Erst das Ergebnis lesen, dann committen und pushen.
 - Keine Tests abschalten, überspringen oder Erwartungen lockern, um ein grünes Ergebnis zu erhalten.
 - Keine echten Firmen-Websites abrufen, keine TLS-Prüfung, robots.txt-Regel oder Prüfsumme umgehen.
 - Keine Nutzerdatenbank (`~/.akquise-tool/`) anfassen; Tests arbeiten in temporären Ordnern.

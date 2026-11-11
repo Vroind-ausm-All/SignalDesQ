@@ -196,7 +196,9 @@ Danach lokal: 475 Tests unter Python 3.13 und 3.10 bestanden. Ob Windows damit v
 
 ### Nachtrag: CI-Ergebnis für Commit `cc584f2` gelesen
 
-9 von 10 Jobs grün. **Die Unit-Tests unter Windows mit Python 3.13 sind erstmals vollständig grün.** Unter Windows mit Python 3.10 blieb 1 Fehler: derselbe Sammelsuche-Test konnte seine Datenbankdatei beim Aufräumen nicht löschen (unter 3.13 im selben Lauf bestanden – ein Zeitproblem, kein fester Fehler). Der Test wartet jetzt auf laufende Sammelsuchen und versucht das Aufräumen bis zu zehn Sekunden lang erneut. Die Prüfungen des Tests selbst sind unverändert. Ob das reicht, zeigt der nächste Lauf; die eigentliche Ursache (welcher Hintergrund-Thread die Datei kurz hält) ist nicht nachgewiesen.
+9 von 10 Jobs grün. **Die Unit-Tests unter Windows mit Python 3.13 sind erstmals vollständig grün.** Unter Windows mit Python 3.10 blieb 1 Fehler: derselbe Sammelsuche-Test konnte seine Datenbankdatei beim Aufräumen nicht löschen (unter 3.13 im selben Lauf bestanden – ein Zeitproblem, kein fester Fehler). Der Test versucht das Aufräumen jetzt bis zu zehn Sekunden lang erneut; die Worker enden beim Beenden sofort statt nach bis zu fünf Sekunden. Die Prüfungen des Tests selbst sind unverändert. Ob das reicht, zeigt der nächste Lauf; die eigentliche Ursache (welcher Hintergrund-Thread die Datei kurz hält) ist nicht nachgewiesen.
+
+**Eigener Fehler in dieser Runde:** Commit `02a3a0d` wurde gepusht, bevor das Testergebnis gelesen war. Er wartete auch auf Sammelsuchen früherer Tests und brach 20 Tests. Im Folge-Commit behoben; der erste Versuch der Korrektur verdreifachte außerdem die Laufzeit (400 statt 140 Sekunden) und wurde zurückgenommen. Regel im Prüfverfahren ergänzt: Commit und Push nie im selben Befehl wie den Testlauf ausführen.
 
 ## Arbeitspaket 4 – Nachkalkulation (2.0.0-dev5)
 
