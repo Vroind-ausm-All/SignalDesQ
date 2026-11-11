@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0-dev5 – Nachkalkulation
+
+- **Nachkalkulation** unter „Angebote & Preise“: Für jedes angenommene Angebot erfasst du die tatsächlich gebrauchten Stunden (einzeln oder als Sammeleintrag) und siehst kalkuliert, gebraucht und übrig.
+- **Auftrag abschließen** mit den tatsächlichen Fremdkosten. SignalDesk zeigt deinen Verdienst je Stunde und ob er über deinem Mindestverdienst liegt.
+- **Überziehung fällt auf:** Sobald du mehr Stunden gebraucht hast als kalkuliert, steht der Auftrag oben.
+- **Lernwert ab drei abgeschlossenen Aufträgen:** „Im Mittel brauchst du X % mehr Zeit als kalkuliert.“
+- **Auslastung genauer:** Aufträge mit erfassten Zeiten zählen mit den verbleibenden Stunden, abgeschlossene gar nicht mehr. Bisher zählte jedes angenommene Angebot acht Wochen lang voll und fiel danach ganz heraus.
+- Abgeschlossene Aufträge sind gegen Änderungen geschützt, bis du sie wieder öffnest. Angebote und Rechnungen bleiben unberührt; der Kunde sieht nichts davon.
+- Schema 27 (zwei Tabellen ergänzt). 485 Tests (10 neu) und 5 Browser-Tests (1 neu).
+- Kein abgeschlossenes Release. Nicht an echten Firmen geprüft.
+
 ## 2.0.0-dev4 – Läuft wieder auf Python 3.10/3.11 und unter Windows-CI; aufgeräumt
 
 - **Behoben – SignalDesk startete unter Python 3.10 und 3.11 nicht** (Syntaxfehler in der Impressumserkennung, seit Anfang November). Ein Test verhindert die Wiederholung.

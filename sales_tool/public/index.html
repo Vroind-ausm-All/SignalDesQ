@@ -180,6 +180,9 @@
    <form id="qbSettings" class="sales-form qb-settings-form"></form>
    <p class="muted" id="qbCatalogNotice"></p><div id="qbCatalog" class="qb-catalog"></div>
   </details>
+ <section class="panel sales-section" id="nachkalkulation"><div class="studio-section-head"><div><span class="eyebrow">NACH DEM AUFTRAG · NUR FÜR DICH</span><h2>Nachkalkulation</h2></div><span class="muted" id="pkCount"></span></div>
+  <p class="muted">Trag ein, wie lange du wirklich gebraucht hast. So siehst du, ob sich ein Festpreis gelohnt hat, und die Auslastung auf „Heute“ rechnet mit dem, was noch offen ist.</p>
+  <p id="pkLesson" class="pk-lesson"></p><div id="pkList" class="pk-list"></div><p class="muted td-note" id="pkNotice"></p></section>
  <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">05 / ANGEBOTSVERLAUF</span><h2>Gespeicherte Angebote</h2></div><button type="button" class="text-button" id="quoteRefresh">Aktualisieren ↻</button></div><div id="quoteHistory" class="sales-list"></div><div id="quoteSaved" class="quote-preview"></div></section>
 </div>
 <div class="content hidden" id="viewFinder">
@@ -695,6 +698,7 @@
 <script src="/catalog.js" defer></script>
 <script src="/assessment.js" defer></script>
 <script src="/reach.js" defer></script>
+<script src="/postcalc.js" defer></script>
 <script src="/akte.js" defer></script>
 <script src="/workday.js" defer></script>
 <dialog id="lostDialog" class="lost-dialog"><form id="lostForm" class="sales-form"><h3>Warum verloren?</h3><p class="muted">Firma: <b id="lostCompany"></b>. Der Grund hilft dir später zu sehen, woran Chancen scheitern.</p>

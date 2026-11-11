@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev4. Was erledigt ist, steht im [`CHANGELOG.md`](../CHANGELOG.md); die Lücken im Einzelnen in [`LAUNCH_AUDIT.md`](LAUNCH_AUDIT.md).
+Stand 2.0.0-dev5. Was erledigt ist, steht im [`CHANGELOG.md`](../CHANGELOG.md); die Lücken im Einzelnen in [`LAUNCH_AUDIT.md`](LAUNCH_AUDIT.md).
 
 ## Als Nächstes – lokaler Pilot
 
@@ -8,7 +8,7 @@ Stand 2.0.0-dev4. Was erledigt ist, steht im [`CHANGELOG.md`](../CHANGELOG.md); 
 |---|---|---|
 | 1 | **Praxistest an 50–100 echten Betrieben** im Zielgebiet: Homepage-Zuordnung, Berichtsqualität und Bewertung messen | Freigabe und Suchgebiet vom Eigentümer |
 | 2 | **Bewertung an echten Ergebnissen prüfen:** Werden A-Firmen häufiger Kunden? Gewichte einstellbar machen | genug gewonnene und verlorene Chancen |
-| 3 | **Nachkalkulation:** Ist-Zeiten je Auftrag; macht die Auslastung verlässlich | – |
+| 3 | ~~Nachkalkulation~~ – erledigt in 2.0.0-dev5. Offen: Zeiten je Leistung statt je Auftrag, Katalogwerte aus den Ist-Zeiten vorschlagen | genug abgeschlossene Aufträge |
 | 4 | **Ein Leistungskatalog** statt drei Listen (`model.OFFERS`, `sales_workspace.PACKAGES`, `pricing`) | – |
 | 5 | **Geschäftszeiten der Firmen** aus OpenStreetMap und hinterlegten Website-Daten | – |
 | 6 | **OpenStreetMap ohne öffentliche Server** (lokaler Auszug), falls der Praxistest häufige Ausfälle zeigt | Messung aus Nr. 1 |

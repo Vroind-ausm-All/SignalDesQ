@@ -302,7 +302,14 @@ def capacity(conn, profile=None, av=None, today=None):
     profile, av = profile or ql.load(conn), av or load(conn)
     today = today or dt.date.today()
     since = (today - dt.timedelta(days=56)).isoformat()
-    accepted = sum(_hours(r['internal_json']) for r in conn.execute("SELECT internal_json FROM proposals WHERE status='angenommen' AND substr(updated_at,1,10)>=?", (since,)))
+    from .postcalc import remaining_by_proposal
+    tracked = remaining_by_proposal(conn)  # 2.0.0-dev5: wo Zeiten erfasst sind, zählt der Rest statt der vollen Kalkulation
+    accepted = sum(tracked.values())
+    untracked = 0
+    for r in conn.execute("SELECT id, internal_json FROM proposals WHERE status='angenommen' AND substr(updated_at,1,10)>=?", (since,)):
+        if r['id'] not in tracked:
+            accepted += _hours(r['internal_json'])
+            untracked += 1
     open_rows = conn.execute("""SELECT p.internal_json FROM proposals p JOIN leads l ON l.id=p.lead_id
                                 WHERE p.status IN ('entwurf','gesendet_manuell') AND l.stage NOT IN ('verloren','gesperrt')""").fetchall()
     offered = sum(_hours(r['internal_json']) for r in open_rows)
@@ -321,8 +328,10 @@ def capacity(conn, profile=None, av=None, today=None):
         level, hint = 'luft', f'Zugesagt sind rund {weeks_accepted:g} Wochen. Es ist Platz für neue Aufträge.'
     return {'weekly_hours': profile['weekly_hours'], 'delivery_hours_per_week': per_week, 'accepted_hours': round(accepted, 1), 'offered_hours': round(offered, 1),
             'offers_open': len(open_rows), 'weeks_accepted': weeks_accepted, 'weeks_if_all_accepted': weeks_all, 'level': level, 'hint': hint,
-            'notice': 'Grundlage sind die kalkulierten Stunden der Angebote, nicht tatsächlich gearbeitete Zeit. Angenommene Angebote zählen 8 Wochen lang; '
-                      'bereits erledigte Arbeit wird nicht abgezogen.'}
+            'tracked_projects': len(tracked), 'untracked_projects': untracked,
+            'notice': 'Aufträge mit erfassten Zeiten zählen mit ihren verbleibenden Stunden, abgeschlossene gar nicht mehr. '
+                      + (f'{untracked} Auftrag/Aufträge ohne erfasste Zeiten zählen 8 Wochen lang mit der vollen Kalkulation – Zeiten unter „Angebote & Preise → Nachkalkulation“ erfassen.'
+                         if untracked else 'Grundlage sind die kalkulierten Stunden der Angebote.')}
 
 
 # ---------------------------------------------------------------- als Nächstes kontaktieren

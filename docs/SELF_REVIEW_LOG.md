@@ -194,6 +194,60 @@ Danach lokal: 475 Tests unter Python 3.13 und 3.10 bestanden. Ob Windows damit v
 
 **Entscheid:** nachbessern abgeschlossen; CI des neuen Commits lesen.
 
+## Arbeitspaket 4 – Nachkalkulation (2.0.0-dev5)
+
+Entspricht aus dem Auftrag: Abschnitt 6 („verfügbare Kapazität, Nachkalkulation bei abgeschlossenen Projekten“). Behebt Schwachstelle 2 aus Arbeitspaket 2 (grobe Auslastung).
+
+### Tatsächlich ausgeführt
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 (Linux) | je 485 Tests bestanden; 4 bzw. 6 übersprungen (optionale Pakete) |
+| davon neu: `tests/test_v2_postcalc.py` | 10 Tests |
+| Browser-Tests | 5 von 5, davon 1 neu (Zeit erfassen → Rest sichtbar → abschließen → Urteil → Auslastung auf „Heute“ folgt) |
+| Release-Paket | zweimal gebaut, byte-gleich |
+| Windows, echte Firmen | nicht geprüft; Windows nur über die CI |
+
+### Bewertung
+
+| Kriterium | Note | Beleg |
+|---|---|---|
+| Nutzen | 4 | Beantwortet erstmals „Hat sich der Festpreis gelohnt?“ (Test: 74,00 € je Stunde gegen 66 € Mindestverdienst). Wert hängt davon ab, dass Zeiten wirklich eingetragen werden. |
+| Bedienbarkeit | 4 | Ein Feld und ein Knopf je Auftrag; Sammeleinträge erlaubt. Bildschirmfoto geprüft. |
+| Quellenqualität | 4 | Soll kommt aus der gespeicherten Kalkulation des Angebots, Ist aus den Einträgen; der Lernwert erscheint erst ab drei Aufträgen. |
+| Robustheit | 4 | Abgeschlossene Aufträge sind geschützt; Angebote ohne kalkulierte Stunden führen nicht zu Fehlern (Tests). |
+| Sicherheit | 5 | Keine Netzabfrage; Angebote und Rechnungen bleiben unverändert (Test); nichts davon erscheint im Kundendokument. |
+| Kostenkontrolle | 5 | Keine Fremdpakete, keine KI. |
+| Erweiterbarkeit | 3 | Zeiten hängen am Auftrag, nicht an der einzelnen Leistung. |
+| Testabdeckung | 4 | 10 Unit-/API-Tests, 1 Browser-Test. |
+
+### Nachbesserungsschleife 1
+
+Auslöser: der neue Browser-Test.
+
+1. **Das Stundenfeld lehnte „12,5“ ab.** Der Browser erlaubte wegen der eingestellten Schrittweite nur Werte wie 0,1 / 0,35 / 0,6. Das Formular ließ sich nicht absenden – ohne Fehlermeldung. Alle Unit-Tests waren grün. Behoben.
+2. Meldungen nutzten den Dezimalpunkt („7.5 von 20“). Jetzt deutsche Schreibweise.
+3. Die Grenze von 24 Stunden je Eintrag verhinderte Sammeleinträge („diese Woche 30 Stunden“). Auf 200 angehoben.
+
+### Nachbesserungsschleife 2
+
+1. „1 Einträge“ → „1 Eintrag“.
+2. Der bestehende Auslastungs-Test prüfte einen Hinweistext, der sich mit der neuen Rechnung geändert hat; die Prüfung wurde auf die neue Aussage umgestellt und um die Zahl der Aufträge ohne Zeiten ergänzt.
+
+Schleife beendet: alle Prüfungen bestehen.
+
+### Die drei wichtigsten verbleibenden Schwachstellen
+
+1. **Zeiten je Auftrag, nicht je Leistung.** Welche Katalogleistung regelmäßig länger dauert, lässt sich noch nicht ablesen – genau das würde die Preise verbessern.
+2. **Aufträge ohne erfasste Zeiten** fallen nach acht Wochen weiterhin still aus der Auslastung.
+3. **Weiterhin keine Messung an echten Firmen**; Windows nur über die CI belegt.
+
+### Stufe
+
+Implementiert und lokal getestet (Linux, Python 3.10 und 3.13, Chromium). Nicht live verifiziert, nicht pilotfähig, nicht öffentlich launchfähig.
+
+**Entscheid:** weiter.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Roadmap und README-Neufassung stehen ebenfalls aus.

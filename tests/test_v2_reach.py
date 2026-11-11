@@ -197,7 +197,8 @@ class CapacityTests(Base):
         self.offer(lid, 'gesendet_manuell', 200, key='hours')  # altes Paketformat
         c = reach.capacity(self.conn, today=today)
         self.assertEqual((c['offered_hours'], c['level']), (200.0, 'voll'))
-        self.assertIn('kalkulierten Stunden', c['notice'])
+        self.assertIn('vollen Kalkulation', c['notice'])  # nennt weiter die Grundlage (seit dev5: solange keine Zeiten erfasst sind)
+        self.assertEqual(c['untracked_projects'], 1)
 
     def test_offers_of_lost_leads_do_not_count(self):
         lid = self.lead(stage='verloren')

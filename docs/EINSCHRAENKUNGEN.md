@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev4)
+# Bekannte Einschränkungen (Stand 2.0.0-dev5)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -46,7 +46,14 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 ## Eigene Erreichbarkeit und Auslastung (2.0.0-dev3)
 - **Kein Kalenderabgleich.** Terminvorschläge kennen nur deine eingestellten Zeiten und die in SignalDesk eingetragenen Termine. Private oder externe Termine musst du selbst ausschließen.
 - **Keine Telefonanbindung.** Verpasste Anrufe trägst du selbst ein; SignalDesk liest keine Anrufliste.
-- **Auslastung ist eine Schätzung** aus kalkulierten Stunden. Angenommene Angebote zählen 8 Wochen lang voll, erledigte Arbeit wird nicht abgezogen. Genauer wird es erst mit einer Zeiterfassung (Nachkalkulation).
+- **Auslastung** rechnet mit verbleibenden Stunden, sobald du Zeiten erfasst (seit 2.0.0-dev5). Aufträge ohne erfasste Zeiten zählen weiter 8 Wochen lang mit der vollen Kalkulation und fallen danach heraus.
 - **Feiertage** kennt SignalDesk nicht. Trag sie als Abwesenheit ein, sonst fallen Fristen und Terminvorschläge darauf.
 - **Einträge im Eingang** können Namen und Telefonnummern enthalten. Erledigte Einträge werden nach der eingestellten Frist (Vorgabe 90 Tage) anonymisiert. Offene Einträge bleiben unbegrenzt stehen – bitte erledigen oder löschen.
 - **Die Kontaktliste** zeigt nur Firmen in den Phasen Qualifiziert, Kontakt geprüft und Rückmeldung. Firmen in der Recherche erscheinen erst nach der Übergabe.
+
+## Nachkalkulation (2.0.0-dev5)
+- **Zeiten trägst du von Hand ein.** Es gibt keine Stoppuhr und keinen Import aus einer Zeiterfassung.
+- **Je Auftrag, nicht je Leistung.** Welche Position eines Angebots länger gedauert hat, wird nicht unterschieden.
+- **Aufträge ohne kalkulierte Stunden** (z. B. sehr alte Angebote) zeigen nur die erfassten Stunden, kein Soll/Ist.
+- **Der Lernwert** („im Mittel X % mehr Zeit“) erscheint erst ab drei abgeschlossenen Aufträgen und bleibt bei wenigen Aufträgen eine grobe Zahl.
+- **Zeiteinträge sind keine Buchhaltungsbelege** und nicht festgeschrieben; sie lassen sich ändern, solange der Auftrag offen ist.

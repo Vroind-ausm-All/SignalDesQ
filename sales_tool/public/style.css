@@ -494,3 +494,14 @@
 .rc-abs{display:grid;grid-template-columns:auto auto 1fr auto;gap:6px;margin:4px 0}.rc-tpl{margin-top:12px;font-size:12px}
 .rc-tpl pre{white-space:pre-wrap;background:#f4f7f5;border-radius:8px;padding:8px 10px;margin:4px 0;font:inherit}
 @media(max-width:700px){.rc-in-form,.rc-abs{grid-template-columns:1fr}}
+
+/* 2.0.0-dev5: Nachkalkulation */
+.pk-list{display:grid;gap:10px}.pk-card{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;min-width:0}.pk-card.done{background:#fafbfa}
+.pk-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.pk-head small{display:block;color:var(--muted);font-size:11px}
+.pk-nums{display:flex;gap:16px}.pk-nums span{text-align:right}.pk-nums b{display:block;font-size:14px}
+.pk-bar{margin:8px 0 4px}.pk-bar.over i{background:#d2705f}.pk-card p{margin:4px 0 8px;font-size:12px}
+.pk-form{display:grid;grid-template-columns:auto 110px 1fr auto;gap:6px;align-items:center;margin-top:6px}.pk-form.pk-close{grid-template-columns:1fr 1fr auto}
+.pk-form input{min-width:0;padding:8px 10px;border-radius:8px;background:rgba(120,145,151,.09);border:1px solid rgba(137,165,169,.3);font:inherit;color:inherit}
+.pk-entries{font-size:12px;margin-top:6px}.pk-entries div{display:flex;justify-content:space-between;gap:8px;padding:2px 0;border-bottom:1px solid #eef1ef}
+.pk-lesson{font-weight:700;font-size:13px;margin:4px 0 10px}.pk-lesson:empty{display:none}
+@media(max-width:700px){.pk-form,.pk-form.pk-close{grid-template-columns:1fr}}
