@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev10)
+# Bekannte Einschränkungen (Stand 2.0.0-dev11)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -69,3 +69,7 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - **Der lokale Bestand veraltet.** Er ist so aktuell wie die eingelesene Datei.
 - **Nicht an einem echten Geofabrik-Auszug geprüft** – der Download war in der Testumgebung nicht möglich. Geprüft gegen Dateien des offiziellen Werkzeugs `osmium`. PBF-Dateien mit anderer Kompression als zlib werden mit klarer Meldung abgelehnt.
 - Weitere Grenzen (geschätzte PLZ, Lage der Gebäudeumrisse, ungeprüfte Öffnungszeiten) stehen in `OPENSTREETMAP_LOKAL.md`.
+
+## Darstellung (2.0.0-dev11)
+
+- Die Darstellung gilt für die ganze Installation, nicht je Nutzer: Im Team-Betrieb sehen alle dasselbe Theme. „Klassisch“ ist nicht pixelgleich mit dem Stand davor; Grautöne und Linien sind leicht vereinheitlicht, graue Nebentexte für bessere Lesbarkeit etwas dunkler. Durchscheinende Schatten sind im Dunkelmodus kaum sichtbar. Ausdrucke bleiben hell. Die Dichte „Kompakt“ blendet die Erklärtexte unter den Seitenüberschriften aus. Ohne Unterstützung für `color-mix()` (Browser vor etwa 2023) ist die Kopfleiste deckend statt leicht durchscheinend.

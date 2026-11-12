@@ -1,0 +1,56 @@
+# UI/UX – Vorschläge für mehr Übersicht
+
+Stand 2.0.0-dev11. Grundlage: Screenshots aller Hauptansichten in allen Themes und eine Messung im Browser bei 1366 × 768 Pixeln
+(häufigste Laptop-Auflösung) mit zwölf fiktiven Leads. Alle Vorschläge bauen auf den Farbrollen aus dev11 auf und funktionieren
+damit ohne Zusatzaufwand in jedem Theme, hell wie dunkel.
+
+## Was gemessen wurde
+
+| Befund | Normal | Kompakt (dev11) |
+|---|---|---|
+| Seitenkopf bis zum ersten Inhalt („Heute“, „Leads“, „Pipeline“) | 233–255 px, also ein Drittel des Bildschirms | 158–162 px |
+| Seitenkopf „Firmen finden“ | 329 px | 210 px |
+| Lead-Zeilen ohne Scrollen sichtbar | 5 | 8 |
+| Länge des Lead-Dialogs | rund 7.800 px, etwa zehn Bildschirmhöhen | unverändert |
+| Einträge in der Navigation | 10 sichtbar, 6 unter „Erweitert“; die Einstellungen liegen unter „Erweitert → Datenqualität & System“ | – |
+
+## Umgesetzt in dev11
+
+**V1 – Themes, Hell/Dunkel, Dichte (umgesetzt).** Unter *Erweitert → Datenqualität & System → Darstellung* gibt es vier Themes:
+Klassisch (bisheriger Stand), Schiefer (kühles Grau, blauer Akzent), Sand (warme Erdtöne) und Kontrast (kräftige Linien, AAA-Kontrast).
+Jedes gibt es hell und dunkel; „Wie System“ folgt dem Betriebssystem. Die Dichte „Kompakt“ blendet die Erklärtexte unter den
+Überschriften aus und verringert Abstände. Oben rechts schaltet ein Knopf zwischen Hell und Dunkel um.
+Technisch: Alle 284 festen Farbwerte im Stylesheet sind in 42 Rollen zusammengefasst. Ein Test verhindert neue feste Farben
+und prüft für jedes Theme in Hell und Dunkel 24 Farbpaare gegen die WCAG-Kontrastwerte.
+
+## Vorschläge zur Auswahl
+
+Aufwand: S = bis ein halber Tag, M = ein bis zwei Tage, L = mehrere Tage. Alle Vorschläge ändern nur die Oberfläche, nicht die Daten.
+
+| Nr. | Vorschlag | Problem heute | Aufwand | Nutzen |
+|---|---|---|---|---|
+| V2 | **Firmenakte mit Reitern** – Überblick · Kontakt & Erreichbarkeit · Bewertung · Verlauf · Stammdaten; Kopf mit Name, Phase, Passung und den zwei wichtigsten Knöpfen bleibt beim Scrollen stehen | Der Lead-Dialog ist zehn Bildschirme lang; die nächste Aktion verschwindet beim Scrollen | M | sehr hoch – die meistgenutzte Ansicht |
+| V3 | **Eigener Bereich „Einstellungen“** unten in der Navigation: Darstellung, Leistungsprofil, Zielkundenprofil, eigene Erreichbarkeit, Gewichte & Fristen, Sicherheit an einem Ort. „Datenqualität“ bleibt reine Arbeitsansicht | Einstellungen liegen verstreut in fünf Ansichten, die Darstellung unter „Erweitert“ | S–M | hoch – man findet Einstellungen dort, wo man sie sucht |
+| V4 | **Navigation auf sechs Bereiche:** Heute · Finden · Firmen (Leads, Berichte, Pipeline als Umschalter) · Angebote · Abrechnen · Einstellungen. Die Detailseiten (URL-Recherche, Scoring, Signale) werden Reiter in „Firmen-Berichte“ | 16 Einträge, davon drei Gruppen mit nur einem oder zwei Einträgen | M | hoch – schon in der Roadmap; V3 ist der erste Schritt |
+| V5 | **Lead-Liste mit Filterchips und gespeicherten Ansichten:** Passung A/B/C, Erreichbarkeit, „ohne Rechtsform“, „Frist läuft ab“, „heute fällig“ als Chips; Spalten ein- und ausblendbar | Die Spalten „Kaufsignal“ und „Angebot“ zeigen bei den meisten Firmen denselben Platzhalter; filtern geht nur nach Phase | M | mittel bis hoch |
+| V6 | **Einheitliche Statusmarken:** eine Komponente für Passung, Phase, Frist und Datenquelle mit festen Rollenfarben (Erfolg, Hinweis, Warnung, Fehler, Info) und Symbol, damit Farbe nie allein trägt | Heute elf verschiedene Klassen für „Pill“, „Badge“ und „Chip“ | S | mittel – ruhigeres Bild, besser für Farbsehschwäche |
+| V7 | **Heute als Fokusliste:** oben nur die drei nächsten Schritte mit je einem Knopf; Eingang, Auslastung und Tagesplan klappen darunter auf und merken sich ihren Zustand | Die Heute-Seite ist 2.800 px lang | S–M | mittel |
+| V8 | **Schnellsuche mit Strg+K:** Firma, Ansicht oder Aktion tippen und mit Enter hin | Firma öffnen heißt heute: Leads → suchen → Zeile anklicken | M | hoch für Tastaturnutzer |
+| V9 | **Leere Zustände mit einem nächsten Schritt:** statt „Noch keine Recherche-Aufträge“ ein Knopf zur passenden Stelle | Viele Kästen sind beim Start leer und erklären nur | S | mittel – vor allem für den Einstieg |
+
+## Empfehlung
+
+Reihenfolge **V2 → V3 → V6**, danach V4 und V5. V2 trifft die Ansicht, in der man den Tag verbringt. V3 ist schnell und
+räumt die Einstellungen auf, bevor V4 die Navigation umbaut. V6 ist klein und macht jede weitere Änderung ruhiger. V8 lohnt
+sich, sobald mehrere hundert Firmen im Bestand sind.
+
+## Bekannte Grenzen von V1
+
+- „Klassisch“ ist nicht pixelgleich mit dem Stand vor dev11. 284 Farbtöne wurden zu 42 Rollen zusammengefasst; die Markenfarben
+  (Petrol, Mint, Grün, Creme, Schrift) sind unverändert. Leicht verschoben sind vor allem Grautöne und Linien. Graue Nebentexte sind
+  bewusst dunkler geworden, damit sie den WCAG-AA-Kontrast erreichen.
+- Durchscheinende Schatten und Flächen (`rgba(…)`, 48 Stellen) sind nicht in Rollen überführt. Sie sind im Dunkelmodus kaum sichtbar,
+  stören aber nicht.
+- Die Darstellung gilt für die ganze Installation. Im Team-Betrieb wählen alle Nutzer dasselbe Theme; eine Wahl je Nutzer wäre ein
+  eigener Schritt.
+- Ausdrucke von Rechnungen und Angeboten bleiben immer hell (eigenes Stylesheet).

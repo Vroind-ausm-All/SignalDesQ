@@ -375,6 +375,30 @@ Behebt Schwachstelle 1 aus Arbeitspaket 8.
 
 **Entscheid:** weiter mit Roadmap und Oberfläche.
 
+## Arbeitspaket 10 – Darstellung: Themes, Hell/Dunkel, Kompakt (2.0.0-dev11)
+
+Auftrag: Oberfläche übersichtlicher machen, Vorschläge in Hell und Dunkel, mehrere Themes in den Einstellungen wählbar; danach Roadmap.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 537 Tests bestanden (10 neu) |
+| Browser-Tests | 7 von 7 (1 neu: umschalten, nach Neuladen erhalten, frischer Browser übernimmt die Wahl vom Server, „Wie System“ folgt dem Betriebssystem, keine Abrufe nach außen) |
+| Kontrast | 4 Themes × 2 Modi × 24 Farbpaare gegen WCAG; anfangs 21 Verstöße, nach Anpassung 0 (Test) |
+| Feste Farben | 284 Farbwerte in 42 Rollen; Test schlägt bei jeder neuen festen Farbe fehl (mit eingebautem Fehler geprüft) |
+| Abweichung „Klassisch“ zum Stand davor | Farbwert für Farbwert gegen das alte Stylesheet verglichen: Markenfarben gleich, 67 sichtbar verschobene Töne, vor allem Grautöne und Linien |
+| Messung bei 1366 × 768 | Kompakt: Seitenkopf 255 → 162 px, sichtbare Lead-Zeilen 5 → 8 |
+| Release-Paket | enthält `theme.js`, `appearance.py`, Vorschlagsdokument |
+
+**Selbstbewertung 4 von 5.** Abzug, weil „Klassisch“ nicht pixelgleich geblieben ist und durchscheinende Schatten (48 Stellen) noch feste Werte tragen.
+
+Nachbesserungen innerhalb des Pakets:
+1. Der erste Rollenentwurf hatte die Markenfarbe Mint durch ein helleres Mint ersetzt und Texte in der dunklen Seitenleiste an das Grau für helle Flächen gekoppelt. Gefunden durch den Farbvergleich gegen die alte Datei; behoben mit eigener Rolle für Nebentexte in der Seitenleiste.
+2. „Kompakt“ vergrößerte versehentlich die Abstände der Seitenleiste, weil die Regel spezifischer war als die vorhandene. Im Bildschirmfoto gefunden und entfernt. Danach brachte Kompakt nur 37 px; erst das Ausblenden der Erklärtexte ergab die gemessenen 93 px.
+
+**Verbleibende Schwachstellen:** (1) Darstellung je Installation, nicht je Nutzer; (2) der Lead-Dialog ist rund 7.800 px lang – Vorschlag V2 in `UI_UX_VORSCHLAEGE.md`; (3) weiterhin kein Lauf mit echtem OpenStreetMap-Auszug.
+
+**Entscheid:** Vorschläge V2–V9 dem Eigentümer zur Auswahl vorlegen; Empfehlung V2 → V3 → V6.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
-`SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Roadmap und README-Neufassung stehen ebenfalls aus.
+`SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

@@ -60,3 +60,13 @@ Optimierungsliste zum Master-Prompt – höchstens zehn Punkte, jeder überprüf
 - **Variante A:** alle acht Skills aus dem Auftrag anlegen.
 - **Variante B:** nur Skills, für die es heute einen wiederkehrenden Arbeitsgang gibt.
 - **Gewählt: B.** Zwei Skills: `qa-release-gate` (exakte Testbefehle, Umgebung, Abnahmeregeln – wurde in dieser Sitzung mühsam neu ermittelt) und `privacy-and-contact-guardrails` (Prüfliste für Änderungen an Kontaktwegen). Die Regeln selbst stehen weiter im Programmcode und in Tests. Die übrigen sechs entstehen, wenn ihr Arbeitsgang ansteht.
+
+## E7 – Themes und Dunkelmodus
+
+- **Variante A:** CSS-Variablen für Farbrollen; Theme und Modus als Attribute am `<html>`-Element, gesetzt von einem kleinen Skript vor dem ersten Zeichnen.
+- **Variante B:** je Theme ein eigenes Stylesheet.
+- **Variante C:** ein CSS-Framework mit Theme-Unterstützung.
+- **Gewählt: A.** B verdoppelt bei jeder Änderung die Pflege und lädt beim Umschalten neu. C bringt eine Abhängigkeit und einen Umbau aller Ansichten. A ist eine Datei, ohne Build-Schritt, verträgt die Inhaltssicherheitsrichtlinie (`script-src 'self'`) und erlaubt neue Themes mit rund 20 Werten.
+- **Gespeichert** wird in `app_settings` (wie Gewichte und Profile); der Browser hält eine Kopie nur für den Seitenstart.
+- **Rückbau:** Darstellung auf „Klassisch, Hell“ stellen. Die Rollen selbst bleiben; sie kosten nichts.
+
