@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.0.0-dev11 – Darstellung: Themes, Hell/Dunkel, Kompakt
+
+- **Vier Themes, jedes hell und dunkel:** Klassisch (bisheriger Stand), Schiefer (kühles Grau, blauer Akzent), Sand (warme Erdtöne, Terrakotta) und Kontrast (kräftige Linien, höchster Kontrast). Auswahl unter *Erweitert → Datenqualität & System → Darstellung*, mit Vorschau-Kacheln.
+- **Hell, Dunkel oder „Wie System“**; oben rechts schaltet ein Knopf direkt zwischen Hell und Dunkel um. Die Seite erscheint gleich im richtigen Modus, ohne helles Aufblitzen.
+- **Dichte „Kompakt“:** blendet die Erklärtexte unter den Überschriften aus und verringert Abstände. Bei 1366 × 768 Pixeln schrumpft der Seitenkopf von 255 auf 162 Pixel; in der Lead-Liste sind 8 statt 5 Zeilen ohne Scrollen sichtbar.
+- Die Wahl wird in der Datenbank gespeichert und gilt für die ganze Installation, auch nach einem Portwechsel oder in einem anderen Browser.
+- **Lesbarkeit geprüft:** Für jedes Theme in Hell und Dunkel prüft ein Test 24 Farbpaare gegen die WCAG-Kontrastwerte (AA, Theme Kontrast AAA). Graue Nebentexte sind dafür etwas dunkler geworden.
+- Technisch: Die 284 festen Farbwerte im Stylesheet sind in 42 Rollen zusammengefasst. Ein Test verhindert neue feste Farben. „Klassisch“ behält die Markenfarben; einzelne Grautöne und Linien sind leicht verschoben.
+- Vorschläge für mehr Übersicht mit Messwerten: `docs/UI_UX_VORSCHLAEGE.md`. Neue Roadmap: `docs/ROADMAP.md`.
+- Kein Schemawechsel. 537 Tests (10 neu) unter Python 3.10 und 3.13, 7 Browser-Tests (1 neu).
+
+## 2.0.0-dev10 – Datenschutz für Betriebe ohne Rechtsform
+
+- **Nachweis mit Löschfrist:** Jede Übernahme eines Betriebs ohne Rechtsform legt einen Datenschutz-Nachweis an – Zweck, Rechtsgrundlage, Quelle, Löschfrist (2 Jahre). Auch bei „Alle Treffer übernehmen“. Bereits übernommene Betriebe bekommen ihn beim Update nachträglich, mit Frist ab dem Anlagedatum.
+- **Passender Hinweistext nach Art. 14 DSGVO** für Betriebe (Name und Geschäftsanschrift statt Ansprechpartner und Funktion); zum Kopieren in der Firmenakte und unter „Import & Prüfung“.
+- **Firmenakte:** Hinweis „Möglicher Personenbezug“ mit Löschfrist, Art.-14-Stand und den Knöpfen „Hinweistext kopieren“, „Als informiert vermerken“, „Frist verlängern“.
+- **Frist verlängern nur mit Grund** (wird im Nachweis vermerkt), z. B. „Gespräch vereinbart“.
+- **Nach Ablauf der Frist:** „Betrieb löschen“ entfernt den Lead mit Notizen, Aufgaben und Funden. Ausgenommen sind Kunden (Aufbewahrungspflichten) und Firmen im laufenden Gespräch. Eine Sperre bleibt bestehen; ohne Sperre darf der Betrieb bei einer späteren Suche neu auftauchen. Der Löschnachweis enthält keine Personendaten.
+- Schema 29 (eine Spalte ergänzt). 527 Tests (9 neu) unter Python 3.10 und 3.13, 6 Browser-Tests.
+
 ## 2.0.0-dev9 – Größere Zielgruppe: Betriebe ohne Rechtsform, Branche aus OpenStreetMap, alle Treffer übernehmen
 
 - **Betriebe ohne Rechtsform im Namen sind standardmäßig dabei** (z. B. „Elektro Müller“) und in der Trefferliste als „ohne Rechtsform“ gekennzeichnet. Bisher wurden sie ausgelassen. Abschaltbar im Suchformular; filterbar und gezählt.

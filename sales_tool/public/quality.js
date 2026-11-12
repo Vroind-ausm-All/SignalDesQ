@@ -29,7 +29,8 @@
       : '<div class="empty">Keine veralteten Daten.</div>';
     $('#qPrivacy').innerHTML = d.privacy_expired.length ? d.privacy_expired.map(p => `<div class="sales-item"><div><strong>${esc(p.subject)}</strong>
         <small>${esc(p.company || 'ohne Lead')} · Frist abgelaufen am ${esc(fmtDate(p.retention_until))} · ${esc(p.purpose)}</small></div>
-        <button type="button" class="btn btn-danger" data-q-erase="${p.id}">Personendaten löschen</button></div>`).join('')
+        ${p.kind === 'einzelunternehmen' ? `<span class="acc-btn-group"><button type="button" class="btn btn-ghost" data-dc-extend="${p.id}">Frist verlängern</button><button type="button" class="btn btn-danger" data-q-erase="${p.id}" data-sole="1">Betrieb löschen</button></span>`
+          : `<button type="button" class="btn btn-danger" data-q-erase="${p.id}">Personendaten löschen</button>`}</div>`).join('')
       : '<div class="empty">Keine abgelaufenen Löschfristen.</div>';
     return d;
   }
@@ -263,7 +264,7 @@
       const nd = t.closest('[data-q-notdup]');
       if (nd) { const p = dupPairs[Number(nd.dataset.qNotdup)]; return act(() => api('/leads/not-duplicate', 'POST', {a: p.keep.id, b: p.drop.id}), 'Gemerkt – wird nicht wieder vorgeschlagen'); }
       const er = t.closest('[data-q-erase]');
-      if (er) { if (confirm('Personendaten dieses Ansprechpartners endgültig löschen? Der Löschnachweis enthält keine Personendaten.')) act(() => api(`/quality/privacy/${er.dataset.qErase}/erase`, 'POST', {confirm: true}), 'Gelöscht'); return; }
+      if (er) { if (confirm(er.dataset.sole ? 'Diesen Betrieb ohne Rechtsform mit allen Notizen, Aufgaben und Funden endgültig löschen? Eine Sperre bleibt bestehen; der Löschnachweis enthält keine Personendaten.' : 'Personendaten dieses Ansprechpartners endgültig löschen? Der Löschnachweis enthält keine Personendaten.')) act(() => api(`/quality/privacy/${er.dataset.qErase}/erase`, 'POST', {confirm: true}), 'Gelöscht'); return; }
       const r = t.closest('[data-q-run]'); if (r) return act(() => api(`/quality/jobs/${r.dataset.qRun}/run`, 'POST', {}), j => `${j.label}: ${j.last_detail || j.last_status}`);
       const tg = t.closest('[data-q-toggle]'); if (tg) return act(() => api(`/quality/jobs/${tg.dataset.qToggle}`, 'PATCH', {enabled: tg.dataset.on === '1'}));
       const d = t.closest('[data-q-del]'); if (d) { if (confirm('Auftrag löschen?')) act(() => api(`/quality/jobs/${d.dataset.qDel}`, 'DELETE'), 'Gelöscht'); return; }

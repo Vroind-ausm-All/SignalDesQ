@@ -792,6 +792,9 @@ def review_candidate(conn, candidate_id, decision):
     conn.execute("UPDATE discovery_candidates SET status='uebernommen', lead_id=? WHERE id=?", (cur.lastrowid, candidate_id))
     conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
                  (cur.lastrowid, 'notiz', f"Aus Lead-Finder übernommen: {source['title']} · {cand['source_url']}"))
+    from .company_data import add_sole_record, is_sole
+    if is_sole(cand['name'], cand['legal_form'], cand['source']):  # 2.0.0-dev10: Nachweis mit Löschfrist für möglichen Personenbezug
+        add_sole_record(conn, cur.lastrowid, cand['name'][:200], cand['source_url'])
     conn.commit()
     return {'status': 'uebernommen', 'lead_id': cur.lastrowid}
 

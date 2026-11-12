@@ -79,6 +79,9 @@
           ${n.action ? `<button type="button" class="btn btn-primary" data-lf-go='${esc(JSON.stringify(n.action))}'>${esc(n.action.label)} ▶</button>` : ''}</div></div>
         ${file.lock ? `<div class="lf-lock" role="alert">⛔ Kontaktsperre: Firma ist ${esc(file.lock)}. Anruf, Termin, Mail-Entwurf und Angebot sind gesperrt. Ein Widerspruch lässt sich immer dokumentieren.</div>` : ''}
         ${stepBar(file.steps)}
+        ${(file.privacy || []).map(p => `<div class="lf-privacy"><span class="sw-web wait">ohne Rechtsform</span> <b>Möglicher Personenbezug.</b>
+          <small>Löschfrist bis ${esc(fmtDate(p.retention_until))} · ${p.art14_informed_at ? 'nach Art. 14 informiert am ' + esc(fmtDate(p.art14_informed_at)) : 'Art.-14-Hinweis spätestens beim ersten Kontakt'}</small>
+          <span class="acc-btn-group"><button type="button" class="text-button" data-dc-art14="${p.id}">Hinweistext kopieren</button>${p.art14_informed_at ? '' : `<button type="button" class="text-button" data-dc-informed="${p.id}">Als informiert vermerken</button>`}<button type="button" class="text-button" data-dc-extend="${p.id}">Frist verlängern</button></span></div>`).join('')}
         ${window.renderAssessment ? window.renderAssessment(file.assessment) : ''}
         ${companyData(file.company_data)}
         <div class="lf-cols">${coverage(file.coverage)}

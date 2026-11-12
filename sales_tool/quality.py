@@ -179,7 +179,7 @@ def lead_staleness(conn, lead, cfg=None, today=None):
 
 
 def expired_privacy(conn, today=None):
-    rows = conn.execute('''SELECT p.id, p.lead_id, p.contact_id, p.subject, p.retention_until, p.purpose, l.company
+    rows = conn.execute('''SELECT p.id, p.lead_id, p.contact_id, p.subject, p.retention_until, p.purpose, p.kind, l.company, l.stage
                            FROM privacy_records p LEFT JOIN leads l ON l.id=p.lead_id
                            WHERE p.retention_until<>'' AND p.retention_until < ? ORDER BY p.retention_until''',
                         ((today or dt.date.today()).isoformat(),))
@@ -208,6 +208,8 @@ def erase_expired_person(conn, record_id, data):
         raise LookupError('Nachweis nicht gefunden.')
     if not rec['retention_until'] or rec['retention_until'] >= dt.date.today().isoformat():
         raise ValueError('Die Löschfrist ist noch nicht abgelaufen.')
+    if rec['kind'] == 'einzelunternehmen':
+        return _erase_sole(conn, rec)
     removed = 0
     if rec['contact_id']:
         conn.execute('UPDATE tasks SET contact_id=NULL WHERE contact_id=?', (rec['contact_id'],))
@@ -217,6 +219,33 @@ def erase_expired_person(conn, record_id, data):
     _audit(conn, 'privacy', record_id, 'personendaten_geloescht', f"Lead {rec['lead_id']}, Kontakt {rec['contact_id'] or '–'}, Frist {rec['retention_until']}")
     conn.commit()
     return {'deleted_contacts': removed, 'deleted_record': record_id}
+
+
+def _erase_sole(conn, rec):
+    """Betrieb ohne Rechtsform mit abgelaufener Frist: den Lead mit allem, was daran hängt, löschen (2.0.0-dev10).
+    - Kunden (Rechnungen oder Phase „gewonnen“) werden nicht gelöscht – dort gelten Aufbewahrungspflichten.
+    - Firmen im laufenden Gespräch werden nicht stillschweigend gelöscht: erst Frist mit Grund verlängern oder Lead selbst löschen.
+    - Eine Sperre bleibt bestehen (Sperrliste), ein Widerspruch wird nie durch Löschen aufgehoben.
+    - Die Fundstellen in der Firmensuche werden anonymisiert; der Betrieb darf bei einer späteren Suche neu auftauchen."""
+    lid = rec['lead_id']
+    lead = conn.execute('SELECT * FROM leads WHERE id=?', (lid,)).fetchone() if lid else None
+    if lead:
+        if lead['stage'] == 'gewonnen' or conn.execute('SELECT 1 FROM invoices WHERE lead_id=? LIMIT 1', (lid,)).fetchone():
+            raise ValueError('Kunde mit Rechnungen bzw. Auftrag: Aufbewahrungspflichten gehen vor. Bitte die Frist mit Grund verlängern.')
+        if lead['stage'] in ('antwort', 'termin', 'angebot'):
+            raise ValueError(f"Die Firma ist in der Phase „{lead['stage']}“. Bitte die Frist mit Grund verlängern oder den Lead bewusst selbst löschen.")
+        if lead['stage'] == 'gesperrt' or lead['permission'] == 'nicht_kontaktieren':
+            from .company_data import suppress_lead
+            suppress_lead(conn, lid, 'Gesperrter Lead nach Ablauf der Löschfrist gelöscht – Sperre bleibt')
+        for c in conn.execute('SELECT id FROM discovery_candidates WHERE lead_id=?', (lid,)).fetchall():
+            conn.execute('DELETE FROM discovery_keys WHERE candidate_id=?', (c['id'],))
+            conn.execute("""UPDATE discovery_candidates SET name='(gelöscht)', street='', website='', website_evidence='', contact_json='{}',
+                            imprint_json='{}', signal_note='', external_id='', source_url='', status='verworfen', lead_id=NULL WHERE id=?""", (c['id'],))
+        conn.execute('DELETE FROM leads WHERE id=?', (lid,))
+    conn.execute('DELETE FROM privacy_records WHERE id=?', (rec['id'],))
+    _audit(conn, 'privacy', rec['id'], 'einzelunternehmen_geloescht', f"Lead {lid or '–'}, Frist {rec['retention_until']}")
+    conn.commit()
+    return {'deleted_lead': lid if lead else None, 'deleted_record': rec['id']}
 
 
 # ---------------------------------------------------------------- Änderungserkennung

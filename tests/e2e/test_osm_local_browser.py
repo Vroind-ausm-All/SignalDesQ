@@ -81,6 +81,19 @@ class OsmLocalBrowserTests(unittest.TestCase):
                         page.once('dialog', lambda dlg: dlg.accept())
                         page.locator('#swTakeAll').click()
                         page.wait_for_function("async () => (await (await fetch('/api/leads')).json()).length === 4", timeout=30000)
+                        # 2.0.0-dev10: Firmenakte eines Betriebs ohne Rechtsform zeigt Datenschutz-Hinweis und Löschfrist
+                        page.locator('[data-view="leads"]').click()
+                        page.locator('#leadRows tr', has_text='Malerbetrieb Beispiel').click()
+                        box = page.locator('.lf-privacy')
+                        box.wait_for(timeout=15000)
+                        self.assertIn('Löschfrist bis', box.inner_text())
+                        page.once('dialog', lambda dlg: dlg.accept('Gespräch für nächste Woche vereinbart'))
+                        box.locator('[data-dc-extend]').click()
+                        page.wait_for_function("""async () => (await (await fetch('/api/privacy')).json())
+                          .some(r => r.kind === 'einzelunternehmen' && r.note.includes('Gespräch für nächste Woche vereinbart'))""", timeout=15000)
+                        if SHOTS:  # die Akte wird nach dem Verlängern neu gezeichnet – erst danach fotografieren
+                            page.wait_for_timeout(1500)
+                            page.locator('.lf-privacy').screenshot(path=str(Path(SHOTS) / 'datenschutz.png'))
                         self.assertEqual(outside, [], 'kein Abruf außerhalb des eigenen Rechners')
                         self.assertFalse(errors, errors)
                     finally:

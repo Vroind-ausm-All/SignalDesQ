@@ -421,7 +421,9 @@ def lead_file(conn, lead_id):
     lv = as_lead(lead)
     from .lead_imprint import status as company_data_status
     from .qualification import assessment
-    return {'company_data': company_data_status(conn, lead_id),
+    privacy = [dict(r) for r in conn.execute("""SELECT id, kind, retention_until, art14_informed_at FROM privacy_records
+                                                WHERE lead_id=? AND kind='einzelunternehmen'""", (lead_id,))]
+    return {'privacy': privacy, 'company_data': company_data_status(conn, lead_id),
             'lead': {k: lv[k] for k in ('id', 'company', 'stage', 'permission', 'contact_route', 'website', 'location', 'next_step', 'next_date', 'score')},
             'score_reasons': lv['score_reasons'], 'lock': lock, 'steps': steps, 'next': nxt, 'need': need_status(conn, lead_id),
             'assessment': assessment(conn, lead), 'coverage': evidence_coverage(conn, lead), 'open_tasks': open_tasks, 'timeline': timeline(conn, lead_id)}

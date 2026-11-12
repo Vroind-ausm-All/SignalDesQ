@@ -27,7 +27,7 @@ Die Regeln selbst (Kontaktsperre, Belegpflicht, GoBD-Schutz) stehen im Programmc
    ```
    Ist Chromium schon vorhanden, den Pfad in `PLAYWRIGHT_CHROMIUM_EXECUTABLE` setzen statt neu zu laden.
    „Übersprungen“ zählt nicht als bestanden.
-3. **Neue Dateien der Oberfläche**: Jede neue Datei unter `sales_tool/public/` muss in der Liste der statischen Dateien in `sales_tool/server.py` stehen. Sonst liefert der Server 404, und nur der Browser-Test bemerkt es.
+3. **Neue Dateien der Oberfläche**: Jede neue Datei unter `sales_tool/public/` muss in der Liste der statischen Dateien in `sales_tool/server.py` stehen. Sonst liefert der Server 404, und nur der Browser-Test bemerkt es. Farben in `style.css` nur über `var(--…)`; neue Werte gehören in die Theme-Blöcke am Dateianfang, und zwar für Hell und Dunkel (`tests/test_v2_appearance.py` prüft feste Farben und Kontraste).
 4. **Schemaänderung**: `SCHEMA_VERSION` in `sales_tool/server.py` erhöhen, Spalten nur mit `ALTER TABLE … ADD COLUMN` und Vorgabewert ergänzen, einen Migrationstest gegen `tests/fixtures/migration/*.sql` schreiben.
 5. **Release-Belege** nach Versions- oder Abhängigkeitsänderung:
    ```bash
