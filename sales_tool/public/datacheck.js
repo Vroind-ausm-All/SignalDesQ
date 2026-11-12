@@ -108,7 +108,7 @@
 
   async function loadPrivacy() {
     const rows = await api('/privacy');
-    $('#dcPrivacy').innerHTML = rows.length ? rows.slice(0, 50).map(r => `<div class="sales-item"><div><strong>${esc(r.subject)} · ${esc(r.company || 'Lead gelöscht')}</strong><small>${esc(r.data_categories)} · Löschfrist ${esc(fmtDate(r.retention_until))} · ${r.art14_informed_at ? 'informiert am ' + esc(fmtDate(r.art14_informed_at)) : (r.overdue_art14 ? '<b class="late">Art.-14-Information überfällig</b>' : 'noch nicht informiert')}</small></div><div class="acc-btn-group"><button type="button" class="btn btn-ghost" data-dc-art14="${r.id}">Hinweistext</button>${r.art14_informed_at ? '' : `<button type="button" class="btn btn-ghost" data-dc-informed="${r.id}">Informiert</button>`}</div></div>`).join('') : '<div class="empty">Noch keine Personen übernommen.</div>';
+    $('#dcPrivacy').innerHTML = rows.length ? rows.slice(0, 50).map(r => `<div class="sales-item"><div><strong>${r.kind === 'einzelunternehmen' ? '<span class="sw-web wait">ohne Rechtsform</span> ' : ''}${esc(r.subject)}${r.kind === 'einzelunternehmen' ? '' : ' · ' + esc(r.company || 'Lead gelöscht')}</strong><small>${esc(r.data_categories)} · Löschfrist ${esc(fmtDate(r.retention_until))} · ${r.art14_informed_at ? 'informiert am ' + esc(fmtDate(r.art14_informed_at)) : (r.overdue_art14 ? '<b class="late">Art.-14-Information überfällig</b>' : 'noch nicht informiert')}</small></div><div class="acc-btn-group"><button type="button" class="btn btn-ghost" data-dc-art14="${r.id}">Hinweistext</button>${r.art14_informed_at ? '' : `<button type="button" class="btn btn-ghost" data-dc-informed="${r.id}">Informiert</button>`}<button type="button" class="btn btn-ghost" data-dc-extend="${r.id}">Frist verlängern</button></div></div>`).join('') : '<div class="empty">Noch keine Personen oder Betriebe ohne Rechtsform übernommen.</div>';
   }
 
   // ------------------------------------------------------------ Lead-Dialog
@@ -157,6 +157,21 @@
       try { await api('/facts/' + e.target.dataset.dcFact, 'PATCH', {status: e.target.value}); toast('Prüfstatus gespeichert'); await reload(); if (currentLeadId) window.loadCompanyFacts(currentLeadId); }
       catch (err) { toast(err.message, true); }
     });
+    // 2.0.0-dev10: Datenschutz-Knöpfe gelten auch in der Firmenakte (Lead-Fenster), daher am Dokument
+    document.body.addEventListener('click', async e => {
+      const t = e.target;
+      const refresh = async () => { if ($('#dcPrivacy')) await loadPrivacy().catch(() => {}); if (window.refreshLeadFile) await window.refreshLeadFile(); };
+      const a14 = t.closest('[data-dc-art14]');
+      if (a14) { try { const r = await api(`/privacy/${a14.dataset.dcArt14}/art14`); await navigator.clipboard.writeText(r.text).catch(() => {}); alert(r.text + '\n\n(In die Zwischenablage kopiert, falls erlaubt.)'); } catch (err) { toast(err.message, true); } return; }
+      const inf = t.closest('[data-dc-informed]');
+      if (inf) { try { await api(`/privacy/${inf.dataset.dcInformed}/informed`, 'POST', {}); toast('Als informiert vermerkt'); await refresh(); } catch (err) { toast(err.message, true); } return; }
+      const ext = t.closest('[data-dc-extend]');
+      if (ext) {
+        const reason = prompt('Frist um 12 Monate verlängern. Grund (wird im Nachweis vermerkt), z. B. „Gespräch am 12.11. vereinbart“:');
+        if (!reason) return;
+        try { const r = await api(`/privacy/${ext.dataset.dcExtend}/extend`, 'POST', {months: 12, reason: reason.trim()}); toast('Frist verlängert bis ' + fmtDate(r.retention_until)); await refresh(); } catch (err) { toast(err.message, true); }
+      }
+    });
     $('#viewDatacheck').addEventListener('click', async e => {
       const t = e.target;
       const run = t.closest('[data-dc-run]');
@@ -169,10 +184,6 @@
       if (lead) { switchView('leads'); return showModal(Number(lead.dataset.dcLead)); }
       const un = t.closest('[data-dc-unsup]');
       if (un) { const reason = prompt('Sperre wirklich aufheben? Bitte Grund angeben (z. B. „schriftliche Einwilligung vom …“):'); if (!reason) return; try { await api('/suppression/' + un.dataset.dcUnsup, 'DELETE', {reason}); toast('Sperre aufgehoben – im Protokoll vermerkt'); loadSuppression(); } catch (err) { toast(err.message, true); } return; }
-      const a14 = t.closest('[data-dc-art14]');
-      if (a14) { try { const r = await api(`/privacy/${a14.dataset.dcArt14}/art14`); await navigator.clipboard.writeText(r.text).catch(() => {}); alert(r.text + '\n\n(In die Zwischenablage kopiert, falls erlaubt.)'); } catch (err) { toast(err.message, true); } return; }
-      const inf = t.closest('[data-dc-informed]');
-      if (inf) { try { await api(`/privacy/${inf.dataset.dcInformed}/informed`, 'POST', {}); toast('Als informiert vermerkt'); loadPrivacy(); } catch (err) { toast(err.message, true); } }
     });
   }
   init();

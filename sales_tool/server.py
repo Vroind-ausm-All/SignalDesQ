@@ -892,7 +892,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 28  # 2.0.0-dev7 – bei Schemaänderungen erhöhen (OpenStreetMap-Betriebe aus lokalem Auszug)
+SCHEMA_VERSION = 29  # 2.0.0-dev10 – bei Schemaänderungen erhöhen (Datenschutz-Nachweis für Betriebe ohne Rechtsform)
 
 
 def backup_before_migration(db):
@@ -915,6 +915,9 @@ def prepare_database(db):
         init_db(conn)
         if 0 < old_version < 23:
             dedupe_candidates(conn)  # v1.17: Bestand einmalig bereinigen (sichere Dubletten zusammenführen, mögliche markieren)
+        if 0 < old_version < 29:
+            from .company_data import backfill_sole_records
+            backfill_sole_records(conn)  # 2.0.0-dev10: Nachweise für bereits übernommene Betriebe ohne Rechtsform nachziehen
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
         conn.execute("""UPDATE analysis_runs SET status='failed',error='Analyse durch Neustart unterbrochen.',
                         finished_at=datetime('now') WHERE status IN ('queued','running')""")

@@ -482,6 +482,11 @@ def route_company_data(h, conn, method, route, query):
         lid = query.get('lead_id', [''])[0]
         h._send(200, privacy_rows(conn, int(lid) if lid.isdigit() else None))
         return True
+    m = re.fullmatch(r'/api/privacy/(\d+)/extend', route)
+    if m and method == 'POST':
+        from .company_data import extend_retention
+        h._send(200, extend_retention(conn, int(m.group(1)), h._body()))
+        return True
     m = re.fullmatch(r'/api/privacy/(\d+)/(informed|art14)', route)
     if m:
         if m.group(2) == 'informed' and method == 'POST':

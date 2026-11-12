@@ -61,6 +61,9 @@ def init_company_data(conn):
         art14_informed_at TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT ''
       );
     ''')
+    pcols = {r[1] for r in conn.execute('PRAGMA table_info(privacy_records)')}
+    if 'kind' not in pcols:  # 2.0.0-dev10: 'person' (Ansprechpartner) oder 'einzelunternehmen' (Firma ohne Rechtsform)
+        conn.execute("ALTER TABLE privacy_records ADD COLUMN kind TEXT NOT NULL DEFAULT 'person'")
     existing = {r[1] for r in conn.execute('PRAGMA table_info(leads)')}
     for col in LEAD_COMPANY_COLUMNS:
         if col not in existing:
@@ -289,6 +292,67 @@ def add_privacy_record(conn, lead_id, contact_id, subject, source_url, categorie
     return cur.lastrowid
 
 
+SOLE_CATEGORIES = 'Firmenname (möglicherweise Personenname), Geschäftsanschrift, allgemeine Kontaktdaten des Betriebs'
+SOLE_NOTE = ('Betrieb ohne Rechtsform im Namen: möglicherweise Einzelunternehmen, die Angaben können sich auf eine natürliche Person '
+             'beziehen. Art. 14 DSGVO: Information spätestens bei der ersten Kontaktaufnahme bzw. binnen eines Monats. '
+             'Widerspruch nach Art. 21 sofort auf die Sperrliste.')
+
+
+def is_sole(name, legal_form='', source=''):
+    """Betrieb ohne Rechtsform im Namen (und ohne bekannte Rechtsform) – möglicher Personenbezug."""
+    from .lead_finder import legal_form_of
+    return source != 'ted' and not legal_form and not legal_form_of(name or '')
+
+
+def add_sole_record(conn, lead_id, name, source_url='', collected_at=None):
+    """Datenschutz-Nachweis für einen übernommenen Betrieb ohne Rechtsform (2.0.0-dev10). Einmal je Lead."""
+    if conn.execute("SELECT 1 FROM privacy_records WHERE lead_id=? AND kind='einzelunternehmen'", (lead_id,)).fetchone():
+        return None
+    start = dt.date.fromisoformat(collected_at[:10]) if collected_at else dt.date.today()
+    cur = conn.execute('''INSERT INTO privacy_records(lead_id, contact_id, subject, data_categories, purpose, legal_basis, source_url,
+                          collected_at, retention_until, note, kind) VALUES (?,?,?,?,?,?,?,?,?,?,'einzelunternehmen')''',
+                       (lead_id, None, (name or '')[:160], SOLE_CATEGORIES,
+                        'B2B-Geschäftsanbahnung: Betrieb als möglichen Kunden für eigene Leistungen identifizieren',
+                        'Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse); Quelle: öffentlich zugängliche Betriebsangaben',
+                        (source_url or '')[:500], start.isoformat() + (collected_at[10:19] if collected_at and len(collected_at) > 10 else ' 00:00:00'),
+                        (start + dt.timedelta(days=RETENTION_DAYS_PERSON)).isoformat(), SOLE_NOTE))
+    return cur.lastrowid
+
+
+def backfill_sole_records(conn):
+    """Bestand nachziehen: übernommene Betriebe ohne Rechtsform, die noch keinen Nachweis haben (Leads aus der Firmensuche).
+    Die Frist läuft ab dem Anlagedatum des Leads. Idempotent."""
+    n = 0
+    for r in conn.execute('''SELECT l.id, l.company, l.legal_form, l.created_at, c.source, c.source_url FROM leads l
+                             JOIN discovery_candidates c ON c.lead_id=l.id
+                             WHERE NOT EXISTS (SELECT 1 FROM privacy_records p WHERE p.lead_id=l.id AND p.kind='einzelunternehmen')
+                             GROUP BY l.id''').fetchall():
+        if is_sole(r['company'], r['legal_form'], r['source']):
+            add_sole_record(conn, r['id'], r['company'], r['source_url'], r['created_at'])
+            n += 1
+    return n
+
+
+def extend_retention(conn, record_id, data):
+    """Frist verlängern – nur mit Grund (z. B. laufendes Gespräch, Kunde geworden). Der Grund wird im Nachweis vermerkt."""
+    if not isinstance(data, dict) or set(data) - {'months', 'reason'}:
+        raise ValueError('Erwartet: {months, reason}.')
+    months, reason = data.get('months', 12), data.get('reason', '')
+    if type(months) is not int or not 1 <= months <= 36:
+        raise ValueError('Verlängerung: 1 bis 36 Monate.')
+    if not isinstance(reason, str) or not 5 <= len(reason.strip()) <= 300:
+        raise ValueError('Bitte einen Grund angeben (5–300 Zeichen), z. B. „Gespräch am 12.11. vereinbart“.')
+    rec = conn.execute('SELECT * FROM privacy_records WHERE id=?', (record_id,)).fetchone()
+    if not rec:
+        raise LookupError('Nachweis nicht gefunden.')
+    base = max(dt.date.today(), dt.date.fromisoformat(rec['retention_until']))
+    new = (base + dt.timedelta(days=round(months * 30.44))).isoformat()
+    note = (rec['note'] + f" · Frist am {dt.date.today().strftime('%d.%m.%Y')} bis {dt.date.fromisoformat(new).strftime('%d.%m.%Y')} verlängert: {reason.strip()}")[-2000:]
+    conn.execute('UPDATE privacy_records SET retention_until=?, note=? WHERE id=?', (new, note, record_id))
+    conn.commit()
+    return {'retention_until': new}
+
+
 def privacy_rows(conn, lead_id=None):
     sql = 'SELECT p.*, l.company FROM privacy_records p LEFT JOIN leads l ON l.id=p.lead_id'
     params = ()
@@ -313,6 +377,13 @@ def mark_art14_informed(conn, record_id, informed_on=None):
     return {'saved': True}
 
 
+ART14_TEMPLATE_SOLE = (
+    'Hinweis nach Art. 14 DSGVO: Den Namen und die Geschäftsanschrift Ihres Betriebs haben wir öffentlich zugänglichen '
+    'Betriebsangaben ({source}) entnommen, um Ihnen unsere Leistungen anzubieten (Art. 6 Abs. 1 lit. f DSGVO). '
+    'Verantwortlich: {controller}. Wir speichern die Angaben höchstens bis {retention}, sofern daraus keine Geschäftsbeziehung entsteht. '
+    'Sie können der Verarbeitung jederzeit widersprechen (Art. 21 DSGVO) sowie Auskunft, Berichtigung und Löschung verlangen; '
+    'außerdem besteht ein Beschwerderecht bei einer Datenschutzaufsichtsbehörde.')
+
 ART14_TEMPLATE = (
     'Hinweis nach Art. 14 DSGVO: Ihren Namen und Ihre berufliche Funktion haben wir dem Impressum Ihres Unternehmens '
     '({source}) entnommen, um Sie als zuständigen Ansprechpartner für ein mögliches Projekt anzusprechen '
@@ -328,5 +399,6 @@ def art14_text(conn, record_id):
     s = conn.execute('SELECT company_name, street, zip, city, email FROM company_settings WHERE id=1').fetchone()
     controller = ', '.join(x for x in ((s['company_name'] if s else ''), (s['street'] if s else ''),
                                        f"{s['zip']} {s['city']}".strip() if s else '', (s['email'] if s else '')) if x) or '[Ihre Firma, Anschrift, E-Mail]'
-    return {'text': ART14_TEMPLATE.format(source=rec['source_url'] or 'öffentliche Quelle', controller=controller,
+    tpl = ART14_TEMPLATE_SOLE if rec['kind'] == 'einzelunternehmen' else ART14_TEMPLATE
+    return {'text': tpl.format(source=rec['source_url'] or 'öffentliche Quelle', controller=controller,
                                           retention=dt.date.fromisoformat(rec['retention_until']).strftime('%d.%m.%Y'))}

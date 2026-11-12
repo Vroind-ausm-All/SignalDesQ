@@ -358,6 +358,23 @@ Unter Windows mit Python 3.13 schlug `test_malformed_requests_never_500` fehl: B
 
 Behebung im Server, nicht im Test: Nach jeder Anfrage liest der Server den ungelesenen Rest des Körpers (bis 1 MB) ein; bei größeren Körpern wird die Verbindung nicht weiterverwendet. Zwei neue Tests: einer prüft den Mechanismus direkt und schlägt ohne die Behebung fehl, einer prüft das Verhalten von außen. Der Nachweis unter Windows steht mit dem nächsten CI-Lauf aus. 518 Tests unter Python 3.13 und 3.10 bestanden.
 
+## Arbeitspaket 9 – Datenschutz für Betriebe ohne Rechtsform (2.0.0-dev10)
+
+Behebt Schwachstelle 1 aus Arbeitspaket 8.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 527 Tests bestanden (9 neu) |
+| Browser-Tests | 6 von 6; der OpenStreetMap-Test prüft jetzt auch Hinweis und Verlängerung in der Firmenakte |
+| Migration einer Datenbank mit Schema 28 | Nachweise für bereits übernommene Betriebe nachgezogen, einmalig (Test) |
+
+- **Löschen ist bewusst eng gefasst:** Kunden und Firmen im laufenden Gespräch werden nie still gelöscht; eine Sperre überlebt die Löschung (Test); der Löschnachweis enthält keinen Namen (Test).
+- **Fehlersuche im Browser-Test:** Er schlug nur im Bildschirmfoto-Modus fehl, weil die Firmenakte nach dem Verlängern neu gezeichnet wurde, während das Foto entstand. Mein erster Erklärungsversuch (Klick auf eine neu gezeichnete Listenzeile) war falsch und wurde zurückgenommen.
+
+**Verbleibende Schwachstellen:** (1) Die Rechtsgrundlage wird nicht im Einzelfall geprüft; (2) der Art.-14-Hinweis muss von Hand versendet und vermerkt werden; (3) weiterhin kein Lauf mit echtem OpenStreetMap-Auszug.
+
+**Entscheid:** weiter mit Roadmap und Oberfläche.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Roadmap und README-Neufassung stehen ebenfalls aus.

@@ -510,3 +510,7 @@
 .osm-state{margin:8px 0;font-size:13px}.osm-state small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
 .osm-how{border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:6px 0;font-size:12px}.osm-how summary{cursor:pointer}.osm-how small{color:var(--muted)}
 .osm-how ol{margin:6px 0 2px;padding-left:20px}
+
+/* 2.0.0-dev10: Datenschutz-Hinweis in der Firmenakte */
+.lf-privacy{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:10px 0;font-size:12px;background:#fff}
+.lf-privacy small{color:var(--muted);flex-basis:100%}

@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev9)
+# Bekannte Einschränkungen (Stand 2.0.0-dev10)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -60,7 +60,7 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 
 ## Firmensuche (Praxistest 70191, 2.0.0-dev6)
 - **Handwerksbetriebe findet die Suche derzeit kaum** (1 von 56 in PLZ 70191). GLEIF enthält fast nur Kapitalgesellschaften mit LEI; OpenStreetMap ist die einzige Handwerksquelle und war am Testtag nicht verlässlich erreichbar. Einzelheiten: `PRAXISTEST_70191.md`.
-- **Betriebe ohne Rechtsform im Namen** sind seit 2.0.0-dev9 standardmäßig dabei und gekennzeichnet (Entscheidung des Eigentümers, um die Zielgruppe zu vergrößern). Der Firmenname kann ein Personenname sein; für solche Leads gelten die Pflichten für personenbezogene Daten (Zweck, Information nach Art. 14 DSGVO, Löschfristen) besonders. SignalDesk kennzeichnet sie, prüft das aber nicht.
+- **Betriebe ohne Rechtsform im Namen** sind seit 2.0.0-dev9 standardmäßig dabei und gekennzeichnet (Entscheidung des Eigentümers, um die Zielgruppe zu vergrößern). Der Firmenname kann ein Personenname sein; für solche Leads gelten die Pflichten für personenbezogene Daten (Zweck, Information nach Art. 14 DSGVO, Löschfristen) besonders. SignalDesk kennzeichnet sie und legt seit 2.0.0-dev10 je Lead einen Nachweis mit Löschfrist (2 Jahre) und Art.-14-Hinweistext an. Ob die Rechtsgrundlage im Einzelfall trägt, prüft SignalDesk nicht. Abgelaufene Fristen werden angezeigt, gelöscht wird erst nach deiner Bestätigung.
 - **PLZ-genaue Suche** gilt nur für „PLZ + nur dieser Ort“. Einträge ohne PLZ-Angabe aus GLEIF und Wikidata fallen dabei heraus; bei OpenStreetMap zählt das abgefragte PLZ-Gebiet.
 - **Bei rund zwei Dritteln der GLEIF-Treffer bleibt die Branche unbekannt**, weil sie aus dem Firmennamen geschätzt wird.
 
