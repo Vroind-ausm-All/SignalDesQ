@@ -50,7 +50,10 @@ Optimierungsliste zum Master-Prompt – höchstens zehn Punkte, jeder überprüf
 
 - **Variante A:** öffentliche Overpass-Server mit Wiederholung (heutiger Stand).
 - **Variante B:** lokaler Extrakt eines Bundeslands (Geofabrik, ODbL).
-- **Noch nicht entschieden.** B braucht einen PBF-Leser (neue Abhängigkeit oder Vorverarbeitung) und mehrere hundert MB Platz. Erst messen: Wie oft scheitert A im Alltag, und wie groß wäre ein vorgefilterter Auszug nur mit Betrieben? Bis dahin bleibt A mit ehrlicher Statusanzeige.
+- **Gewählt (2.0.0-dev7): B, ergänzt um einen Handexport – und A nur noch auf ausdrücklichen Wunsch.** Die Messung liegt vor: Im Praxistest waren die öffentlichen Server bei jedem Versuch überlastet oder nicht erreichbar.
+- **Zum Lesewerkzeug** wurden zwei Wege verglichen: ein Zusatzpaket (`osmium`, schnell, aber eine weitere Abhängigkeit mit Binärdateien je Plattform) gegen einen eigenen Leser mit der Standardbibliothek (PBF ist Protobuf und zlib). Gewählt: eigener Leser. Er hält die Variante „basis“ ohne Fremdpakete; geprüft wird er gegen Dateien, die `osmium` erzeugt hat. Gemessen: rund 700.000 Einträge je Sekunde, 59 MB Arbeitsspeicher.
+- **Gespeichert** werden nur benannte Betriebe, nicht die Karte – ein Regierungsbezirk bleibt damit im einstelligen MB-Bereich in der Datenbank.
+- **Rückbau:** Lokalen Bestand löschen und „online abfragen“ ankreuzen stellt das alte Verhalten her.
 
 ## E6 – Projekt-Skills
 

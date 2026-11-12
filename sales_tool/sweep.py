@@ -232,7 +232,7 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None, cindex=N
         if not name:
             continue
         legal = item.get('legal_form') or lf.legal_form_of(name)
-        if source in ('osm', 'wikidata') and not legal and not ctx.get('include_sole'):
+        if source in ('osm', 'wikidata') and not legal and not ctx.get('include_sole', True):
             c['filtered'] += 1  # möglicherweise natürliche Person – datensparsam auslassen
             continue
         if ctx.get('operative', True) and source != 'ted' and ind.NON_OPERATIVE_RE.search(name):
@@ -248,6 +248,12 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None, cindex=N
                 c['filtered'] += 1
                 continue
             item['industry_key'] = ikey or item.get('industry_key') or ind.guess(f"{name} {item.get('industry', '')}")
+        if ctx.get('postcode_only') and source != 'ted':
+            plz = (item.get('zip') or '').strip()
+            # passt, wenn die PLZ stimmt – oder wenn die Quelle das PLZ-Gebiet abgefragt hat und am Eintrag keine PLZ steht
+            if plz != ctx['postcode_only'] and not (item.get('_in_postcode') and not plz):
+                c['filtered'] += 1  # außerhalb der gewünschten PLZ (oder PLZ unbekannt)
+                continue
         dist = item.get('distance_km')
         if dist is None and ctx.get('place_distance'):
             dist = ctx['place_distance'].get((item.get('city') or '').casefold())
@@ -362,7 +368,7 @@ def _add_keys(conn, cid, keys):
 
 def validate_params(data):
     allowed = {'place', 'radius_km', 'industries', 'keywords', 'sources', 'operative', 'include_sole', 'ted_presets', 'find_websites',
-               'org_kinds', 'ted_nationwide', 'budget', 'profile_id'}
+               'org_kinds', 'ted_nationwide', 'budget', 'profile_id', 'osm_online'}
     if not isinstance(data, dict) or set(data) - allowed:
         raise ValueError('Ungültige Suchparameter.')
     place = str(data.get('place') or '').strip()
@@ -379,13 +385,15 @@ def validate_params(data):
     kinds = data.get('org_kinds', list(ORG_KINDS_DEFAULT))
     if not isinstance(kinds, list) or not kinds or any(k not in ORG_KIND_CHOICES for k in kinds):
         raise ValueError('Organisationsart: ' + ', '.join(ORG_KIND_CHOICES) + '.')
-    for flag in ('operative', 'include_sole', 'find_websites', 'ted_nationwide'):
+    for flag in ('operative', 'include_sole', 'find_websites', 'ted_nationwide', 'osm_online'):
         if flag in data and not isinstance(data[flag], bool):
             raise ValueError(f'{flag}: true/false.')
     return {'place': place, 'radius_km': radius, 'industries': ind.validate_keys(data.get('industries', [])),
             'keywords': ind.parse_keywords(data.get('keywords', '')), 'sources': sources, 'operative': data.get('operative', True),
-            'include_sole': data.get('include_sole', False), 'ted_presets': presets, 'find_websites': data.get('find_websites', True),
-            'org_kinds': kinds, 'ted_nationwide': data.get('ted_nationwide', False), 'budget': validate_budget(data.get('budget')),
+            # 2.0.0-dev9: Betriebe ohne Rechtsform sind standardmäßig dabei (und in der Trefferliste gekennzeichnet)
+            'include_sole': data.get('include_sole', True), 'ted_presets': presets, 'find_websites': data.get('find_websites', True),
+            'org_kinds': kinds, 'ted_nationwide': data.get('ted_nationwide', False), 'osm_online': data.get('osm_online', False),
+            'budget': validate_budget(data.get('budget')),
             'profile_id': data['profile_id'] if isinstance(data.get('profile_id'), int) and not isinstance(data.get('profile_id'), bool) else None}
 
 
@@ -513,7 +521,12 @@ def run_sweep(db_path, sid, only=None, finalize=True):
             conn.commit()
             return
         ctx = {**p, 'center': area['center'], 'place_distance': {pl['name'].casefold(): pl['distance_km'] for pl in area['places']}}
-        _progress(conn, sid, '_area', places=len(area['places']), center=area['center']['label'], via=area['source'])
+        # 2.0.0-dev6: Wer eine PLZ mit „nur dieser Ort“ eingibt, meint diese PLZ – nicht die ganze Gemeinde (Praxistest 70191:
+        # 300 Treffer aus ganz Stuttgart, davon 2 in 70191)
+        if p['radius_km'] == 0 and re.fullmatch(r'\d{5}', p['place'].strip()):
+            ctx['postcode_only'] = p['place'].strip()
+        _progress(conn, sid, '_area', places=len(area['places']), center=area['center']['label'], via=area['source'],
+                  postcode_only=ctx.get('postcode_only', ''))
         index = LeadIndex(conn)
         ctx['_cindex'] = CandidateIndex(conn)
         ctx['_catalog'] = catalog.catalog_path(db_path)
@@ -524,11 +537,16 @@ def run_sweep(db_path, sid, only=None, finalize=True):
         ctx['_budget_left'] = max(0, budget['max_companies'] - used)
         ctx['_deadline'] = started + budget['max_minutes'] * 60
         _progress(conn, sid, '_budget', started=started, **budget, companies=used)
-        for source in sources:
+        total_left = ctx['_budget_left']
+        for pos, source in enumerate(sources):
+            # 2.0.0-dev6: Budget fair verteilen – sonst verbraucht die erste Quelle alles und die nächste läuft nie
+            # (Praxistest: GLEIF 300 von 300, OpenStreetMap übersprungen). Ungenutztes geht an die folgenden Quellen.
+            share = -(-total_left // (len(sources) - pos)) if total_left > 0 else 0
+            ctx['_budget_left'] = share
             if time.time() > ctx['_deadline']:
                 _progress(conn, sid, source, status='übersprungen', error='', detail=f"Zeitbudget von {budget['max_minutes']} Min. erreicht")
                 continue
-            if ctx['_budget_left'] <= 0:
+            if total_left <= 0:
                 _progress(conn, sid, source, status='übersprungen', error='', detail=f"Budget von {budget['max_companies']} neuen Firmen erreicht")
                 continue
             _progress(conn, sid, source, status='läuft', error='', detail='')
@@ -560,6 +578,7 @@ def run_sweep(db_path, sid, only=None, finalize=True):
                     _finish_run(conn, run_id, error=f'Unerwarteter Fehler: {exc.__class__.__name__}')
                     _progress(conn, sid, source, status='fehler', error=f'Unerwarteter Fehler: {exc.__class__.__name__}')
                     break
+            total_left -= share - max(0, ctx['_budget_left'])  # tatsächlich verbrauchter Anteil dieser Quelle
         used = conn.execute("SELECT COUNT(*) FROM discovery_candidates WHERE sweep_id=? AND status='neu' AND dup_of IS NULL", (sid,)).fetchone()[0]
         _progress(conn, sid, '_budget', companies=used, minutes=round((time.time() - started) / 60, 1))
         if finalize:
@@ -653,12 +672,12 @@ def _run_gleif_api(conn, sid, run_id, ctx, area, ua, index, state):
                 break
             if requests:
                 lf.SLEEP(GLEIF_DELAY)
-            data = lf.gleif_page(ua, city=pl['name'], page=page, attempt_from=attempt)
+            data = lf.gleif_page(ua, city=pl['name'], postcode=ctx.get('postcode_only', ''), page=page, attempt_from=attempt)
             requests += 1
             attempt = data.get('_attempt', attempt)
             if attempt:
                 filters_note = ' (GLEIF-Filter vereinfacht, Rest lokal gefiltert)'
-            items = lf.gleif_items(data, city=pl['name'])
+            items = lf.gleif_items(data, city=pl['name'], postcode=ctx.get('postcode_only', ''))
             for it in items:
                 it['distance_km'] = pl['distance_km']
             c = store_items(conn, sid, run_id, 'gleif', items, ctx, index)
@@ -746,7 +765,24 @@ def _osm_sel(key, value):
 
 
 def _run_osm(conn, sid, run_id, ctx, area, ua, index):
-    """OpenStreetMap im Umkreis – in kleinen Teilabfragen (je 6 Merkmale), damit überlastete Server eher antworten."""
+    """OpenStreetMap. 2.0.0-dev7: zuerst der lokale Bestand (eingelesener Auszug, offline und sofort). Die öffentlichen Server
+    werden nur noch auf ausdrücklichen Wunsch abgefragt (osm_online) – im Praxistest waren sie bei jedem Versuch überlastet.
+    Online: im Umkreis in kleinen Teilabfragen (je 6 Merkmale), damit überlastete Server eher antworten."""
+    from .research import osm_local
+    if osm_local.has_data(conn) and not ctx.get('osm_online'):
+        items, info = osm_local.area_items(conn, ctx, area, ar.haversine)
+        counts = store_items(conn, sid, run_id, 'osm', items, ctx, index)
+        note = f"{len(items)} Betriebe aus dem lokalen Auszug (offline)"
+        if ctx.get('postcode_only'):
+            note += (f" · davon {info['guessed']} ohne PLZ-Angabe, über Nachbarbetriebe im Umkreis von 250 m zugeordnet (Schätzung)" if info.get('guessed')
+                     else ' · Einträge ohne PLZ-Angabe und ohne Nachbarn mit PLZ fehlen')
+        elif info.get('no_address'):
+            note += f" · davon {info['no_address']} ohne Adresse, nach Lage zugeordnet"
+        return counts, note
+    if not ctx.get('osm_online'):
+        return ({'found': 0, 'new': 0, 'merged': 0, 'known': 0, 'dismissed': 0, 'suppressed': 0, 'filtered': 0},
+                'Nicht abgefragt: OpenStreetMap läuft manuell. Einen Auszug einlesen (unten „OpenStreetMap nutzbar machen“) '
+                'oder dort „jetzt online abfragen“ ankreuzen.')
     c = area['center']
     selectors = ind.osm_selectors(ctx['industries']) or DEFAULT_OSM
     r = int(max(ctx['radius_km'], 3) * 1000)
@@ -755,8 +791,11 @@ def _run_osm(conn, sid, run_id, ctx, area, ua, index):
     for n, chunk in enumerate(chunks):
         if n:
             lf.SLEEP(2)
-        parts = [f'nwr{_osm_sel(key, value)}["name"]{need_web}(around:{r},{c["lat"]},{c["lon"]});' for key, value in chunk]
-        query = f'[out:json][timeout:60];\n(\n  {chr(10).join(parts)}\n);\nout center tags 1500;'
+        pc = ctx.get('postcode_only')
+        where = '(area.plz)' if pc else f'(around:{r},{c["lat"]},{c["lon"]})'
+        head = f'area["boundary"="postal_code"]["postal_code"="{pc}"]->.plz;\n' if pc else ''
+        parts = [f'nwr{_osm_sel(key, value)}["name"]{need_web}{where};' for key, value in chunk]
+        query = f'[out:json][timeout:60];\n{head}(\n  {chr(10).join(parts)}\n);\nout center tags 1500;'
         try:
             for el in lf.overpass(query, ua).get('elements', []):
                 elements[f"{el.get('type')}/{el.get('id')}"] = el
@@ -777,11 +816,13 @@ def _run_osm(conn, sid, run_id, ctx, area, ua, index):
                       'website': lf.clean_website(tags.get('website') or tags.get('contact:website')),
                       'street': ' '.join(x for x in (tags.get('addr:street', ''), tags.get('addr:housenumber', '')) if x)[:200],
                       'zip': tags.get('addr:postcode', '')[:10], 'city': (tags.get('addr:city') or '')[:120],
-                      'industry': kind.replace('_', ' ')[:200], 'industry_key': ikey, '_industry_matched': bool(ikey),
+                      'industry': kind.replace('_', ' ')[:200], '_industry_matched': bool(ikey),
+                      'industry_key': ikey or next((ind.from_osm(k, tags[k]) for k in ('craft', 'office', 'shop', 'amenity', 'healthcare', 'industrial', 'tourism', 'leisure') if tags.get(k)), ''),
+                      '_in_postcode': bool(ctx.get('postcode_only')),  # aus dem PLZ-Gebiet abgefragt, auch wenn am Eintrag keine PLZ steht
                       'distance_km': round(ar.haversine(c['lat'], c['lon'], lat, lon), 1) if lat and lon else None,
                       'source_url': f"https://www.openstreetmap.org/{el.get('type', 'node')}/{el.get('id', '')}"})
     counts = store_items(conn, sid, run_id, 'osm', items, ctx, index)
-    return counts, f'{len(items)} Einträge im Umkreis' + (f' ({len(errors)} von {len(chunks)} Teilabfragen überlastet)' if errors else '')
+    return counts, (f"{len(items)} Einträge in PLZ {ctx['postcode_only']}" if ctx.get('postcode_only') else f'{len(items)} Einträge im Umkreis') + (f' ({len(errors)} von {len(chunks)} Teilabfragen überlastet)' if errors else '')
 
 
 def _run_ted(conn, sid, run_id, ctx, area, ua, index):
@@ -928,6 +969,8 @@ def _cand_view(r):
     d['sources'] = json.loads(d.pop('sources_json') or '[]')
     d['contact'] = json.loads(d.pop('contact_json') or '{}')
     d['industry_label'] = ind.INDUSTRIES.get(d.get('industry_key') or '', {}).get('label', '')
+    # ohne Rechtsform im Namen: möglicherweise ein Einzelunternehmen – der Firmenname kann ein Personenname sein
+    d['sole'] = d.get('source') != 'ted' and not (d.get('legal_form') or lf.legal_form_of(d.get('name') or ''))
     return d
 
 
@@ -967,6 +1010,8 @@ def candidates(conn, q):
         args += [f"%{get('q')[:60]}%"] * 3
     if get('no_ted') == '1':
         where.append("source<>'ted'")
+    if get('sole') in ('0', '1'):  # 1 = nur Betriebe ohne Rechtsform, 0 = nur mit
+        where.append("source<>'ted' AND legal_form" + ("=''" if get('sole') == '1' else "<>''"))
     if get('max_km'):
         try:
             km = float(get('max_km'))
@@ -995,6 +1040,8 @@ def candidates(conn, q):
                                                    AND (dup_of IS NOT NULL OR possible_lead_id IS NOT NULL)''').fetchone()[0]
     counts['ohne_website'] = conn.execute("""SELECT COUNT(*) FROM discovery_candidates WHERE sweep_id IS NOT NULL AND status='neu'
                                              AND dup_of IS NULL AND website=''""").fetchone()[0]
+    counts['ohne_rechtsform'] = conn.execute("""SELECT COUNT(*) FROM discovery_candidates WHERE sweep_id IS NOT NULL AND status='neu'
+                                                AND dup_of IS NULL AND source<>'ted' AND legal_form=''""").fetchone()[0]
     counts['zusammengefuehrt'] = conn.execute("SELECT COUNT(*) FROM discovery_candidates WHERE sweep_id IS NOT NULL AND status='zusammengefuehrt'").fetchone()[0]
     cities = [{'city': r['city'], 'n': r['n']} for r in conn.execute(f"SELECT city, COUNT(*) AS n {facet_sql} AND city<>'' GROUP BY city COLLATE NOCASE ORDER BY n DESC LIMIT 40", facet_args)]
     return {'total': total, 'offset': offset, 'limit': limit, 'items': rows, 'counts': counts, 'cities': cities,
@@ -1254,6 +1301,41 @@ def bulk(conn, data, db_path=None):
         except (ValueError, LookupError) as exc:
             errors.append(f'#{cid}: {exc}')
     return {'done': done, 'errors': errors[:20], 'lead_ids': lead_ids}
+
+
+def bulk_all(conn, data, db_path=None):
+    """Alle offenen Treffer eines Filters in einem Zug übernehmen oder verwerfen (2.0.0-dev9) – für große Trefferlisten.
+    Gesperrte Firmen und Dubletten werden wie bei der Einzelübernahme abgewiesen und gezählt."""
+    if not isinstance(data, dict) or set(data) - {'filter', 'decision', 'max'} or data.get('decision') not in ('uebernehmen', 'verwerfen'):
+        raise ValueError('Erwartet: {filter: {...}, decision: uebernehmen | verwerfen, max?}.')
+    flt = data.get('filter') or {}
+    if not isinstance(flt, dict) or set(flt) - {'sweep_id', 'website', 'source', 'q', 'no_ted', 'max_km', 'city', 'sole'} or any(not isinstance(v, str) for v in flt.values()):
+        raise ValueError('Unbekannter Filter.')
+    limit = data.get('max', 1000)
+    if type(limit) is not int or not 1 <= limit <= 5000:
+        raise ValueError('max: 1 bis 5000.')
+    query = {k: [v] for k, v in flt.items() if v}
+    done, errors, lead_ids, skipped = 0, [], [], set()
+    while done < limit:
+        page = candidates(conn, {**query, 'status': ['neu'], 'limit': ['200'], 'offset': [str(len(skipped))]})
+        ids = [c['id'] for c in page['items'] if c['id'] not in skipped]
+        if not ids:
+            break
+        for cid in ids:
+            if done >= limit:
+                break
+            try:
+                res = decide(conn, cid, data['decision'], db_path)
+                done += 1
+                if res.get('lead_id'):
+                    lead_ids.append(res['lead_id'])
+            except (ValueError, LookupError) as exc:
+                skipped.add(cid)
+                if len(errors) < 20:
+                    errors.append(f'#{cid}: {exc}')
+            # ein abgelehnter Treffer bleibt „neu“ und würde sonst endlos wiederkehren – deshalb wird er übersprungen
+    remaining = candidates(conn, {**query, 'status': ['neu'], 'limit': ['1']})['total']
+    return {'done': done, 'skipped': len(skipped), 'errors': errors, 'lead_ids': lead_ids[:500], 'remaining': remaining}
 
 
 # ---------------------------------------------------------------- Website-Suche mit Nachweis
@@ -1530,7 +1612,7 @@ def route_sweep(h, conn, method, route, query, db_path):
             return True
     if route == '/api/sweeps/import' and method == 'POST':
         opts = {'filename': get('filename')[:120], 'plz': get('plz')[:60], 'operative': get('operative', '1') == '1',
-                'include_sole': get('include_sole') == '1', 'industries': [x for x in get('industries').split(',') if x], 'keywords': get('keywords')[:400]}
+                'include_sole': get('include_sole', '1') == '1', 'industries': [x for x in get('industries').split(',') if x], 'keywords': get('keywords')[:400]}
         h._send(201, import_file(conn, _read_raw(h), opts))
         return True
     m = re.fullmatch(r'/api/sweeps/(\d+)/retry', route)
@@ -1555,6 +1637,9 @@ def route_sweep(h, conn, method, route, query, db_path):
         if set(b) != {'decision'}:
             raise ValueError('Erwartet: {decision}.')
         h._send(200, review_duplicate(conn, int(m.group(1)), b['decision']))
+        return True
+    if route == '/api/sweep-candidates/bulk-all' and method == 'POST':
+        h._send(200, bulk_all(conn, h._body(), db_path))
         return True
     if route == '/api/sweep-candidates/bulk' and method == 'POST':
         h._send(200, bulk(conn, h._body(), db_path))

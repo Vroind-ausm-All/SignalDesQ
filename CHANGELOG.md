@@ -1,5 +1,42 @@
 # Changelog
 
+## 2.0.0-dev9 – Größere Zielgruppe: Betriebe ohne Rechtsform, Branche aus OpenStreetMap, alle Treffer übernehmen
+
+- **Betriebe ohne Rechtsform im Namen sind standardmäßig dabei** (z. B. „Elektro Müller“) und in der Trefferliste als „ohne Rechtsform“ gekennzeichnet. Bisher wurden sie ausgelassen. Abschaltbar im Suchformular; filterbar und gezählt.
+- Übernommene Betriebe ohne Rechtsform tragen im Lead den Hinweis, dass der Firmenname ein Personenname sein kann. Der Rechtsstatus bleibt „unbekannt“.
+- **Branche aus dem OpenStreetMap-Merkmal:** Ein Betrieb mit `craft=electrician` ist Elektroinstallation – auch ohne Branchenfilter und ohne Raten aus dem Namen. Unbekannte Merkmale bleiben ohne Branche.
+- **„Alle Treffer übernehmen“:** übernimmt alle offenen Treffer des aktuellen Filters in einem Zug, auch über mehrere Seiten (je Durchgang bis 1.000). Gesperrte Firmen und Dubletten werden übersprungen – auch wenn der Widerspruch erst nach der Suche eingetragen wurde.
+- **Öffnungszeiten steuern die Reihenfolge:** Unter „Als Nächstes kontaktieren“ rücken laut OpenStreetMap gerade geschlossene Betriebe nach hinten. Unbekannte Öffnungszeiten gelten nicht als geschlossen.
+- 516 Tests (8 neu) unter Python 3.10 und 3.13, 6 Browser-Tests.
+
+## 2.0.0-dev8 – OpenStreetMap ausgebaut: PLZ-Schätzung, Lage der Gebäude, Telefon und Öffnungszeiten
+
+- **Betriebe ohne PLZ-Angabe fehlen nicht mehr:** Liegt höchstens 250 m entfernt ein Betrieb mit PLZ, bekommt der Eintrag dessen PLZ als Schätzung. In der PLZ-genauen Suche erscheinen solche Treffer und werden als geschätzt ausgewiesen. Die eigene Angabe eines Eintrags wird nie überschrieben.
+- **Gebäudeumrisse haben eine Lage:** Betriebe, die in OpenStreetMap als Umriss erfasst sind, bekommen die Koordinaten ihres ersten Eckpunkts. Sie erscheinen damit auch in der Umkreissuche.
+- **Telefon und Öffnungszeiten in der Firmenakte:** Stammt eine Firma aus dem lokalen OpenStreetMap-Bestand, zeigt die Erreichbarkeit ihre Öffnungszeiten mit „jetzt geöffnet / geschlossen“ und – wenn keine belegte Nummer vorliegt – die Telefonnummer. Beides ist als „OpenStreetMap (ungeprüft)“ gekennzeichnet; ins Firmenprofil wird nichts geschrieben.
+- Öffnungszeiten werden nur ausgewertet, wenn sie eindeutig lesbar sind; sonst bleibt die Aussage „unbekannt“.
+- 508 Tests (4 neu) unter Python 3.10 und 3.13, 6 Browser-Tests.
+
+## 2.0.0-dev7 – OpenStreetMap manuell und offline
+
+- **OpenStreetMap läuft manuell:** Die Firmensuche fragt die öffentlichen Server nicht mehr von selbst ab. Sie waren im Praxistest bei jedem Versuch überlastet. Online-Abfrage nur noch per Häkchen.
+- **Lokaler Auszug:** Eine `.osm.pbf`-Datei (z. B. Regierungsbezirk Stuttgart von Geofabrik) einmal einlesen, danach sucht SignalDesk offline und sofort. Ohne Zusatzprogramm.
+- **Handexport:** Für eine PLZ oder einen Ort öffnet ein Klick die fertige Abfrage in Overpass Turbo; die gespeicherte Datei (`.json`, `.geojson`) liest SignalDesk ein.
+- **„OpenStreetMap nutzbar machen“** unter „Firmen finden“: Stand des lokalen Bestands, drei Wege mit Aufwand, Datei einlesen.
+- **Ganze Stadt:** Ein Ortsname mit „nur dieser Ort“ deckt beim lokalen Bestand alle Postleitzahlen der Stadt ab.
+- Gespeichert werden nur benannte Betriebe, dazu Telefon und Öffnungszeiten; keine E-Mail-Adressen, keine Betreibernamen.
+- Die Suche bleibt ohne festgelegte Branche; die Roadmap sieht keine Branchen-Voreinstellung mehr vor.
+- Schema 28. 504 Tests (13 neu) unter Python 3.10 und 3.13, 6 Browser-Tests (1 neu). Anleitung: `docs/OPENSTREETMAP_LOKAL.md`.
+
+## 2.0.0-dev6 – Praxistest 70191: PLZ-genaue Suche, faires Budget
+
+- **Behoben – PLZ wurde ignoriert:** „70191“ mit „nur dieser Ort“ lieferte ganz Stuttgart (300 Treffer, davon 2 in 70191). Jetzt gilt genau diese PLZ; nach der Behebung lagen 56 von 56 Treffern in 70191.
+- **Behoben – die erste Quelle verbrauchte das ganze Budget:** OpenStreetMap lief dadurch nie. Das Budget wird jetzt auf die gewählten Quellen verteilt; Ungenutztes geht an die nächste Quelle.
+- OpenStreetMap fragt bei einer PLZ das PLZ-Gebiet ab statt einen Umkreis um die Stadtmitte.
+- Bericht mit allen Messwerten und Folgerungen: `docs/PRAXISTEST_70191.md`.
+- 491 Tests (6 neu), geprüft unter Python 3.10 und 3.13.
+- Website-Zuordnung und Handwerks-Abdeckung waren in der Testumgebung nicht messbar; siehe Bericht.
+
 ## 2.0.0-dev5 – Nachkalkulation
 
 - **Nachkalkulation** unter „Angebote & Preise“: Für jedes angenommene Angebot erfasst du die tatsächlich gebrauchten Stunden (einzeln oder als Sammeleintrag) und siehst kalkuliert, gebraucht und übrig.

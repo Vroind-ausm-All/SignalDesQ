@@ -23,7 +23,7 @@
   function renderList(c) {
     $('#rcListCount').textContent = c.total ? `${c.items.length} von ${c.total} · jetzt: ${c.slot_now}` : '';
     $('#rcList').innerHTML = c.items.length ? c.items.map(i => `<div class="td-item rc-item">
-      <div>${window.leadGradeChip ? window.leadGradeChip(i.lead_id) : ''}<b>${esc(i.company)}</b>${i.fits_now ? ' <span class="sw-web ok">jetzt passendes Zeitfenster</span>' : ''}
+      <div>${window.leadGradeChip ? window.leadGradeChip(i.lead_id) : ''}<b>${esc(i.company)}</b>${i.fits_now ? ' <span class="sw-web ok">jetzt passendes Zeitfenster</span>' : ''}${i.open_now === true ? ' <span class="sw-web ok">jetzt geöffnet</span>' : i.open_now === false ? ' <span class="sw-web off">jetzt geschlossen</span>' : ''}
         <small>${esc(i.hint)}</small></div>
       <button type="button" class="text-button" data-go-action='${esc(JSON.stringify({view: 'lead', lead_id: i.lead_id}))}'>Akte öffnen</button></div>`).join('')
       : '<div class="empty">Keine Firma mit Passung A oder B in den Phasen Qualifiziert bis Rückmeldung. Zielkundenprofil einstellen und Firmen-Berichte erstellen.</div>';

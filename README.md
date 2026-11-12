@@ -1,6 +1,6 @@
 # SignalDesk – Kunden finden, bewerten, erreichen, abrechnen (lokal)
 
-> **Stand 2.0.0-dev5: Entwicklungsstand, kein fertiges Release.** Geprüft mit automatischen Tests unter Linux (Python 3.10, 3.12, 3.13) und im Browser. **Nicht** an echten Firmen gemessen. Vor der Nutzung vorhandener Daten eine Sicherung erstellen.
+> **Stand 2.0.0-dev9: Entwicklungsstand, kein fertiges Release.** Geprüft mit automatischen Tests unter Linux (Python 3.10, 3.12, 3.13) und im Browser. Erste Messung an echten Quellen: [`docs/PRAXISTEST_70191.md`](docs/PRAXISTEST_70191.md); Website-Zuordnung noch ungemessen. Vor der Nutzung vorhandener Daten eine Sicherung erstellen.
 
 SignalDesk ist ein Vertriebsarbeitsplatz für Soloselbstständige und kleine Dienstleister. Es läuft auf deinem Rechner, speichert alles in einer lokalen Datei und versendet nichts.
 
@@ -29,7 +29,7 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 | Bereich | Inhalt |
 |---|---|
 | **Heute** | Eingang für verpasste Anrufe mit Rückruffrist, „als Nächstes kontaktieren“, Auslastung, Tagesplan, Wiedervorlage, Tagesabschluss |
-| **Firmen finden** | GLEIF, Wikidata, OpenStreetMap und TED gleichzeitig, ohne Dubletten; großer GLEIF-Katalog offline; Suchprofile mit Budget |
+| **Firmen finden** | GLEIF, Wikidata und TED gleichzeitig, OpenStreetMap offline aus einem lokalen Auszug; ohne Dubletten; PLZ-genau, ganze Stadt oder Umkreis; großer GLEIF-Katalog offline; Suchprofile mit Budget |
 | **Recherchieren** | Firmen-Bericht mit einem Klick: Impressum, Website-Bewertung, Inhalte, Karriereseite, Kaufsignale – jede Angabe mit Fundstelle |
 | **Bewerten** | Zielkundenprofil; Passung vor dem Gespräch (A, B, C), Qualifizierung danach, K.-o.-Kriterien; Unbekanntes zählt nicht als schlecht |
 | **Erreichen** | Belegte Kontaktwege, Anrufversuche mit Zeitfenster, Wiedervorlage nach „nicht erreicht“, eigene Zeiten, Terminvorschläge, Textbausteine |
@@ -70,6 +70,7 @@ python -m unittest discover -s tests
 | Was geht nicht oder nur eingeschränkt? | [`docs/EINSCHRAENKUNGEN.md`](docs/EINSCHRAENKUNGEN.md) |
 | Warum wurde etwas so entschieden? | [`docs/ARCHITECTURE_DECISIONS.md`](docs/ARCHITECTURE_DECISIONS.md) |
 | Was wurde wirklich getestet? | [`docs/SELF_REVIEW_LOG.md`](docs/SELF_REVIEW_LOG.md) |
+| Wie nutze ich OpenStreetMap? | [`docs/OPENSTREETMAP_LOKAL.md`](docs/OPENSTREETMAP_LOKAL.md) |
 | Welche Quellen sind erlaubt? | [`docs/LEADQUELLEN_V11.md`](docs/LEADQUELLEN_V11.md), [`docs/RECHTLICHES.md`](docs/RECHTLICHES.md) |
 | Buchhaltung | [`docs/BUCHHALTUNG_V10.md`](docs/BUCHHALTUNG_V10.md), [`docs/GAP_ANALYSE_V10.md`](docs/GAP_ANALYSE_V10.md) |
 | Bestandteile und Lizenzen | [`docs/BESTANDTEILE.md`](docs/BESTANDTEILE.md) |

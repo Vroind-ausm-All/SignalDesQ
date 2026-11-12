@@ -46,6 +46,7 @@ from . import __version__
 from . import qualification
 from . import reach
 from . import postcalc
+from .research import osm_local
 from . import netpolicy
 from .backup_restore import route_restore
 from .workday import route_workday, ContactLocked, check_stage_change, assert_contact_allowed, assert_need_confirmed, after_proposal_sent, after_meeting_done
@@ -72,6 +73,31 @@ BUDGET_STATUSES = ("offen", "budget_vorhanden", "freigabe_offen", "kein_budget")
 IMPORT_FIELDS = ("company", "website", "location", "industry", "employees", "signal_type", "signal_date",
                  "signal_source", "signal_note", "offer", "contact_name", "contact_role", "contact_route", "permission",
                  "permission_evidence", "next_step", "next_date")
+
+
+class _CountingReader:
+    """Reicht alles an den Eingabestrom durch und zählt die gelesenen Bytes."""
+
+    def __init__(self, raw):
+        self._raw, self.count = raw, 0
+
+    def read(self, *a):
+        data = self._raw.read(*a)
+        self.count += len(data)
+        return data
+
+    def readline(self, *a):
+        data = self._raw.readline(*a)
+        self.count += len(data)
+        return data
+
+    def readinto(self, b):
+        n = self._raw.readinto(b)
+        self.count += n or 0
+        return n
+
+    def __getattr__(self, name):
+        return getattr(self._raw, name)
 
 
 def validate_discovery(fields):
@@ -172,7 +198,7 @@ def validate(fields: dict, partial=False):
 
 STATIC_FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
     "/style.css": ("style.css", "text/css"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
 
 LOOPBACK_HOSTS = frozenset({'127.0.0.1', 'localhost', '::1'})
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
@@ -189,6 +215,33 @@ def make_handler(db_path, allowed_hosts=None):
     hosts = LOOPBACK_HOSTS | {h.lower() for h in (allowed_hosts or ())}
 
     class Handler(BaseHTTPRequestHandler):
+        def setup(self):
+            super().setup()
+            self.rfile = _CountingReader(self.rfile)  # 2.0.0-dev10: mitzählen, wie viel vom Anfragekörper gelesen wurde
+
+        def _drain(self, limit=1024 * 1024):
+            """Ungelesenen Rest des Anfragekörpers einlesen (bis 1 MB), bevor die Verbindung endet. Wird eine Anfrage abgelehnt,
+            ohne dass ihr Körper gelesen wurde, bricht Windows die Verbindung sonst hart ab – der Aufrufer sieht dann einen
+            Verbindungsfehler statt der Fehlermeldung."""
+            try:
+                total = int(self.headers.get("Content-Length", "0") or 0)
+            except (ValueError, AttributeError):
+                return
+            left = total - (self.rfile.count - getattr(self, "_body_from", self.rfile.count))
+            if left <= 0:
+                return
+            if left > limit:
+                self.close_connection = True  # zu groß zum Nachlesen: Verbindung nicht weiterverwenden
+                return
+            try:
+                while left > 0:
+                    chunk = self.rfile.read(min(65536, left))
+                    if not chunk:
+                        break
+                    left -= len(chunk)
+            except OSError:
+                self.close_connection = True
+
         server_version = "SignalDesk/" + __version__.rsplit(".", 1)[0]  # v1.19: aus der Paketversion statt fest eingetragen
         user = None
 
@@ -345,6 +398,8 @@ def make_handler(db_path, allowed_hosts=None):
                 if reach.route(self, conn, method, route):  # 2.0.0-dev3: eigene Erreichbarkeit, Eingang, Auslastung
                     return
                 if postcalc.route(self, conn, method, route):  # 2.0.0-dev5: Nachkalkulation
+                    return
+                if osm_local.route(self, conn, method, route, query, db_path):  # 2.0.0-dev7: OpenStreetMap aus lokalem Auszug
                     return
                 if route_profiles(self, conn, method, route, query, db_path):
                     return
@@ -803,6 +858,7 @@ def make_handler(db_path, allowed_hosts=None):
             self._run("DELETE")
 
         def _run(self, method):
+            self._body_from = self.rfile.count
             try:
                 self._routes(method)
             except auth.NotLoggedIn as exc:
@@ -826,6 +882,8 @@ def make_handler(db_path, allowed_hosts=None):
             except Exception as exc:
                 print("Serverfehler:", repr(exc))
                 self._error("Interner Serverfehler", 500)
+            finally:
+                self._drain()
 
         def log_message(self, fmt, *args):
             if os.environ.get("AKQUISE_LOG_REQUESTS") == "1":
@@ -834,7 +892,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 27  # 2.0.0-dev5 – bei Schemaänderungen erhöhen (Nachkalkulation: Ist-Zeiten, Auftragsabschluss)
+SCHEMA_VERSION = 28  # 2.0.0-dev7 – bei Schemaänderungen erhöhen (OpenStreetMap-Betriebe aus lokalem Auszug)
 
 
 def backup_before_migration(db):

@@ -344,7 +344,7 @@ def contact_list(conn, now=None, limit=12):
     profile = ql.load(conn)
     rows = []
     for lead in conn.execute("SELECT * FROM leads WHERE stage IN ('qualifiziert','kontakt','antwort')"):
-        a = ql.assessment(conn, lead, profile)
+        a = ql.assessment(conn, lead, profile, now)
         f, r, q = a['fit'], a['reachability'], a['qualification']
         if f['grade'] not in ('A', 'B') or q['status'] == 'nicht_qualifiziert' or r['status'] not in ('bereit', 'versuch_offen'):
             continue
@@ -352,8 +352,11 @@ def contact_list(conn, now=None, limit=12):
         fits_now = bool(slot and r['attempts_open'] and slot['key'] == slot_now)
         rows.append({'lead_id': lead['id'], 'company': lead['company'], 'stage': lead['stage'], 'grade': f['grade'], 'score': f['score'],
                      'headline': a['headline'], 'hint': r['hint'], 'attempts_open': r['attempts_open'], 'fits_now': fits_now,
-                     'channels': [c['label'] for c in r['channels'] if c['known']], 'permission': lead['permission']})
-    rows.sort(key=lambda x: (x['grade'], not x['fits_now'], -(x['score'] or 0), x['company'].lower()))
+                     'channels': [c['label'] for c in r['channels'] if c['known']], 'permission': lead['permission'],
+                     # 2.0.0-dev9: Öffnungszeiten aus OpenStreetMap (ungeprüft) – None heißt unbekannt, nicht geschlossen
+                     'open_now': (r.get('hours') or {}).get('open_now'), 'hours_label': (r.get('hours') or {}).get('label', '')})
+    # A vor B; innerhalb der Note: laut Öffnungszeiten gerade geschlossene Betriebe nach hinten, passendes Zeitfenster nach vorn
+    rows.sort(key=lambda x: (x['grade'], x['open_now'] is False, not x['fits_now'], -(x['score'] or 0), x['company'].lower()))
     return {'items': rows[:limit], 'total': len(rows), 'slot_now': ql.SLOTS[slot_now],
             'notice': 'Reihenfolge nach Passung. Vor jedem Erstkontakt die Rechtsgrundlage prüfen und dokumentieren – ein belegter Kontaktweg ist keine Werbeerlaubnis.'}
 

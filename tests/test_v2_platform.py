@@ -112,5 +112,77 @@ class WorkerShutdownTests(unittest.TestCase):
             self.assertTrue(jobs.stop_workers(db, timeout=10))
 
 
+class UnreadBodyTests(unittest.TestCase):
+    """Windows-CI: Eine abgelehnte Anfrage, deren Körper der Server nie las, endete mit Verbindungsabbruch statt Fehlermeldung.
+    Unter Linux kommt die Antwort auch ohne die Behebung an; der erste Test prüft deshalb den Mechanismus, der zweite das
+    Verhalten von außen. Den eigentlichen Nachweis liefert der Windows-Lauf der CI."""
+
+    def test_drain_reads_the_rest_and_gives_up_on_huge_bodies(self):
+        """Der Mechanismus selbst, unabhängig vom Betriebssystem: Nach der Antwort ist der Anfragekörper vollständig gelesen."""
+        import types
+        from sales_tool.server import _CountingReader, make_handler
+        handler = make_handler(':memory:')
+        body = b'x' * 150_000
+        fake = types.SimpleNamespace(rfile=_CountingReader(io.BytesIO(b'KOPFZEILEN' + body)), headers={'Content-Length': str(len(body))},
+                                     close_connection=False)
+        fake.rfile.read(10)                      # Kopfzeilen sind gelesen
+        fake._body_from = fake.rfile.count
+        fake.rfile.read(1000)                    # die Route hat nur einen Teil gelesen
+        handler._drain(fake)
+        self.assertEqual(fake.rfile.count - fake._body_from, len(body))
+        self.assertEqual(fake.rfile.read(1), b'')
+        self.assertFalse(fake.close_connection)
+        handler._drain(fake)                     # zweiter Aufruf liest nichts mehr
+        self.assertEqual(fake.rfile.count - fake._body_from, len(body))
+        # sehr große Körper werden nicht nachgelesen – die Verbindung wird stattdessen nicht weiterverwendet
+        huge = types.SimpleNamespace(rfile=_CountingReader(io.BytesIO(b'')), headers={'Content-Length': str(50 * 1024 * 1024)}, close_connection=False)
+        huge._body_from = 0
+        handler._drain(huge)
+        self.assertTrue(huge.close_connection)
+        self.assertEqual(huge.rfile.count, 0)
+        for bad in ({'Content-Length': 'viel'}, {}):
+            odd = types.SimpleNamespace(rfile=_CountingReader(io.BytesIO(b'abc')), headers=bad, close_connection=False, _body_from=0)
+            handler._drain(odd)                  # kaputte oder fehlende Längenangabe: kein Fehler, nichts gelesen
+            self.assertEqual(odd.rfile.count, 0)
+
+    def test_rejected_request_with_unread_body_ends_cleanly(self):
+        import json
+        import threading
+        from http.client import HTTPConnection
+        from http.server import ThreadingHTTPServer
+        from sales_tool.research import jobs
+        from sales_tool.server import make_handler
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
+            db = str(Path(tmp) / 'd.sqlite3')
+            prepare_database(db)
+            server = ThreadingHTTPServer(('127.0.0.1', 0), make_handler(db))
+            threading.Thread(target=server.serve_forever, daemon=True).start()
+            try:
+                import socket
+                big = b'{' * 300_000
+                for method, path, ctype, expect in (('POST', '/api/osm/upload?filename=bild.png', 'application/octet-stream', b' 400 '),
+                                                    ('DELETE', '/api/osm/places', 'application/json', b' 200 '),
+                                                    ('POST', '/api/leads', 'text/plain', b' 400 ')):
+                    with socket.create_connection(('127.0.0.1', server.server_address[1]), timeout=20) as sock:
+                        head = f'{method} {path} HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Type: {ctype}\r\nContent-Length: {len(big)}\r\nConnection: close\r\n\r\n'
+                        sock.sendall(head.encode() + big)
+                        data = b''
+                        while True:  # bis zum sauberen Ende lesen: ein harter Abbruch (RST) löst hier einen Fehler aus
+                            chunk = sock.recv(65536)
+                            if not chunk:
+                                break
+                            data += chunk
+                    self.assertIn(expect, data.split(b'\r\n', 1)[0], path)
+                    self.assertIn(b'{', data.split(b'\r\n\r\n', 1)[1], 'Antwort mit JSON-Körper statt Verbindungsabbruch')
+                c = HTTPConnection('127.0.0.1', server.server_address[1], timeout=20)
+                c.request('GET', '/api/leads')
+                self.assertEqual(json.loads(c.getresponse().read()), [])  # Server läuft weiter
+                c.close()
+            finally:
+                server.shutdown()
+                server.server_close()
+                jobs.stop_all_workers()
+
+
 if __name__ == '__main__':
     unittest.main()

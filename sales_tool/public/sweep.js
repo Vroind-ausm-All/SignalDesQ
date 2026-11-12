@@ -32,7 +32,7 @@
     const f = $('#swForm').elements;
     return {place: f.place.value.trim(), radius_km: Number(f.radius_km.value), industries: [...selectedInd], keywords: f.keywords.value.trim(),
       sources: $$('#swForm [name=src]:checked').map(x => x.value), operative: f.operative.checked, include_sole: f.include_sole.checked,
-      find_websites: f.find_websites.checked, ted_nationwide: f.ted_nationwide.checked,
+      find_websites: f.find_websites.checked, ted_nationwide: f.ted_nationwide.checked, osm_online: f.osm_online.checked,
       org_kinds: $$('#swForm [name=org]:checked').map(x => x.value),
       budget: {max_companies: Number(f.max_companies.value), max_websites: Number(f.max_websites.value), max_minutes: Number(f.max_minutes.value)}};
   }
@@ -88,7 +88,7 @@
     f.keywords.value = Array.isArray(p.keywords) ? p.keywords.join(', ') : (p.keywords || '');
     $$('#swForm [name=src]').forEach(x => { x.checked = (p.sources || []).includes(x.value); });
     $$('#swForm [name=org]').forEach(x => { x.checked = (p.org_kinds || ['unternehmen']).includes(x.value); });
-    f.operative.checked = p.operative !== false; f.include_sole.checked = !!p.include_sole; f.find_websites.checked = p.find_websites !== false;
+    f.operative.checked = p.operative !== false; f.include_sole.checked = p.include_sole !== false; f.find_websites.checked = p.find_websites !== false; f.osm_online.checked = !!p.osm_online;
     f.ted_nationwide.checked = !!p.ted_nationwide;
     if (budget) { f.max_companies.value = budget.max_companies; f.max_websites.value = budget.max_websites; f.max_minutes.value = budget.max_minutes; }
     selectedInd = new Set(p.industries || []);
@@ -139,7 +139,7 @@
     const open = c.status === 'neu';
     return `<article class="sw-item ${i === cursor ? 'cur' : ''}" data-sw-idx="${i}" data-id="${c.id}">
       <input type="checkbox" data-sw-sel="${c.id}" ${chosen.has(c.id) ? 'checked' : ''} aria-label="${esc(c.name)} auswählen">
-      <div class="sw-main"><b>${esc(c.name)}</b>
+      <div class="sw-main"><b>${esc(c.name)}</b>${c.sole ? ' <span class="sw-web wait" title="Ohne Rechtsform im Namen – möglicherweise Einzelunternehmen; der Name kann ein Personenname sein">ohne Rechtsform</span>' : ''}
         <small>${KIND[c.org_kind] && c.source !== 'ted' ? `<span class="sw-web mid">${esc(KIND[c.org_kind])}</span> ` : ''}${c.legal_form && c.source !== 'ted' && !c.name.toLowerCase().includes(c.legal_form.toLowerCase().replace(/\s*\(.*$/, '')) ? esc(c.legal_form) + ' · ' : ''}${esc(addr || c.city || '')}${c.distance_km != null ? ` · ${c.distance_km.toLocaleString('de-DE')} km` : ''}${c.register_id ? ' · ' + esc(c.register_id) : ''}${c.industry_label ? ` · <i>${esc(c.industry_label)}</i>` : c.industry ? ' · ' + esc(c.industry) : ''}</small>
         <div class="sw-web-line">${webCell(c)}${contact.business_phone ? ` · ☎ ${esc(contact.business_phone)}` : ''}${contact.business_email ? ` · ✉ ${esc(contact.business_email)}` : ''}${contact.imprint_url ? ` · <a href="${esc(contact.imprint_url)}" target="_blank" rel="noopener noreferrer">Impressum ↗</a>` : ''}</div>
         <div class="sw-srcs">${srcs}${c.signal_note ? `<small>${esc(c.signal_note.slice(0, 140))}</small>` : ''}</div>${dupBlock(c)}</div>
@@ -315,6 +315,22 @@
         rt.disabled = true;
         try { const r = await api(`/sweeps/${rt.dataset.swRetry}/retry`, 'POST', {}); toast(`Neuer Versuch: ${r.retrying.map(k => SRC[k] || k).join(', ')}`); $('#swGo').disabled = true; watchSweep(Number(rt.dataset.swRetry)); }
         catch (err) { rt.disabled = false; toast(err.message, true); }
+        return;
+      }
+      if (e.target.closest('#swTakeAll')) {
+        const dups = $('#swStatus').value === 'dups';
+        if (dups || $('#swStatus').value !== 'neu') return toast('Bitte zuerst den Filter „neu“ wählen', true);
+        const total = data?.total || 0;
+        if (!total) return toast('Keine offenen Treffer in diesem Filter', true);
+        const max = Math.min(total, 1000);
+        if (!confirm(`${max.toLocaleString('de-DE')} Treffer des aktuellen Filters als Leads übernehmen?${total > max ? ` (von ${total.toLocaleString('de-DE')}; je Durchgang höchstens 1.000)` : ''}\n\nGesperrte Firmen und Dubletten werden übersprungen. Übernommene Firmen starten mit Rechtsstatus „unbekannt“.`)) return;
+        const filter = {sweep_id: $('#swSweep').value, website: $('#swWeb').value, q: $('#swQ').value.trim(), city: $('#swCity').value, max_km: $('#swKm').value, no_ted: $('#swNoTed').checked ? '1' : ''};
+        Object.keys(filter).forEach(k => { if (!filter[k]) delete filter[k]; });
+        try {
+          const r = await api('/sweep-candidates/bulk-all', 'POST', {filter, decision: 'uebernehmen', max});
+          toast(`${r.done.toLocaleString('de-DE')} übernommen${r.skipped ? ` · ${r.skipped} übersprungen (${r.errors[0] || ''})` : ''}${r.remaining ? ` · ${r.remaining.toLocaleString('de-DE')} noch offen` : ''}`);
+          chosen.clear(); if (typeof reload === 'function') reload(); loadList();
+        } catch (err) { toast(err.message, true); }
         return;
       }
       const b = e.target.closest('[data-sw-bulk]');

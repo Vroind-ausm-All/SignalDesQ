@@ -67,7 +67,11 @@ class FakeNet:
                                   gleif_record('E' * 18 + '05', 'Rentenfonds Süd', 'Stuttgart', '70176', category='FUND'),
                                   gleif_record('F' * 18 + '06', 'Gesperrte Muster AG', 'Stuttgart', '70176', 'HRB 555'),
                                   gleif_record('J' * 18 + '10', 'Stuttgarter Versicherung AG', 'Köln', '50667', 'HRB 4')],
-                    'Esslingen am Neckar': [gleif_record(LEI_C, 'Neckar Präzisionsteile GmbH', 'Esslingen am Neckar', '73728', 'HRB 7300')]}.get(term, [])
+                    'Esslingen am Neckar': [gleif_record(LEI_C, 'Neckar Präzisionsteile GmbH', 'Esslingen am Neckar', '73728', 'HRB 7300')]}
+            if re.fullmatch(r'\d{5}', term):  # wie die echte Schnittstelle: Volltext findet auch die PLZ (live geprüft mit 70191)
+                recs = [r for group in recs.values() for r in group if r['attributes']['entity']['legalAddress']['postalCode'] == term]
+            else:
+                recs = recs.get(term, [])
             if q.get('filter[entity.status]') == ['ACTIVE']:
                 recs = [r for r in recs if r['attributes']['entity']['status'] == 'ACTIVE']
             return {'data': recs, 'meta': {'pagination': {'lastPage': 1}}}
@@ -133,7 +137,7 @@ class SweepBase(unittest.TestCase):
         cleanup_tmp(self.tmp)
 
     def run_sweep(self, **params):
-        p = {'place': '70173', 'radius_km': 30, **params}
+        p = {'place': '70173', 'radius_km': 30, 'osm_online': True, **params}  # diese Tests prüfen den Online-Abruf (seit dev7 nur auf Wunsch)
         s = sw.start_sweep(self.conn, p, self.db, start=False)
         sw.run_sweep(self.db, s['id'])
         return sw.sweep_detail(self.conn, s['id'])
@@ -208,8 +212,9 @@ class SweepTests(SweepBase):
         self.assertEqual(cs['Neckar Präzisionsteile GmbH']['website'], 'https://www.neckar-praezision.example', 'Website über LEI aus Wikidata')
         self.assertAlmostEqual(cs['Neckar Präzisionsteile GmbH']['distance_km'], 9.7, delta=1.5, msg='Entfernung über die Gemeinde')
         self.assertNotIn('Kesselwerk Verwaltungs GmbH', cs, 'nicht operative Gesellschaft ausgefiltert')
-        self.assertNotIn('Hanna Beispiel', cs, 'ohne Rechtsform (evtl. Person) ausgefiltert')
-        self.assertNotIn('Bäckerei Kornfeld', cs, 'OSM ohne Rechtsform ausgefiltert')
+        # 2.0.0-dev9: Betriebe ohne Rechtsform sind standardmäßig dabei und gekennzeichnet (vorher ausgefiltert)
+        self.assertTrue(cs['Hanna Beispiel']['sole'] and cs['Bäckerei Kornfeld']['sole'])
+        self.assertFalse(reith['sole'])
         self.assertEqual(cs['Gesperrte Muster AG']['status'], 'gesperrt')
         self.assertEqual(cs['Bestandskunde Werkzeugbau GmbH']['status'], 'dublette')
         self.assertEqual(cs['Stadtwerke Beispielstadt']['sources'][0]['source'], 'ted')

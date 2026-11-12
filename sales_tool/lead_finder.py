@@ -773,6 +773,8 @@ def review_candidate(conn, candidate_id, decision):
     note_parts = [f"Gefunden über {source['title']} ({source['attribution']}).",
                   f"Anschrift: {address}" if address else '', f"Register: {cand['register_id']}" if cand['register_id'] else '',
                   f"Branche laut Quelle: {cand['industry']}" if cand['industry'] else '',
+                  '' if (cand['legal_form'] or legal_form_of(cand['name'])) else
+                  'Ohne Rechtsform im Namen – möglicherweise Einzelunternehmen; der Firmenname kann ein Personenname sein (Datenschutz beachten).',
                   'Kein Kontakt ohne geprüfte Rechtsgrundlage – Fund ist keine Einwilligung.']
     lead = {
         'company': cand['name'][:200], 'website': cand['website'], 'location': ' '.join(y for y in (cand['zip'], cand['city']) if y)[:160],

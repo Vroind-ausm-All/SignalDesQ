@@ -505,3 +505,8 @@
 .pk-entries{font-size:12px;margin-top:6px}.pk-entries div{display:flex;justify-content:space-between;gap:8px;padding:2px 0;border-bottom:1px solid #eef1ef}
 .pk-lesson{font-weight:700;font-size:13px;margin:4px 0 10px}.pk-lesson:empty{display:none}
 @media(max-width:700px){.pk-form,.pk-form.pk-close{grid-template-columns:1fr}}
+
+/* 2.0.0-dev7: OpenStreetMap manuell */
+.osm-state{margin:8px 0;font-size:13px}.osm-state small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.osm-how{border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:6px 0;font-size:12px}.osm-how summary{cursor:pointer}.osm-how small{color:var(--muted)}
+.osm-how ol{margin:6px 0 2px;padding-left:20px}

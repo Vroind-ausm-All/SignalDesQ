@@ -258,6 +258,106 @@ Implementiert und lokal getestet (Linux, Python 3.10 und 3.13, Chromium). Nicht 
 
 **Entscheid:** weiter.
 
+## Arbeitspaket 5 – Praxistest 70191 (2.0.0-dev6)
+
+Erste Messung gegen die echten Quellen, mit Freigabe des Eigentümers. Vollständiger Bericht: `PRAXISTEST_70191.md`.
+
+- **Stufe „live verifiziert“ erstmals für einen Teil erreicht:** die Firmensuche gegen GLEIF (und teilweise OpenStreetMap). Website-Zuordnung, Impressum und Firmen-Bericht bleiben ungemessen.
+- **Zwei Programmfehler gefunden, die kein Test mit Attrappen zeigen konnte:** PLZ wurde ignoriert (2 von 300 Treffern in der gewünschten PLZ); die erste Quelle verbrauchte das ganze Budget. Beide behoben, mit 6 neuen Tests; Wiederholung live: 56 von 56 Treffern in 70191, alle drei Quellen gelaufen.
+- **Wichtigste Erkenntnis:** Für die Zielgruppe Handwerk liefert die Suche heute praktisch nichts (1 von 56). Ursache sind die Quellen, nicht die Bewertung oder die Oberfläche. Die Arbeitspakete 1 und 2 haben damit an einem Teil gearbeitet, der erst nach einer brauchbaren Quelle Wert entfaltet – die Reihenfolge der Roadmap ist entsprechend umgestellt.
+- **Ausgeführt:** 491 Tests unter Python 3.13 und 3.10 bestanden.
+- **Nicht umgangen:** Der sichere Website-Abruf scheiterte in der Testumgebung an fehlender Namensauflösung. Der Schutz (Verbindung nur zur selbst geprüften Adresse) wurde nicht gelockert, um ein Messergebnis zu erzwingen.
+
+**Die drei wichtigsten Schwachstellen:** (1) keine verlässliche Quelle für Handwerksbetriebe; (2) Website-Zuordnung weiter ungemessen; (3) Branche bei zwei Dritteln der Treffer unbekannt.
+
+**Entscheid:** weiter mit dem lokalen OpenStreetMap-Auszug.
+
+## Arbeitspaket 6 – OpenStreetMap manuell und offline (2.0.0-dev7)
+
+Vorgabe des Eigentümers: Suche ohne festgelegte Branche; OpenStreetMap auf „manuell“; Wege mit geringem Aufwand zeigen, die Quelle nutzbar zu machen.
+
+### Tatsächlich ausgeführt
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 504 Tests bestanden |
+| davon neu: `tests/test_v2_osm_local.py` | 13 Tests |
+| Browser-Tests | 6 von 6, davon 1 neu: Anleitung, Datei einlesen, Suche in einer PLZ – **ohne einen einzigen Abruf außerhalb des eigenen Rechners** |
+| Leser gegen das offizielle Werkzeug `osmium` | Knoten, Koordinaten (auch negative), Umlaute, Gebäudeumrisse stimmen überein |
+| Tempo an erzeugter Datei (3 Mio. Knoten, 200.000 Wege) | 4,5 s, 59 MB Arbeitsspeicher |
+| Echter Geofabrik-Auszug | **nicht geprüft** – Download in der Testumgebung nach Freigabe des Hosts weiterhin abgebrochen |
+
+### Bewertung
+
+| Kriterium | Note | Beleg |
+|---|---|---|
+| Nutzen | 4 | Die einzige Quelle mit kleinen Betrieben ist nicht mehr von überlasteten Servern abhängig. Der Nachweis an echten Daten fehlt. |
+| Bedienbarkeit | 4 | Ein Kasten mit Stand, drei Wegen samt Aufwand und einem Knopf; Bildschirmfoto geprüft. |
+| Quellenqualität | 4 | Lizenz und Stand des Bestands werden genannt; Einträge ohne PLZ werden bei PLZ-genauer Suche ehrlich als fehlend gemeldet. |
+| Robustheit | 4 | Kaputte, abgeschnittene und fremde Dateien führen zu einer Meldung (Tests). |
+| Sicherheit | 4 | Obergrenzen für Block- und Dateigröße; keine E-Mail-Adressen und Betreibernamen gespeichert (Test). |
+| Kostenkontrolle | 5 | Keine Abhängigkeit, kein Netz nötig. |
+| Erweiterbarkeit | 3 | Gebäudeumrisse ohne Koordinaten; PLZ-Zuordnung nur über die Adressangabe. |
+| Testabdeckung | 4 | Echtes Dateiformat als Testdatei, aber kein großer echter Auszug. |
+
+### Nachbesserung
+
+1. Sieben bestehende Tests prüften den Online-Abruf, der jetzt nur noch auf Wunsch läuft; sie fordern ihn nun ausdrücklich an. Ihre Prüfungen sind unverändert.
+2. Gebäudeumrisse fielen in der Umkreissuche ganz heraus; sie zählen jetzt über den Ortsnamen.
+3. Bei widersprüchlicher PLZ-Angabe am Eintrag gilt die Angabe, nicht das abgefragte Gebiet.
+
+### Die drei wichtigsten verbleibenden Schwachstellen
+
+1. **Kein Test an einem echten Auszug.** Der erste Lauf beim Eigentümer ist der eigentliche Nachweis.
+2. **Einträge ohne PLZ** fehlen bei PLZ-genauer Suche; wie viele das sind, ist ungemessen.
+3. **Telefon und Öffnungszeiten** liegen im Bestand, erscheinen aber noch nirgends.
+
+**Entscheid:** weiter; Praxistest mit echtem Auszug durch den Eigentümer.
+
+## Arbeitspaket 7 – OpenStreetMap ausgebaut (2.0.0-dev8)
+
+Behebt die Schwachstellen 2 und 3 aus Arbeitspaket 6.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 508 Tests bestanden |
+| Browser-Tests | 6 von 6 |
+| Einlesen mit zweitem Durchlauf (3 Mio. Punkte, 4.000 Umrisse) | 4,9 s, 41 MB Arbeitsspeicher |
+| Echter Geofabrik-Auszug | weiterhin nicht geprüft |
+
+- **PLZ-Schätzung:** 250 m zum nächsten Betrieb mit PLZ; Test belegt, dass ein weit entfernter Nachbar nicht zählt und eine eigene Angabe nie überschrieben wird. Die Trefferquote an echten Daten ist ungemessen.
+- **Lage der Umrisse:** gegen die mit `osmium` erzeugte Datei geprüft.
+- **Öffnungszeiten:** bewusst enger Leser; sechs unklare Schreibweisen ergeben „unbekannt“ statt einer falschen Aussage (Test).
+- **Nachbesserung:** Der Browser-Test wartete nicht auf das Ende der Suche und bestand deshalb zufällig mit einem Zwischenstand. Er prüft jetzt den fertigen Lauf und die erwarteten vier Treffer.
+
+**Verbleibende Schwachstellen:** (1) kein Test an einem echten Auszug; (2) Güte der PLZ-Schätzung an PLZ-Grenzen ungemessen; (3) Öffnungszeiten steuern die Kontaktreihenfolge noch nicht.
+
+**Entscheid:** weiter; der echte Auszug beim Eigentümer ist der nächste Nachweis.
+
+## Arbeitspaket 8 – Größere Zielgruppe (2.0.0-dev9)
+
+Vorgabe des Eigentümers: Betriebe ohne Rechtsform einbeziehen und kennzeichnen. Dazu die nächsten Roadmap-Punkte.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 516 Tests bestanden |
+| Browser-Tests | 6 von 6; der OpenStreetMap-Test prüft jetzt auch die Kennzeichnung und „Alle Treffer übernehmen“ |
+| Sperrliste bei der Sammelübernahme | Widerspruch nach der Suche eingetragen → Treffer wird übersprungen (Test) |
+
+**Fehler während der Arbeit:** Ein Kommentar, den ich mitten in eine Zeile setzte, schaltete die Einstellung „Websites automatisch suchen“ ab. Ein bestehender Test fiel sofort auf; behoben vor dem Commit.
+
+**Bewertung:** Nutzen 4 (mehr Treffer, ohne Messung an echten Daten), Bedienbarkeit 4 (Bildschirmfoto der Trefferliste geprüft), Sicherheit 3 – die Zielgruppe enthält jetzt bewusst Einträge mit möglichem Personenbezug; SignalDesk kennzeichnet sie, prüft aber keine Rechtsgrundlage.
+
+**Die drei wichtigsten Schwachstellen:** (1) Personenbezug bei Betrieben ohne Rechtsform: Kennzeichnung ja, aber keine eigene Löschfrist und kein Art.-14-Baustein für diese Leads; (2) Tempo der Sammelübernahme bei mehreren tausend Treffern ungemessen; (3) weiterhin kein Lauf mit echtem OpenStreetMap-Auszug.
+
+**Entscheid:** weiter.
+
+### Nachtrag: CI-Ergebnis für Commit `a08c5d1`
+
+Unter Windows mit Python 3.13 schlug `test_malformed_requests_never_500` fehl: Bei einer absichtlich kaputten Anfrage brach die Verbindung ab (`WinError 10053`), statt dass eine Fehlermeldung ankam. Ursache: Lehnt der Server eine Anfrage ab, bevor er ihren Körper gelesen hat, und schließt dann die Verbindung, bricht Windows sie hart ab. Unter Linux kommt die Antwort trotzdem an; deshalb fiel es nur dort auf.
+
+Behebung im Server, nicht im Test: Nach jeder Anfrage liest der Server den ungelesenen Rest des Körpers (bis 1 MB) ein; bei größeren Körpern wird die Verbindung nicht weiterverwendet. Zwei neue Tests: einer prüft den Mechanismus direkt und schlägt ohne die Behebung fehl, einer prüft das Verhalten von außen. Der Nachweis unter Windows steht mit dem nächsten CI-Lauf aus. 518 Tests unter Python 3.13 und 3.10 bestanden.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Roadmap und README-Neufassung stehen ebenfalls aus.

@@ -412,7 +412,83 @@ def after_missed_call(conn, lead_id):
     return {'attempts': n, 'exhausted': False, 'task': title, 'due': due.isoformat(), 'slot': slot}
 
 
-def reachability(conn, lead, profile=None, lock=None):
+_DAYS = {'mo': 0, 'tu': 1, 'di': 1, 'we': 2, 'mi': 2, 'th': 3, 'do': 3, 'fr': 4, 'sa': 5, 'su': 6, 'so': 6}
+_DAY_RE = r'(?:mo|tu|di|we|mi|th|do|fr|sa|su|so)'
+_TIME_RE = re.compile(r'(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})')
+
+
+def opening_schedule(text):
+    """Öffnungszeiten im OpenStreetMap-Format → {wochentag: [(von_min, bis_min), …]} oder None, wenn nicht sicher lesbar.
+    Verstanden wird das Übliche („Mo-Fr 08:00-12:00,13:00-17:00; Sa 09:00-12:00“, „24/7“, „Sa off“). Alles andere bleibt
+    unbekannt – lieber keine Aussage als eine falsche."""
+    text = (text or '').strip().lower()
+    if not text:
+        return None
+    if text == '24/7':
+        return {d: [(0, 1440)] for d in range(7)}
+    sched = {}
+    for rule in text.split(';'):
+        rule = rule.strip()
+        if not rule:
+            continue
+        if rule.startswith('ph'):  # Feiertage: nicht ausgewertet
+            continue
+        m = re.fullmatch(rf'((?:{_DAY_RE}(?:\s*-\s*{_DAY_RE})?)(?:\s*,\s*{_DAY_RE}(?:\s*-\s*{_DAY_RE})?)*)\s+(.+)', rule)
+        if m:
+            days_txt, rest = m.group(1), m.group(2).strip()
+        elif _TIME_RE.match(rule):
+            days_txt, rest = 'mo-su', rule
+        else:
+            return None
+        days = set()
+        for part in re.split(r'\s*,\s*', days_txt):
+            a, _, b = [x.strip() for x in part.partition('-')]
+            lo, hi = _DAYS[a], _DAYS[b] if b else _DAYS[a]
+            days.update(range(lo, hi + 1) if lo <= hi else list(range(lo, 7)) + list(range(0, hi + 1)))
+        if rest in ('off', 'closed'):
+            spans = []
+        else:
+            spans = []
+            for piece in re.split(r'\s*,\s*', rest):
+                t = _TIME_RE.fullmatch(piece.strip())
+                if not t:
+                    return None
+                h1, m1, h2, m2 = map(int, t.groups())
+                if h1 > 24 or h2 > 24 or m1 > 59 or m2 > 59:
+                    return None
+                start, end = h1 * 60 + m1, h2 * 60 + m2
+                if end <= start:
+                    return None  # über Mitternacht: nicht ausgewertet
+                spans.append((start, end))
+        for d in days:
+            sched[d] = spans
+    return sched or None
+
+
+def open_now(text, now=None):
+    """True/False, wenn die Öffnungszeiten sicher lesbar sind; sonst None (unbekannt)."""
+    sched = opening_schedule(text)
+    if sched is None:
+        return None
+    now = now or dt.datetime.now()
+    minute = now.hour * 60 + now.minute
+    return any(a <= minute < b for a, b in sched.get(now.weekday(), []))
+
+
+def osm_info(conn, lead_id):
+    """Telefon und Öffnungszeiten aus dem lokalen OpenStreetMap-Bestand, falls die Firma von dort stammt. Ungeprüfte Angaben."""
+    for r in conn.execute("SELECT external_id, source, sources_json FROM discovery_candidates WHERE lead_id=? ORDER BY id DESC LIMIT 5", (lead_id,)):
+        ids = re.findall(r'openstreetmap\.org/((?:node|way|relation)/\d+)', r['sources_json'] or '')
+        if r['source'] == 'osm' and r['external_id']:
+            ids.insert(0, r['external_id'])
+        for oid in ids:
+            row = conn.execute('SELECT osm_id, phone, opening_hours FROM osm_places WHERE osm_id=?', (oid,)).fetchone()
+            if row and (row['phone'] or row['opening_hours']):
+                return dict(row)
+    return None
+
+
+def reachability(conn, lead, profile=None, lock=None, now=None):
     """Belegte Kontaktwege, bisherige Versuche und der nächste sinnvolle Versuch. Keine Erlaubnis zur Werbung."""
     from .sales_workspace import call_permission
     from .workday import contact_lock
@@ -433,6 +509,15 @@ def reachability(conn, lead, profile=None, lock=None):
     for c in channels:
         c['source'] = src if c['known'] else ''
         c['blocked'] = bool(lock)
+    osm = osm_info(conn, lid)
+    hours = None
+    if osm:
+        if osm['phone'] and not channels[0]['known']:  # nur wenn keine belegte Nummer vorliegt – nichts wird überschrieben
+            channels[0].update(value=osm['phone'], known=True, source='OpenStreetMap (ungeprüft)')
+        if osm['opening_hours']:
+            state = open_now(osm['opening_hours'], now)
+            hours = {'text': osm['opening_hours'], 'open_now': state, 'source': 'OpenStreetMap (ungeprüft)',
+                     'label': 'jetzt geöffnet' if state else ('jetzt geschlossen' if state is False else 'Öffnungszeiten nicht sicher lesbar')}
     tries = attempts(conn, lid)
     total = conn.execute('SELECT COUNT(*) AS n, SUM(outcome NOT IN (?,?)) AS reached FROM calls WHERE lead_id=?', (*MISSED, lid)).fetchone()
     tried = {t['slot'] for t in tries if t['slot']}
@@ -454,6 +539,7 @@ def reachability(conn, lead, profile=None, lock=None):
             'reached_total': total['reached'] or 0, 'max_attempts': profile['max_attempts'], 'exhausted': exhausted,
             'next_slot': None if lock or exhausted else {'key': slot, 'label': SLOTS[slot], 'why': why},
             'history': [{'outcome': t['outcome'], 'slot': t['slot'], 'at': t['created_at']} for t in tries[:10]],
+            'hours': hours,
             'notice': 'Ein belegter Kontaktweg ist keine Werbeerlaubnis (§ 7 UWG). Telefon und E-Mail im Einzelfall prüfen und dokumentieren.'}
 
 
@@ -491,11 +577,11 @@ def lost_stats(conn):
 
 # ---------------------------------------------------------------- Gesamtbild
 
-def assessment(conn, lead, profile=None):
+def assessment(conn, lead, profile=None, now=None):
     from .workday import contact_lock
     profile = profile or load(conn)
     lock = contact_lock(conn, lead)
-    f, q, r = fit(conn, lead, profile, lock), qualification(conn, lead, profile), reachability(conn, lead, profile, lock)
+    f, q, r = fit(conn, lead, profile, lock), qualification(conn, lead, profile), reachability(conn, lead, profile, lock, now)
     if f['grade'] == 'X' or q['status'] == 'nicht_qualifiziert':
         headline = 'Nicht weiterverfolgen'
     elif q['status'] == 'qualifiziert':
