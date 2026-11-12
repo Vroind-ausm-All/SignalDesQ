@@ -314,6 +314,26 @@ Vorgabe des Eigentümers: Suche ohne festgelegte Branche; OpenStreetMap auf „m
 
 **Entscheid:** weiter; Praxistest mit echtem Auszug durch den Eigentümer.
 
+## Arbeitspaket 7 – OpenStreetMap ausgebaut (2.0.0-dev8)
+
+Behebt die Schwachstellen 2 und 3 aus Arbeitspaket 6.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 508 Tests bestanden |
+| Browser-Tests | 6 von 6 |
+| Einlesen mit zweitem Durchlauf (3 Mio. Punkte, 4.000 Umrisse) | 4,9 s, 41 MB Arbeitsspeicher |
+| Echter Geofabrik-Auszug | weiterhin nicht geprüft |
+
+- **PLZ-Schätzung:** 250 m zum nächsten Betrieb mit PLZ; Test belegt, dass ein weit entfernter Nachbar nicht zählt und eine eigene Angabe nie überschrieben wird. Die Trefferquote an echten Daten ist ungemessen.
+- **Lage der Umrisse:** gegen die mit `osmium` erzeugte Datei geprüft.
+- **Öffnungszeiten:** bewusst enger Leser; sechs unklare Schreibweisen ergeben „unbekannt“ statt einer falschen Aussage (Test).
+- **Nachbesserung:** Der Browser-Test wartete nicht auf das Ende der Suche und bestand deshalb zufällig mit einem Zwischenstand. Er prüft jetzt den fertigen Lauf und die erwarteten vier Treffer.
+
+**Verbleibende Schwachstellen:** (1) kein Test an einem echten Auszug; (2) Güte der PLZ-Schätzung an PLZ-Grenzen ungemessen; (3) Öffnungszeiten steuern die Kontaktreihenfolge noch nicht.
+
+**Entscheid:** weiter; der echte Auszug beim Eigentümer ist der nächste Nachweis.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Roadmap und README-Neufassung stehen ebenfalls aus.

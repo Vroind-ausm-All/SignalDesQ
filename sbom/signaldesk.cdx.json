@@ -1,7 +1,7 @@
 {
  "bomFormat": "CycloneDX",
  "specVersion": "1.5",
- "serialNumber": "urn:uuid:39fc4486-6eee-57f2-a6c7-73894f073794",
+ "serialNumber": "urn:uuid:bc2bf870-84de-59b2-97c1-493eab0a6da8",
  "version": 1,
  "metadata": {
   "tools": {
@@ -9,7 +9,7 @@
     {
      "type": "application",
      "name": "tools/make_sbom.py",
-     "version": "2.0.0-dev7"
+     "version": "2.0.0-dev8"
     }
    ]
   },
@@ -17,7 +17,7 @@
    "type": "application",
    "bom-ref": "signaldesk",
    "name": "SignalDesk",
-   "version": "2.0.0-dev7",
+   "version": "2.0.0-dev8",
    "licenses": [
     {
      "license": {

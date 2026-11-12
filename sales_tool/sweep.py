@@ -773,7 +773,8 @@ def _run_osm(conn, sid, run_id, ctx, area, ua, index):
         counts = store_items(conn, sid, run_id, 'osm', items, ctx, index)
         note = f"{len(items)} Betriebe aus dem lokalen Auszug (offline)"
         if ctx.get('postcode_only'):
-            note += ' · Einträge ohne PLZ-Angabe lassen sich keiner PLZ zuordnen und fehlen'
+            note += (f" · davon {info['guessed']} ohne PLZ-Angabe, über Nachbarbetriebe im Umkreis von 250 m zugeordnet (Schätzung)" if info.get('guessed')
+                     else ' · Einträge ohne PLZ-Angabe und ohne Nachbarn mit PLZ fehlen')
         elif info.get('no_address'):
             note += f" · davon {info['no_address']} ohne Adresse, nach Lage zugeordnet"
         return counts, note

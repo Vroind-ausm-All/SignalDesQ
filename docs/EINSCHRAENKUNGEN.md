@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev7)
+# Bekannte Einschränkungen (Stand 2.0.0-dev8)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -68,4 +68,4 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - **Ohne eingelesene Datei liefert OpenStreetMap keine Treffer**, solange „online abfragen“ nicht angekreuzt ist. Das ist Absicht.
 - **Der lokale Bestand veraltet.** Er ist so aktuell wie die eingelesene Datei.
 - **Nicht an einem echten Geofabrik-Auszug geprüft** – der Download war in der Testumgebung nicht möglich. Geprüft gegen Dateien des offiziellen Werkzeugs `osmium`. PBF-Dateien mit anderer Kompression als zlib werden mit klarer Meldung abgelehnt.
-- Weitere Grenzen (Einträge ohne PLZ, Gebäudeumrisse ohne Koordinaten) stehen in `OPENSTREETMAP_LOKAL.md`.
+- Weitere Grenzen (geschätzte PLZ, Lage der Gebäudeumrisse, ungeprüfte Öffnungszeiten) stehen in `OPENSTREETMAP_LOKAL.md`.

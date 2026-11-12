@@ -16,7 +16,7 @@
       const last = r.imports[0];
       const running = r.jobs.some(j => ['queued', 'running'].includes(j.status));
       $('#osmState').innerHTML = r.places
-        ? `<span class="sw-web ok">lokaler Bestand</span> <b>${de(r.places)} Betriebe</b> <small>${de(r.with_zip)} mit PLZ · ${de(r.with_website)} mit Website · ${de(r.with_phone)} mit Telefon · ${de(r.with_hours)} mit Öffnungszeiten${last ? ` · eingelesen am ${esc(fmtDate((last.finished_at || last.started_at).slice(0, 10)))} aus ${esc(last.filename)}` : ''}</small>`
+        ? `<span class="sw-web ok">lokaler Bestand</span> <b>${de(r.places)} Betriebe</b> <small>${de(r.with_zip)} mit PLZ, ${de(r.with_zip_guess)} weitere über Nachbarn geschätzt · ${de(r.without_location)} ohne Lage · ${de(r.with_website)} mit Website · ${de(r.with_phone)} mit Telefon · ${de(r.with_hours)} mit Öffnungszeiten${last ? ` · eingelesen am ${esc(fmtDate((last.finished_at || last.started_at).slice(0, 10)))} aus ${esc(last.filename)}` : ''}</small>`
         : '<span class="sw-web wait">noch kein lokaler Bestand</span> <small>Ohne Auszug liefert OpenStreetMap keine Treffer, solange du nicht „online abfragen“ ankreuzt.</small>';
       $('#osmJob').textContent = running ? 'Datei wird eingelesen … ' + (r.jobs[0].tasks?.[0]?.note || '') : (last && last.status === 'fehler' ? 'Letzter Versuch fehlgeschlagen: ' + last.error : '');
       $('#osmHowto').innerHTML = r.howto.map(h => `<details class="osm-how" ${h.key === 'auszug' && !r.places ? 'open' : ''}><summary><b>${esc(h.title)}</b> <small>${esc(h.effort)}</small></summary><ol>${h.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol></details>`).join('');

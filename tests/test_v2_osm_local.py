@@ -90,6 +90,26 @@ class ImportTests(unittest.TestCase):
         self.assertEqual((st['places'], st['with_phone'], st['with_hours'], len(st['imports'])), (6, 1, 1, 2))
         self.assertIn('ODbL', st['license'])
 
+    def test_building_outlines_get_a_location_from_their_first_point(self):
+        r = osm_local.import_file(self.conn, PBF, 'beispiel.osm.pbf')
+        self.assertEqual(r['ways_located'], 1)
+        row = self.conn.execute("SELECT lat, lon FROM osm_places WHERE osm_id='way/5001'").fetchone()
+        self.assertAlmostEqual(row['lat'], 48.01, places=5)  # Knoten 1000 der Testdatei
+        self.assertAlmostEqual(row['lon'], 9.01, places=5)
+        self.assertEqual(osm_local.status(self.conn)['without_location'], 0)
+
+    def test_missing_postcode_is_guessed_only_from_close_neighbours(self):
+        r = osm_local.import_file(self.conn, PBF, 'beispiel.osm.pbf')
+        self.assertEqual(r['postcodes_guessed'], 1)
+        got = dict(self.conn.execute("SELECT name, zip_guess FROM osm_places WHERE zip=''").fetchall())
+        self.assertEqual(got['Malerbetrieb Beispiel'], '70191')  # 170 m neben einem Betrieb mit PLZ
+        self.assertEqual(got['Südhalbkugel Test'], '')           # kein Nachbar in 250 m – bleibt unbekannt
+        # die eigene Angabe wird nie überschrieben, und ein weit entfernter Nachbar zählt nicht
+        self.conn.execute("INSERT INTO osm_places(osm_id, name, kind_key, kind, lat, lon, import_id) VALUES ('node/900', 'Weit weg GmbH', 'office', 'company', 48.81, 9.19, 1)")
+        osm_local.guess_postcodes(self.conn)
+        self.assertEqual(self.conn.execute("SELECT zip_guess FROM osm_places WHERE osm_id='node/900'").fetchone()[0], '')
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM osm_places WHERE zip<>'' AND zip_guess<>''").fetchone()[0], 0)
+
     def test_overpass_json_and_geojson(self):
         r = osm_local.import_file(self.conn, self.write('export.json', OVERPASS), 'export.json')
         self.assertEqual((r['status'], r['kind'], r['places']), ('fertig', 'json', 2))
@@ -131,9 +151,12 @@ class SearchTests(tb.SweepBase):
         d = self.local(place='70191', radius_km=0)
         self.assertEqual(self.overpass_calls(), [])
         names = {c['name'] for c in self.cands()}
-        self.assertEqual(names, {'Elektro Fiktiv GmbH', 'Bäckerei Ähre & Söhne', 'Autohaus Muster GmbH'})  # nur PLZ 70191
+        # PLZ 70191 laut Eintrag – plus der Malerbetrieb ohne PLZ-Angabe, der 170 m neben einem Betrieb in 70191 liegt (dev8)
+        self.assertEqual(names, {'Elektro Fiktiv GmbH', 'Bäckerei Ähre & Söhne', 'Autohaus Muster GmbH', 'Malerbetrieb Beispiel'})
+        self.assertNotIn('Schreinerei Fern GmbH', names)  # andere PLZ
         self.assertIn('lokalen Auszug', d['progress']['osm']['detail'])
-        self.assertIn('ohne PLZ-Angabe', d['progress']['osm']['detail'])
+        self.assertIn('1 ohne PLZ-Angabe', d['progress']['osm']['detail'])
+        self.assertIn('Schätzung', d['progress']['osm']['detail'])
 
     def test_whole_town_covers_all_its_postcodes(self):
         from sales_tool import gemeinden as gm

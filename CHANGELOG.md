@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0-dev8 – OpenStreetMap ausgebaut: PLZ-Schätzung, Lage der Gebäude, Telefon und Öffnungszeiten
+
+- **Betriebe ohne PLZ-Angabe fehlen nicht mehr:** Liegt höchstens 250 m entfernt ein Betrieb mit PLZ, bekommt der Eintrag dessen PLZ als Schätzung. In der PLZ-genauen Suche erscheinen solche Treffer und werden als geschätzt ausgewiesen. Die eigene Angabe eines Eintrags wird nie überschrieben.
+- **Gebäudeumrisse haben eine Lage:** Betriebe, die in OpenStreetMap als Umriss erfasst sind, bekommen die Koordinaten ihres ersten Eckpunkts. Sie erscheinen damit auch in der Umkreissuche.
+- **Telefon und Öffnungszeiten in der Firmenakte:** Stammt eine Firma aus dem lokalen OpenStreetMap-Bestand, zeigt die Erreichbarkeit ihre Öffnungszeiten mit „jetzt geöffnet / geschlossen“ und – wenn keine belegte Nummer vorliegt – die Telefonnummer. Beides ist als „OpenStreetMap (ungeprüft)“ gekennzeichnet; ins Firmenprofil wird nichts geschrieben.
+- Öffnungszeiten werden nur ausgewertet, wenn sie eindeutig lesbar sind; sonst bleibt die Aussage „unbekannt“.
+- 508 Tests (4 neu) unter Python 3.10 und 3.13, 6 Browser-Tests.
+
 ## 2.0.0-dev7 – OpenStreetMap manuell und offline
 
 - **OpenStreetMap läuft manuell:** Die Firmensuche fragt die öffentlichen Server nicht mehr von selbst ab. Sie waren im Praxistest bei jedem Versuch überlastet. Online-Abfrage nur noch per Häkchen.

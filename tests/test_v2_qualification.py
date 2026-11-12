@@ -236,6 +236,38 @@ class ReachabilityTests(Base):
         self.assertIn('§ 7 UWG', reach['notice'])
         self.assertEqual(self.row(lid)['permission'], 'unbekannt')
 
+    def test_opening_hours_are_only_trusted_when_clearly_readable(self):
+        mon10, mon1230, sat10, sun = (dt.datetime(2026, 11, 9, 10, 0), dt.datetime(2026, 11, 9, 12, 30),
+                                      dt.datetime(2026, 11, 14, 10, 0), dt.datetime(2026, 11, 15, 10, 0))
+        h = 'Mo-Fr 08:00-12:00,13:00-17:00; Sa 09:00-12:00'
+        self.assertEqual([q.open_now(h, t) for t in (mon10, mon1230, sat10, sun)], [True, False, True, False])
+        self.assertTrue(q.open_now('24/7', sun))
+        self.assertFalse(q.open_now('Mo-Sa 07:00-18:00; Sa off', sat10))  # spätere Regel gilt
+        self.assertTrue(q.open_now('Mo,Mi,Fr 09:00-16:00', mon10))
+        self.assertTrue(q.open_now('08:00-18:00', sun))  # ohne Wochentag: täglich
+        for unclear in ('', 'nach Vereinbarung', 'Mo-Fr 08:00-12:00; "nur mit Termin"', 'Mo-Fr sunrise-sunset', 'Fr 22:00-02:00', 'Mo-Fr 25:00-26:00'):
+            self.assertIsNone(q.open_now(unclear, mon10), unclear)  # unbekannt statt falsch
+
+    def test_phone_and_hours_from_local_osm_are_shown_as_unverified(self):
+        from sales_tool.research import osm_local
+        osm_local.init_osm_local(self.conn)
+        self.conn.execute("""INSERT INTO osm_places(osm_id, name, kind_key, kind, phone, opening_hours, lat, lon, import_id)
+                             VALUES ('node/77', 'Elektro Beispiel e.K.', 'craft', 'electrician', '+49 711 222222', 'Mo-Fr 08:00-17:00', 48.8, 9.17, 1)""")
+        lid = self.lead()
+        run = self.conn.execute("INSERT INTO discovery_runs(source, params_json) VALUES ('osm', '{}')").lastrowid
+        self.conn.execute("INSERT INTO discovery_candidates(run_id, source, external_id, name, lead_id, sources_json) VALUES (?, 'osm', 'node/77', 'Elektro Beispiel e.K.', ?, '[]')", (run, lid))
+        r = q.reachability(self.conn, self.row(lid), now=dt.datetime(2026, 11, 9, 10, 0))
+        phone = r['channels'][0]
+        self.assertEqual((phone['value'], phone['known'], phone['source']), ('+49 711 222222', True, 'OpenStreetMap (ungeprüft)'))
+        self.assertEqual((r['hours']['open_now'], r['hours']['label']), (True, 'jetzt geöffnet'))
+        self.assertEqual(self.row(lid)['business_phone'], '')  # nichts wird ins Firmenprofil geschrieben
+        self.assertEqual(self.row(lid)['permission'], 'unbekannt')
+        # eine belegte Nummer aus dem Impressum hat Vorrang
+        self.conn.execute("UPDATE leads SET business_phone='0711 999999' WHERE id=?", (lid,))
+        self.assertEqual(q.reachability(self.conn, self.row(lid))['channels'][0]['value'], '0711 999999')
+        other = self.lead('Ohne OSM GmbH')
+        self.assertIsNone(q.reachability(self.conn, self.row(other))['hours'])
+
     def test_invalid_slot_rejected_and_default_slot_from_clock(self):
         lid = self.lead()
         with self.assertRaises(ValueError):

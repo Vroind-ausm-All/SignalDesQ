@@ -38,7 +38,8 @@
         <section><h4><span class="sw-web ${rs[1]}">${esc(rs[0])}</span> Erreichbarkeit <small>${r.attempts_total} Versuche, ${r.reached_total}× erreicht</small></h4>
           <p>${esc(r.hint)}</p>
           <ul class="as-crit">${r.channels.map(c => `<li class="${c.blocked ? 'off' : c.known ? 'ok' : 'wait'}"><span><b>${esc(c.label)}</b> <em class="sw-web ${c.known ? 'ok' : 'wait'}">${c.known ? 'belegt' : 'unbekannt'}</em></span>
-            <small>${c.known ? esc(c.value) + ' · ' : ''}${esc(c.note)}</small></li>`).join('')}</ul>
+            <small>${c.known ? esc(c.value) + ' · ' : ''}${c.source && c.source.startsWith('OpenStreetMap') ? esc(c.source) + ' · ' : ''}${esc(c.note)}</small></li>`).join('')}</ul>
+          ${r.hours ? `<div class="as-q"><b>Öffnungszeiten:</b> ${esc(r.hours.text)} <span class="sw-web ${r.hours.open_now ? 'ok' : r.hours.open_now === false ? 'off' : 'wait'}">${esc(r.hours.label)}</span> <small>${esc(r.hours.source)}</small></div>` : ''}
           ${r.next_slot && r.attempts_open ? `<div class="as-q"><b>Nächster Versuch:</b> ${esc(r.next_slot.label)} <small>(${esc(r.next_slot.why)})</small></div>` : ''}
           <small class="muted">${esc(r.notice)}</small></section>
       </div></div>`;

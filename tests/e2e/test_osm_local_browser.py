@@ -65,7 +65,10 @@ class OsmLocalBrowserTests(unittest.TestCase):
                         page.locator('#swGo').click()
                         page.wait_for_function("""async () => {
                           const r = await (await fetch('/api/sweep-candidates?status=neu')).json();
-                          return r.items.length === 3 && r.items.every(i => i.zip === '70191');
+                          const s = await (await fetch('/api/sweeps')).json();
+                          const done = (s.sweeps || s.items || s)[0]?.status === 'fertig';
+                          // 3 Betriebe mit PLZ 70191 und 1 ohne PLZ-Angabe, über den Nachbarbetrieb zugeordnet
+                          return done && r.items.length === 4 && r.items.every(i => i.zip === '70191' || i.zip === '');
                         }""", timeout=30000)
                         self.assertEqual(outside, [], 'kein Abruf außerhalb des eigenen Rechners')
                         self.assertFalse(errors, errors)

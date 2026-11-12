@@ -1,6 +1,6 @@
 # OpenStreetMap nutzbar machen – manuell und offline
 
-Stand 2.0.0-dev7. Hintergrund: Im Praxistest ([`PRAXISTEST_70191.md`](PRAXISTEST_70191.md)) waren die öffentlichen OpenStreetMap-Server bei jedem Versuch überlastet oder nicht erreichbar. Deshalb fragt SignalDesk sie nicht mehr von selbst ab.
+Stand 2.0.0-dev8. Hintergrund: Im Praxistest ([`PRAXISTEST_70191.md`](PRAXISTEST_70191.md)) waren die öffentlichen OpenStreetMap-Server bei jedem Versuch überlastet oder nicht erreichbar. Deshalb fragt SignalDesk sie nicht mehr von selbst ab.
 
 ## Wie es jetzt läuft
 
@@ -54,8 +54,8 @@ Daten: © OpenStreetMap-Mitwirkende, ODbL 1.0. Die Quelle wird bei jeder überno
 
 ## Grenzen
 
-- **Betriebe ohne PLZ-Angabe** lassen sich bei einer PLZ-genauen Suche keiner PLZ zuordnen und fehlen dort. In der Stadt- oder Umkreissuche sind sie dabei.
-- **Gebäudeumrisse** (in OpenStreetMap „Wege“) haben im Auszug keine Koordinaten. Sie zählen über PLZ oder Ortsnamen; ohne Adresse fehlen sie.
+- **PLZ-Schätzung:** Betriebe ohne PLZ-Angabe bekommen die PLZ des nächsten Betriebs mit PLZ, wenn er höchstens 250 m entfernt liegt. An PLZ-Grenzen kann das danebenliegen; solche Treffer sind in der Suche als geschätzt ausgewiesen. Ohne Nachbarn in 250 m bleibt die PLZ unbekannt und der Betrieb fehlt in der PLZ-genauen Suche.
+- **Lage der Gebäudeumrisse** ist der erste Eckpunkt des Umrisses, nicht die Gebäudemitte – auf Gebäudegröße genau.
 - **Betriebe ohne Rechtsform im Namen** werden weiter vorsorglich ausgelassen, solange „Auch Einzelunternehmen ohne Rechtsform“ nicht angekreuzt ist.
-- **Telefon und Öffnungszeiten** werden gespeichert, aber noch nicht in der Firmenakte angezeigt.
-- **Geprüft** wurde der Leser gegen Dateien, die das offizielle Werkzeug `osmium` erzeugt hat. Ein echter Geofabrik-Auszug ließ sich in der Testumgebung nicht laden; die Einlesezeit für einen ganzen Regierungsbezirk ist deshalb eine Schätzung (gemessen: rund 700.000 Einträge je Sekunde an einer erzeugten Datei).
+- **Telefon und Öffnungszeiten** stammen ungeprüft aus OpenStreetMap und sind so gekennzeichnet. Feiertage, Zeiten über Mitternacht und Sonderformen („nach Vereinbarung“) werden nicht ausgewertet; dann steht „nicht sicher lesbar“.
+- **Geprüft** wurde der Leser gegen Dateien, die das offizielle Werkzeug `osmium` erzeugt hat. Ein echter Geofabrik-Auszug ließ sich in der Testumgebung nicht laden; die Einlesezeit für einen ganzen Regierungsbezirk ist deshalb eine Schätzung (gemessen an einer erzeugten Datei mit 3 Millionen Punkten: 5 Sekunden, 41 MB Arbeitsspeicher).

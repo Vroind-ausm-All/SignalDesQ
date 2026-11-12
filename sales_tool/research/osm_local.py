@@ -35,6 +35,8 @@ SKIP = {'amenity': {'parking', 'parking_space', 'parking_entrance', 'bench', 'sh
         'office': {'government', 'diplomatic', 'political_party', 'religion', 'association', 'ngo'},
         'shop': {'vacant'}}
 MAX_BLOB = 64 * 1024 * 1024
+INSERT_PLACE = ('INSERT OR REPLACE INTO osm_places(osm_id, name, kind_key, kind, street, zip, city, website, phone, opening_hours, lat, lon, import_id) '
+                'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)')
 LICENSE = '© OpenStreetMap-Mitwirkende, ODbL 1.0'
 
 
@@ -54,6 +56,10 @@ def init_osm_local(conn):
         started_at TEXT NOT NULL DEFAULT (datetime('now')), finished_at TEXT NOT NULL DEFAULT '', seconds REAL NOT NULL DEFAULT 0
       );
     ''')
+    cols = {r[1] for r in conn.execute('PRAGMA table_info(osm_places)')}
+    if 'zip_guess' not in cols:  # 2.0.0-dev8: PLZ aus der Nachbarschaft geschätzt (für Einträge ohne PLZ-Angabe)
+        conn.execute("ALTER TABLE osm_places ADD COLUMN zip_guess TEXT NOT NULL DEFAULT ''")
+    conn.execute('CREATE INDEX IF NOT EXISTS idx_osm_places_guess ON osm_places(zip_guess)')
 
 
 # ---------------------------------------------------------------- Protobuf (nur was PBF braucht)
@@ -141,8 +147,9 @@ def _blobs(fh):
         yield btype, data
 
 
-def iter_pbf(path, progress=None):
-    """Alle Knoten und Wege mit Merkmalen: (art, id, tags, lat, lon). Wege haben keine Koordinaten (lat/lon None)."""
+def iter_pbf(path, progress=None, way_refs=None):
+    """Alle Knoten und Wege mit Merkmalen: (art, id, tags, lat, lon). Wege haben keine Koordinaten (lat/lon None).
+    Mit way_refs (dict) wird je benanntem Weg die Kennung seines ersten Knotens notiert – für die Lage des Umrisses."""
     seen = 0
     with open(path, 'rb') as fh:
         for btype, data in _blobs(fh):
@@ -216,7 +223,7 @@ def iter_pbf(path, progress=None):
                         if 'name' in tags:
                             yield 'node', nid, tags, 1e-9 * (lat_off + gran * lat), 1e-9 * (lon_off + gran * lon)
                     elif num == 3:  # Weg (z. B. Gebäudeumriss eines Betriebs)
-                        wid, keys, vals = 0, (), ()
+                        wid, keys, vals, refs = 0, (), (), None
                         for n, _x, v in _fields(val):
                             if n == 1:
                                 wid = v
@@ -224,13 +231,98 @@ def iter_pbf(path, progress=None):
                                 keys = _packed(v)
                             elif n == 3:
                                 vals = _packed(v)
+                            elif n == 8:
+                                refs = v
                         if keys:
                             tags = {text[k]: text[v] for k, v in zip(keys, vals)}
                             if 'name' in tags:
+                                if way_refs is not None and refs is not None and len(refs):
+                                    way_refs[wid] = _zigzag(_varint(refs, 0)[0])
                                 yield 'way', wid, tags, None, None
             seen += 1
             if progress and seen % 200 == 0:
                 progress(seen)
+
+
+def node_coords(path, wanted):
+    """Koordinaten der gewünschten Knoten (zweiter Durchlauf durch die Datei): {knoten_id: (lat, lon)}."""
+    found, wanted = {}, set(wanted)
+    if not wanted:
+        return found
+    with open(path, 'rb') as fh:
+        for btype, data in _blobs(fh):
+            if btype != 'OSMData':
+                continue
+            groups, gran, lat_off, lon_off = [], 100, 0, 0
+            for num, _w, val in _fields(memoryview(data)):
+                if num == 2:
+                    groups.append(val)
+                elif num == 17:
+                    gran = val
+                elif num == 19:
+                    lat_off = val
+                elif num == 20:
+                    lon_off = val
+            for group in groups:
+                for num, _w, val in _fields(group):
+                    if num != 2:
+                        continue
+                    ids = lats = lons = None
+                    for n, _x, v in _fields(val):
+                        if n == 1:
+                            ids = v
+                        elif n == 8:
+                            lats = v
+                        elif n == 9:
+                            lons = v
+                    if not ids:
+                        continue
+                    nid, hits = 0, []
+                    for i, d in enumerate(_packed(ids)):
+                        nid += _zigzag(d)
+                        if nid in wanted:
+                            hits.append((i, nid))
+                    if not hits:
+                        continue
+                    latl, lonl = _packed(lats), _packed(lons)
+                    lat = lon = 0
+                    it = iter(hits)
+                    nxt = next(it)
+                    for i in range(len(latl)):
+                        lat += _zigzag(latl[i])
+                        lon += _zigzag(lonl[i])
+                        if i == nxt[0]:
+                            found[nxt[1]] = (1e-9 * (lat_off + gran * lat), 1e-9 * (lon_off + gran * lon))
+                            nxt = next(it, None)
+                            if nxt is None:
+                                break
+            if len(found) == len(wanted):
+                break
+    return found
+
+
+def guess_postcodes(conn, max_km=0.25):
+    """Einträge ohne PLZ-Angabe bekommen die PLZ des nächsten Eintrags mit PLZ, wenn er höchstens 250 m entfernt liegt.
+    Das ist eine Schätzung (an PLZ-Grenzen kann sie danebenliegen) und wird überall als solche gekennzeichnet."""
+    grid = {}
+    for r in conn.execute("SELECT lat, lon, zip FROM osm_places WHERE zip<>'' AND lat IS NOT NULL"):
+        grid.setdefault((int(r['lat'] * 400), int(r['lon'] * 400)), []).append((r['lat'], r['lon'], r['zip']))
+    conn.execute("UPDATE osm_places SET zip_guess='' WHERE zip_guess<>''")
+    updates = []
+    for r in conn.execute("SELECT osm_id, lat, lon FROM osm_places WHERE zip='' AND lat IS NOT NULL").fetchall():
+        cy, cx = int(r['lat'] * 400), int(r['lon'] * 400)
+        best, best_d = '', max_km
+        for dy in (-1, 0, 1):
+            for dx in (-2, -1, 0, 1, 2):
+                for lat, lon, z in grid.get((cy + dy, cx + dx), ()):
+                    d = gm.haversine(r['lat'], r['lon'], lat, lon)
+                    if d <= best_d:
+                        best, best_d = z, d
+        if best:
+            updates.append((best, r['osm_id']))
+    conn.executemany('UPDATE osm_places SET zip_guess=? WHERE osm_id=?', updates)
+    conn.commit()
+    return len(updates)
 
 
 def iter_json(path):
@@ -311,26 +403,41 @@ def import_file(conn, path, filename='', progress=None, cancelled=None):
     kind = detect_kind(path, filename)
     imp = conn.execute('INSERT INTO osm_imports(filename, kind) VALUES (?,?)', (filename or Path(path).name, kind)).lastrowid
     conn.commit()
-    elements = places = 0
+    elements = places = located = guessed = 0
     try:
         rows = []
-        source = iter_pbf(path) if kind == 'pbf' else iter_json(path)
+        way_refs, way_first = {}, {}
+        source = iter_pbf(path, way_refs=way_refs) if kind == 'pbf' else iter_json(path)
         for typ, ident, tags, lat, lon in source:
             elements += 1
             p = place_from_tags(typ, ident, tags, lat, lon)
+            if typ == 'way' and ident in way_refs:
+                ref = way_refs.pop(ident)
+                if p:
+                    way_first[p['osm_id']] = ref
             if p:
                 places += 1
                 rows.append((p['osm_id'], p['name'], p['kind_key'], p['kind'], p['street'], p['zip'], p['city'], p['website'], p['phone'],
                              p['opening_hours'], p['lat'], p['lon'], imp))
             if len(rows) >= 2000:
-                conn.executemany('INSERT OR REPLACE INTO osm_places VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', rows)
+                conn.executemany(INSERT_PLACE, rows)
                 conn.commit()
                 rows = []
                 if progress:
                     progress({'elements': elements, 'places': places})
                 if cancelled and cancelled():
                     raise InterruptedError
-        conn.executemany('INSERT OR REPLACE INTO osm_places VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', rows)
+        conn.executemany(INSERT_PLACE, rows)
+        conn.commit()
+        located = 0
+        if way_first:  # Gebäudeumrisse: Lage aus dem ersten Punkt des Umrisses (zweiter Durchlauf durch die Datei)
+            if progress:
+                progress({'elements': elements, 'places': places, 'phase': 'Lage der Gebäudeumrisse'})
+            coords = node_coords(path, way_first.values())
+            upd = [(coords[ref][0], coords[ref][1], oid) for oid, ref in way_first.items() if ref in coords]
+            conn.executemany('UPDATE osm_places SET lat=?, lon=? WHERE osm_id=? AND lat IS NULL', upd)
+            located = len(upd)
+        guessed = guess_postcodes(conn)
         status, error = 'fertig', ''
     except InterruptedError:
         status, error = 'abgebrochen', ''
@@ -341,7 +448,8 @@ def import_file(conn, path, filename='', progress=None, cancelled=None):
     conn.execute("UPDATE osm_imports SET status=?, elements=?, places=?, error=?, finished_at=datetime('now'), seconds=? WHERE id=?",
                  (status, elements, places, error, secs, imp))
     conn.commit()
-    return {'id': imp, 'kind': kind, 'status': status, 'elements': elements, 'places': places, 'error': error, 'seconds': secs}
+    return {'id': imp, 'kind': kind, 'status': status, 'elements': elements, 'places': places, 'ways_located': located,
+            'postcodes_guessed': guessed, 'error': error, 'seconds': secs}
 
 
 # ---------------------------------------------------------------- Suche im lokalen Bestand
@@ -353,7 +461,8 @@ def has_data(conn):
 def status(conn):
     n = conn.execute("SELECT COUNT(*) AS n, SUM(zip<>'') AS z, SUM(website<>'') AS w, SUM(phone<>'') AS p, SUM(opening_hours<>'') AS o FROM osm_places").fetchone()
     imports = [dict(r) for r in conn.execute('SELECT * FROM osm_imports ORDER BY id DESC LIMIT 5')]
-    return {'places': n['n'] or 0, 'with_zip': n['z'] or 0, 'with_website': n['w'] or 0, 'with_phone': n['p'] or 0, 'with_hours': n['o'] or 0,
+    g = conn.execute("SELECT SUM(zip_guess<>'') AS g, SUM(lat IS NULL) AS nolat FROM osm_places").fetchone()
+    return {'places': n['n'] or 0, 'with_zip_guess': g['g'] or 0, 'without_location': g['nolat'] or 0, 'with_zip': n['z'] or 0, 'with_website': n['w'] or 0, 'with_phone': n['p'] or 0, 'with_hours': n['o'] or 0,
             'imports': imports, 'license': LICENSE,
             'notice': 'Der lokale Bestand ist so aktuell wie die eingelesene Datei. Für frische Daten einen neuen Auszug einlesen.'}
 
@@ -388,8 +497,9 @@ def area_items(conn, ctx, area, haversine, limit=20000):
     radius = ctx['radius_km']
     counts = {'no_address': 0}
     if ctx.get('postcode_only'):
-        rows = conn.execute('SELECT * FROM osm_places WHERE zip=? LIMIT ?', (ctx['postcode_only'], limit)).fetchall()
-        counts['no_zip_total'] = conn.execute("SELECT COUNT(*) FROM osm_places WHERE zip=''").fetchone()[0]
+        rows = conn.execute("SELECT * FROM osm_places WHERE zip=? OR (zip='' AND zip_guess=?) LIMIT ?",
+                            (ctx['postcode_only'], ctx['postcode_only'], limit)).fetchall()
+        counts['guessed'] = sum(1 for r in rows if not r['zip'])
     else:
         r = radius if radius else 12  # „nur dieser Ort“: grob vorfiltern, genau wird unten geprüft
         dlat, dlon = r / 111.0, r / (111.0 * max(0.2, math.cos(math.radians(c['lat']))))
@@ -425,7 +535,8 @@ def area_items(conn, ctx, area, haversine, limit=20000):
                     counts['no_address'] += 1
         items.append({'external_id': row['osm_id'], 'name': row['name'], 'website': row['website'], 'street': row['street'], 'zip': row['zip'],
                       'city': row['city'], 'industry': row['kind'].replace('_', ' '), 'industry_key': ikey, '_industry_matched': bool(ikey),
-                      '_in_postcode': False, 'distance_km': dist, 'source_url': f"https://www.openstreetmap.org/{row['osm_id']}"})
+                      '_in_postcode': bool(ctx.get('postcode_only')) and not row['zip'],  # PLZ aus der Nachbarschaft geschätzt
+                      'distance_km': dist, 'source_url': f"https://www.openstreetmap.org/{row['osm_id']}"})
     return items, counts
 
 
