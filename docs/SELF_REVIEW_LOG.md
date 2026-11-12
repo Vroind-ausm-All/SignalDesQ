@@ -352,6 +352,12 @@ Vorgabe des Eigentümers: Betriebe ohne Rechtsform einbeziehen und kennzeichnen.
 
 **Entscheid:** weiter.
 
+### Nachtrag: CI-Ergebnis für Commit `a08c5d1`
+
+Unter Windows mit Python 3.13 schlug `test_malformed_requests_never_500` fehl: Bei einer absichtlich kaputten Anfrage brach die Verbindung ab (`WinError 10053`), statt dass eine Fehlermeldung ankam. Ursache: Lehnt der Server eine Anfrage ab, bevor er ihren Körper gelesen hat, und schließt dann die Verbindung, bricht Windows sie hart ab. Unter Linux kommt die Antwort trotzdem an; deshalb fiel es nur dort auf.
+
+Behebung im Server, nicht im Test: Nach jeder Anfrage liest der Server den ungelesenen Rest des Körpers (bis 1 MB) ein; bei größeren Körpern wird die Verbindung nicht weiterverwendet. Zwei neue Tests: einer prüft den Mechanismus direkt und schlägt ohne die Behebung fehl, einer prüft das Verhalten von außen. Der Nachweis unter Windows steht mit dem nächsten CI-Lauf aus. 518 Tests unter Python 3.13 und 3.10 bestanden.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Roadmap und README-Neufassung stehen ebenfalls aus.

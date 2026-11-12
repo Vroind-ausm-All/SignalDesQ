@@ -75,6 +75,31 @@ IMPORT_FIELDS = ("company", "website", "location", "industry", "employees", "sig
                  "permission_evidence", "next_step", "next_date")
 
 
+class _CountingReader:
+    """Reicht alles an den Eingabestrom durch und zählt die gelesenen Bytes."""
+
+    def __init__(self, raw):
+        self._raw, self.count = raw, 0
+
+    def read(self, *a):
+        data = self._raw.read(*a)
+        self.count += len(data)
+        return data
+
+    def readline(self, *a):
+        data = self._raw.readline(*a)
+        self.count += len(data)
+        return data
+
+    def readinto(self, b):
+        n = self._raw.readinto(b)
+        self.count += n or 0
+        return n
+
+    def __getattr__(self, name):
+        return getattr(self._raw, name)
+
+
 def validate_discovery(fields):
     if not isinstance(fields, dict) or set(fields) - set(DISCOVERY_FIELDS):
         raise ValueError("Ungültige Bedarfsanalyse-Felder.")
@@ -190,6 +215,33 @@ def make_handler(db_path, allowed_hosts=None):
     hosts = LOOPBACK_HOSTS | {h.lower() for h in (allowed_hosts or ())}
 
     class Handler(BaseHTTPRequestHandler):
+        def setup(self):
+            super().setup()
+            self.rfile = _CountingReader(self.rfile)  # 2.0.0-dev10: mitzählen, wie viel vom Anfragekörper gelesen wurde
+
+        def _drain(self, limit=1024 * 1024):
+            """Ungelesenen Rest des Anfragekörpers einlesen (bis 1 MB), bevor die Verbindung endet. Wird eine Anfrage abgelehnt,
+            ohne dass ihr Körper gelesen wurde, bricht Windows die Verbindung sonst hart ab – der Aufrufer sieht dann einen
+            Verbindungsfehler statt der Fehlermeldung."""
+            try:
+                total = int(self.headers.get("Content-Length", "0") or 0)
+            except (ValueError, AttributeError):
+                return
+            left = total - (self.rfile.count - getattr(self, "_body_from", self.rfile.count))
+            if left <= 0:
+                return
+            if left > limit:
+                self.close_connection = True  # zu groß zum Nachlesen: Verbindung nicht weiterverwenden
+                return
+            try:
+                while left > 0:
+                    chunk = self.rfile.read(min(65536, left))
+                    if not chunk:
+                        break
+                    left -= len(chunk)
+            except OSError:
+                self.close_connection = True
+
         server_version = "SignalDesk/" + __version__.rsplit(".", 1)[0]  # v1.19: aus der Paketversion statt fest eingetragen
         user = None
 
@@ -806,6 +858,7 @@ def make_handler(db_path, allowed_hosts=None):
             self._run("DELETE")
 
         def _run(self, method):
+            self._body_from = self.rfile.count
             try:
                 self._routes(method)
             except auth.NotLoggedIn as exc:
@@ -829,6 +882,8 @@ def make_handler(db_path, allowed_hosts=None):
             except Exception as exc:
                 print("Serverfehler:", repr(exc))
                 self._error("Interner Serverfehler", 500)
+            finally:
+                self._drain()
 
         def log_message(self, fmt, *args):
             if os.environ.get("AKQUISE_LOG_REQUESTS") == "1":
