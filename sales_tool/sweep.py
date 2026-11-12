@@ -232,7 +232,7 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None, cindex=N
         if not name:
             continue
         legal = item.get('legal_form') or lf.legal_form_of(name)
-        if source in ('osm', 'wikidata') and not legal and not ctx.get('include_sole'):
+        if source in ('osm', 'wikidata') and not legal and not ctx.get('include_sole', True):
             c['filtered'] += 1  # möglicherweise natürliche Person – datensparsam auslassen
             continue
         if ctx.get('operative', True) and source != 'ted' and ind.NON_OPERATIVE_RE.search(name):
@@ -390,7 +390,8 @@ def validate_params(data):
             raise ValueError(f'{flag}: true/false.')
     return {'place': place, 'radius_km': radius, 'industries': ind.validate_keys(data.get('industries', [])),
             'keywords': ind.parse_keywords(data.get('keywords', '')), 'sources': sources, 'operative': data.get('operative', True),
-            'include_sole': data.get('include_sole', False), 'ted_presets': presets, 'find_websites': data.get('find_websites', True),
+            # 2.0.0-dev9: Betriebe ohne Rechtsform sind standardmäßig dabei (und in der Trefferliste gekennzeichnet)
+            'include_sole': data.get('include_sole', True), 'ted_presets': presets, 'find_websites': data.get('find_websites', True),
             'org_kinds': kinds, 'ted_nationwide': data.get('ted_nationwide', False), 'osm_online': data.get('osm_online', False),
             'budget': validate_budget(data.get('budget')),
             'profile_id': data['profile_id'] if isinstance(data.get('profile_id'), int) and not isinstance(data.get('profile_id'), bool) else None}
@@ -815,7 +816,8 @@ def _run_osm(conn, sid, run_id, ctx, area, ua, index):
                       'website': lf.clean_website(tags.get('website') or tags.get('contact:website')),
                       'street': ' '.join(x for x in (tags.get('addr:street', ''), tags.get('addr:housenumber', '')) if x)[:200],
                       'zip': tags.get('addr:postcode', '')[:10], 'city': (tags.get('addr:city') or '')[:120],
-                      'industry': kind.replace('_', ' ')[:200], 'industry_key': ikey, '_industry_matched': bool(ikey),
+                      'industry': kind.replace('_', ' ')[:200], '_industry_matched': bool(ikey),
+                      'industry_key': ikey or next((ind.from_osm(k, tags[k]) for k in ('craft', 'office', 'shop', 'amenity', 'healthcare', 'industrial', 'tourism', 'leisure') if tags.get(k)), ''),
                       '_in_postcode': bool(ctx.get('postcode_only')),  # aus dem PLZ-Gebiet abgefragt, auch wenn am Eintrag keine PLZ steht
                       'distance_km': round(ar.haversine(c['lat'], c['lon'], lat, lon), 1) if lat and lon else None,
                       'source_url': f"https://www.openstreetmap.org/{el.get('type', 'node')}/{el.get('id', '')}"})
@@ -967,6 +969,8 @@ def _cand_view(r):
     d['sources'] = json.loads(d.pop('sources_json') or '[]')
     d['contact'] = json.loads(d.pop('contact_json') or '{}')
     d['industry_label'] = ind.INDUSTRIES.get(d.get('industry_key') or '', {}).get('label', '')
+    # ohne Rechtsform im Namen: möglicherweise ein Einzelunternehmen – der Firmenname kann ein Personenname sein
+    d['sole'] = d.get('source') != 'ted' and not (d.get('legal_form') or lf.legal_form_of(d.get('name') or ''))
     return d
 
 
@@ -1006,6 +1010,8 @@ def candidates(conn, q):
         args += [f"%{get('q')[:60]}%"] * 3
     if get('no_ted') == '1':
         where.append("source<>'ted'")
+    if get('sole') in ('0', '1'):  # 1 = nur Betriebe ohne Rechtsform, 0 = nur mit
+        where.append("source<>'ted' AND legal_form" + ("=''" if get('sole') == '1' else "<>''"))
     if get('max_km'):
         try:
             km = float(get('max_km'))
@@ -1034,6 +1040,8 @@ def candidates(conn, q):
                                                    AND (dup_of IS NOT NULL OR possible_lead_id IS NOT NULL)''').fetchone()[0]
     counts['ohne_website'] = conn.execute("""SELECT COUNT(*) FROM discovery_candidates WHERE sweep_id IS NOT NULL AND status='neu'
                                              AND dup_of IS NULL AND website=''""").fetchone()[0]
+    counts['ohne_rechtsform'] = conn.execute("""SELECT COUNT(*) FROM discovery_candidates WHERE sweep_id IS NOT NULL AND status='neu'
+                                                AND dup_of IS NULL AND source<>'ted' AND legal_form=''""").fetchone()[0]
     counts['zusammengefuehrt'] = conn.execute("SELECT COUNT(*) FROM discovery_candidates WHERE sweep_id IS NOT NULL AND status='zusammengefuehrt'").fetchone()[0]
     cities = [{'city': r['city'], 'n': r['n']} for r in conn.execute(f"SELECT city, COUNT(*) AS n {facet_sql} AND city<>'' GROUP BY city COLLATE NOCASE ORDER BY n DESC LIMIT 40", facet_args)]
     return {'total': total, 'offset': offset, 'limit': limit, 'items': rows, 'counts': counts, 'cities': cities,
@@ -1293,6 +1301,41 @@ def bulk(conn, data, db_path=None):
         except (ValueError, LookupError) as exc:
             errors.append(f'#{cid}: {exc}')
     return {'done': done, 'errors': errors[:20], 'lead_ids': lead_ids}
+
+
+def bulk_all(conn, data, db_path=None):
+    """Alle offenen Treffer eines Filters in einem Zug übernehmen oder verwerfen (2.0.0-dev9) – für große Trefferlisten.
+    Gesperrte Firmen und Dubletten werden wie bei der Einzelübernahme abgewiesen und gezählt."""
+    if not isinstance(data, dict) or set(data) - {'filter', 'decision', 'max'} or data.get('decision') not in ('uebernehmen', 'verwerfen'):
+        raise ValueError('Erwartet: {filter: {...}, decision: uebernehmen | verwerfen, max?}.')
+    flt = data.get('filter') or {}
+    if not isinstance(flt, dict) or set(flt) - {'sweep_id', 'website', 'source', 'q', 'no_ted', 'max_km', 'city', 'sole'} or any(not isinstance(v, str) for v in flt.values()):
+        raise ValueError('Unbekannter Filter.')
+    limit = data.get('max', 1000)
+    if type(limit) is not int or not 1 <= limit <= 5000:
+        raise ValueError('max: 1 bis 5000.')
+    query = {k: [v] for k, v in flt.items() if v}
+    done, errors, lead_ids, skipped = 0, [], [], set()
+    while done < limit:
+        page = candidates(conn, {**query, 'status': ['neu'], 'limit': ['200'], 'offset': [str(len(skipped))]})
+        ids = [c['id'] for c in page['items'] if c['id'] not in skipped]
+        if not ids:
+            break
+        for cid in ids:
+            if done >= limit:
+                break
+            try:
+                res = decide(conn, cid, data['decision'], db_path)
+                done += 1
+                if res.get('lead_id'):
+                    lead_ids.append(res['lead_id'])
+            except (ValueError, LookupError) as exc:
+                skipped.add(cid)
+                if len(errors) < 20:
+                    errors.append(f'#{cid}: {exc}')
+            # ein abgelehnter Treffer bleibt „neu“ und würde sonst endlos wiederkehren – deshalb wird er übersprungen
+    remaining = candidates(conn, {**query, 'status': ['neu'], 'limit': ['1']})['total']
+    return {'done': done, 'skipped': len(skipped), 'errors': errors, 'lead_ids': lead_ids[:500], 'remaining': remaining}
 
 
 # ---------------------------------------------------------------- Website-Suche mit Nachweis
@@ -1569,7 +1612,7 @@ def route_sweep(h, conn, method, route, query, db_path):
             return True
     if route == '/api/sweeps/import' and method == 'POST':
         opts = {'filename': get('filename')[:120], 'plz': get('plz')[:60], 'operative': get('operative', '1') == '1',
-                'include_sole': get('include_sole') == '1', 'industries': [x for x in get('industries').split(',') if x], 'keywords': get('keywords')[:400]}
+                'include_sole': get('include_sole', '1') == '1', 'industries': [x for x in get('industries').split(',') if x], 'keywords': get('keywords')[:400]}
         h._send(201, import_file(conn, _read_raw(h), opts))
         return True
     m = re.fullmatch(r'/api/sweeps/(\d+)/retry', route)
@@ -1594,6 +1637,9 @@ def route_sweep(h, conn, method, route, query, db_path):
         if set(b) != {'decision'}:
             raise ValueError('Erwartet: {decision}.')
         h._send(200, review_duplicate(conn, int(m.group(1)), b['decision']))
+        return True
+    if route == '/api/sweep-candidates/bulk-all' and method == 'POST':
+        h._send(200, bulk_all(conn, h._body(), db_path))
         return True
     if route == '/api/sweep-candidates/bulk' and method == 'POST':
         h._send(200, bulk(conn, h._body(), db_path))

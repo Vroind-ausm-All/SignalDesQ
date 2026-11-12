@@ -150,6 +150,18 @@ def guess(text):
     return ''
 
 
+_OSM_INDEX = {}
+
+
+def from_osm(kind_key, kind):
+    """Branche aus dem OpenStreetMap-Merkmal des Betriebs (z. B. craft=electrician) – genauer als das Raten aus dem Namen."""
+    if not _OSM_INDEX:
+        for key, spec in INDUSTRIES.items():
+            for a, b in spec['osm']:
+                _OSM_INDEX.setdefault((a, b), key)
+    return _OSM_INDEX.get((kind_key, kind), '')  # nur genaue Treffer – ein unbekanntes Gewerk bleibt ohne Branche
+
+
 def osm_selectors(industry_keys):
     sel = []
     for k in industry_keys:

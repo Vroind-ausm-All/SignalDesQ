@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0-dev9 – Größere Zielgruppe: Betriebe ohne Rechtsform, Branche aus OpenStreetMap, alle Treffer übernehmen
+
+- **Betriebe ohne Rechtsform im Namen sind standardmäßig dabei** (z. B. „Elektro Müller“) und in der Trefferliste als „ohne Rechtsform“ gekennzeichnet. Bisher wurden sie ausgelassen. Abschaltbar im Suchformular; filterbar und gezählt.
+- Übernommene Betriebe ohne Rechtsform tragen im Lead den Hinweis, dass der Firmenname ein Personenname sein kann. Der Rechtsstatus bleibt „unbekannt“.
+- **Branche aus dem OpenStreetMap-Merkmal:** Ein Betrieb mit `craft=electrician` ist Elektroinstallation – auch ohne Branchenfilter und ohne Raten aus dem Namen. Unbekannte Merkmale bleiben ohne Branche.
+- **„Alle Treffer übernehmen“:** übernimmt alle offenen Treffer des aktuellen Filters in einem Zug, auch über mehrere Seiten (je Durchgang bis 1.000). Gesperrte Firmen und Dubletten werden übersprungen – auch wenn der Widerspruch erst nach der Suche eingetragen wurde.
+- **Öffnungszeiten steuern die Reihenfolge:** Unter „Als Nächstes kontaktieren“ rücken laut OpenStreetMap gerade geschlossene Betriebe nach hinten. Unbekannte Öffnungszeiten gelten nicht als geschlossen.
+- 516 Tests (8 neu) unter Python 3.10 und 3.13, 6 Browser-Tests.
+
 ## 2.0.0-dev8 – OpenStreetMap ausgebaut: PLZ-Schätzung, Lage der Gebäude, Telefon und Öffnungszeiten
 
 - **Betriebe ohne PLZ-Angabe fehlen nicht mehr:** Liegt höchstens 250 m entfernt ein Betrieb mit PLZ, bekommt der Eintrag dessen PLZ als Schätzung. In der PLZ-genauen Suche erscheinen solche Treffer und werden als geschätzt ausgewiesen. Die eigene Angabe eines Eintrags wird nie überschrieben.

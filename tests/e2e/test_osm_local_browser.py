@@ -70,6 +70,17 @@ class OsmLocalBrowserTests(unittest.TestCase):
                           // 3 Betriebe mit PLZ 70191 und 1 ohne PLZ-Angabe, über den Nachbarbetrieb zugeordnet
                           return done && r.items.length === 4 && r.items.every(i => i.zip === '70191' || i.zip === '');
                         }""", timeout=30000)
+                        # 2.0.0-dev9: Betriebe ohne Rechtsform sind gekennzeichnet, die Branche kommt aus dem OSM-Merkmal
+                        maler = page.locator('.sw-main', has_text='Malerbetrieb Beispiel')
+                        maler.wait_for(timeout=15000)
+                        self.assertIn('ohne Rechtsform', maler.inner_text())
+                        self.assertNotIn('ohne Rechtsform', page.locator('.sw-main', has_text='Elektro Fiktiv GmbH').inner_text())
+                        if SHOTS:
+                            page.locator('#swList, .sw-list').first.screenshot(path=str(Path(SHOTS) / 'treffer.png'))
+                        # alle Treffer des Filters in einem Zug übernehmen
+                        page.once('dialog', lambda dlg: dlg.accept())
+                        page.locator('#swTakeAll').click()
+                        page.wait_for_function("async () => (await (await fetch('/api/leads')).json()).length === 4", timeout=30000)
                         self.assertEqual(outside, [], 'kein Abruf außerhalb des eigenen Rechners')
                         self.assertFalse(errors, errors)
                     finally:

@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import test_sprintB_sweep as tb  # noqa: E402
 
 from sales_tool import lead_finder as lf  # noqa: E402
+from sales_tool import sweep as sw  # noqa: E402
 
 
 class PostcodeOnlyTests(tb.SweepBase):
@@ -70,6 +71,79 @@ class FairBudgetTests(tb.SweepBase):
                            budget={'max_companies': 1, 'max_websites': 0, 'max_minutes': 30})
         self.assertEqual(d['progress']['gleif']['status'], 'fehler')
         self.assertEqual(d['progress']['osm'].get('new', 0), 1)  # die ausgefallene Quelle hat nichts vom Budget verbraucht
+
+
+class WithoutLegalFormTests(tb.SweepBase):
+    """2.0.0-dev9: Betriebe ohne Rechtsform im Namen sind standardmäßig dabei und gekennzeichnet (Entscheidung des Eigentümers)."""
+
+    def test_included_by_default_flagged_and_filterable(self):
+        self.run_sweep(sources=['gleif', 'osm'], industries=[], operative=False)
+        cs = {c['name']: c for c in self.cands()}
+        self.assertTrue(cs['Bäckerei Kornfeld']['sole'])
+        self.assertFalse(cs['Elektro Sommer GmbH']['sole'])
+        only = {c['name'] for c in self.cands(sole='1')}
+        self.assertIn('Bäckerei Kornfeld', only)
+        self.assertNotIn('Elektro Sommer GmbH', only)
+        self.assertNotIn('Bäckerei Kornfeld', {c['name'] for c in self.cands(sole='0')})
+        self.assertGreaterEqual(sw.candidates(self.conn, {})['counts']['ohne_rechtsform'], 1)
+
+    def test_can_still_be_switched_off(self):
+        self.run_sweep(sources=['osm'], industries=[], include_sole=False)
+        self.assertNotIn('Bäckerei Kornfeld', {c['name'] for c in self.cands()})
+
+    def test_adopted_lead_carries_the_privacy_note(self):
+        self.run_sweep(sources=['osm'], industries=[])
+        cid = next(c['id'] for c in self.cands() if c['name'] == 'Bäckerei Kornfeld')
+        res = sw.decide(self.conn, cid, 'uebernehmen', self.db)
+        lead = self.conn.execute('SELECT note, permission FROM leads WHERE id=?', (res['lead_id'],)).fetchone()
+        self.assertIn('Ohne Rechtsform im Namen', lead['note'])
+        self.assertIn('Personenname', lead['note'])
+        self.assertEqual(lead['permission'], 'unbekannt')  # gekennzeichnet, aber keine Kontakterlaubnis
+
+
+class IndustryFromOsmTests(tb.SweepBase):
+    def test_trade_comes_from_the_osm_tag_even_without_industry_filter(self):
+        from sales_tool import industries as ind
+        self.assertEqual(ind.from_osm('craft', 'electrician'), 'elektro')
+        self.assertEqual(ind.from_osm('craft', 'gibt_es_nicht'), '')
+        self.run_sweep(sources=['osm'], industries=[])  # online-Attrappe, kein Branchenfilter
+        cs = {c['name']: c for c in self.cands(status='alle')}
+        self.assertEqual(cs['Elektro Sommer GmbH']['industry_key'], 'elektro')
+        self.assertTrue(cs['Bäckerei Kornfeld']['industry_key'], 'Bäckerei über shop=bakery erkannt, nicht aus dem Namen geraten')
+
+
+class TakeAllTests(tb.SweepBase):
+    def test_all_matches_of_a_filter_are_adopted_and_blocked_ones_skipped(self):
+        from sales_tool.company_data import add_suppression
+        d = self.run_sweep(sources=['gleif', 'osm'], industries=[], operative=False)
+        before = self.cands(status='neu')
+        self.assertGreaterEqual(len(before), 4)
+        # Widerspruch NACH der Suche: der Treffer steht noch als „neu“ in der Liste und darf trotzdem nicht übernommen werden
+        add_suppression(self.conn, 'name', 'Gesperrte Muster AG', 'Widerspruch')
+        r = sw.bulk_all(self.conn, {'filter': {'sweep_id': str(d['id'])}, 'decision': 'uebernehmen'}, self.db)
+        self.assertEqual((r['done'], r['skipped']), (len(before) - 1, 1))
+        self.assertIn('Sperrliste', r['errors'][0])
+        names = {x['company'] for x in self.conn.execute('SELECT company FROM leads')}
+        self.assertNotIn('Gesperrte Muster AG', names)
+        self.assertIn('Bäckerei Kornfeld', names)
+        self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM leads WHERE permission<>'unbekannt'").fetchone()[0], 0)  # keine Kontakterlaubnis
+
+    def test_limit_and_validation(self):
+        d = self.run_sweep(sources=['gleif', 'osm'], industries=[], operative=False)
+        r = sw.bulk_all(self.conn, {'filter': {'sweep_id': str(d['id'])}, 'decision': 'uebernehmen', 'max': 1}, self.db)
+        self.assertEqual(r['done'], 1)
+        self.assertGreaterEqual(r['remaining'], 2)
+        for bad in ({'decision': 'loeschen'}, {'decision': 'uebernehmen', 'max': 0}, {'decision': 'uebernehmen', 'max': 99999},
+                    {'decision': 'uebernehmen', 'filter': {'status': 'alle'}}, {'decision': 'uebernehmen', 'filter': {'sweep_id': 1}}):
+            with self.assertRaises(ValueError, msg=bad):
+                sw.bulk_all(self.conn, bad, self.db)
+
+    def test_filter_is_respected(self):
+        d = self.run_sweep(sources=['gleif', 'osm'], industries=[], operative=False)
+        r = sw.bulk_all(self.conn, {'filter': {'sweep_id': str(d['id']), 'sole': '1'}, 'decision': 'verwerfen'}, self.db)
+        self.assertGreaterEqual(r['done'], 1)
+        self.assertFalse([c for c in self.cands(status='neu') if c['sole']])
+        self.assertTrue([c for c in self.cands(status='neu') if not c['sole']])  # die übrigen bleiben offen
 
 
 if __name__ == '__main__':

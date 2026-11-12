@@ -533,8 +533,9 @@ def area_items(conn, ctx, area, haversine, limit=20000):
                     continue
                 if bare:
                     counts['no_address'] += 1
+        ikey = ikey or ind.from_osm(row['kind_key'], row['kind'])  # auch ohne Branchenfilter: Branche aus dem Merkmal
         items.append({'external_id': row['osm_id'], 'name': row['name'], 'website': row['website'], 'street': row['street'], 'zip': row['zip'],
-                      'city': row['city'], 'industry': row['kind'].replace('_', ' '), 'industry_key': ikey, '_industry_matched': bool(ikey),
+                      'city': row['city'], 'industry': row['kind'].replace('_', ' '), 'industry_key': ikey, '_industry_matched': ok and bool(ctx.get('industries')),
                       '_in_postcode': bool(ctx.get('postcode_only')) and not row['zip'],  # PLZ aus der Nachbarschaft geschätzt
                       'distance_km': dist, 'source_url': f"https://www.openstreetmap.org/{row['osm_id']}"})
     return items, counts

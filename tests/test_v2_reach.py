@@ -174,6 +174,22 @@ class ContactListTests(Base):
         self.assertEqual(self.conn.execute('SELECT COUNT(*) FROM tasks').fetchone()[0], 0)  # Liste ändert nichts
         del a, b, far
 
+    def test_closed_businesses_move_back_and_unknown_hours_are_not_treated_as_closed(self):
+        from sales_tool.research import osm_local
+        osm_local.init_osm_local(self.conn)
+        run = self.conn.execute("INSERT INTO discovery_runs(source, params_json) VALUES ('osm', '{}')").lastrowid
+        hours = {'Elektro Auf e.K.': 'Mo-Fr 08:00-17:00', 'Elektro Zu e.K.': 'Mo-Fr 14:00-18:00', 'Elektro Unklar e.K.': 'nach Vereinbarung'}
+        for n, (name, h) in enumerate(hours.items(), 1):
+            lid = self.lead(name)
+            self.conn.execute("INSERT INTO osm_places(osm_id, name, kind_key, kind, opening_hours, import_id) VALUES (?,?, 'craft', 'electrician', ?, 1)", (f'node/{n}', name, h))
+            self.conn.execute("INSERT INTO discovery_candidates(run_id, source, external_id, name, lead_id, sources_json) VALUES (?, 'osm', ?, ?, ?, '[]')", (run, f'node/{n}', name, lid))
+        plain = self.lead('Elektro Ohne Angabe e.K.')
+        r = reach.contact_list(self.conn, now=FRI)  # Freitag 10 Uhr
+        state = {i['company']: i['open_now'] for i in r['items']}
+        self.assertEqual(state, {'Elektro Auf e.K.': True, 'Elektro Zu e.K.': False, 'Elektro Unklar e.K.': None, 'Elektro Ohne Angabe e.K.': None})
+        self.assertEqual(r['items'][-1]['company'], 'Elektro Zu e.K.')  # geschlossen → ans Ende, aber nicht entfernt
+        del plain
+
     def test_matching_time_slot_comes_first_and_exhausted_company_drops_out(self):
         first = self.lead('Elektro Alpha e.K.')
         second = self.lead('Elektro Beta e.K.')

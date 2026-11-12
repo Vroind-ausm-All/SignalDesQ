@@ -1,6 +1,6 @@
 # OpenStreetMap nutzbar machen – manuell und offline
 
-Stand 2.0.0-dev8. Hintergrund: Im Praxistest ([`PRAXISTEST_70191.md`](PRAXISTEST_70191.md)) waren die öffentlichen OpenStreetMap-Server bei jedem Versuch überlastet oder nicht erreichbar. Deshalb fragt SignalDesk sie nicht mehr von selbst ab.
+Stand 2.0.0-dev9. Hintergrund: Im Praxistest ([`PRAXISTEST_70191.md`](PRAXISTEST_70191.md)) waren die öffentlichen OpenStreetMap-Server bei jedem Versuch überlastet oder nicht erreichbar. Deshalb fragt SignalDesk sie nicht mehr von selbst ab.
 
 ## Wie es jetzt läuft
 
@@ -44,6 +44,8 @@ SignalDesk braucht dafür kein Zusatzprogramm.
 
 Für die ganze Stadt gilt beim lokalen Bestand: Ein Betrieb zählt dazu, wenn seine PLZ zur Stadt gehört oder sein Ortsname passt. Betriebe ganz ohne Adresse zählen nur, wenn sie höchstens 5 km von der Ortsmitte liegen.
 
+**Viele Firmen übernehmen:** Der Knopf „Alle Treffer übernehmen“ übernimmt alle offenen Treffer des aktuellen Filters, je Durchgang bis 1.000.
+
 **Viele Firmen auf einmal:** Das Budget je Lauf steht auf 300 neue Firmen und lässt sich im Suchformular bis 5.000 hochsetzen. Es wird auf die gewählten Quellen verteilt. Für ganz Stuttgart meldete GLEIF im Praxistest allein 3.281 Firmen.
 
 ## Was gespeichert wird
@@ -56,6 +58,6 @@ Daten: © OpenStreetMap-Mitwirkende, ODbL 1.0. Die Quelle wird bei jeder überno
 
 - **PLZ-Schätzung:** Betriebe ohne PLZ-Angabe bekommen die PLZ des nächsten Betriebs mit PLZ, wenn er höchstens 250 m entfernt liegt. An PLZ-Grenzen kann das danebenliegen; solche Treffer sind in der Suche als geschätzt ausgewiesen. Ohne Nachbarn in 250 m bleibt die PLZ unbekannt und der Betrieb fehlt in der PLZ-genauen Suche.
 - **Lage der Gebäudeumrisse** ist der erste Eckpunkt des Umrisses, nicht die Gebäudemitte – auf Gebäudegröße genau.
-- **Betriebe ohne Rechtsform im Namen** werden weiter vorsorglich ausgelassen, solange „Auch Einzelunternehmen ohne Rechtsform“ nicht angekreuzt ist.
+- **Betriebe ohne Rechtsform im Namen** sind seit 2.0.0-dev9 standardmäßig dabei und als „ohne Rechtsform“ gekennzeichnet. Dahinter kann ein Einzelunternehmen stehen, der Firmenname kann ein Personenname sein – solche Daten haben Personenbezug. Im Suchformular abschaltbar.
 - **Telefon und Öffnungszeiten** stammen ungeprüft aus OpenStreetMap und sind so gekennzeichnet. Feiertage, Zeiten über Mitternacht und Sonderformen („nach Vereinbarung“) werden nicht ausgewertet; dann steht „nicht sicher lesbar“.
 - **Geprüft** wurde der Leser gegen Dateien, die das offizielle Werkzeug `osmium` erzeugt hat. Ein echter Geofabrik-Auszug ließ sich in der Testumgebung nicht laden; die Einlesezeit für einen ganzen Regierungsbezirk ist deshalb eine Schätzung (gemessen an einer erzeugten Datei mit 3 Millionen Punkten: 5 Sekunden, 41 MB Arbeitsspeicher).

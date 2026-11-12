@@ -577,11 +577,11 @@ def lost_stats(conn):
 
 # ---------------------------------------------------------------- Gesamtbild
 
-def assessment(conn, lead, profile=None):
+def assessment(conn, lead, profile=None, now=None):
     from .workday import contact_lock
     profile = profile or load(conn)
     lock = contact_lock(conn, lead)
-    f, q, r = fit(conn, lead, profile, lock), qualification(conn, lead, profile), reachability(conn, lead, profile, lock)
+    f, q, r = fit(conn, lead, profile, lock), qualification(conn, lead, profile), reachability(conn, lead, profile, lock, now)
     if f['grade'] == 'X' or q['status'] == 'nicht_qualifiziert':
         headline = 'Nicht weiterverfolgen'
     elif q['status'] == 'qualifiziert':

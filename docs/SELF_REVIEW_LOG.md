@@ -334,6 +334,24 @@ Behebt die Schwachstellen 2 und 3 aus Arbeitspaket 6.
 
 **Entscheid:** weiter; der echte Auszug beim Eigentümer ist der nächste Nachweis.
 
+## Arbeitspaket 8 – Größere Zielgruppe (2.0.0-dev9)
+
+Vorgabe des Eigentümers: Betriebe ohne Rechtsform einbeziehen und kennzeichnen. Dazu die nächsten Roadmap-Punkte.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 516 Tests bestanden |
+| Browser-Tests | 6 von 6; der OpenStreetMap-Test prüft jetzt auch die Kennzeichnung und „Alle Treffer übernehmen“ |
+| Sperrliste bei der Sammelübernahme | Widerspruch nach der Suche eingetragen → Treffer wird übersprungen (Test) |
+
+**Fehler während der Arbeit:** Ein Kommentar, den ich mitten in eine Zeile setzte, schaltete die Einstellung „Websites automatisch suchen“ ab. Ein bestehender Test fiel sofort auf; behoben vor dem Commit.
+
+**Bewertung:** Nutzen 4 (mehr Treffer, ohne Messung an echten Daten), Bedienbarkeit 4 (Bildschirmfoto der Trefferliste geprüft), Sicherheit 3 – die Zielgruppe enthält jetzt bewusst Einträge mit möglichem Personenbezug; SignalDesk kennzeichnet sie, prüft aber keine Rechtsgrundlage.
+
+**Die drei wichtigsten Schwachstellen:** (1) Personenbezug bei Betrieben ohne Rechtsform: Kennzeichnung ja, aber keine eigene Löschfrist und kein Art.-14-Baustein für diese Leads; (2) Tempo der Sammelübernahme bei mehreren tausend Treffern ungemessen; (3) weiterhin kein Lauf mit echtem OpenStreetMap-Auszug.
+
+**Entscheid:** weiter.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Roadmap und README-Neufassung stehen ebenfalls aus.
