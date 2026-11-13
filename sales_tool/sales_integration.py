@@ -79,7 +79,7 @@ def discovery_state(disc):
 
 
 def match_offers(conn, lead_id):
-    from .sales_workspace import PACKAGES
+    from .catalog import VORLAGEN as PACKAGES
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
     if not lead:
         raise LookupError('Lead nicht gefunden.')
@@ -108,13 +108,17 @@ def match_offers(conn, lead_id):
             if o['key'] in recs:
                 recs[o['key']]['hints'].append({'source': 'Website-Bewertung', 'text': '; '.join(o.get('reasons', [])[:3])})
     out = []
+    from .catalog import price_label, vorlagen
+    current = {v['key']: v for v in vorlagen(conn)} if any(r['confirmed'] or r['hints'] for r in recs.values()) else {}
     for pkg, r in recs.items():
         if not r['confirmed'] and not r['hints']:
             continue
         r['score'] = 3 * len(r['confirmed']) + len(r['hints'])
         r['status'] = 'angebotsgrundlage' if state['complete'] and r['confirmed'] else 'unverbindlich'
-        r['minimum_eur'] = PACKAGES[pkg]['minimum_eur']
-        if disc and disc.get('budget_status') in ('kein_budget', 'freigabe_offen') and PACKAGES[pkg]['minimum_eur'] > 3000:
+        # 2.0.0-dev16 (M12): Preis der Vorlage aus dem zentralen Katalog – dieselbe Rechnung wie im Angebot
+        r['price_eur'] = current[pkg]['once_net_eur'] or current[pkg]['monthly_net_eur']
+        r['price_label'] = price_label(current[pkg])
+        if disc and disc.get('budget_status') in ('kein_budget', 'freigabe_offen') and current[pkg]['once_net_eur'] > 3000:
             r['notes'].append('Budget laut Gespräch noch nicht freigegeben – Einstieg über den Website- & Anfrage-Pilot erwägen.')
         if r['status'] == 'unverbindlich':
             r['notes'].append('Unverbindliche Möglichkeit: erst nach dokumentierter Bedarfsklärung als Angebotsgrundlage verwenden.'
@@ -135,7 +139,7 @@ def match_offers(conn, lead_id):
 
 
 def stored_recommendations(conn, lead_id):
-    from .sales_workspace import PACKAGES
+    from .catalog import VORLAGEN as PACKAGES
     rows = []
     for r in conn.execute('SELECT * FROM offer_recommendations WHERE lead_id=? ORDER BY rank', (lead_id,)):
         d = dict(r)
@@ -152,7 +156,7 @@ def quote_draft(conn, rec_id):
     if rec['status'] != 'angebotsgrundlage':
         raise ValueError('Unverbindliche Empfehlung: Erst die Bedarfsklärung dokumentieren, dann als Angebotsgrundlage verwenden.')
     disc = dict(conn.execute('SELECT * FROM discovery WHERE lead_id=?', (rec['lead_id'],)).fetchone())
-    from .sales_workspace import PACKAGES
+    from .catalog import VORLAGEN as PACKAGES
     assumptions = '; '.join(x for x in (f"Zeitrahmen laut Gespräch: {disc['timing']}" if disc.get('timing') else '',
                                         f"Entscheidungsweg: {disc['decision_process']}" if disc.get('decision_process') else '',
                                         f"Bisherige Lösung: {disc['current_solution']}" if disc.get('current_solution') else '') if x)
@@ -352,7 +356,7 @@ def suggest_actions(conn, lead_id):
             'Dossier, Bedarfsfragen und Belege vorab durchgehen.')
     rec = conn.execute("SELECT package FROM offer_recommendations WHERE lead_id=? AND status='angebotsgrundlage' ORDER BY rank LIMIT 1", (lead_id,)).fetchone()
     if rec and not conn.execute("SELECT 1 FROM proposals WHERE lead_id=? AND status<>'abgelehnt'", (lead_id,)).fetchone():
-        from .sales_workspace import PACKAGES
+        from .catalog import VORLAGEN as PACKAGES
         add(f"angebot:{rec['package']}", 'angebot_kalkulieren', f"Angebot kalkulieren: {PACKAGES[rec['package']]['title']}",
             'Bedarfsklärung ist dokumentiert und passt zu diesem Paket.')
     for p in conn.execute("""SELECT id FROM proposals WHERE lead_id=? AND status='gesendet_manuell' AND updated_at <= datetime('now','-7 day')""", (lead_id,)):

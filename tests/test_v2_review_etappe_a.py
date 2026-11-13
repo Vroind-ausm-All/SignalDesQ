@@ -121,10 +121,14 @@ class QuoteConsistencyTests(unittest.TestCase):
         self.assertIn('1 Korrekturschleife', cust['positions'][0]['scope'])
         self.assertIsNone(cust['revision_rounds'])
         lines = [x for x in customer_markdown(cust).splitlines() if x.startswith('- Korrekturschleifen')]
-        self.assertEqual(lines, ['- Korrekturschleifen: je Leistung wie im Umfang angegeben'])
+        # 2.0.0-dev16: die Angaben je Position werden eindeutig zusammengeführt
+        self.assertEqual(lines, ['- Korrekturschleifen: Pos. 1 Logogestaltung: 1 Korrekturschleife'])
         self.assertNotIn('Korrekturschleifen: 2', customer_markdown(cust))
-        # ältere Angebote mit fester Zahl bleiben lesbar
+        # ältere Angebote mit fester Zahl (bis dev12) und mit Sammelhinweis (dev13–dev15) bleiben lesbar
         self.assertIn('- Korrekturschleifen: 2', customer_markdown({**cust, 'revision_rounds': 2}))
+        old = {k: v for k, v in cust.items() if k != 'revisions'}
+        self.assertIn('- Korrekturschleifen: je Leistung wie im Umfang angegeben',
+                      customer_markdown({**old, 'revision_note': 'je Leistung wie im Umfang angegeben'}))
 
 
 class AdoptionTests(tb.SweepBase):

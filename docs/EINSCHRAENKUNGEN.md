@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev15)
+# Bekannte Einschränkungen (Stand 2.0.0-dev16)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -96,3 +96,11 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Stapelaktionen auf gefilterten Firmen (Review U09) gibt es noch nicht.
 - „Erste Schritte“ prüft, ob Preise, Zielkunden (Region und Branche) und Zeiten gespeichert sind – nicht, ob die Werte stimmen.
 
+## Zentraler Leistungskatalog (2.0.0-dev16)
+
+- In den Einstellungen änderbar sind Aufwand, enthaltene Fremdkosten, fester Preis und Korrekturschleifen je Leistung. Titel, Beschreibungen, Ausschlüsse und die Zusammenstellung der Vorlagen stehen im Code; eigene Leistungen anlegen oder Leistungen ausblenden geht noch nicht.
+- Die früheren Paketpreise weichen von den Baukastenpreisen ab (siehe `LEISTUNGSKATALOG.md`). Seit dev16 gilt überall der Baukastenpreis – ob er deinen tatsächlichen Preisen entspricht, prüfst du selbst.
+- Ein leeres Feld „Korrekturschleifen“ heißt „Startwert“. Wo der Katalog einen Startwert hat (Logo, Texte), lässt sich „nicht festgelegt“ nicht wählen – nur eine Zahl ab 0.
+- „Vor dem Versand klären“ ist eine Erinnerung ohne Abhaken; was geklärt wurde, wird nicht gespeichert (folgt mit den Briefings, M14).
+- Paketempfehlungen und Website-Bewertung verweisen auf Vorlagen, nicht auf einzelne Leistungen; die Verbindung Befund → Leistung ist M32.
+- Der Hinweis „Dieses Dokument ist ein Angebotsentwurf“ steht weiterhin in jedem Kundenexport. Eine bewusst freigegebene Versandfassung ist M35 (geplant für dev17).

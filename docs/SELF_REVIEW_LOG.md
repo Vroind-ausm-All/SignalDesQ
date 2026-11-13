@@ -483,6 +483,23 @@ Korrektur eines früheren Eintrags: In Arbeitspaket 13 stand der Startfehler (�
 
 **Entscheid:** Etappe B ist abgeschlossen. Weiter mit Etappe C – zuerst M12 (ein gemeinsamer Leistungskatalog mit Migration), danach M13 (mehrere Verkaufschancen je Firma).
 
+## Arbeitspaket 15 – Zentraler Leistungskatalog (2.0.0-dev16)
+
+Auftrag: zwei zusätzliche Dokumente vom 13.11.2026 (Bewertungsmodell für Websites, Leitfaden Kundenonboarding) auf Relevanz für M12 prüfen und passend einbauen. Ergebnis der Prüfung: Für M12 relevant sind die gemeinsame Leistungskennung, der Umfang je Leistung (Korrekturschleifen, Nutzungsrechte/Quelldateien, Betrieb/Schnittstellen), der Zahlungsplan als Vorgabe und die Abgrenzung der Analyseangebote (M31). Alles Übrige gehört zu anderen Maßnahmen und steht als M27–M39 in der Roadmap.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 585 Tests bestanden (15 neu in `tests/test_v2_catalog.py`; ältere Tests des Paket-Rechners in sechs Dateien rechnen jetzt über den Katalog) |
+| Browser-Tests | 12 von 12 (neu `test_catalog_browser.py`: Vorlagen und Herkunft, geänderter Katalogwert in Vorlage, Hilfe-Karte und Angebot, Korrekturschleifen, Prüfpunkte nur intern, gespeichertes Angebot unverändert) |
+| M12-Abnahme | geänderte Leistung gleich in Vorlage, Empfehlung, Angebot, Oberfläche; gespeicherte Angebote (auch im Format bis dev15) unverändert nach Katalog- und Grundlagenänderung und Neustart; Zuordnung 5/6/26 (+5) vollständig; K01 |
+| Release-Paket | gebaut, enthält `catalog.py` und `LEISTUNGSKATALOG.md` |
+
+Fehlerschleifen: (1) Der Browser-Test zeigte, dass die Angebotskarten der Hilfe nach einer Katalogänderung bis zum Neuladen den alten Preis behielten – behoben (Karten und Auswahl werden nach dem Speichern neu geladen). (2) Beim Prüfen der Vorlage „Conversion“ fiel ein bestehender Widerspruch auf: „Nicht enthalten: Texte (separate Position)“ neben einer Textposition – behoben.
+
+**Selbstbewertung 4 von 5.** Abzug: Titel, Ausschlüsse und Vorlagen sind noch nicht in der Oberfläche änderbar, und die Abweichung der früheren Paketpreise kann nur der Eigentümer fachlich bewerten.
+
+**Entscheid:** Vor dem Modellumbau M13 kommt ein P0-Paket aus den Ergänzungen (dev17): M27 Begriffe der Website-Bewertung, M35 Versandfassung, M36 Übergang nach Annahme.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

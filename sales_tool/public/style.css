@@ -709,3 +709,12 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 .ll-empty{padding:26px 19px!important;color:var(--ink-2)}
 .ll-empty .btn{margin-left:8px}
 .empty-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:10px}
+
+/* 2.0.0-dev16 – zentraler Leistungskatalog (Produktreview M12): Vorlagen, Herkunft, Korrekturschleifen, Prüfpunkte */
+.qb-sub{font-size:15px;margin:18px 0 4px}
+.qb-tpl-table td small{display:block}
+.qb-mini{margin:0;padding-left:16px;font-size:12px}
+.qb-herkunft{margin:10px 0 4px}.qb-herkunft summary,.qb-checks summary{cursor:pointer;font-weight:600;font-size:13px}
+.qb-checks{margin:10px 0;padding:10px 14px;border:1px solid var(--line);border-radius:9px;font-size:12px}
+.qb-checks h5{margin:8px 0 2px;font-size:12px}.qb-checks ul{margin:0;padding-left:18px}
+.qb-open{line-height:1.5}

@@ -7,86 +7,11 @@ from __future__ import annotations
 
 import datetime as dt
 import json
-import math
 import re
-from decimal import Decimal, ROUND_CEILING
 
-# Catalogue is deliberately editable and has explicit inclusions/exclusions.
-PACKAGES = {
-    'pilot': {
-        'title': 'Website- & Anfrage-Pilot', 'outcome': 'Ein konkreter Anfrageweg ist einfacher und überprüfbar nutzbar.',
-        'weeks': '1–2 Wochen', 'minimum_eur': 1450,
-        'included': ['Kick-off und Zieldefinition', 'Kurzaudit eines Anfragewegs', 'Umsetzung einer klar abgegrenzten Verbesserung', 'Funktionsprüfung und Übergabe'],
-        'excluded': ['Vollständiger Website-Relaunch', 'Texterstellung für die gesamte Website', 'Laufendes Marketing / Werbebudget'],
-        'hours': 19, 'external_cost_eur': 90, 'revision_rounds': 1,
-    },
-    'conversion': {
-        'title': 'B2B Website- & Conversion-Sprint', 'outcome': 'Eine messbare Produkt-/Leistungsstrecke für qualifizierte Anfragen.',
-        'weeks': '3–5 Wochen', 'minimum_eur': 5900,
-        'included': ['Zielgruppen- & Conversion-Workshop', 'Konzept und UX für bis zu 4 Kernseiten', 'Responsive Umsetzung', 'Kontakt- oder Anfrageformular', 'Basis-Tracking und Qualitätsprüfung', 'Übergabe und Einweisung'],
-        'excluded': ['Media-Budget', 'Komplette Contentproduktion', 'Externe Lizenz- und Hostinggebühren'],
-        'hours': 78, 'external_cost_eur': 240, 'revision_rounds': 2,
-    },
-    'brand': {
-        'title': 'Brand- & Design-System', 'outcome': 'Ein konsistenter Markenauftritt mit wiederverwendbaren Vorlagen.',
-        'weeks': '2–4 Wochen', 'minimum_eur': 4200,
-        'included': ['Marken-Workshop', 'Visuelle Leitidee', 'Logo-/Identitätsüberarbeitung im definierten Umfang', 'Farben und Typografie', 'Digitales Styleguide-Paket und 3 Vorlagen'],
-        'excluded': ['Markenrechtliche Prüfung', 'Fotoshootings und Printproduktion', 'Unbegrenzte Varianten'],
-        'hours': 58, 'external_cost_eur': 180, 'revision_rounds': 2,
-    },
-    'care': {
-        'title': 'Growth Care – Website & Optimierung', 'outcome': 'Kontinuierliche Verbesserung eines bestehenden digitalen Anfragewegs.',
-        'weeks': 'fortlaufend / monatlich', 'billing': 'monatlich', 'minimum_eur': 790,
-        'included': ['Monatliche Funktions- und Tracking-Kontrolle', 'Eine klar definierte kleine Conversion-Optimierung pro Monat', 'Monatsreport mit 30-Minuten-Review', 'Dokumentierte Übergabe der Änderungen'],
-        'excluded': ['Hosting und Drittanbieter-Lizenzen', '24/7 Support oder garantierte Reaktionszeiten', 'Kompletter Website-Relaunch', 'Größere neue Funktionen'],
-        'hours': 8, 'external_cost_eur': 55, 'revision_rounds': 1,
-    },
-    'portal': {
-        'title': 'Kundenportal-MVP', 'outcome': 'Ein klar definierter digitaler Kundenprozess als benutzbares MVP.',
-        'weeks': '8–12 Wochen', 'minimum_eur': 18500,
-        'included': ['Prozess-Workshop', 'UX-Prototyp', 'Benutzeranmeldung und Rollen (Basis)', 'Ein Kernprozess mit Datenansicht und Eingabe', 'Tests und Deployment-Vorbereitung', 'Dokumentation und Übergabe'],
-        'excluded': ['Komplexe ERP-Integration', 'Native iOS-/Android-Apps', '24/7 Betrieb und SLA', 'Unbegrenzte Funktionswünsche'],
-        'hours': 238, 'external_cost_eur': 850, 'revision_rounds': 2,
-    },
-}
-PACKAGES['automation'] = {
-    'title': 'Automatisierungsprojekt – ein Prozess digital', 'outcome': 'Ein klar abgegrenzter manueller Ablauf läuft automatisiert, nachvollziehbar und mit weniger Doppelerfassung.',
-    'weeks': '4–6 Wochen', 'minimum_eur': 6900,
-    'included': ['Prozessaufnahme-Workshop mit den beteiligten Personen', 'Ist-/Soll-Ablauf mit Datenfluss und Zuständigkeiten',
-                 'Umsetzung der Automatisierung für einen definierten Prozess (z. B. Formular → System, Excel → Datenbank, Benachrichtigungen)',
-                 'Fehler- und Ausnahmebehandlung', 'Test mit echten, freigegebenen Beispieldaten', 'Dokumentation und Übergabe'],
-    'excluded': ['Weitere Prozesse oder Abteilungen', 'Anpassungen am ERP/CRM durch dessen Hersteller', 'Lizenzkosten von Drittsystemen', '24/7-Betrieb und SLA'],
-    'hours': 96, 'external_cost_eur': 300, 'revision_rounds': 2,
-}
-# Kundenseitige Angebotsstruktur (Master-Prompt Modul 8): Liefergegenstände, Abnahmekriterien, Drittanbieter-/Folgekosten
-PACKAGE_DETAILS = {
-    'pilot': {'deliverables': ['Kurzaudit des Anfragewegs (PDF)', 'Umgesetzte Verbesserung auf der bestehenden Website', 'Übergabeprotokoll'],
-              'acceptance': ['Der verbesserte Anfrageweg funktioniert auf Desktop und Smartphone', 'Testanfrage kommt beim vereinbarten Empfänger an'],
-              'third_party': ['Keine, sofern bestehende Systeme (Website, Formular-Tool) genutzt werden.']},
-    'conversion': {'deliverables': ['Konzept und UX-Entwürfe für bis zu 4 Kernseiten', 'Umgesetzte, responsive Seiten', 'Anfrageformular inkl. Bestätigung', 'Tracking-Plan und eingerichtetes Basis-Tracking', 'Einweisung (60 Min.)'],
-                   'acceptance': ['Seiten entsprechen den freigegebenen Entwürfen', 'Formular und Tracking sind getestet', 'Darstellung auf aktuellen Browsern und Smartphones geprüft'],
-                   'third_party': ['Hosting/CMS-Lizenz, falls neu erforderlich: ca. 10–40 € pro Monat, Vertrag direkt mit dem Anbieter.', 'Bildlizenzen nach Bedarf.']},
-    'brand': {'deliverables': ['Visuelle Leitidee', 'Überarbeitetes Logo/Identität im vereinbarten Umfang', 'Farb- und Typografie-Definition', 'Digitales Styleguide-Paket', '3 Vorlagen'],
-              'acceptance': ['Freigabe der Leitidee', 'Styleguide und Vorlagen vollständig in den vereinbarten Formaten geliefert'],
-              'third_party': ['Schriftlizenzen und Bildrechte nach Bedarf, direkt beim Rechteinhaber.', 'Markenrechtliche Prüfung durch eine Kanzlei (nicht enthalten).']},
-    'care': {'deliverables': ['Monatlicher Kurzreport', 'Eine dokumentierte Optimierung pro Monat', '30-Minuten-Review'],
-             'acceptance': ['Report und Änderungsprotokoll liegen bis zum vereinbarten Termin vor'],
-             'third_party': ['Hosting, Domains und Lizenzen bleiben beim Kunden bzw. dessen Anbietern.']},
-    'portal': {'deliverables': ['UX-Prototyp', 'Lauffähiges MVP mit Anmeldung, Rollen und einem Kernprozess', 'Testprotokoll', 'Technische Dokumentation', 'Übergabe-Workshop'],
-               'acceptance': ['Der vereinbarte Kernprozess ist mit Testdaten vollständig durchführbar', 'Rollen und Rechte entsprechen dem Konzept', 'Abnahmetest gemeinsam bestanden'],
-               'third_party': ['Hosting/Server: ca. 30–150 € pro Monat je nach Nutzung, Vertrag direkt mit dem Anbieter.', 'Optional: Wartungsvertrag nach dem Go-live (separates Angebot).']},
-    'automation': {'deliverables': ['Prozessdokumentation Ist/Soll', 'Eingerichtete Automatisierung für einen Prozess', 'Testprotokoll mit Beispieldaten', 'Betriebsdokumentation'],
-                   'acceptance': ['Der vereinbarte Prozess läuft mit Testdaten ohne manuellen Zwischenschritt', 'Ausnahmen werden wie vereinbart gemeldet'],
-                   'third_party': ['Automatisierungsplattform oder Schnittstellen-Lizenzen: je nach Volumen ca. 0–100 € pro Monat, direkt beim Anbieter.']},
-}
-
-ADDONS = {
-    'copy': {'title':'Texte für bis zu 3 Kernseiten', 'included':'Redaktion/Überarbeitung von maximal drei Webseitentexten', 'hours':12, 'external_cost_eur':0, 'price_floor':700},
-    'analytics': {'title':'Messkonzept & Dashboard', 'included':'Ereignismessung und ein einfaches Reporting-Dashboard', 'hours':15, 'external_cost_eur':50, 'price_floor':950},
-    'seo': {'title':'Technisches SEO-Basispaket', 'included':'Meta-Struktur, Indexierungsprüfung und technische SEO-Grundlagen', 'hours':12, 'external_cost_eur':40, 'price_floor':750},
-    'integration': {'title':'Eine Schnittstellen-Integration', 'included':'Eine definierte Datenübergabe über vorhandene API', 'hours':28, 'external_cost_eur':150, 'price_floor':2200},
-    'training': {'title':'Zusätzlicher Übergabe-Workshop', 'included':'Ein zusätzlicher zweistündiger Workshop mit Dokumentation', 'hours':5, 'external_cost_eur':0, 'price_floor':350},
-}
+# 2.0.0-dev16 (Produktreview M12): Pakete (PACKAGES, PACKAGE_DETAILS) und Zusatzleistungen (ADDONS) des früheren
+# Paket-Rechners sind im zentralen Katalog (catalog.py) aufgegangen. Preise kommen ausschließlich von dort;
+# gespeicherte Angebote behalten ihren Text- und Preisstand.
 CALL_OUTCOMES = ('erreicht','rueckruf_vereinbart','mailbox','nicht_erreicht','kein_bedarf','termin_vereinbart','widerspruch')
 MEETING_STATUSES = ('geplant','bestaetigt','erledigt','abgesagt')
 QUOTE_STATUSES = ('entwurf','gesendet_manuell','angenommen','abgelehnt')
@@ -239,70 +164,11 @@ def daily_view(conn):
             'calls_logged':conn.execute('SELECT COUNT(*) FROM calls').fetchone()[0]}
 
 
-def _amount(val,key,lo,hi):
-    if isinstance(val,bool) or type(val) not in (int,float) or not math.isfinite(val) or not lo<=val<=hi:
-        raise ValueError(f'{key}: Wert außerhalb des erlaubten Bereichs.')
-    return Decimal(str(val))
-
-
-def quote_preview(data):
-    if not isinstance(data,dict) or set(data)-{'package','addons','cost_rate_eur','risk_pct','target_margin_pct','custom_price_eur','tax_mode','project_label','customer_goal','assumptions'}:
-        raise ValueError('Ungültige Kalkulation.')
-    key=data.get('package')
-    if key not in PACKAGES: raise ValueError('Bitte Leistungspaket auswählen.')
-    plan=PACKAGES[key]
-    raw=data.get('addons',[])
-    if not isinstance(raw,list) or len(raw)>len(ADDONS) or any(not isinstance(x,str) or x not in ADDONS for x in raw) or len(set(raw))!=len(raw):
-        raise ValueError('Ungültige Zusatzleistungen.')
-    cost_rate=_amount(data.get('cost_rate_eur',55),'cost_rate_eur',15,250)
-    risk=_amount(data.get('risk_pct',15),'risk_pct',0,60)
-    margin=_amount(data.get('target_margin_pct',35),'target_margin_pct',10,75)
-    custom=data.get('custom_price_eur')
-    custom_val=None if custom in (None,'') else _amount(custom,'custom_price_eur',100,1000000)
-    mode=data.get('tax_mode','offen')
-    if mode not in ('offen','regel_19','kleinunternehmer'): raise ValueError('Steuerstatus ungültig.')
-    label=_optional_text(data,'project_label',140) or plan['title']
-    goal=_optional_text(data,'customer_goal',500) or plan['outcome']
-    assumptions=_optional_text(data,'assumptions',1000)
-    hours=Decimal(plan['hours'])+sum(Decimal(ADDONS[x]['hours']) for x in raw)
-    external=Decimal(plan['external_cost_eur'])+sum(Decimal(ADDONS[x]['external_cost_eur']) for x in raw)
-    cost=(hours*cost_rate+external)*(1+risk/100)
-    min_approved=Decimal(plan['minimum_eur'])+sum(Decimal(ADDONS[x]['price_floor']) for x in raw)
-    suggested=(max(min_approved,cost/(1-margin/100))/50).to_integral_value(rounding=ROUND_CEILING)*50
-    final=custom_val if custom_val is not None else suggested
-    # Below-cost override is never disguised as healthy margin.
-    if final<cost:
-        raise ValueError('Festpreis unterschreitet bereits die internen kalkulierten Kosten inklusive Puffer.')
-    final=final.quantize(Decimal('0.01'))
-    if mode=='regel_19':
-        tax=(final*Decimal('.19')).quantize(Decimal('0.01'))
-        tax_note='Zuzüglich 19 % Umsatzsteuer'
-    elif mode=='kleinunternehmer':
-        tax=Decimal(0)
-        tax_note='Keine Umsatzsteuer ausgewiesen (Anwendung § 19 UStG vor Verwendung prüfen)'
-    else:
-        tax=Decimal(0)
-        tax_note='Umsatzsteuerstatus offen – Angebot vor Versand steuerlich vervollständigen'
-    included=plan['included']+[ADDONS[x]['included'] for x in raw]
-    details=PACKAGE_DETAILS.get(key,{})
-    customer={
-        'project_label':label,'package':key,'package_title':plan['title'],'goal':goal,
-        'included':included,'excluded':list(plan['excluded']),'assumptions':assumptions,
-        'deliverables':list(details.get('deliverables',[]))+[ADDONS[x]['title'] for x in raw],
-        'acceptance_criteria':list(details.get('acceptance',[])),'third_party_costs':list(details.get('third_party',[])),
-        'weeks':plan['weeks'],'billing':plan.get('billing','einmalig'),'revision_rounds':plan['revision_rounds'],
-        'net_eur':float(final),'vat_eur':float(tax),'total_eur':float(final+tax),'tax_mode':mode,'tax_note':tax_note,
-        'payment_plan':('Monatliche Zahlung im Voraus; Vertragslaufzeit und Kündigungsfristen ausdrücklich vereinbaren.' if plan.get('billing')=='monatlich' else '40 % bei Beauftragung, 60 % nach vereinbarter Abnahme (Vorschlag, anpassen)'),
-        'change_requests':'Zusätzliche Leistungen nur nach gesondertem transparentem Angebot und Freigabe.',
-        'guarantee':'Keine Umsatz-, Lead- oder Rankinggarantie; Abnahme nach vereinbarten Liefergegenständen.'
-    }
-    internal={'estimated_hours':float(hours),'cost_rate_eur':float(cost_rate),'external_cost_eur':float(external),
-              'risk_pct':float(risk),'target_margin_pct':float(margin),
-              'cost_with_buffer_eur':float(cost.quantize(Decimal('.01'))), 'suggested_eur':float(suggested),
-              'contribution_eur':float((final-cost).quantize(Decimal('.01'))),
-              'contribution_pct':float(((final-cost)/final*100).quantize(Decimal('.1'))),
-              'price_overridden':custom_val is not None}
-    return {'customer':customer,'internal':internal}
+def quote_preview(conn, data):
+    """Früherer Paket-Rechner ({package, addons}) – rechnet seit 2.0.0-dev16 mit dem zentralen Katalog."""
+    from .catalog import legacy_payload
+    from .pricing import build_quote
+    return build_quote(conn, legacy_payload(data))
 
 
 def make_proposal(conn,data):
@@ -311,11 +177,9 @@ def make_proposal(conn,data):
     from .workday import assert_contact_allowed, after_proposal, need_status
     assert_contact_allowed(conn,lead,'Angebot erstellen')
     payload={k:v for k,v in data.items() if k!='lead_id'}
-    if 'positions' in payload:  # Sprint D: Baukasten mit einzelnen Positionen
-        from .pricing import build_quote
-        proposal=build_quote(conn,payload)
-    else:
-        proposal=quote_preview(payload)
+    from .pricing import build_quote
+    # Sprint D: Baukasten mit Positionen; ältere Aufrufe mit Paket werden über den zentralen Katalog übersetzt (dev16)
+    proposal=build_quote(conn,payload) if 'positions' in payload else quote_preview(conn,payload)
     from .accounting import _next_number
     issued=dt.date.today()
     number=_next_number(conn,'AN',issued.year)
@@ -375,7 +239,8 @@ def customer_markdown(customer):
     lines += ['','## Nicht enthalten']+['- '+safe(x) for x in customer['excluded']]
     if customer.get('assumptions'): lines+=['','## Voraussetzungen',safe(customer['assumptions'])]
     lines += ['','## Umfang und Abnahme',f"- Geplanter Zeitraum: {safe(customer['weeks'])}",
-              f"- Korrekturschleifen: {customer['revision_rounds'] if customer.get('revision_rounds') is not None else safe(customer.get('revision_note') or 'je Leistung wie im Umfang angegeben')}",
+              *([f"- Korrekturschleifen: {customer['revision_rounds']}"] if customer.get('revision_rounds') is not None else
+                [f"- Korrekturschleifen: {safe(customer['revision_note'])}"] if customer.get('revision_note') else []),
               '- Abnahme anhand der genannten Liefergegenstände nach gemeinsamer Prüfung.']
     if customer.get('acceptance_criteria'): lines += ['','## Abnahmekriterien']+['- '+safe(x) for x in customer['acceptance_criteria']]
     if customer.get('third_party_costs'): lines += ['','## Mögliche Drittanbieter- und Folgekosten (nicht im Festpreis)']+['- '+safe(x) for x in customer['third_party_costs']]

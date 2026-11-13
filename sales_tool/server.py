@@ -20,7 +20,7 @@ from .decision_finder import research_plan, save_verification
 from .public_contacts import enqueue as enqueue_contact_research, list_runs as list_contact_research, review_candidate
 from .ai_lab import ollama_health, demo_analysis, lead_brief
 from .sales_workspace import (
-    PACKAGES, ADDONS, CALL_OUTCOMES, MEETING_STATUSES, QUOTE_STATUSES, DRAFT_TYPES,
+    CALL_OUTCOMES, MEETING_STATUSES, QUOTE_STATUSES, DRAFT_TYPES,
     daily_view, call_permission, create_call, create_meeting, quote_preview,
     make_proposal, proposal_rows, proposal_detail, customer_markdown, create_mail_draft,
 )
@@ -262,6 +262,12 @@ def make_handler(db_path, allowed_hosts=None):
         def _conn(self):
             return connect(db_path)
 
+        def _offers(self):
+            # 2.0.0-dev16 (M12): Vorlagen mit Preis aus dem zentralen Katalog (eigene Werte inbegriffen)
+            from .catalog import offers_for_client
+            with self._conn() as conn:
+                return offers_for_client(conn)
+
         def _send(self, status, payload, extra_headers=None):
             data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
             self.send_response(status)
@@ -365,7 +371,7 @@ def make_handler(db_path, allowed_hosts=None):
                 return self._static(route, method)
             if route == "/api/config" and method == "GET":
                 return self._send(200, {"stages": STAGES, "industries": INDUSTRIES, "signals": SIGNALS,
-                                        "offers": OFFERS, "permissions": PERMISSIONS, "contact_routes": CONTACT_ROUTES, "budget_statuses": BUDGET_STATUSES})
+                                        "offers": self._offers(), "permissions": PERMISSIONS, "contact_routes": CONTACT_ROUTES, "budget_statuses": BUDGET_STATUSES})
             if route == "/api/ai/health" and method == "GET":
                 return self._send(200, ollama_health())
             if route == "/api/ai/preview" and method == "POST":
@@ -430,7 +436,8 @@ def make_handler(db_path, allowed_hosts=None):
                 if route_quality(self, conn, method, route, query, db_path):
                     return
                 if route == '/api/workspace/catalog' and method == 'GET':
-                    return self._send(200, {'packages':PACKAGES,'addons':ADDONS,'call_outcomes':CALL_OUTCOMES,
+                    from .catalog import offers_for_client
+                    return self._send(200, {'packages':offers_for_client(conn),'addons':{},'call_outcomes':CALL_OUTCOMES,
                                              'meeting_statuses':MEETING_STATUSES,'quote_statuses':QUOTE_STATUSES,
                                              'draft_types':DRAFT_TYPES})
                 if route == '/api/workspace' and method == 'GET':
@@ -438,7 +445,7 @@ def make_handler(db_path, allowed_hosts=None):
                     view['call_permissions']={str(r['id']):call_permission(r) for r in conn.execute('SELECT * FROM leads')}
                     return self._send(200,view)
                 if route == '/api/workspace/quote-preview' and method == 'POST':
-                    return self._send(200,quote_preview(self._body()))
+                    return self._send(200,quote_preview(conn,self._body()))
                 if route == '/api/workspace/proposals':
                     if method == 'GET': return self._send(200,proposal_rows(conn))
                     if method == 'POST': return self._send(201,make_proposal(conn,self._body()))

@@ -823,7 +823,7 @@ def _worker(db_path):
 
 def run_audit(db_path, audit_id):
     from .model import connect
-    from .sales_workspace import PACKAGES
+    from .catalog import VORLAGEN
     with connect(db_path) as conn:
         audit = conn.execute('SELECT * FROM website_audits WHERE id=?', (audit_id,)).fetchone()
         lead = dict(conn.execute('SELECT * FROM leads WHERE id=?', (audit['lead_id'],)).fetchone())
@@ -846,8 +846,8 @@ def run_audit(db_path, audit_id):
                          (f'Unerwarteter Fehler: {exc.__class__.__name__}: {str(exc)[:200]}', audit_id))
             conn.commit()
         return
-    result = score(cap, lead, cfg, set(PACKAGES))
-    summary = summarize(result, cap, lead, PACKAGES)
+    result = score(cap, lead, cfg, set(VORLAGEN))
+    summary = summarize(result, cap, lead, VORLAGEN)
     folder = screenshot_dir(db_path) / f'audit-{audit_id}'
     folder.mkdir(parents=True, exist_ok=True)
     with connect(db_path) as conn:

@@ -16,7 +16,7 @@ from pathlib import Path
 
 from sales_tool import website_scorer as ws
 from sales_tool.model import connect, init_db
-from sales_tool.sales_workspace import PACKAGES
+from sales_tool.catalog import VORLAGEN as PACKAGES  # 2.0.0-dev16: Vorlagen des zentralen Katalogs
 
 SITES = Path(__file__).parent / 'fixtures' / 'sites'
 LEAD = {'id': 1, 'industry': 'Industrie & B2B-Technik', 'employees': 80, 'signal_type': 'kein_signal', 'signal_date': '', 'permission': 'unbekannt'}

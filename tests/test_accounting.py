@@ -214,8 +214,10 @@ class ProposalToInvoiceTests(AccountingBase):
         super().setUp()
         self.configure()
         self.lead_id = self.lead()
-        self.prop = make_proposal(self.conn, {'lead_id': self.lead_id, 'package': 'conversion', 'tax_mode': 'regel_19',
-                                              'custom_price_eur': 10000})
+        # 2.0.0-dev16: fester Preis über den zentralen Katalog statt Preisüberschreibung im früheren Paket-Rechner
+        from sales_tool.pricing import save_override
+        save_override(self.conn, {'service': 'logo', 'size': 'L', 'fixed_price': 10000})
+        self.prop = make_proposal(self.conn, {'lead_id': self.lead_id, 'positions': [{'service': 'logo', 'size': 'L'}], 'tax_mode': 'regel_19'})
 
     def test_proposal_has_number_and_validity(self):
         self.assertRegex(self.prop['number'], r'^AN-\d{4}-0001$')
