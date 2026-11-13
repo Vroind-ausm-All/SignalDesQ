@@ -335,8 +335,8 @@ def review_item(conn, item_id, data):
                                      register_court=val('register_court'), register_number=val('register_number'))
         if dup:
             raise ValueError(f'Firma existiert bereits als Lead #{dup} (Treffer über {reason}) – bitte „ergänzen“ wählen.')
-        cur = conn.execute('''INSERT INTO leads(company, website, location, stage, permission, contact_route, next_step, next_date, note)
-                              VALUES (?,?,?,?,?,?,?,?,?)''',
+        cur = conn.execute('''INSERT INTO leads(company, website, location, industry, offer, stage, permission, contact_route, next_step, next_date, note)
+                              VALUES (?,?,?,'','',?,?,?,?,?,?)''',  # 2.0.0-dev13: Branche und Leistung unbekannt statt vorbelegt
                            (val('legal_name') or item['company_hint'] or item['domain'], website,
                             ' '.join(x for x in (val('zip'), val('city')) if x)[:160], 'recherche', 'unbekannt', 'unbekannt',
                             'Website prüfen und belegbaren Anlass dokumentieren', (dt.date.today() + dt.timedelta(days=2)).isoformat(),

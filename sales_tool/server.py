@@ -65,6 +65,7 @@ INT_FIELDS = {"employees", "estimated_budget"}
 DATE_FIELDS = {"signal_date", "next_date"}
 ENUMS = {"stage": STAGES, "industry": INDUSTRIES, "signal_type": tuple(SIGNALS), "offer": tuple(OFFERS), "permission": PERMISSIONS, "contact_route": CONTACT_ROUTES}
 URL_FIELDS = {"website", "signal_source"}
+OPTIONAL_ENUMS = {"industry", "offer"}
 TEXT_LIMITS = {"company": 200, "location": 160, "contact_role": 120, "contact_name": 160, "permission_evidence": 500, "signal_note": 2000, "note": 4000, "next_step": 500}
 
 
@@ -136,6 +137,8 @@ def import_leads(conn, payload):
             d = validate({k: v for k, v in raw.items() if v is not None and str(v).strip()})
             d.setdefault("permission", "unbekannt")
             d.setdefault("stage", "recherche")
+            d.setdefault("industry", "")  # 2.0.0-dev13: ohne Angabe unbekannt statt „Sonstige“
+            d.setdefault("offer", "")  # und keine vorgewählte Leistung
             identity = d["company"].casefold()
             url_identity = (d.get("website") or "").lower().rstrip('/')
             if identity in known or url_identity and url_identity in known:
@@ -180,7 +183,8 @@ def validate(fields: dict, partial=False):
             value = value.strip()
             if len(value) > TEXT_LIMITS.get(key, 500):
                 raise ValueError(key + " ist zu lang.")
-        if key in ENUMS and value not in ENUMS[key]:
+        # 2.0.0-dev13: Branche und Leistung dürfen leer bleiben („unbekannt“ / „noch keine gewählt“) – keine erfundenen Vorgaben.
+        if key in ENUMS and value not in ENUMS[key] and not (key in OPTIONAL_ENUMS and value == ""):
             raise ValueError("Ungültiger Wert für " + key)
         if key in DATE_FIELDS and value:
             try:
@@ -199,7 +203,7 @@ def validate(fields: dict, partial=False):
 
 STATIC_FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
     "/style.css": ("style.css", "text/css"), "/theme.js": ("theme.js", "text/javascript"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
 
 LOOPBACK_HOSTS = frozenset({'127.0.0.1', 'localhost', '::1'})
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
@@ -580,6 +584,8 @@ def make_handler(db_path, allowed_hosts=None):
                         return self._send(200, all_leads)
                     if method == "POST":
                         data = validate(self._body())
+                        data.setdefault("industry", "")  # 2.0.0-dev13: keine erfundenen Vorgaben
+                        data.setdefault("offer", "")
                         if data.get("permission") == "nicht_kontaktieren":
                             data["stage"] = "gesperrt"
                         elif data.get("stage") == "gesperrt":

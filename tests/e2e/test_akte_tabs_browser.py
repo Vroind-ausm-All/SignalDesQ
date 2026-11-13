@@ -54,7 +54,7 @@ class AkteTabsBrowserTests(unittest.TestCase):
 
                         # Kopf: Firmenname, Kennzahlen, nächste Aktion; Start im Überblick
                         self.assertEqual(page.text_content('#modalTitle'), 'Beispiel Malerbetrieb')
-                        self.assertIn('Phase qualifiziert', page.text_content('#modalMeta'))
+                        self.assertIn('Phase Qualifiziert', page.text_content('#modalMeta'))  # 2.0.0-dev13: Name statt interner Schlüssel
                         self.assertTrue(page.locator('#lfHeadNext').is_visible())
                         self.assertEqual(_active(page), 'ueberblick')
                         self.assertTrue(page.locator('#leadFile').is_visible())

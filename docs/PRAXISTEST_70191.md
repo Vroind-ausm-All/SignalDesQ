@@ -1,6 +1,8 @@
 # Praxistest: Firmensuche in Stuttgart, PLZ 70191
 
 Durchgeführt am 11.11.2026 mit Freigabe des Eigentümers, gegen die echten Quellen. Es wurde niemand kontaktiert.
+
+> **Versionsbezug:** Gemessen mit Stand 2.0.0-dev6. Die späteren OpenStreetMap-Erweiterungen (lokaler Auszug dev7, PLZ-Schätzung und Öffnungszeiten dev8, Branche aus OSM-Merkmal dev9) sind in diesen Zahlen nicht enthalten. Die Zahlen sind keine aktuelle Erfolgsquote; die belastbare Messung ist Maßnahme M21 in `ROADMAP.md`.
 Dieser Bericht enthält nur Zahlen, keine Firmennamen – das Repository ist öffentlich.
 
 **Einordnung:** Das ist eine erste Messung der Suche, noch nicht der in `UEBERGABE_FABLE.md` verlangte Test an 50–100 Betrieben mit

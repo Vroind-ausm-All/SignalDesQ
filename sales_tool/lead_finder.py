@@ -737,7 +737,7 @@ def _map_industry(candidate):
         return 'Industrie & B2B-Technik'
     if any(w in text for w in ('beratung', 'consult', 'lawyer', 'tax', 'steuer', 'recht', 'accountant', 'architect', 'architekt', 'insurance', 'versicher')):
         return 'Professionelle Dienstleistungen'
-    return 'Sonstige'
+    return ''  # 2.0.0-dev13: unbekannt statt „Sonstige“
 
 
 def review_candidate(conn, candidate_id, decision):
@@ -780,7 +780,7 @@ def review_candidate(conn, candidate_id, decision):
         'company': cand['name'][:200], 'website': cand['website'], 'location': ' '.join(y for y in (cand['zip'], cand['city']) if y)[:160],
         'industry': _map_industry(cand), 'employees': cand['employees'] or 0, 'signal_type': cand['signal_type'],
         'signal_date': cand['signal_date'], 'signal_source': cand['source_url'] if cand['source_url'].startswith('http') else '',
-        'signal_note': cand['signal_note'][:2000], 'offer': 'conversion' if cand['source'] != 'ted' else 'pilot',
+        'signal_note': cand['signal_note'][:2000], 'offer': '',  # 2.0.0-dev13: Leistung erst nach Recherche bewusst wählen
         'stage': 'recherche', 'permission': 'unbekannt', 'contact_route': 'ausschreibung' if cand['source'] == 'ted' else 'unbekannt',
         'note': ' '.join(p for p in note_parts if p)[:4000],
         # v1.13: kein Termin je Firma mehr – Recherche-Schritte werden in „Aufgaben → Recherche“ gesammelt

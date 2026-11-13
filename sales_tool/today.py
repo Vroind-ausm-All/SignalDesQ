@@ -292,6 +292,8 @@ def plan(conn, items, pot, today=None):
     for s in steps:
         override = s.pop('done_override', None)
         s['done'] = s['count'] == 0 if override is None else (override and s['count'] == 0)
+        # 2.0.0-dev13: „nichts offen“ ist nicht dasselbe wie „erledigt“ (Produktreview U08/B05)
+        s['state'] = 'offen' if not s['done'] else ('erledigt' if override else 'nichts_offen')
     nxt = next((s for s in steps if not s['done']), None)
     return {'steps': steps, 'next_key': nxt['key'] if nxt else None}
 

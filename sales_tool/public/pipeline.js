@@ -12,7 +12,7 @@
     const isOpen = expanded.has(l.id);
     return `<article class="pipeline-card pc ${isOpen ? 'open' : ''} ${moving === l.id ? 'moving' : ''}" draggable="true" data-pcard="${l.id}">
       <div class="pc-head"><button type="button" class="pc-toggle" data-pc-toggle="${l.id}" aria-expanded="${isOpen}" title="Details ${isOpen ? 'zuklappen' : 'aufklappen'}">
-        ${window.leadGradeChip ? window.leadGradeChip(l.id) : ''}<span class="pc-name">${esc(short(l.company, 34))}</span><span class="score ${l.score < 40 ? 'low' : ''}">${l.score}</span><span class="pc-chev" aria-hidden="true">▾</span></button>
+        ${window.leadGradeChip ? window.leadGradeChip(l.id) : ''}<span class="pc-name">${esc(short(l.company, 34))}</span><span class="pc-chev" aria-hidden="true">▾</span></button>
         <button type="button" class="pc-move" data-pc-move="${l.id}" aria-label="${esc(l.company)} verschieben" title="Verschieben: antippen, dann Zielspalte anklicken">⇄</button></div>
       ${isOpen ? `<div class="pc-body">
         <small>${esc(short(l.signal_note || config.signals[l.signal_type][1], 120))}</small>

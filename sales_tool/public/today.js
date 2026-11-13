@@ -69,11 +69,12 @@
 
   // ------------------------------------------------------------ Rendern
   function renderPlan(p) {
-    const done = p.steps.filter(s => s.done).length;
-    $('#tdPlanState').textContent = `${done} von ${p.steps.length} erledigt`;
-    $('#tdSteps').innerHTML = p.steps.map((s, i) => `<li class="td-step ${s.done ? 'done' : ''} ${s.key === p.next_key ? 'next' : ''}">
-      <span class="td-num">${s.done ? '✓' : i + 1}</span>
-      <div><b>${esc(s.title)}</b><small>${esc(s.why)}</small></div>
+    // 2.0.0-dev13: nur zählen, was wirklich offen ist – ein leerer Schritt ist nicht „erledigt“
+    const open = p.steps.filter(s => !s.done).length;
+    $('#tdPlanState').textContent = open ? `${open} von ${p.steps.length} Schritten mit offenen Punkten` : 'Nichts offen';
+    $('#tdSteps').innerHTML = p.steps.map((s, i) => `<li class="td-step ${s.state === 'erledigt' ? 'done' : s.done ? 'quiet' : ''} ${s.key === p.next_key ? 'next' : ''}">
+      <span class="td-num" title="${s.state === 'erledigt' ? 'erledigt' : s.done ? 'nichts offen' : 'offen'}">${s.state === 'erledigt' ? '✓' : s.done ? '–' : i + 1}</span>
+      <div><b>${esc(s.title)}</b><small>${s.done && s.state !== 'erledigt' ? 'Nichts offen. ' : ''}${esc(s.why)}</small></div>
       <span class="td-count">${s.count || ''}</span>
       <button type="button" class="btn ${s.key === p.next_key ? 'btn-primary' : 'btn-ghost'}" data-go-action="${enc({view: s.view, section: s.section, anchor: s.anchor})}">${s.done ? 'Ansehen' : 'Los →'}</button></li>`).join('');
     const nxt = p.steps.find(s => s.key === p.next_key);

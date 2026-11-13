@@ -419,6 +419,30 @@ Nachbesserung innerhalb des Pakets: Im ersten Entwurf stand im Reiter „Kontakt
 
 **Entscheid:** als Nächstes V3 (Bereich Einstellungen), dann V4 (Navigation).
 
+## Arbeitspaket 12 – Produktreview Etappe A (2.0.0-dev13)
+
+Auftrag: nächsten Sprint umsetzen und die Roadmap mit dem externen Produktreview vom 13.11.2026 abgleichen. Das Review prüfte
+dev11 und empfahl, vor dem Menüumbau zuerst Eingabeschutz, Öffnungsfokus und eine eindeutige Bewertung umzusetzen. Deshalb
+wurde der geplante Bereich „Einstellungen“ auf dev14 verschoben.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 554 Tests bestanden (11 neu in `tests/test_v2_review_etappe_a.py`) |
+| Browser-Tests | 9 von 9 (neu `test_formguard_browser.py`: Abnahmefälle T02, T03, T04 des Reviews); zwei ältere Tests prüfen jetzt die korrigierten Texte |
+| Erstellungswege ohne erfundene Werte | Formular, Schnittstelle, CSV-Import, „Bericht für Website“, Firmensuche (Test), Impressumsprüfung (Code) |
+| Prüffall K01 | Logo „Basis“: Kundenteil nennt keine widersprechende Pauschalzahl mehr (Test) |
+| Release-Paket | gebaut, enthält `formguard.js` |
+
+**Selbstbewertung 4 von 5.** Abzug: Der Eingabeschutz gilt nur im Lead-Dialog, und M21 (Pilot mit echter Referenzliste) bleibt offen – er lässt sich in dieser Umgebung nicht ausführen.
+
+Nachbesserungen innerhalb des Pakets:
+1. Leere Schritte im Tagesplan wurden zunächst weiter durchgestrichen dargestellt und dann wegen eines gleichnamigen CSS-Klassennamens („empty“) zentriert – beides im Bildschirmfoto gesehen und mit eigener Klasse behoben.
+2. Bei der Suche nach Erstellungswegen fielen zwei weitere Stellen auf, die die Leistung still vorbelegten (Impressumsprüfung, „Bericht für Website“); beide mitbehoben.
+
+**Abweichungen vom Review, bewusst:** Nicht gespeicherte Eingaben bleiben nur im Arbeitsspeicher (keine lokal gespeicherten Entwürfe), weil Gesprächsnotizen nicht unbemerkt auf der Festplatte liegen sollen. Die Firmenakte bleibt vorerst ein Dialog mit Reitern; ob sie eine eigene Seite wird, entscheidet sich mit den direkten Adressen in dev14.
+
+**Entscheid:** weiter mit Etappe B (dev14: Einstellungen und sechs Bereiche mit direkten Adressen).
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

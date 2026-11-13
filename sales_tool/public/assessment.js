@@ -78,6 +78,13 @@
   };
 
   window.leadGradeChip = id => (id in grades ? gradeChip(grades[id].grade) : '');
+  // 2.0.0-dev13: ein Erklärtext für Liste, Pipeline und Akte
+  window.gradeLabel = g => (GRADE[g] ? GRADE[g][2] : 'Datenlage unzureichend');
+  window.leadGradeCell = id => {
+    if (!(id in grades)) return '<span class="muted">abgeschlossen</span>';
+    const g = grades[id];
+    return `${gradeChip(g.grade)}<b>${esc(window.gradeLabel(g.grade))}</b><small>${esc(g.coverage_pct)} % der Kriterien bekannt</small>`;
+  };
   const RANK = {A: 0, B: 1, C: 3, X: 4};
   // Reihenfolge für Listen: A, B, unbekannt, C, Ausschluss
   window.leadGradeRank = id => (id in grades ? (RANK[grades[id].grade] ?? 2) : 2);

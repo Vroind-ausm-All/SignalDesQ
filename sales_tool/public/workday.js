@@ -44,7 +44,7 @@
         ${s.dead_ends.length ? `<div class="td-dead"><b>⚠ ${s.dead_ends.length}${s.dead_ends_capped ? '+' : ''} Firma(en) ohne nächsten Schritt mit Datum</b><small>Sonst bleiben sie liegen – Wiedervorlage setzen:</small>
           ${s.dead_ends.map(d => `<div class="td-dead-row" data-dead="${d.lead_id}"><span><button type="button" class="text-button" data-lead="${d.lead_id}">${esc(d.company)}</button> <small>${esc(STAGE[d.stage] || d.stage)}</small></span>
             <input type="text" value="${esc(d.next_step || 'Wiedervorlage')}" maxlength="300" aria-label="Nächster Schritt für ${esc(d.company)}" data-dead-step>
-            <input type="date" value="${plusDays(1)}" aria-label="Datum für ${esc(d.company)}" data-dead-date></div>`).join('')}</div>` : '<div class="td-dead ok">✓ Jede offene Firma hat einen nächsten Schritt mit Datum.</div>'}
+            <input type="date" value="${plusDays(1)}" aria-label="Datum für ${esc(d.company)}" data-dead-date></div>`).join('')}</div>` : '<div class="td-dead ok">✓ Jede Firma in einer Kontaktphase (Qualifiziert bis Angebot) hat einen nächsten Schritt mit Datum. Firmen in Recherche sind ausgenommen.</div>'}
         <div class="td-close-actions"><label><input type="checkbox" id="tdCloseBackup" ${s.backup_today ? '' : 'checked'}> Datensicherung erstellen</label>
           <input type="text" id="tdCloseNote" maxlength="1000" placeholder="Notiz zum Tag (optional)" value="${esc(s.closed?.note || '')}">
           <button type="button" class="btn btn-primary" id="tdCloseBtn">Tag abschließen</button></div>`;

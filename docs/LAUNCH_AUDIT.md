@@ -1,5 +1,7 @@
 # Launch-Audit (Sprint 0 – Wahrheitscheck)
 
+> **Historische Bestandsaufnahme (Stand 2.0.0-dev1, 11.11.2026).** Viele der hier genannten Lücken sind seit dev2 behoben. Den aktuellen Status je Maßnahme führt [`ROADMAP.md`](ROADMAP.md).
+
 Stand: 11.11.2026. Geprüft wurde der tatsächlich ausgecheckte Code, nicht die Beschreibung in älteren Berichten.
 Alles, was hier nicht selbst ausgeführt wurde, ist als „laut Doku“ gekennzeichnet.
 
