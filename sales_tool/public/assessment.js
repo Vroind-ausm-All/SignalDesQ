@@ -3,11 +3,11 @@
 // Nur Anzeige und Einstellungen – nichts wird versendet, keine Firmendaten werden geändert.
 (function () {
   const esc = v => escapeHTML(String(v ?? ''));
-  const ST = {passt: 'ok', teilweise: 'mid', passt_nicht: 'off', unbekannt: 'wait'};
-  const GRADE = {A: ['A', 'ok', 'passt gut'], B: ['B', 'mid', 'passt teilweise'], C: ['C', 'off', 'passt kaum'], X: ['✕', 'off', 'Ausschluss']};
-  const REACH = {bereit: ['Kontaktweg belegt', 'ok'], versuch_offen: ['Versuch offen', 'mid'], ausgeschoepft: ['Kanal wechseln', 'off'],
-    kein_weg: ['kein Kontaktweg', 'wait'], gesperrt: ['gesperrt', 'off']};
-  const QUAL = {offen: 'wait', teilweise: 'mid', qualifiziert: 'ok', nicht_qualifiziert: 'off'};
+  const ST = {passt: 'ok', teilweise: 'mid', passt_nicht: 'bad', unbekannt: 'wait'};
+  const GRADE = {A: ['A', 'ok', 'passt gut'], B: ['B', 'mid', 'passt teilweise'], C: ['C', 'bad', 'passt kaum'], X: ['✕', 'bad', 'Ausschluss']};
+  const REACH = {bereit: ['Kontaktweg belegt', 'ok'], versuch_offen: ['Versuch offen', 'mid'], ausgeschoepft: ['Kanal wechseln', 'mid'],
+    kein_weg: ['kein Kontaktweg', 'wait'], gesperrt: ['gesperrt', 'bad']};
+  const QUAL = {offen: 'wait', teilweise: 'mid', qualifiziert: 'ok', nicht_qualifiziert: 'bad'};
   let grades = {}, meta = null;
 
   const gradeChip = g => {
@@ -37,7 +37,7 @@
           <small class="muted">${esc(q.notice)}</small></section>
         <section><h4><span class="sw-web ${rs[1]}">${esc(rs[0])}</span> Erreichbarkeit <small>${r.attempts_total} Versuche, ${r.reached_total}× erreicht</small></h4>
           <p>${esc(r.hint)}</p>
-          <ul class="as-crit">${r.channels.map(c => `<li class="${c.blocked ? 'off' : c.known ? 'ok' : 'wait'}"><span><b>${esc(c.label)}</b> <em class="sw-web ${c.known ? 'ok' : 'wait'}">${c.known ? 'belegt' : 'unbekannt'}</em></span>
+          <ul class="as-crit">${r.channels.map(c => `<li class="${c.blocked ? 'bad' : c.known ? 'ok' : 'wait'}"><span><b>${esc(c.label)}</b> <em class="sw-web ${c.known ? 'ok' : 'wait'}">${c.known ? 'belegt' : 'unbekannt'}</em></span>
             <small>${c.known ? esc(c.value) + ' · ' : ''}${c.source && c.source.startsWith('OpenStreetMap') ? esc(c.source) + ' · ' : ''}${esc(c.note)}</small></li>`).join('')}</ul>
           ${r.hours ? `<div class="as-q"><b>Öffnungszeiten:</b> ${esc(r.hours.text)} <span class="sw-web ${r.hours.open_now ? 'ok' : r.hours.open_now === false ? 'off' : 'wait'}">${esc(r.hours.label)}</span> <small>${esc(r.hours.source)}</small></div>` : ''}
           ${r.next_slot && r.attempts_open ? `<div class="as-q"><b>Nächster Versuch:</b> ${esc(r.next_slot.label)} <small>(${esc(r.next_slot.why)})</small></div>` : ''}

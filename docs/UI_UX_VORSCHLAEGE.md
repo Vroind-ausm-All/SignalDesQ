@@ -1,6 +1,6 @@
 # UI/UX – Vorschläge für mehr Übersicht
 
-Stand 2.0.0-dev11. Grundlage: Screenshots aller Hauptansichten in allen Themes und eine Messung im Browser bei 1366 × 768 Pixeln
+Stand 2.0.0-dev12. Grundlage: Screenshots aller Hauptansichten in allen Themes und eine Messung im Browser bei 1366 × 768 Pixeln
 (häufigste Laptop-Auflösung) mit zwölf fiktiven Leads. Alle Vorschläge bauen auf den Farbrollen aus dev11 auf und funktionieren
 damit ohne Zusatzaufwand in jedem Theme, hell wie dunkel.
 
@@ -29,18 +29,31 @@ Aufwand: S = bis ein halber Tag, M = ein bis zwei Tage, L = mehrere Tage. Alle V
 
 | Nr. | Vorschlag | Problem heute | Aufwand | Nutzen |
 |---|---|---|---|---|
-| V2 | **Firmenakte mit Reitern** – Überblick · Kontakt & Erreichbarkeit · Bewertung · Verlauf · Stammdaten; Kopf mit Name, Phase, Passung und den zwei wichtigsten Knöpfen bleibt beim Scrollen stehen | Der Lead-Dialog ist zehn Bildschirme lang; die nächste Aktion verschwindet beim Scrollen | M | sehr hoch – die meistgenutzte Ansicht |
+| V2 | ✓ **umgesetzt in dev12:** **Firmenakte mit Reitern** – Überblick · Kontakt & Erreichbarkeit · Bewertung · Verlauf · Stammdaten; Kopf mit Name, Phase, Passung und den zwei wichtigsten Knöpfen bleibt beim Scrollen stehen | Der Lead-Dialog ist zehn Bildschirme lang; die nächste Aktion verschwindet beim Scrollen | M | sehr hoch – die meistgenutzte Ansicht |
 | V3 | **Eigener Bereich „Einstellungen“** unten in der Navigation: Darstellung, Leistungsprofil, Zielkundenprofil, eigene Erreichbarkeit, Gewichte & Fristen, Sicherheit an einem Ort. „Datenqualität“ bleibt reine Arbeitsansicht | Einstellungen liegen verstreut in fünf Ansichten, die Darstellung unter „Erweitert“ | S–M | hoch – man findet Einstellungen dort, wo man sie sucht |
 | V4 | **Navigation auf sechs Bereiche:** Heute · Finden · Firmen (Leads, Berichte, Pipeline als Umschalter) · Angebote · Abrechnen · Einstellungen. Die Detailseiten (URL-Recherche, Scoring, Signale) werden Reiter in „Firmen-Berichte“ | 16 Einträge, davon drei Gruppen mit nur einem oder zwei Einträgen | M | hoch – schon in der Roadmap; V3 ist der erste Schritt |
 | V5 | **Lead-Liste mit Filterchips und gespeicherten Ansichten:** Passung A/B/C, Erreichbarkeit, „ohne Rechtsform“, „Frist läuft ab“, „heute fällig“ als Chips; Spalten ein- und ausblendbar | Die Spalten „Kaufsignal“ und „Angebot“ zeigen bei den meisten Firmen denselben Platzhalter; filtern geht nur nach Phase | M | mittel bis hoch |
-| V6 | **Einheitliche Statusmarken:** eine Komponente für Passung, Phase, Frist und Datenquelle mit festen Rollenfarben (Erfolg, Hinweis, Warnung, Fehler, Info) und Symbol, damit Farbe nie allein trägt | Heute elf verschiedene Klassen für „Pill“, „Badge“ und „Chip“ | S | mittel – ruhigeres Bild, besser für Farbsehschwäche |
+| V6 | ✓ **umgesetzt in dev12:** **Einheitliche Statusmarken:** eine Komponente für Passung, Phase, Frist und Datenquelle mit festen Rollenfarben (Erfolg, Hinweis, Warnung, Fehler, Info) und Symbol, damit Farbe nie allein trägt | Heute elf verschiedene Klassen für „Pill“, „Badge“ und „Chip“ | S | mittel – ruhigeres Bild, besser für Farbsehschwäche |
 | V7 | **Heute als Fokusliste:** oben nur die drei nächsten Schritte mit je einem Knopf; Eingang, Auslastung und Tagesplan klappen darunter auf und merken sich ihren Zustand | Die Heute-Seite ist 2.800 px lang | S–M | mittel |
 | V8 | **Schnellsuche mit Strg+K:** Firma, Ansicht oder Aktion tippen und mit Enter hin | Firma öffnen heißt heute: Leads → suchen → Zeile anklicken | M | hoch für Tastaturnutzer |
 | V9 | **Leere Zustände mit einem nächsten Schritt:** statt „Noch keine Recherche-Aufträge“ ein Knopf zur passenden Stelle | Viele Kästen sind beim Start leer und erklären nur | S | mittel – vor allem für den Einstieg |
 
+## Umgesetzt in dev12
+
+**V2 – Firmenakte mit Reitern.** Fünf Reiter: Überblick (Akte, Bewertung, Erreichbarkeit, Zeitleiste), Kontakt & Verlauf
+(Aktivitätsprotokoll zuerst, dann Gesprächsvorbereitung, Entscheider, Rollen), Bedarf & Angebot (Bedarfsanalyse, Pakete,
+vorgeschlagene Aufgaben), Recherche (Firmen-Bericht, Firmendaten, Website-Bewertung, Kaufsignale, Website-Analyse) und Stammdaten.
+Der Kopf mit Name, Phase, Passung, Belegabdeckung, nächster Aktion und den Reitern steht beim Scrollen. Gemessen bei 1366 × 768
+mit einer Beispielfirma: Überblick 1.756 px, Kontakt 2.322 px, Bedarf 1.577 px, Recherche 1.541 px, Stammdaten 1.494 px –
+vorher ein Dialog mit rund 7.800 px.
+
+**V6 – Einheitliche Statusmarken.** `.pill`, `.sw-web` und `.as-grade` teilen fünf Tonstufen mit Symbol: erledigt ✓, Hinweis !,
+Problem ✕, offen ○, neutral –. „off“ heißt jetzt nur noch neutral; Probleme (passt nicht, gesperrt, fehlgeschlagen, überzogen,
+voll ausgelastet) heißen überall „bad“. Filter- und Zählerchips sind bewusst noch nicht angeglichen.
+
 ## Empfehlung
 
-Reihenfolge **V2 → V3 → V6**, danach V4 und V5. V2 trifft die Ansicht, in der man den Tag verbringt. V3 ist schnell und
+Stand dev12: V2 und V6 sind umgesetzt. Als Nächstes **V3 → V4**, danach V5. V2 trifft die Ansicht, in der man den Tag verbringt. V3 ist schnell und
 räumt die Einstellungen auf, bevor V4 die Navigation umbaut. V6 ist klein und macht jede weitere Änderung ruhiger. V8 lohnt
 sich, sobald mehrere hundert Firmen im Bestand sind.
 

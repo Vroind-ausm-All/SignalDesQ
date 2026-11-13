@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev11)
+# Bekannte Einschränkungen (Stand 2.0.0-dev12)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
