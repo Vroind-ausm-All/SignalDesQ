@@ -9,7 +9,8 @@ Etappe B, Teil 1 aus dem Produktreview vom 13.11.2026 (Maßnahmen M06 und M07).
 - **„Datenqualität & System“ aufgeteilt:** Änderungen, Veraltung, Löschfristen und Dubletten heißen jetzt *Datenpflege* (unter Firmen); wiederkehrende Recherche-Aufträge stehen unter *Finden → Recherche & Berichte*.
 - **Direkte Adressen:** Jede Ansicht hat eine Adresse (z. B. `#/firmen/pipeline`), eine geöffnete Firma zusätzlich `?firma=…`, die Firmenliste ihre Filter (`?suche=…&phase=…`). Neuladen bleibt an derselben Stelle, Zurück und Vor wechseln zwischen Ansichten, Zurück schließt eine geöffnete Firma und zeigt die gefilterte Liste (Abnahmefall T05).
 - **Behoben:** Beim langsamen Laden konnte der Start mit „renderPipeline is not defined“ abbrechen, weil die App vor allen Skripten loslief. Sie wartet jetzt, bis die Seite vollständig geladen ist.
-- Kein Schemawechsel, keine Daten geändert. 560 Tests (6 neu) unter Python 3.10 und 3.13, 10 Browser-Tests (1 neu); fünf ältere Browser-Tests navigieren jetzt über die neuen Bereiche.
+- **Behoben:** Die Darstellung wurde erst nach der Antwort an den Browser festgeschrieben; eine sofort folgende Anfrage konnte noch den alten Stand lesen (in der CI aufgefallen). Jetzt wird vor der Antwort gespeichert.
+- Kein Schemawechsel, keine Daten geändert. 561 Tests (7 neu) unter Python 3.10 und 3.13, 10 Browser-Tests (1 neu); fünf ältere Browser-Tests navigieren jetzt über die neuen Bereiche.
 
 ## 2.0.0-dev13 – Produktreview Etappe A: Eingabeschutz, Öffnungsfokus, eine Bewertung
 

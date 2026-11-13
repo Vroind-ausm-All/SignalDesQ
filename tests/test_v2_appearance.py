@@ -173,6 +173,15 @@ class SettingTests(unittest.TestCase):
                 appearance.save(self.conn, bad)
         self.assertEqual(appearance.load(self.conn), {'theme': 'sand', 'mode': 'dunkel', 'density': 'kompakt'})
 
+    def test_save_is_committed_before_the_answer(self):
+        # Die Antwort geht vor dem Ende des Anfrage-Blocks hinaus; die nächste Anfrage liest über eine eigene Verbindung.
+        appearance.save(self.conn, {'theme': 'sand'})
+        other = connect(str(Path(self.tmp.name) / 't.sqlite3'))
+        try:
+            self.assertEqual(appearance.load(other)['theme'], 'sand')
+        finally:
+            other.close()
+
     def test_unknown_stored_values_fall_back(self):
         put_setting(self.conn, appearance.KEY, {'theme': 'aus-zukunft', 'mode': 'hell', 'density': 7})
         self.assertEqual(appearance.load(self.conn), {'theme': 'klassisch', 'mode': 'hell', 'density': 'normal'})
