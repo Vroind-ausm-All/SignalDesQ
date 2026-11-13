@@ -98,7 +98,8 @@
   function head(f) {
     const grade = f.assessment?.fit.grade;
     $('#modalTitle').textContent = f.lead.company;
-    $('#modalMeta').textContent = `Phase ${f.lead.stage} · Passung ${grade === 'X' ? 'Ausschluss' : (grade || 'offen')} · Belege ${f.coverage.pct} %`;
+    const fitLabel = window.gradeLabel ? window.gradeLabel(grade) : (grade || 'offen');
+    $('#modalMeta').textContent = `Phase ${(typeof stageNames !== 'undefined' && stageNames[f.lead.stage]) || f.lead.stage} · Passung ${grade && grade !== 'X' ? grade + ' – ' : ''}${fitLabel} · Belege ${f.coverage.pct} %`;
     const btn = $('#lfHeadNext'), n = f.next;
     headAction = n && n.action && !n.blocked ? n.action : null;
     if (btn) { btn.classList.toggle('hidden', !headAction); btn.textContent = headAction ? headAction.label + ' ▶' : ''; btn.title = headAction ? 'Als Nächstes: ' + n.label : ''; }

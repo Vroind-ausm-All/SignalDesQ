@@ -1,6 +1,6 @@
 # UI/UX – Vorschläge für mehr Übersicht
 
-Stand 2.0.0-dev12. Grundlage: Screenshots aller Hauptansichten in allen Themes und eine Messung im Browser bei 1366 × 768 Pixeln
+Stand 2.0.0-dev13. Grundlage: Screenshots aller Hauptansichten in allen Themes und eine Messung im Browser bei 1366 × 768 Pixeln
 (häufigste Laptop-Auflösung) mit zwölf fiktiven Leads. Alle Vorschläge bauen auf den Farbrollen aus dev11 auf und funktionieren
 damit ohne Zusatzaufwand in jedem Theme, hell wie dunkel.
 
@@ -53,9 +53,10 @@ voll ausgelastet) heißen überall „bad“. Filter- und Zählerchips sind bewu
 
 ## Empfehlung
 
-Stand dev12: V2 und V6 sind umgesetzt. Als Nächstes **V3 → V4**, danach V5. V2 trifft die Ansicht, in der man den Tag verbringt. V3 ist schnell und
-räumt die Einstellungen auf, bevor V4 die Navigation umbaut. V6 ist klein und macht jede weitere Änderung ruhiger. V8 lohnt
-sich, sobald mehrere hundert Firmen im Bestand sind.
+Stand dev13, abgeglichen mit dem externen Produktreview vom 13.11.2026: V2 und V6 sind umgesetzt (dev12), dazu Eingabeschutz,
+Öffnungsfokus und eine einheitliche Passungsanzeige (dev13, Review-Maßnahmen M01, M03, M04). Als Nächstes **V3 → V4** (dev14,
+Review M06/M07, mit direkten Adressen je Ansicht und Firma), danach **V5, V7, V9** (dev15, Review M09, M08, M11).
+V8 (Strg+K) folgt, wenn der Bestand wächst. Den Status je Maßnahme führt `ROADMAP.md`.
 
 ## Bekannte Grenzen von V1
 

@@ -61,8 +61,8 @@ def lead_for_url(conn, url):
     if check_suppressed(conn, website=web):
         raise ValueError('Diese Domain steht auf der Sperrliste.')
     name = normalize_domain(web)
-    cur = conn.execute("""INSERT INTO leads(company, website, industry, stage, permission, note) VALUES (?,?,?,?,?,?)""",
-                       (name, web, 'Sonstige', 'recherche', 'unbekannt', 'Angelegt über „Bericht für Website“. Firmenname aus dem Impressum übernehmen.'))
+    cur = conn.execute("""INSERT INTO leads(company, website, industry, offer, stage, permission, note) VALUES (?,?,?,?,?,?,?)""",
+                       (name, web, '', '', 'recherche', 'unbekannt', 'Angelegt über „Bericht für Website“. Firmenname aus dem Impressum übernehmen.'))
     conn.commit()
     return cur.lastrowid, True
 

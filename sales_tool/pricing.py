@@ -362,7 +362,8 @@ def build_quote(conn, data):
         'positions': cust, 'included': [f"{c['title']} – {c['scope']}" for c in cust], 'deliverables': uniq('deliverables'),
         'excluded': uniq('excluded'), 'acceptance_criteria': uniq('acceptance'), 'third_party_costs': uniq('third_party'),
         'assumptions': text('assumptions', 1000), 'weeks': weeks[0] if len(set(weeks)) == 1 else ('nach Absprache' if not weeks else ' / '.join(dict.fromkeys(weeks))),
-        'billing': billing, 'revision_rounds': 2, 'net_eur': base, 'once_net_eur': once, 'monthly_net_eur': monthly,
+        # 2.0.0-dev13 (Review K01): Korrekturschleifen stehen je Leistung im Umfang – keine pauschale Zahl, die ihm widerspricht
+        'billing': billing, 'revision_rounds': None, 'revision_note': 'je Leistung wie im Umfang angegeben', 'net_eur': base, 'once_net_eur': once, 'monthly_net_eur': monthly,
         'vat_eur': vat, 'total_eur': round(base + vat, 2), 'tax_mode': mode, 'tax_note': tax_note,
         'payment_plan': ('40 % bei Beauftragung, 60 % nach Abnahme' if once else '') + ('; ' if once and monthly else '') +
                         ('Monatliche Leistungen monatlich im Voraus, Laufzeit und Kündigungsfrist ausdrücklich vereinbaren' if monthly else ''),

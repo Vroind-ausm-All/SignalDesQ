@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.0.0-dev13 – Produktreview Etappe A: Eingabeschutz, Öffnungsfokus, eine Bewertung
+
+Setzt die Etappe A aus dem externen Produktreview vom 13.11.2026 fort (Maßnahmen M01, M03, M04, Rest von M05, M26).
+
+- **Nichts geht mehr still verloren (M01):** Wer im Lead-Dialog etwas ändert und ihn per ✕, „Abbrechen“, Escape oder Klick daneben schließt, wird gefragt: *Speichern*, *Weiter bearbeiten* oder *Verwerfen*. Im Kopf steht, welcher Bereich ungespeichert ist. Verlässt man den Dialog über einen Sprung in eine andere Ansicht, kommen die Eingaben beim nächsten Öffnen derselben Firma zurück – nur im Arbeitsspeicher, nicht im Browser-Speicher. Beim Schließen des Browserfensters warnt der Browser. Es gibt kein automatisches Speichern.
+- **Richtiger Fokus (M03):** Eine bestehende Firma öffnet im Überblick (Fokus auf dem Reiter), nur eine neue Firma im Namensfeld. Nach dem Schließen steht der Fokus wieder auf der Zeile, von der aus geöffnet wurde.
+- **Eine Bewertung statt zwei (M04):** Die Lead-Liste zeigt die Passung (A/B/C/?) mit demselben Erklärtext wie Akte und Pipeline und sortiert danach. Die alte Punktzahl („25/100“) erscheint nicht mehr in Liste und Pipeline; sie bleibt unter „Stammdaten“ eingeklappt nachvollziehbar.
+- **Keine erfundenen Vorgaben (M04):** Neue Firmen bekommen keine vorbelegte Branche und keine vorgewählte Leistung mehr – im Formular, über die Schnittstelle, beim CSV-Import, über „Bericht für Website“, die Impressumsprüfung und die Übernahme aus der Firmensuche (bisher dort immer „Conversion- & Web-Sprint“). Bestehende Firmen behalten ihre Werte.
+- **Verständliche Begriffe (M05, U11):** Phasen erscheinen mit Namen statt internem Schlüssel. Der Gesprächsentwurf behauptet keinen Anlass („… Kein überprüftes Signal aufgefallen“) und keine Leistung, die nicht dokumentiert ist, sondern zeigt Platzhalter. Der Tagesplan meldet auf einer leeren Installation nicht mehr „5 von 6 erledigt“, sondern unterscheidet „nichts offen“ von „erledigt“. Zwei Hinweistexte entsprechen jetzt dem tatsächlichen Verhalten.
+- **Prüffall K01 behoben:** Ein Baukasten-Angebot nannte im Kundenteil pauschal „2 Korrekturschleifen“, auch wenn die Position „1 Korrekturschleife“ vorsah. Korrekturschleifen gelten jetzt je Leistung wie im Umfang angegeben. Ältere Angebote bleiben unverändert.
+- **Roadmap abgeglichen (M26):** Status je Maßnahme M01–M26 mit Version, Abnahme und nächstem Hindernis; Abgleich mit jeder Empfehlung des Reviews; Launch-Audit und Praxistest 70191 tragen einen Versionsbezug.
+- Kein Schemawechsel. 554 Tests (11 neu) unter Python 3.10 und 3.13, 9 Browser-Tests (1 neu).
+
 ## 2.0.0-dev12 – Firmenakte mit Reitern, einheitliche Statusmarken
 
 - **Firmenakte mit fünf Reitern:** Überblick · Kontakt & Verlauf · Bedarf & Angebot · Recherche · Stammdaten. Der Dialog war rund 7.800 Pixel lang (etwa zehn Bildschirme); der längste Reiter hat jetzt rund 2.300 Pixel.

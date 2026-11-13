@@ -375,7 +375,7 @@ def customer_markdown(customer):
     lines += ['','## Nicht enthalten']+['- '+safe(x) for x in customer['excluded']]
     if customer.get('assumptions'): lines+=['','## Voraussetzungen',safe(customer['assumptions'])]
     lines += ['','## Umfang und Abnahme',f"- Geplanter Zeitraum: {safe(customer['weeks'])}",
-              f"- Korrekturschleifen: {customer['revision_rounds']}",
+              f"- Korrekturschleifen: {customer['revision_rounds'] if customer.get('revision_rounds') is not None else safe(customer.get('revision_note') or 'je Leistung wie im Umfang angegeben')}",
               '- Abnahme anhand der genannten Liefergegenstände nach gemeinsamer Prüfung.']
     if customer.get('acceptance_criteria'): lines += ['','## Abnahmekriterien']+['- '+safe(x) for x in customer['acceptance_criteria']]
     if customer.get('third_party_costs'): lines += ['','## Mögliche Drittanbieter- und Folgekosten (nicht im Festpreis)']+['- '+safe(x) for x in customer['third_party_costs']]

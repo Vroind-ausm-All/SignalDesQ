@@ -126,7 +126,7 @@
     const d = await api('/leads/duplicates');
     dupPairs = d.pairs;
     const side = (l, inv) => `<div class="q-dup-side"><b>#${l.id} ${esc(l.company)}</b><small>${esc([l.legal_form, l.location, l.register_number, (l.website || '').replace(/^https?:\/\//, '')].filter(Boolean).join(' · ') || '–')}</small>
-      <small>Phase ${esc(l.stage)} · seit ${esc(fmtDate((l.created_at || '').slice(0, 10)))}${inv ? ` · <b>${inv} Rechnung(en)</b>` : ''}</small></div>`;
+      <small>Phase ${esc((typeof stageNames !== 'undefined' && stageNames[l.stage]) || l.stage)} · seit ${esc(fmtDate((l.created_at || '').slice(0, 10)))}${inv ? ` · <b>${inv} Rechnung(en)</b>` : ''}</small></div>`;
     $('#qDups').innerHTML = d.pairs.length ? d.pairs.map((p, i) => {
       const invK = p.invoices[String(p.keep.id)], invD = p.invoices[String(p.drop.id)];
       const [keep, drop] = invD && !invK ? [p.drop, p.keep] : [p.keep, p.drop];

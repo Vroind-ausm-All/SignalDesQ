@@ -630,3 +630,21 @@
 :is(.pill,.sw-web).off::before{content:"–";content:"–" / ""}
 .as-crit li.bad{border-color:var(--danger-strong)}
 .as-crit li.off{border-color:var(--line-2)}
+/* 2.0.0-dev13: Passung in der Lead-Liste; alter Lead-Fit eingeklappt */
+.fit-cell{white-space:nowrap}
+.fit-cell b{font-size:12px}
+.fit-cell small{display:block;margin-top:3px}
+.legacy-score{margin:14px 0 4px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface-2)}
+.legacy-score summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--muted)}
+.legacy-score .score-panel{margin-top:8px}
+/* 2.0.0-dev13: Schutz ungespeicherter Eingaben */
+.lf-dirty{display:block;margin-top:4px;font-size:12px;font-weight:700;color:var(--warn-fg)}
+.lf-guard{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;background:var(--backdrop)}
+.lf-guard-box{width:min(460px,100%);background:var(--surface);color:var(--ink);border:1px solid var(--line-2);border-radius:14px;padding:20px 22px;box-shadow:var(--modal-shadow)}
+.lf-guard-box h3{margin:0 0 8px;font-size:18px}
+.lf-guard-box p{margin:0 0 14px}
+.lf-guard-box .muted{margin:12px 0 0;font-size:12px}
+.lf-guard-actions{display:flex;flex-wrap:wrap;gap:8px}
+/* 2.0.0-dev13: Tagesplan – „nichts offen“ ist ruhig, aber nicht durchgestrichen wie „erledigt“ */
+.td-step.quiet b{color:var(--muted);font-weight:650}
+.td-step.quiet .td-num{background:var(--surface-3);color:var(--muted)}

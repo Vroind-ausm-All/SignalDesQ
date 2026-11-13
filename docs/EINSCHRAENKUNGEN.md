@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev12)
+# Bekannte Einschränkungen (Stand 2.0.0-dev13)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -73,3 +73,11 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 ## Darstellung (2.0.0-dev11)
 
 - Die Darstellung gilt für die ganze Installation, nicht je Nutzer: Im Team-Betrieb sehen alle dasselbe Theme. „Klassisch“ ist nicht pixelgleich mit dem Stand davor; Grautöne und Linien sind leicht vereinheitlicht, graue Nebentexte für bessere Lesbarkeit etwas dunkler. Durchscheinende Schatten sind im Dunkelmodus kaum sichtbar. Ausdrucke bleiben hell. Die Dichte „Kompakt“ blendet die Erklärtexte unter den Seitenüberschriften aus. Ohne Unterstützung für `color-mix()` (Browser vor etwa 2023) ist die Kopfleiste deckend statt leicht durchscheinend.
+
+## Eingabeschutz und Bewertung (2.0.0-dev13)
+
+- Der Schutz ungespeicherter Eingaben gilt im Lead-Dialog (Stammdaten, Aktivitätsprotokoll, Bedarfsanalyse, neue Ansprechperson). Andere Formulare – etwa Angebots- oder Rechnungseditor – haben ihn noch nicht.
+- Zurückgehaltene Eingaben liegen nur im Arbeitsspeicher des Browserfensters. Nach einem Neuladen sind sie weg; der Browser warnt vorher.
+- Die Passung ersetzt in Liste und Pipeline die alte Punktzahl. Der alte Lead-Fit wird weiter berechnet und ist unter „Stammdaten“ eingeklappt sichtbar; die Recherchepriorität unter „Firmen-Berichte“ ist ein eigener Wert und wird mit der neuen Navigation eingeordnet.
+- Bestehende Firmen behalten Branche und Leistung, auch wenn diese früher automatisch vorbelegt wurden (z. B. „Conversion- & Web-Sprint“ bei übernommenen Suchtreffern). Das lässt sich unter „Stammdaten“ auf „noch keine Leistung gewählt“ zurücksetzen.
+

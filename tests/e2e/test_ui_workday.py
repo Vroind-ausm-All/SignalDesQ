@@ -163,7 +163,7 @@ class UiWorkdayTest(unittest.TestCase):
             self.assertIn('ohne nächsten Schritt', page.text_content('#tdCloseBody'))
             page.click('#tdCloseBtn')
             page.wait_for_timeout(1500)
-            self.assertIn('Jede offene Firma hat einen nächsten Schritt', page.text_content('#tdCloseBody'))
+            self.assertIn('Jede Firma in einer Kontaktphase (Qualifiziert bis Angebot) hat einen nächsten Schritt', page.text_content('#tdCloseBody'))
             # Offline-Modus und Wiederherstellen-Liste in „Datenqualität & System“
             page.evaluate("() => switchView('quality')")
             page.wait_for_timeout(1500)
