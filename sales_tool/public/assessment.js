@@ -17,7 +17,7 @@
 
   function criteria(list) {
     return `<ul class="as-crit">${list.map(c => `<li class="${ST[c.status]}"><span><b>${esc(c.label)}</b> <em class="sw-web ${ST[c.status]}">${esc(c.status_label)}</em></span>
-      <small>${esc(c.detail)}</small>${c.action ? `<button type="button" class="text-button" ${c.action.view === 'quality' ? 'data-as-profile' : `data-lf-go='${esc(JSON.stringify(c.action))}'`}>${esc(c.action.label)}</button>` : ''}</li>`).join('')}</ul>`;
+      <small>${esc(c.detail)}</small>${c.action ? `<button type="button" class="text-button" ${['quality', 'settings'].includes(c.action.view) ? 'data-as-profile' : `data-lf-go='${esc(JSON.stringify(c.action))}'`}>${esc(c.action.label)}</button>` : ''}</li>`).join('')}</ul>`;
   }
 
   const kos = list => list.map(k => `<div class="as-ko" role="alert">⛔ <b>${esc(k.label)}</b> – ${esc(k.detail)}</div>`).join('');
@@ -136,7 +136,7 @@
 
   function openProfile() {
     if (typeof closeModal === 'function') closeModal();
-    switchView('quality');
+    switchView('settings');
     setTimeout(() => $('#targetProfile')?.scrollIntoView({behavior: 'smooth'}), 50);
   }
 

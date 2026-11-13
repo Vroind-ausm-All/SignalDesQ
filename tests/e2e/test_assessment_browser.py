@@ -43,8 +43,7 @@ class AssessmentBrowserTests(unittest.TestCase):
                         page.goto(f'http://127.0.0.1:{server.server_port}')
 
                         # 1. Zielkundenprofil einstellen
-                        page.locator('.nav-more summary').click()
-                        page.locator('[data-view="quality"]').click()
+                        page.locator('.sidebar [data-view="settings"]').click()  # 2.0.0-dev14: eigener Bereich Einstellungen
                         form = page.locator('#targetProfileForm')
                         form.locator('input[name="home"]').fill('70173')
                         form.locator('summary').click()
@@ -75,7 +74,8 @@ class AssessmentBrowserTests(unittest.TestCase):
                         page.locator('#closeModal').click()
 
                         # 4. „Nicht erreicht“ erzeugt eine Wiedervorlage zu anderer Tageszeit
-                        page.locator('[data-view="workspace"]').click()
+                        page.locator('.sidebar [data-view="dashboard"]').click()
+                        page.locator('[data-area-view="workspace"]').click()  # 2.0.0-dev14: Reiter im Bereich Heute
                         call = page.locator('#wsCallForm')
                         call.locator('select[name="lead_id"]').select_option(label='Elektro Fiktiv e.K.')
                         call.locator('select[name="outcome"]').select_option('nicht_erreicht')
@@ -87,7 +87,8 @@ class AssessmentBrowserTests(unittest.TestCase):
                         }""", timeout=15000)
 
                         # 5. „verloren“ nur mit Grund: Abbrechen ändert nichts, mit Grund wird gespeichert
-                        page.locator('[data-view="pipeline"]').click()
+                        page.locator('.sidebar [data-view="leads"]').click()
+                        page.locator('[data-area-view="pipeline"]').click()  # 2.0.0-dev14: Reiter im Bereich Firmen
                         page.locator('[data-pc-toggle]').first.click()  # Karte aufklappen
                         sel = page.locator('[data-pipeline-update]').first
                         sel.wait_for(timeout=15000)

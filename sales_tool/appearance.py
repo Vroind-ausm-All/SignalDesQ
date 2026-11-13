@@ -48,6 +48,7 @@ def save(conn, data):
             raise ValueError(f'Unbekannter Wert für {key}: {value or "leer"}.')
         current[key] = value
     put_setting(conn, KEY, current)
+    conn.commit()  # vor der Antwort festschreiben – die nächste Anfrage liest über eine eigene Verbindung
     return current
 
 

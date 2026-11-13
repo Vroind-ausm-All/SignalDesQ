@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev13. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev14. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D; das Review liegt nicht im Repository). Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
 [`LAUNCH_AUDIT.md`](LAUNCH_AUDIT.md) ist eine **historische** Bestandsaufnahme von dev1.
@@ -35,10 +35,10 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 | M01 | Ungespeicherte Eingaben schützen | P0 | erledigt | dev13 | T04 im Browser-Test: Rückfrage Speichern / Weiter bearbeiten / Verwerfen | Eingaben außerhalb des Lead-Dialogs (Angebots-, Rechnungsformulare) noch ohne Schutz |
 | M02 | Firmenakte mit Reitern und stehendem Kontext | P0 | erledigt | dev12 | Fünf Reiter, Kopf mit Name und nächster Aktion; längster Reiter 2.322 px statt rund 7.800 px | Eigene Adresse je Firma (M07) |
 | M03 | Öffnungsfokus und Rückkehr | P0 | erledigt | dev13 | T03 im Browser-Test: Überblick mit Fokus auf dem Reiter, nach dem Schließen Fokus auf der Zeile | – |
-| M04 | Bewertung und neutrale Vorgaben vereinheitlichen | P0 | erledigt | dev13 | T02: neue Firma ohne Branche und Leistung; gleiche Passung mit gleichem Text in Liste, Pipeline, Akte | Recherchepriorität unter „Firmen-Berichte“ ist ein dritter Wert – mit M06/M07 einordnen |
+| M04 | Bewertung und neutrale Vorgaben vereinheitlichen | P0 | erledigt | dev13 | T02: neue Firma ohne Branche und Leistung; gleiche Passung mit gleichem Text in Liste, Pipeline, Akte | Recherchepriorität unter „Recherche & Berichte“ ist ein dritter Wert (Recherche-Reihenfolge, keine Kundenbewertung) – Beschriftung mit M09 klären |
 | M05 | Statusmarken und verständliche Begriffe | P1 | erledigt | dev12, dev13 | Fünf Stufen mit Symbol; Phasenschlüssel übersetzt | Filter- und Zählerchips angleichen (mit M09) |
-| M06 | Einstellungen zusammenführen | P1 | offen | → dev14 | Jedes Einstellungsziel hat einen dokumentierten neuen Ort | Zuständigkeiten festlegen |
-| M07 | Sechs Hauptbereiche mit direkter Navigation | P1 | offen | → dev14/15 | Zuordnungstabelle des Reviews; direkte Adressen; Zurück führt zur gefilterten Liste | M06 |
+| M06 | Einstellungen zusammenführen | P1 | erledigt | dev14 | Eigener Bereich mit Darstellung, Zeiten, Zielkunden, Leistungen & Preise, Recherche, Daten & Zugang; Preise aus Angeboten verlinkt (Browser- und Strukturtest) | Einstellungen je Nutzer im Team-Betrieb |
+| M07 | Sechs Hauptbereiche mit direkter Navigation | P1 | teilweise | dev14 | Sechs Bereiche, Reiter, Adressen für Ansicht, Firma, Abschnitt und Listenfilter; T05 bestanden | Adressen für Filter weiterer Listen und für Firmen-Berichte; Entscheidung Akte als eigene Seite |
 | M08 | Heute auf nächste Aktionen ausrichten (V7) | P1 | teilweise | dev13 | „Nichts offen“ ≠ „erledigt“ im Tagesplan; offen: drei nächste Aktionen mit Grund und Frist oben | Prioritätsregeln abstimmen |
 | M09 | Filterchips und gespeicherte Arbeitsansichten (V5) | P1 | offen | → dev15 | Ansicht „Heute fällig“ wieder öffnen; Spalten nächste Aktion und Datum | M05, einheitliche Felder |
 | M10 | Globale Suche und Strg+K (V8) | P2 | offen | später | Firma, Chance, Angebotsnummer über ein Suchfeld | M07 |
@@ -64,9 +64,28 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 | Etappe | Inhalt | Stand |
 |---|---|---|
 | A – verlässliche tägliche Bedienung | M01–M05, Beginn M21 | **erledigt** in dev12/dev13; M21 wartet auf den Eigentümer |
-| B – klare Navigation und Arbeitslisten | **dev14** = M06 Einstellungen + M07 Teil 1 (sechs Bereiche, direkte Adressen, Zurück mit Filtern); **dev15** = M08-Rest, M09, M11 | als Nächstes |
+| B – klare Navigation und Arbeitslisten | **dev14** = M06 Einstellungen + M07 Teil 1 (sechs Bereiche, direkte Adressen, Zurück mit Filtern) – erledigt; **dev15** = M08-Rest, M09, M11 | dev15 als Nächstes |
 | C – mehrere Projekte je Firma | M12 Katalog (mit Migration), danach M13 Chancen, M14 Briefings, M15 Revisionen, M16 | nach B; Modellumbau separat abgenommen, mit Kopie vorhandener Daten geprüft |
 | D – Auftrag, Lernen, Anbindung | M17–M20, M24/M25 nach Pilotbedarf; M22/M23 parallel nach Fehlerbild; M10 bei wachsendem Bestand | später |
+
+## Zuordnung der bisherigen Menüziele (M07, Stand dev14)
+
+| Bisheriges Ziel | Neuer Ort | Adresse |
+|---|---|---|
+| Heute | Heute → Übersicht | `#/heute` |
+| Aufgaben | Heute → Aufgaben | `#/heute/aufgaben` |
+| Kontakt & Termine | Heute → Kontakt & Termine (Einzelfälle zusätzlich in der Firmenakte) | `#/heute/kontakt-termine` |
+| Firmen finden | Finden → Suche & Sichtung | `#/finden` |
+| Import & Prüfung | Finden → Import & Prüfung | `#/finden/import` |
+| Firmen-Berichte | Finden → Recherche & Berichte; je Firma im Reiter „Recherche“ der Akte | `#/finden/recherche` |
+| URL-Recherche, Website-Scoring, Kaufsignale | Finden → eigene Reiter | `#/finden/url-recherche` usw. |
+| Leads | Firmen → Firmenliste | `#/firmen` (Filter: `?suche=…&phase=…`, Firma: `?firma=…`) |
+| Pipeline | Firmen → Pipeline | `#/firmen/pipeline` |
+| Datenqualität & System | aufgeteilt: Firmen → Datenpflege (`#/firmen/datenpflege`); wiederkehrende Recherche unter Finden → Recherche & Berichte; alles Übrige unter Einstellungen | – |
+| Angebote & Preise | Angebote; Kalkulationsgrundlagen und Katalog unter Einstellungen → Leistungen & Preise | `#/angebote`, `#/einstellungen?abschnitt=preise` |
+| Rechnungen & Buchhaltung | Abrechnen | `#/abrechnen` |
+| KI-Studio | Einstellungen → Erweiterte Werkzeuge | `#/einstellungen/ki-studio` |
+| Sales-Playbook | „Hilfe & Gesprächsleitfaden“ unten in der Seitenleiste | `#/einstellungen/hilfe` |
 
 ## Abnahmefälle aus dem Review
 
@@ -76,7 +95,7 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 | T02 | Neue Firma nur mit Namen erfassen | **bestanden** (dev13, Browser-Test) |
 | T03 | Bestehende Firma öffnen | **bestanden** (dev13, Browser-Test) |
 | T04 | Notiz eingeben und Escape drücken | **bestanden** (dev13, Browser-Test) |
-| T05 | Aus gefilterter Liste in die Firma und zurück | im Dialog erfüllt (Filter bleiben); mit eigener Adresse (M07) erneut prüfen |
+| T05 | Aus gefilterter Liste in die Firma und zurück | **bestanden** (dev14, Browser-Test: Filter und Firma in der Adresse, Zurück schließt die Firma) |
 | T06 | Rückruf nach erfolglosem Versuch planen | Funktion seit dev3; als Szenario noch nicht geprüft |
 | T07–T13 | Projektanfrage, zwei Chancen, Medien-/Softwareangebot, Revision, Übergabe, Zeitüberschreitung | offen (Etappen C und D) |
 | T14 | Recherche während eines Fehlers wieder aufnehmen | Kernabläufe seit Masterplan 2.0; vollständig mit M23 |

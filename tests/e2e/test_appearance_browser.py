@@ -56,8 +56,7 @@ class AppearanceBrowserTests(unittest.TestCase):
                         page.wait_for_function('() => document.documentElement.dataset.mode === "dark"')
                         page.wait_for_load_state('networkidle')
 
-                        page.locator('.sidebar summary.nav-group').click()
-                        page.locator('[data-view="quality"]').click()
+                        page.locator('.sidebar [data-view="settings"]').click()  # 2.0.0-dev14: eigener Bereich Einstellungen
                         page.locator('[data-ap-theme="sand"]').click()
                         page.wait_for_function('() => document.documentElement.dataset.theme === "sand"')
                         page.locator('[data-ap-density="kompakt"]').click()

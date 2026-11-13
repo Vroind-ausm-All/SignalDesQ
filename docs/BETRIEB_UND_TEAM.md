@@ -2,7 +2,7 @@
 
 ## Datensicherung
 
-- **Normale Sicherung:** „Datenqualität & System“ → „Sicherung jetzt anlegen“ (oder Buchhaltung → Backup). Die Kopie liegt im Ordner `backups` neben der Datenbank (Standard: `%USERPROFILE%\.akquise-tool\backups`).
+- **Normale Sicherung:** „Einstellungen → Daten & Zugang“ → „Sicherung jetzt anlegen“ (oder Buchhaltung → Backup). Die Kopie liegt im Ordner `backups` neben der Datenbank (Standard: `%USERPROFILE%\.akquise-tool\backups`).
 - **Automatisch:** Vor jedem Schema-Update legt SignalDesk selbst eine Sicherung an.
 - **Verschlüsselte Sicherung:** Das optionale Paket einmalig installieren:
   ```
@@ -42,7 +42,7 @@ Standard ist der lokale Einzelplatz ohne Login, erreichbar nur unter 127.0.0.1.
 
 So geht es für ein kleines Team:
 
-1. Lokal starten → „Datenqualität & System“ → **Administration anlegen** (meldet direkt an).
+1. Lokal starten → „Einstellungen → Daten & Zugang“ → **Administration anlegen** (meldet direkt an).
 2. **Benutzer anlegen** mit Rolle (admin, vertrieb, buchhaltung, lesen).
 3. **Login einschalten.** Ab dann braucht jede Anfrage eine Anmeldung.
 4. SignalDesk auf dem gemeinsamen Rechner bzw. Server **hinter einem TLS-Proxy** starten, zum Beispiel so:

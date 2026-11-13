@@ -648,3 +648,21 @@
 /* 2.0.0-dev13: Tagesplan – „nichts offen“ ist ruhig, aber nicht durchgestrichen wie „erledigt“ */
 .td-step.quiet b{color:var(--muted);font-weight:650}
 .td-step.quiet .td-num{background:var(--surface-3);color:var(--muted)}
+/* 2.0.0-dev14: sechs Bereiche – Reiter des aktiven Bereichs unter der Kopfzeile, Hilfe als kleines festes Ziel */
+.area-bar{padding:0 45px;border-bottom:1px solid var(--line);background:var(--surface)}
+.area-tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:thin}
+.area-tab{border:0;border-bottom:3px solid transparent;background:transparent;color:var(--muted);font-weight:700;font-size:13px;padding:11px 13px 9px;white-space:nowrap}
+.area-tab:hover{color:var(--ink)}
+.area-tab.active{color:var(--accent-ink);border-bottom-color:var(--accent)}
+.area-tab:focus-visible{outline:2px solid var(--accent-strong);outline-offset:-2px}
+.area-tab small{margin-left:4px;font-size:11px;font-weight:800;color:var(--accent-ink)}
+.nav-dot{margin-left:auto;color:var(--on-dark-accent);font-size:16px;line-height:1}
+.nav-help{margin:10px 8px 0;border:0;background:transparent;color:var(--on-dark-muted);text-align:left;font-size:12px;font-weight:650;padding:8px 7px;border-radius:8px}
+.nav-help:hover{background:var(--nav-bg-2);color:var(--on-dark)}
+.settings-jump{display:flex;flex-wrap:wrap;gap:6px;margin:-10px 0 22px}
+.settings-jump button{border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700}
+.settings-jump button:hover{border-color:var(--accent-line);color:var(--accent-ink)}
+.settings-group{font-size:15px;letter-spacing:.2px;color:var(--ink-2);margin:26px 0 10px;scroll-margin-top:16px}
+#viewSettings section,#viewSettings details{scroll-margin-top:16px}
+.settings-link p{margin:6px 0 0}
+@media(max-width:900px){.area-bar{padding:0 16px}}

@@ -164,8 +164,8 @@ class UiWorkdayTest(unittest.TestCase):
             page.click('#tdCloseBtn')
             page.wait_for_timeout(1500)
             self.assertIn('Jede Firma in einer Kontaktphase (Qualifiziert bis Angebot) hat einen nächsten Schritt', page.text_content('#tdCloseBody'))
-            # Offline-Modus und Wiederherstellen-Liste in „Datenqualität & System“
-            page.evaluate("() => switchView('quality')")
+            # Offline-Modus und Wiederherstellen-Liste unter „Einstellungen → Daten & Zugang“ (seit 2.0.0-dev14)
+            page.evaluate("() => switchView('settings')")  # 2.0.0-dev14: Offline-Modus unter Einstellungen
             page.wait_for_timeout(1500)
             self.assertIn('signaldesk-', page.text_content('#qBackups'), 'Sicherung aus dem Tagesabschluss wird angeboten')
             page.check('#qOffline')
@@ -177,7 +177,7 @@ class UiWorkdayTest(unittest.TestCase):
             page.wait_for_timeout(500)
             # Handyansicht
             page.set_viewport_size({'width': 390, 'height': 844})
-            for view in ('dashboard', 'finder', 'quality'):
+            for view in ('dashboard', 'finder', 'quality', 'settings'):
                 page.evaluate('v => switchView(v)', view)
                 page.wait_for_timeout(500)
                 self.assertFalse(page.evaluate('() => document.documentElement.scrollWidth > window.innerWidth + 1'), view)

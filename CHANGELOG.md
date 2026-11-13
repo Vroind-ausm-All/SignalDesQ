@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.0-dev14 – Sechs Bereiche, eigener Bereich Einstellungen, direkte Adressen
+
+Etappe B, Teil 1 aus dem Produktreview vom 13.11.2026 (Maßnahmen M06 und M07).
+
+- **Sechs Bereiche statt 16 Einträgen und „Erweitert“:** Heute · Finden · Firmen · Angebote · Abrechnen · Einstellungen. Jeder Bereich öffnet seine Standardansicht; die übrigen Ansichten stehen oben als Reiter (z. B. Firmen: Firmenliste · Pipeline · Datenpflege). Alle bisherigen Ziele bleiben erreichbar – die Zuordnung steht in `docs/ROADMAP.md`. „Hilfe & Gesprächsleitfaden“ ist ein kleines festes Ziel unten in der Seitenleiste.
+- **Eigener Bereich „Einstellungen“:** Darstellung, Zeiten & Erreichbarkeit, Leistungsprofil, Zielkundenprofil, Leistungen & Preise (Stundensatz, Mindestverdienst, Katalog), Recherche (Gewichte, Fristen, Abruftechnik) und Daten & Zugang (Login, Sicherung, Offline) an einem Ort, mit Sprungleiste. Unter „Angebote“ führt ein Verweis zu den Preisen.
+- **„Datenqualität & System“ aufgeteilt:** Änderungen, Veraltung, Löschfristen und Dubletten heißen jetzt *Datenpflege* (unter Firmen); wiederkehrende Recherche-Aufträge stehen unter *Finden → Recherche & Berichte*.
+- **Direkte Adressen:** Jede Ansicht hat eine Adresse (z. B. `#/firmen/pipeline`), eine geöffnete Firma zusätzlich `?firma=…`, die Firmenliste ihre Filter (`?suche=…&phase=…`). Neuladen bleibt an derselben Stelle, Zurück und Vor wechseln zwischen Ansichten, Zurück schließt eine geöffnete Firma und zeigt die gefilterte Liste (Abnahmefall T05).
+- **Behoben:** Beim langsamen Laden konnte der Start mit „renderPipeline is not defined“ abbrechen, weil die App vor allen Skripten loslief. Sie wartet jetzt, bis die Seite vollständig geladen ist.
+- **Behoben:** Die Darstellung wurde erst nach der Antwort an den Browser festgeschrieben; eine sofort folgende Anfrage konnte noch den alten Stand lesen (in der CI aufgefallen). Jetzt wird vor der Antwort gespeichert.
+- Kein Schemawechsel, keine Daten geändert. 561 Tests (7 neu) unter Python 3.10 und 3.13, 10 Browser-Tests (1 neu); fünf ältere Browser-Tests navigieren jetzt über die neuen Bereiche.
+
 ## 2.0.0-dev13 – Produktreview Etappe A: Eingabeschutz, Öffnungsfokus, eine Bewertung
 
 Setzt die Etappe A aus dem externen Produktreview vom 13.11.2026 fort (Maßnahmen M01, M03, M04, Rest von M05, M26).

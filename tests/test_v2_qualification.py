@@ -108,7 +108,7 @@ class FitTests(Base):
         q.save(self.conn, {**PROFILE, 'industries': [], 'excluded_industries': []})
         f = q.fit(self.conn, self.row(self.lead(employees=8, zip='70173', city='Stuttgart')))
         self.assertEqual(self.crit(f, 'branche')['status'], 'unbekannt')
-        self.assertEqual(self.crit(f, 'branche')['action']['view'], 'quality')
+        self.assertEqual(self.crit(f, 'branche')['action']['view'], 'settings')  # 2.0.0-dev14: Zielkundenprofil unter Einstellungen
 
     def test_far_away_and_wrong_industry_is_c_with_warning(self):
         lid = self.lead('Zahnarztpraxis Nord GmbH', employees=400, zip='20095', city='Hamburg', legal_form='GmbH')

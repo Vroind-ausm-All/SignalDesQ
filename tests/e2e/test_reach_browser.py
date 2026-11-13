@@ -68,14 +68,14 @@ class ReachBrowserTests(unittest.TestCase):
                         self.assertIn('Rückmeldungen', page.locator('#rcInStats').inner_text())
 
                         # 3. Pipeline zeigt die Note auf der Karte
-                        page.locator('[data-view="pipeline"]').click()
+                        page.locator('.sidebar [data-view="leads"]').click()
+                        page.locator('[data-area-view="pipeline"]').click()  # 2.0.0-dev14: Reiter im Bereich Firmen
                         card = page.locator('.pipeline-card', has_text='Elektro Fiktiv')
                         card.locator('.as-grade').wait_for(timeout=15000)
                         self.assertEqual(card.locator('.as-grade').inner_text(), 'A')
 
                         # 4. Eigene Zeiten speichern → Textbaustein und Terminvorschläge folgen
-                        page.locator('.nav-more summary').click()
-                        page.locator('[data-view="quality"]').click()
+                        page.locator('.sidebar [data-view="settings"]').click()  # 2.0.0-dev14: eigener Bereich Einstellungen
                         av = page.locator('#availabilityForm')
                         av.locator('input[name="callback_from"]').fill('11:00')
                         av.locator('input[name="callback_to"]').fill('12:00')

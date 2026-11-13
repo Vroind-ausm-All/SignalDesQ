@@ -5,7 +5,7 @@ funktionieren weiter; Firmensuche-Quellen, Website-Abrufe, Impressum und Browser
 brauchen, warten (statt fehlzuschlagen) und laufen nach dem Ausschalten weiter. Die lokale KI (Ollama auf 127.0.0.1)
 bleibt erlaubt.
 
-Einschalten: in „Datenqualität & System“ (dauerhaft) oder beim Start mit `--offline` (nur für diese Sitzung).
+Einschalten: unter „Einstellungen → Daten & Zugang“ (dauerhaft) oder beim Start mit `--offline` (nur für diese Sitzung).
 """
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ SETTING = 'offline_mode'
 STATE = {'stored': False, 'forced': False}
 # Auftragsarten, die Internet brauchen – im Offline-Modus werden sie nicht gestartet (bleiben in der Warteschlange)
 NETWORK_KINDS = ('sweep_source', 'sweep_finish', 'website', 'report', 'lead_imprint')
-MESSAGE = 'Offline-Modus ist eingeschaltet – {what} braucht Internet. Ausschalten unter „Datenqualität & System“.'
+MESSAGE = 'Offline-Modus ist eingeschaltet – {what} braucht Internet. Ausschalten unter „Einstellungen → Daten & Zugang“.'
 
 
 def offline():

@@ -53,7 +53,8 @@
     });
     $('#osmBox').addEventListener('toggle', () => { if ($('#osmBox').open) refresh(); });
     for (const n of ['place', 'radius_km']) $('#swForm')?.elements[n]?.addEventListener('change', () => { if ($('#osmBox').open) refresh(); });
-    document.querySelectorAll('[data-view="finder"], [data-go="finder"]').forEach(b => b.addEventListener('click', refresh));
+    document.querySelectorAll('[data-go="finder"]').forEach(b => b.addEventListener('click', refresh));
+    document.addEventListener('signaldesk:view', e => { if (e.detail.view === 'finder') refresh(); });  // 2.0.0-dev14: Bereichsreiter
     refresh();
   });
 })();
