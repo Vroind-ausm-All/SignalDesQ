@@ -161,6 +161,7 @@ class UiWorkdayTest(unittest.TestCase):
             page.evaluate("() => switchView('dashboard')")
             page.wait_for_timeout(1200)
             self.assertIn('ohne nächsten Schritt', page.text_content('#tdCloseBody'))
+            page.click('#tagesabschluss > summary')  # 2.0.0-dev15: Tagesabschluss ist eingeklappt
             page.click('#tdCloseBtn')
             page.wait_for_timeout(1500)
             self.assertIn('Jede Firma in einer Kontaktphase (Qualifiziert bis Angebot) hat einen nächsten Schritt', page.text_content('#tdCloseBody'))

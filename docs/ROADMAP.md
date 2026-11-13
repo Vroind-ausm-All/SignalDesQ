@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev14. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev15. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D; das Review liegt nicht im Repository). Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
 [`LAUNCH_AUDIT.md`](LAUNCH_AUDIT.md) ist eine **historische** Bestandsaufnahme von dev1.
@@ -39,10 +39,10 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 | M05 | Statusmarken und verständliche Begriffe | P1 | erledigt | dev12, dev13 | Fünf Stufen mit Symbol; Phasenschlüssel übersetzt | Filter- und Zählerchips angleichen (mit M09) |
 | M06 | Einstellungen zusammenführen | P1 | erledigt | dev14 | Eigener Bereich mit Darstellung, Zeiten, Zielkunden, Leistungen & Preise, Recherche, Daten & Zugang; Preise aus Angeboten verlinkt (Browser- und Strukturtest) | Einstellungen je Nutzer im Team-Betrieb |
 | M07 | Sechs Hauptbereiche mit direkter Navigation | P1 | teilweise | dev14 | Sechs Bereiche, Reiter, Adressen für Ansicht, Firma, Abschnitt und Listenfilter; T05 bestanden | Adressen für Filter weiterer Listen und für Firmen-Berichte; Entscheidung Akte als eigene Seite |
-| M08 | Heute auf nächste Aktionen ausrichten (V7) | P1 | teilweise | dev13 | „Nichts offen“ ≠ „erledigt“ im Tagesplan; offen: drei nächste Aktionen mit Grund und Frist oben | Prioritätsregeln abstimmen |
-| M09 | Filterchips und gespeicherte Arbeitsansichten (V5) | P1 | offen | → dev15 | Ansicht „Heute fällig“ wieder öffnen; Spalten nächste Aktion und Datum | M05, einheitliche Felder |
+| M08 | Heute auf nächste Aktionen ausrichten (V7) | P1 | erledigt | dev13, dev15 | Drei nächste Schritte mit Grund und Frist; überfällige Zusagen vor Terminen vor Nachfassen vor Akquise; Rückrufzusage vor Passungsnote (Test); Tagesplan und Tagesabschluss eingeklappt | Prioritätsregeln am Pilot prüfen |
+| M09 | Filterchips und gespeicherte Arbeitsansichten (V5) | P1 | erledigt | dev15 | Arbeitsansichten mit Trefferzahl, aktive Filter sichtbar, eigene Ansicht speichern und wieder öffnen, Ansicht in der Adresse; Spalten nächster Schritt, Phase, Passung, letzter Kontakt | Stapelaktionen (Review U09) noch offen |
 | M10 | Globale Suche und Strg+K (V8) | P2 | offen | später | Firma, Chance, Angebotsnummer über ein Suchfeld | M07 |
-| M11 | Geführter Einstieg und Leerzustände (V9) | P1 | offen | → dev15 | Einrichtung ohne vollständigen Recherchelauf | M06–M08 |
+| M11 | Geführter Einstieg und Leerzustände (V9) | P1 | erledigt | dev15 | „Erste Schritte“ mit echter Prüfung (Preise, Zielkunden, Zeiten, erste Firma oder Anfrage), ohne Recherchelauf; Leerzustände mit Knopf zum nächsten Schritt | Beispieldaten gibt es bewusst nicht |
 | M12 | Zentraler Leistungskatalog | P1 | offen | Etappe C | Eine Kennung je Leistung; alte Angebote unverändert; K01 behoben (dev13) | Migrationskonzept für 5/6/26 Einträge |
 | M13 | Mehrere Verkaufschancen je Firma | P1 | offen | Etappe C | T08: zwei Chancen mit getrennten Phasen, Bedarf, Terminen | Datenmodell, Migration mit Prüfliste |
 | M14 | Briefings für Medien und Software | P1 | offen | Etappe C | Fragen je Leistungsbereich; Annahme auf bestätigte Angaben rückführbar | M13 |
@@ -64,8 +64,8 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 | Etappe | Inhalt | Stand |
 |---|---|---|
 | A – verlässliche tägliche Bedienung | M01–M05, Beginn M21 | **erledigt** in dev12/dev13; M21 wartet auf den Eigentümer |
-| B – klare Navigation und Arbeitslisten | **dev14** = M06 Einstellungen + M07 Teil 1 (sechs Bereiche, direkte Adressen, Zurück mit Filtern) – erledigt; **dev15** = M08-Rest, M09, M11 | dev15 als Nächstes |
-| C – mehrere Projekte je Firma | M12 Katalog (mit Migration), danach M13 Chancen, M14 Briefings, M15 Revisionen, M16 | nach B; Modellumbau separat abgenommen, mit Kopie vorhandener Daten geprüft |
+| B – klare Navigation und Arbeitslisten | dev14 = M06 Einstellungen + M07 Teil 1; dev15 = M08, M09, M11 | **erledigt**; offen aus M07: Adressen für weitere Listen und Berichte |
+| C – mehrere Projekte je Firma | M12 Katalog (mit Migration), danach M13 Chancen, M14 Briefings, M15 Revisionen, M16 | **als Nächstes** (dev16 = M12); Modellumbau separat abgenommen, mit Kopie vorhandener Daten geprüft |
 | D – Auftrag, Lernen, Anbindung | M17–M20, M24/M25 nach Pilotbedarf; M22/M23 parallel nach Fehlerbild; M10 bei wachsendem Bestand | später |
 
 ## Zuordnung der bisherigen Menüziele (M07, Stand dev14)
@@ -91,7 +91,7 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 
 | Nr. | Aufgabe | Stand |
 |---|---|---|
-| T01 | Nach dem Start die wichtigste Aufgabe finden | teilweise – Tagesplan ehrlicher (dev13); Fokusliste mit M08 |
+| T01 | Nach dem Start die wichtigste Aufgabe finden | **bestanden** (dev15, Browser-Test: überfällige Zusage oben, ein Klick öffnet die Firma) |
 | T02 | Neue Firma nur mit Namen erfassen | **bestanden** (dev13, Browser-Test) |
 | T03 | Bestehende Firma öffnen | **bestanden** (dev13, Browser-Test) |
 | T04 | Notiz eingeben und Escape drücken | **bestanden** (dev13, Browser-Test) |

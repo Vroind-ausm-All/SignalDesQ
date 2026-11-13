@@ -1,6 +1,6 @@
 # SignalDesk – Kunden finden, bewerten, erreichen, abrechnen (lokal)
 
-> **Stand 2.0.0-dev14: Entwicklungsstand, kein fertiges Release.** Geprüft mit automatischen Tests unter Linux (Python 3.10, 3.12, 3.13) und im Browser. Erste Messung an echten Quellen: [`docs/PRAXISTEST_70191.md`](docs/PRAXISTEST_70191.md); Website-Zuordnung noch ungemessen. Vor der Nutzung vorhandener Daten eine Sicherung erstellen.
+> **Stand 2.0.0-dev15: Entwicklungsstand, kein fertiges Release.** Geprüft mit automatischen Tests unter Linux (Python 3.10, 3.12, 3.13) und im Browser. Erste Messung an echten Quellen: [`docs/PRAXISTEST_70191.md`](docs/PRAXISTEST_70191.md); Website-Zuordnung noch ungemessen. Vor der Nutzung vorhandener Daten eine Sicherung erstellen.
 
 SignalDesk ist ein Vertriebsarbeitsplatz für Soloselbstständige und kleine Dienstleister. Es läuft auf deinem Rechner, speichert alles in einer lokalen Datei und versendet nichts.
 
@@ -28,7 +28,7 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 
 | Bereich | Inhalt |
 |---|---|
-| **Heute** | Eingang für verpasste Anrufe mit Rückruffrist, „als Nächstes kontaktieren“, Auslastung, Tagesplan, Wiedervorlage, Tagesabschluss |
+| **Heute** | Die drei nächsten Schritte mit Grund und Frist; Eingang für verpasste Anrufe mit Rückruffrist, „als Nächstes kontaktieren“, Auslastung, Wiedervorlage; Tagesplan und Tagesabschluss zum Aufklappen; „Erste Schritte“ für den Einstieg |
 | **Firmen finden** | GLEIF, Wikidata und TED gleichzeitig, OpenStreetMap offline aus einem lokalen Auszug; ohne Dubletten; PLZ-genau, ganze Stadt oder Umkreis; großer GLEIF-Katalog offline; Suchprofile mit Budget |
 | **Recherchieren** | Firmen-Bericht mit einem Klick: Impressum, Website-Bewertung, Inhalte, Karriereseite, Kaufsignale – jede Angabe mit Fundstelle |
 | **Bewerten** | Zielkundenprofil; Passung vor dem Gespräch (A, B, C), Qualifizierung danach, K.-o.-Kriterien; Unbekanntes zählt nicht als schlecht |
@@ -36,7 +36,7 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 | **Verkaufen** | Pipeline, Firmenakte mit Reitern, Bedarf bestätigen, Festpreisangebote aus einem Katalog mit 26 Leistungen, Verlustgründe, Nachkalkulation mit tatsächlichen Stunden |
 | **Abrechnen** | Rechnungen nach § 14 UStG, GoBD-Festschreibung, Zahlungen, Mahnwesen, Ausgaben, XRechnung, UStVA- und EÜR-Vorbereitung |
 | **Einstellungen** | Darstellung (vier Themes hell und dunkel, Dichte „Kompakt“), Zeiten, Zielkunden, Leistungen & Preise, Recherche, Sicherung und Wiederherstellung, Offline-Modus, optionaler Login mit Rollen |
-| **Bedienung** | Sechs Bereiche mit Reitern; jede Ansicht und jede Firma hat eine direkte Adresse, Zurück und Neuladen führen an dieselbe Stelle |
+| **Bedienung** | Sechs Bereiche mit Reitern; jede Ansicht und jede Firma hat eine direkte Adresse, Zurück und Neuladen führen an dieselbe Stelle; Firmenliste mit Arbeitsansichten und eigenen gespeicherten Ansichten |
 
 ## Was SignalDesk bewusst nicht tut
 

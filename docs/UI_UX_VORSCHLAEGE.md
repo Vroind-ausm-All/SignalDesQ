@@ -1,6 +1,6 @@
 # UI/UX – Vorschläge für mehr Übersicht
 
-Stand 2.0.0-dev14. Grundlage: Screenshots aller Hauptansichten in allen Themes und eine Messung im Browser bei 1366 × 768 Pixeln
+Stand 2.0.0-dev15. Grundlage: Screenshots aller Hauptansichten in allen Themes und eine Messung im Browser bei 1366 × 768 Pixeln
 (häufigste Laptop-Auflösung) mit zwölf fiktiven Leads. Alle Vorschläge bauen auf den Farbrollen aus dev11 auf und funktionieren
 damit ohne Zusatzaufwand in jedem Theme, hell wie dunkel.
 
@@ -32,11 +32,11 @@ Aufwand: S = bis ein halber Tag, M = ein bis zwei Tage, L = mehrere Tage. Alle V
 | V2 | ✓ **umgesetzt in dev12:** **Firmenakte mit Reitern** – Überblick · Kontakt & Erreichbarkeit · Bewertung · Verlauf · Stammdaten; Kopf mit Name, Phase, Passung und den zwei wichtigsten Knöpfen bleibt beim Scrollen stehen | Der Lead-Dialog ist zehn Bildschirme lang; die nächste Aktion verschwindet beim Scrollen | M | sehr hoch – die meistgenutzte Ansicht |
 | V3 | ✓ **umgesetzt in dev14:** **Eigener Bereich „Einstellungen“** unten in der Navigation: Darstellung, Leistungsprofil, Zielkundenprofil, eigene Erreichbarkeit, Gewichte & Fristen, Sicherheit an einem Ort. „Datenqualität“ bleibt reine Arbeitsansicht | Einstellungen liegen verstreut in fünf Ansichten, die Darstellung unter „Erweitert“ | S–M | hoch – man findet Einstellungen dort, wo man sie sucht |
 | V4 | ✓ **umgesetzt in dev14** (Teil 1, mit direkten Adressen): **Navigation auf sechs Bereiche:** Heute · Finden · Firmen (Leads, Berichte, Pipeline als Umschalter) · Angebote · Abrechnen · Einstellungen. Die Detailseiten (URL-Recherche, Scoring, Signale) werden Reiter in „Firmen-Berichte“ | 16 Einträge, davon drei Gruppen mit nur einem oder zwei Einträgen | M | hoch – schon in der Roadmap; V3 ist der erste Schritt |
-| V5 | **Lead-Liste mit Filterchips und gespeicherten Ansichten:** Passung A/B/C, Erreichbarkeit, „ohne Rechtsform“, „Frist läuft ab“, „heute fällig“ als Chips; Spalten ein- und ausblendbar | Die Spalten „Kaufsignal“ und „Angebot“ zeigen bei den meisten Firmen denselben Platzhalter; filtern geht nur nach Phase | M | mittel bis hoch |
+| V5 | ✓ **umgesetzt in dev15:** **Lead-Liste mit Filterchips und gespeicherten Ansichten:** Passung A/B/C, Erreichbarkeit, „ohne Rechtsform“, „Frist läuft ab“, „heute fällig“ als Chips; Spalten ein- und ausblendbar | Die Spalten „Kaufsignal“ und „Angebot“ zeigen bei den meisten Firmen denselben Platzhalter; filtern geht nur nach Phase | M | mittel bis hoch |
 | V6 | ✓ **umgesetzt in dev12:** **Einheitliche Statusmarken:** eine Komponente für Passung, Phase, Frist und Datenquelle mit festen Rollenfarben (Erfolg, Hinweis, Warnung, Fehler, Info) und Symbol, damit Farbe nie allein trägt | Heute elf verschiedene Klassen für „Pill“, „Badge“ und „Chip“ | S | mittel – ruhigeres Bild, besser für Farbsehschwäche |
-| V7 | **Heute als Fokusliste:** oben nur die drei nächsten Schritte mit je einem Knopf; Eingang, Auslastung und Tagesplan klappen darunter auf und merken sich ihren Zustand | Die Heute-Seite ist 2.800 px lang | S–M | mittel |
+| V7 | ✓ **umgesetzt in dev15:** **Heute als Fokusliste:** oben nur die drei nächsten Schritte mit je einem Knopf; Eingang, Auslastung und Tagesplan klappen darunter auf und merken sich ihren Zustand | Die Heute-Seite ist 2.800 px lang | S–M | mittel |
 | V8 | **Schnellsuche mit Strg+K:** Firma, Ansicht oder Aktion tippen und mit Enter hin | Firma öffnen heißt heute: Leads → suchen → Zeile anklicken | M | hoch für Tastaturnutzer |
-| V9 | **Leere Zustände mit einem nächsten Schritt:** statt „Noch keine Recherche-Aufträge“ ein Knopf zur passenden Stelle | Viele Kästen sind beim Start leer und erklären nur | S | mittel – vor allem für den Einstieg |
+| V9 | ✓ **umgesetzt in dev15:** **Leere Zustände mit einem nächsten Schritt:** statt „Noch keine Recherche-Aufträge“ ein Knopf zur passenden Stelle | Viele Kästen sind beim Start leer und erklären nur | S | mittel – vor allem für den Einstieg |
 
 ## Umgesetzt in dev12
 
@@ -54,8 +54,7 @@ voll ausgelastet) heißen überall „bad“. Filter- und Zählerchips sind bewu
 ## Empfehlung
 
 Stand dev13, abgeglichen mit dem externen Produktreview vom 13.11.2026: V2 und V6 sind umgesetzt (dev12), dazu Eingabeschutz,
-Öffnungsfokus und eine einheitliche Passungsanzeige (dev13, Review-Maßnahmen M01, M03, M04). V3 und V4 folgten in dev14 (Review M06/M07, mit direkten Adressen je Ansicht und Firma). Als Nächstes **V5, V7, V9** (dev15,
-Review M09, M08, M11).
+Öffnungsfokus und eine einheitliche Passungsanzeige (dev13, Review-Maßnahmen M01, M03, M04). V3 und V4 folgten in dev14 (Review M06/M07, mit direkten Adressen je Ansicht und Firma). V5, V7 und V9 folgten in dev15 (Review M09, M08, M11). Offen bleibt V8 (Strg+K), sobald der Bestand wächst.
 V8 (Strg+K) folgt, wenn der Bestand wächst. Den Status je Maßnahme führt `ROADMAP.md`.
 
 ## Bekannte Grenzen von V1

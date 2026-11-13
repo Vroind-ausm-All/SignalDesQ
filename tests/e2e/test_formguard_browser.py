@@ -131,6 +131,7 @@ class FormGuardBrowserTests(unittest.TestCase):
                         self.assertEqual((created['industry'], created['offer']), ('', ''))
                         new_row = page.locator('#leadRows tr', has_text='Probe Architekten')
                         self.assertIn('Branche unbekannt', new_row.text_content())
+                        page.check('[data-ll-col="offer"]')  # 2.0.0-dev15: Spalte Leistung ist zuschaltbar
                         self.assertIn('noch nicht gewählt', new_row.text_content())
                         self.assertNotIn('/100', page.text_content('#leadRows'))
                         new_row.locator('.fit-cell').locator('text=Datenlage unzureichend').wait_for()

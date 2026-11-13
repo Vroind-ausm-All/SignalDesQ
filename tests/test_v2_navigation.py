@@ -105,7 +105,7 @@ class NavigationStructureTests(unittest.TestCase):
 
     def test_script_hooks(self):
         app = (PUBLIC / 'app.js').read_text(encoding='utf-8')
-        self.assertIn("window.appReady=(async()=>{if(document.readyState==='loading')await new Promise(", app)
+        self.assertIn("window.appReady=(async()=>{if(document.readyState!=='complete')await new Promise(r=>{document.addEventListener('DOMContentLoaded'", app)
         self.assertIn("['quality','settings','center'].includes(view)&&window.refreshQuality", app)
         self.assertIn('window.loadPricingSettings', (PUBLIC / 'quotes.js').read_text(encoding='utf-8'))
         self.assertLess(HTML.index('<script src="/workday.js"'), HTML.index('<script src="/nav.js" defer></script>'))

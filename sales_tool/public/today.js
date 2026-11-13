@@ -31,12 +31,14 @@
   // Zentrale Sprungfunktion für alle „Los“-Knöpfe
   window.goAction = async function (a) {
     const lead = a.lead_id ? Number(a.lead_id) : null;
+    if (a.view === 'new_lead') return showModal();  // 2.0.0-dev15: geführter Einstieg
     if (a.view === 'lead') return lead ? showModal(lead) : switchView('leads');
     if (a.view === 'today') { switchView('dashboard'); return $('#' + (a.anchor || 'wiedervorlage'))?.scrollIntoView({behavior: 'smooth'}); }
     if (a.view === 'leads') {
       if (lead) return showModal(lead);
       switchView('leads');
       if (a.stage && $('#stageFilter')) { $('#stageFilter').value = a.stage; renderLeads(); }
+      if (a.preset && window.leadList) window.leadList.setPreset(a.preset);  // 2.0.0-dev15: Arbeitsansicht
       return;
     }
     if (a.view === 'workspace') {
@@ -81,7 +83,7 @@
       <button type="button" class="btn ${s.key === p.next_key ? 'btn-primary' : 'btn-ghost'}" data-go-action="${enc({view: s.view, section: s.section, anchor: s.anchor})}">${s.done ? 'Ansehen' : 'Los →'}</button></li>`).join('');
     const nxt = p.steps.find(s => s.key === p.next_key);
     $('#tdNext').dataset.goAction = JSON.stringify(nxt ? {view: nxt.view, section: nxt.section, anchor: nxt.anchor} : {view: 'finder'});
-    $('#tdNext').textContent = nxt ? `Weiter: ${nxt.title.split(' (')[0]} →` : 'Alles erledigt – neue Firmen finden →';
+    $('#tdNext').textContent = nxt ? `Weiter: ${nxt.title.split(' (')[0]} →` : 'Nichts offen – neue Firmen finden →';  // nicht „alles erledigt“, wenn nichts zu tun war
   }
 
   function renderWv(items, total) {
@@ -90,9 +92,36 @@
       <span class="td-kind ${esc(i.kind)}">${esc(KIND[i.kind] || i.kind)}</span>
       <div><b>${esc(i.title)}</b><small>${esc(i.company)}${i.due ? ' · ' + esc(fmtDate(i.due)) : ''}${i.overdue ? ' · <span class="late">überfällig</span>' : ''}${i.detail ? ' · ' + esc(i.detail) : ''}</small></div>
       <button type="button" class="btn btn-ghost" data-go-action="${enc({view: i.view, section: i.section, lead_id: i.lead_id, anchor: i.anchor, ref: i.view === 'quotes' ? i.ref : null})}">${esc(i.action)}</button></div>`).join('')
-      : '<div class="empty">Nichts fällig. Gut so – weiter mit dem Tagesplan.</div>';
+      : `<div class="empty">Nichts fällig.<div class="empty-actions"><button type="button" class="btn btn-ghost" data-go-action="${enc({view: 'leads', preset: 'ohne_schritt'})}">Firmen ohne nächsten Schritt ansehen</button></div></div>`;
     const overdue = items.filter(i => i.overdue).length;
     $('#tdNavBadge').textContent = overdue ? String(overdue) : '';
+  }
+
+  // 2.0.0-dev15 (Review M08): drei nächste Schritte mit Grund und Frist – Zugesagtes vor neuer Akquise
+  const BUCKET = {zusage_ueberfaellig: ['überfällig', 'bad'], termin: ['Termin', 'wait'], zusage_heute: ['zugesagt', 'mid'], angebot_frist: ['Frist', 'mid'],
+    nachfassen: ['nachfassen', 'wait'], angebot_entwurf: ['Entwurf', 'wait'], bedarfsanalyse: ['Bedarf', 'wait'], recherche: ['Recherche', 'off'], akquise: ['neuer Kontakt', 'off']};
+  function renderFocus(f) {
+    $('#tdFocusList').innerHTML = f.items.length ? f.items.map((i, n) => {
+      const [label, tone] = BUCKET[i.bucket] || [i.bucket, 'off'];
+      return `<li class="td-focus-item ${i.overdue ? 'overdue' : ''}"><span class="td-focus-num" aria-hidden="true">${n + 1}</span>
+        <div><span class="sw-web ${tone}">${esc(label)}</span> <b>${esc(i.title)}</b><small>${esc(i.company)}${i.due ? ' · Frist ' + esc(fmtDate(i.due)) : ''}</small>
+          ${i.why ? `<small class="td-focus-why">Warum jetzt: ${esc(i.why)}</small>` : ''}</div>
+        <button type="button" class="btn ${n === 0 ? 'btn-primary' : 'btn-ghost'}" data-go-action="${enc(i.action)}">${esc(i.action.label)}</button></li>`;
+    }).join('')
+      : `<li class="td-focus-empty"><span>Nichts fällig, nichts zugesagt.</span> <button type="button" class="btn btn-primary" data-go-action="${enc({view: 'finder'})}">Neue Firmen finden</button></li>`;
+    $('#tdFocusMore').textContent = f.more ? `+ ${f.more} weitere in der Wiedervorlage` : '';
+    $('#tdFocusNote').textContent = f.notice;
+  }
+
+  // 2.0.0-dev15 (Review M11): geführter Einstieg – jeder Schritt mit echter Prüfung
+  function renderOnboarding(o) {
+    const box = $('#tdOnboarding');
+    box.classList.toggle('hidden', !o.show);
+    if (!o.show) return;
+    $('#tdOnbState').textContent = `${o.done} von ${o.total} erledigt`;
+    $('#tdOnbList').innerHTML = o.steps.map((s, n) => `<li class="td-onb-step ${s.done ? 'done' : ''}"><span class="td-num">${s.done ? '✓' : n + 1}</span>
+      <div><b>${esc(s.label)}</b><small>${esc(s.detail)}</small></div>
+      ${s.done ? '<span class="sw-web ok">erledigt</span>' : `<button type="button" class="btn btn-ghost" data-go-action="${enc(s.action)}">${esc(s.action.label)}</button>`}</li>`).join('');
   }
 
   function renderPotential(p) {
@@ -133,7 +162,10 @@
   window.refreshToday = async function () {
     if (!$('#tdSteps')) return;
     try {
-      data = await api('/today');
+      const [d, f] = await Promise.all([api('/today'), api('/focus')]);
+      data = d;
+      renderFocus(f.focus);
+      renderOnboarding(f.onboarding);
       const h = new Date().getHours();
       $('#tdGreeting').textContent = (h < 11 ? 'GUTEN MORGEN' : h < 17 ? 'GUTEN TAG' : 'GUTEN ABEND') + ' · ' + new Intl.DateTimeFormat('de-DE', {weekday: 'long', day: '2-digit', month: 'long'}).format(new Date()).toUpperCase();
       renderPlan(data.plan);
@@ -152,6 +184,10 @@
       try { window.goAction(JSON.parse(b.dataset.goAction)); } catch (err) { toast(err.message, true); }
     });
     $('.td-status')?.addEventListener('toggle', e => { if (e.target.open) renderStatus(); });
+    $('#tdOnbHide')?.addEventListener('click', async () => {
+      try { renderOnboarding(await api('/onboarding', 'PUT', {dismissed: true})); toast('Erste Schritte ausgeblendet – die Einstellungen findest du jederzeit unter „Einstellungen“.'); }
+      catch (err) { toast(err.message, true); }
+    });
     renderStatus();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

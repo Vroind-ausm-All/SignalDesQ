@@ -41,6 +41,7 @@
     const q = document.getElementById('leadSearch')?.value.trim(), st = document.getElementById('stageFilter')?.value;
     if (q) p.set('suche', q);
     if (st) p.set('phase', st);
+    if (window.leadList && window.leadList.preset !== 'alle') p.set('ansicht', window.leadList.preset);  // 2.0.0-dev15
     return p;
   }
   const viewParams = view => (view === 'leads' ? listParams() : new URLSearchParams());
@@ -117,7 +118,8 @@
         const q = route.params.get('suche') || '', st = route.params.get('phase') || '';
         if (document.getElementById('leadSearch')) document.getElementById('leadSearch').value = q;
         if (document.getElementById('stageFilter')) document.getElementById('stageFilter').value = st;
-        if (typeof renderLeads === 'function') renderLeads();
+        if (window.leadList) window.leadList.setPreset(route.params.get('ansicht') || 'alle', false);
+        else if (typeof renderLeads === 'function') renderLeads();
       }
       if (view !== currentView || document.getElementById('view' + view[0].toUpperCase() + view.slice(1)).classList.contains('hidden')) window.switchView(view);
       else markArea(view);
@@ -161,6 +163,7 @@
   const syncList = () => { if (currentView === 'leads') history.replaceState(null, '', build('leads', listParams())); };
   document.addEventListener('input', e => { if (e.target.id === 'leadSearch') syncList(); });
   document.addEventListener('change', e => { if (e.target.id === 'stageFilter') syncList(); });
+  document.addEventListener('signaldesk:leadfilter', syncList);  // Arbeitsansicht gewechselt
 
   // ---- Punkt am Bereich, wenn ein Reiter darin etwas Neues zählt
   function dots() {

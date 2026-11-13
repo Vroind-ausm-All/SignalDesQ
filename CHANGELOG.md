@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.0.0-dev15 – Heute als Fokusliste, Arbeitsansichten, geführter Einstieg
+
+Etappe B, Teil 2 aus dem Produktreview vom 13.11.2026 (Maßnahmen M08, M09, M11) – damit ist Etappe B abgeschlossen.
+
+- **Heute zeigt oben die drei nächsten Schritte** mit Grund und Frist („Warum jetzt: seit 2 Tagen überfällig“, „Termin morgen 09:00“, „heute zugesagt“). Reihenfolge: überfällige Zusagen, Termine, heute Zugesagtes, Nachfassen – erst danach neue Akquise. Eine Rückrufzusage wird nie von einer guten Passungsnote verdrängt. Ein Klick führt direkt zur Firma oder zum Angebot.
+- **Tagesplan und Tagesabschluss** sind jetzt aufklappbar und stehen weiter unten.
+- **„Erste Schritte“ für den Einstieg:** Leistungen & Preise, Zielkunden, Arbeitszeiten, erste Firma oder Anfrage – jeweils mit echter Prüfung und direktem Sprung in die Einstellungen. Ein Recherchelauf ist nicht nötig. Die Karte verschwindet, sobald alles eingerichtet ist, oder lässt sich ausblenden.
+- **Firmenliste als Arbeitsmenge:** Spalten Firma, nächster Schritt mit Fälligkeit („heute“, „überfällig seit …“), Phase, Passung und letzter Kontakt. Kaufsignal und Leistung lassen sich zuschalten.
+- **Arbeitsansichten als Chips** mit Trefferzahl: Heute fällig, Ohne nächsten Schritt, Angebote nachfassen, Recherche prüfen, Passung A/B, Bestandskunden. Aktive Filter und „x von y Firmen“ sind immer sichtbar. Die Ansicht steht in der Adresse (`?ansicht=heute`).
+- **Eigene Ansichten speichern:** aktuelle Filterkombination unter einem Namen, wieder öffnen, löschen. Gespeichert werden nur die Filter.
+- **Leerzustände mit nächstem Schritt:** „Noch keine Firmen“ unterscheidet sich von „Keine Firma passt zu diesen Filtern“ (mit „Filter zurücksetzen“); leere Pipeline, leere Kontaktliste und leere Wiedervorlage bieten den passenden Knopf. Der Knopf oben heißt bei leerem Tag „Nichts offen“ statt „Alles erledigt“.
+- **Behoben:** Der Startfehler aus dev14 war nicht vollständig behoben – verzögerte Skripte laufen, wenn die Seite schon als „interaktiv“ gilt, die Prüfung griff deshalb nicht. Der Start wartet jetzt immer auf das vollständige Laden; ein Browser-Test lädt dafür ein Skript absichtlich verzögert.
+- Kein Schemawechsel. 570 Tests (9 neu) unter Python 3.10 und 3.13, 11 Browser-Tests (1 neu); zwei ältere Browser-Tests öffnen jetzt den eingeklappten Tagesabschluss bzw. schalten die Spalte „Leistung“ zu.
+
 ## 2.0.0-dev14 – Sechs Bereiche, eigener Bereich Einstellungen, direkte Adressen
 
 Etappe B, Teil 1 aus dem Produktreview vom 13.11.2026 (Maßnahmen M06 und M07).

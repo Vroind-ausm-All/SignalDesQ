@@ -1,6 +1,6 @@
 # Bestandteile und Lizenzen (SBOM)
 
-Automatisch erzeugt mit `tools/make_sbom.py` für SignalDesk 2.0.0-dev14 (maschinenlesbar: `sbom/signaldesk.cdx.json`, CycloneDX 1.5). Nicht von Hand ändern.
+Automatisch erzeugt mit `tools/make_sbom.py` für SignalDesk 2.0.0-dev15 (maschinenlesbar: `sbom/signaldesk.cdx.json`, CycloneDX 1.5). Nicht von Hand ändern.
 
 **SignalDesk selbst:** MIT-Lizenz, Kern ohne Fremdpakete (nur Python-Standardbibliothek).
 
