@@ -100,9 +100,19 @@ def _lead(conn, lead_id):
     return row
 
 
-def _discovery(conn, lead_id):
+def _discovery(conn, lead_id, chance=None):
+    """Bedarfsanalyse der Firma bzw. – seit 2.0.0-dev19 – einer weiteren Chance (gleiche Felder)."""
+    from .chances import need_row
+    opp = need_row(conn, lead_id, chance)
+    if opp is not None:
+        return dict(opp)
     row = conn.execute('SELECT * FROM discovery WHERE lead_id=?', (lead_id,)).fetchone()
     return dict(row) if row else None
+
+
+def _chance_of(data):
+    """Chance aus dem Anfrage-Körper (opportunity_id) – fehlt sie, gilt die Bedarfsanalyse der Firma."""
+    return (data or {}).get('opportunity_id') if isinstance(data, dict) else None
 
 
 def talks(conn, lead_id):
@@ -118,8 +128,8 @@ def talks(conn, lead_id):
     return out
 
 
-def need_status(conn, lead_id):
-    d = _discovery(conn, lead_id) or {}
+def need_status(conn, lead_id, chance=None):
+    d = _discovery(conn, lead_id, chance) or {}
     needs = json.loads(d.get('needs_json') or '[]')
     return {'confirmed': bool(d.get('confirmed_at')), 'confirmed_at': d.get('confirmed_at', ''), 'via': d.get('confirmed_via', ''),
             'note': d.get('confirmed_note', ''), 'needs': needs, 'problem': d.get('problem', ''), 'desired_outcome': d.get('desired_outcome', ''),
@@ -143,8 +153,11 @@ def _validate_needs(conn, needs):
 
 def confirm_need(conn, lead_id, data):
     """Manuelle Freigabe „Bedarf bestätigt“."""
-    if not isinstance(data, dict) or set(data) - {'via', 'note', 'needs'}:
-        raise ValueError('Erwartet: {via, note, needs}.')
+    if not isinstance(data, dict) or set(data) - {'via', 'note', 'needs', 'opportunity_id'}:
+        raise ValueError('Erwartet: {via, note, needs, opportunity_id?}.')
+    from .chances import need_row
+    chance = _chance_of(data)
+    opp = need_row(conn, lead_id, chance)
     lead = _lead(conn, lead_id)
     assert_contact_allowed(conn, lead, 'Bedarf bestätigen')
     via = data.get('via')
@@ -153,25 +166,34 @@ def confirm_need(conn, lead_id, data):
     note = re.sub(r'\s+', ' ', str(data.get('note') or '')).strip()[:1000]
     if len(note) < 10:
         raise ValueError('Kurz festhalten, was der Kunde bestätigt hat (mind. 10 Zeichen).')
-    d = _discovery(conn, lead_id) or {}
+    d = _discovery(conn, lead_id, chance) or {}
     if not (d.get('problem') or '').strip() or not (d.get('desired_outcome') or '').strip():
         raise ValueError('Bedarfsanalyse zuerst ausfüllen: mindestens „Problem“ und „Gewünschtes Ergebnis“.')
     if via != 'schriftlich' and not talks(conn, lead_id):
         raise ValueError('Bedarf kann erst nach einem dokumentierten Gespräch bestätigt werden (Telefonat, erledigter Termin oder Gesprächsnotiz).')
     needs = _validate_needs(conn, data.get('needs'))
-    if not d:
-        conn.execute('INSERT INTO discovery(lead_id) VALUES (?)', (lead_id,))
     now = dt.datetime.now().isoformat(timespec='seconds')
-    conn.execute("""UPDATE discovery SET confirmed_at=?, confirmed_via=?, confirmed_note=?, needs_json=?, updated_at=datetime('now')
-                    WHERE lead_id=?""", (now, via, note, json.dumps(needs, ensure_ascii=False), lead_id))
+    if opp is not None:  # 2.0.0-dev19: Freigabe einer weiteren Chance
+        conn.execute("""UPDATE opportunities SET confirmed_at=?, confirmed_via=?, confirmed_note=?, needs_json=?, updated_at=datetime('now')
+                        WHERE id=?""", (now, via, note, json.dumps(needs, ensure_ascii=False), opp['id']))
+    else:
+        if not d:
+            conn.execute('INSERT INTO discovery(lead_id) VALUES (?)', (lead_id,))
+        conn.execute("""UPDATE discovery SET confirmed_at=?, confirmed_via=?, confirmed_note=?, needs_json=?, updated_at=datetime('now')
+                        WHERE lead_id=?""", (now, via, note, json.dumps(needs, ensure_ascii=False), lead_id))
     from .pricing import SERVICES
     titles = ', '.join(SERVICES[n['service']]['title'] for n in needs)
+    where = f" (Chance „{opp['title']}“)" if opp is not None else ''
     conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
-                 (lead_id, 'bedarf', f'Bedarf {CONFIRM_VIA[via]} bestätigt: {note} · Leistungen: {titles}'[:900]))
-    ensure_task(conn, lead_id, 'Festpreisangebot aus bestätigtem Bedarf erstellen', 2)
-    _advance(conn, lead, 'termin', 'Festpreisangebot aus bestätigtem Bedarf erstellen', 2)
+                 (lead_id, 'bedarf', f'Bedarf{where} {CONFIRM_VIA[via]} bestätigt: {note} · Leistungen: {titles}'[:900]))
+    step = 'Festpreisangebot aus bestätigtem Bedarf erstellen' + (f": {opp['title']}" if opp is not None else '')
+    ensure_task(conn, lead_id, step, 2)
+    _advance(conn, lead, 'termin', step, 2)
+    from .chances import advance, first_chance
+    target = opp['id'] if opp is not None else first_chance(conn, lead_id)
+    advance(conn, target, 'termin')
     conn.commit()
-    return need_status(conn, lead_id)
+    return need_status(conn, lead_id, chance)
 
 
 def reopen_need(conn, lead_id, data):
@@ -179,14 +201,21 @@ def reopen_need(conn, lead_id, data):
     if len(reason) < 5:
         raise ValueError('Begründung angeben, warum der Bedarf neu geklärt wird.')
     _lead(conn, lead_id)
-    conn.execute("UPDATE discovery SET confirmed_at='', updated_at=datetime('now') WHERE lead_id=?", (lead_id,))
-    conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)', (lead_id, 'bedarf', f'Bedarf wieder offen: {reason}'))
+    from .chances import need_row
+    chance = _chance_of(data)
+    opp = need_row(conn, lead_id, chance)
+    if opp is not None:
+        conn.execute("UPDATE opportunities SET confirmed_at='', updated_at=datetime('now') WHERE id=?", (opp['id'],))
+    else:
+        conn.execute("UPDATE discovery SET confirmed_at='', updated_at=datetime('now') WHERE lead_id=?", (lead_id,))
+    where = f" (Chance „{opp['title']}“)" if opp is not None else ''
+    conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)', (lead_id, 'bedarf', f'Bedarf{where} wieder offen: {reason}'))
     conn.commit()
-    return need_status(conn, lead_id)
+    return need_status(conn, lead_id, chance)
 
 
-def assert_need_confirmed(conn, lead_id, what):
-    if not need_status(conn, lead_id)['confirmed']:
+def assert_need_confirmed(conn, lead_id, what, chance=None):
+    if not need_status(conn, lead_id, chance)['confirmed']:
         raise ContactLocked(f'Freigabe fehlt: Bedarf ist noch nicht bestätigt – {what} erst nach „Bedarf bestätigen“ in der Firmenakte.')
 
 
@@ -194,14 +223,17 @@ def quote_from_need(conn, lead_id, data):
     """Angebotsentwurf mit genau den bestätigten Leistungen (Festpreise aus dem Katalog; interne Kalkulation bleibt intern)."""
     from .sales_workspace import make_proposal
     data = data or {}
-    if set(data) - {'tax_mode', 'project_label'}:
-        raise ValueError('Erwartet: {tax_mode?, project_label?}.')
-    assert_need_confirmed(conn, lead_id, 'Angebot aus Bedarf')
-    st = need_status(conn, lead_id)
+    if set(data) - {'tax_mode', 'project_label', 'opportunity_id'}:
+        raise ValueError('Erwartet: {tax_mode?, project_label?, opportunity_id?}.')
+    chance = _chance_of(data)
+    assert_need_confirmed(conn, lead_id, 'Angebot aus Bedarf', chance)
+    st = need_status(conn, lead_id, chance)
     payload = {'lead_id': lead_id, 'positions': st['needs'], 'tax_mode': data.get('tax_mode', 'offen'),
                'customer_goal': st['desired_outcome'][:500], 'assumptions': f"Grundlage: Bedarf {CONFIRM_VIA.get(st['via'], '')} bestätigt am {st['confirmed_at'][:10]}."}
     if data.get('project_label'):
         payload['project_label'] = str(data['project_label'])[:140]
+    if chance not in (None, ''):
+        payload['opportunity_id'] = chance  # 2.0.0-dev19: Angebot gehört zur Chance, deren Bedarf bestätigt ist
     return make_proposal(conn, payload)
 
 
@@ -522,7 +554,7 @@ def route_workday(h, conn, method, route, query, db_path):
             return True
         if what == 'need' and method == 'GET':
             _lead(conn, lid)
-            h._send(200, need_status(conn, lid))
+            h._send(200, need_status(conn, lid, (query.get('chance') or [None])[0]))
             return True
         if what == 'need/confirm' and method == 'POST':
             h._send(200, confirm_need(conn, lid, h._body()))

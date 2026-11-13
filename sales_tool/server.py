@@ -766,6 +766,19 @@ def make_handler(db_path, allowed_hosts=None):
                     ident = int(discovery_match.group(1))
                     if not conn.execute("SELECT id FROM leads WHERE id=?", (ident,)).fetchone():
                         return self._error("Lead nicht gefunden", 404)
+                    from .chances import need_row
+                    opp = need_row(conn, ident, (query.get("chance") or [None])[0])  # 2.0.0-dev19: Bedarfsanalyse einer weiteren Chance
+                    if opp is not None:
+                        if method == "PUT":
+                            data = validate_discovery(self._body())
+                            if not data:
+                                return self._error("Keine Änderungen")
+                            conn.execute(f"UPDATE opportunities SET {', '.join(k + '=?' for k in data)}, updated_at=datetime('now') WHERE id=?", (*data.values(), opp["id"]))
+                            conn.commit()
+                            opp = conn.execute("SELECT * FROM opportunities WHERE id=?", (opp["id"],)).fetchone()
+                        if method in ("GET", "PUT"):
+                            item = {"lead_id": ident, "opportunity_id": opp["id"], **{k: opp[k] for k in DISCOVERY_FIELDS}, "confirmed_at": opp["confirmed_at"]}
+                            return self._send(200, {**item, "completeness": discovery_summary(item)})
                     if method == "GET":
                         row = conn.execute("SELECT * FROM discovery WHERE lead_id=?", (ident,)).fetchone()
                         item = dict(row) if row else {"lead_id": ident, **{k: "offen" if k == "budget_status" else "" for k in DISCOVERY_FIELDS}}
@@ -902,7 +915,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 31  # 2.0.0-dev18 – bei Schemaänderungen erhöhen (Verkaufschancen je Firma)
+SCHEMA_VERSION = 32  # 2.0.0-dev19 – bei Schemaänderungen erhöhen (Bedarf und Freigabe je Chance)
 
 
 def backup_before_migration(db):

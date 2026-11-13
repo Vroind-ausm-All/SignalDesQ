@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.0-dev19 – Bedarf und Freigabe je Chance, Chancen in Pipeline und Heute
+
+Etappe C, Produktreview M13 Teil 2 – damit ist M13 abgeschlossen.
+
+- **Bedarfsanalyse je Chance:** Über der Bedarfsanalyse wählst du, zu welcher Chance sie gehört. Die erste Chance nutzt wie bisher die Bedarfsanalyse der Firma; jede weitere Chance hat ihre eigene (Problem, Auswirkung, bisherige Lösung, Ergebnis, Zeitrahmen, Entscheidungsweg, Budget). Der Wechsel lädt die passenden Angaben und gilt nicht als ungespeicherte Eingabe.
+- **Freigabe je Chance:** „Bedarf dieser Chance bestätigen“ steht direkt an der Chance (Weg, was bestätigt wurde, Leistung aus dem Katalog). Die Freigabe einer Chance gilt nicht für eine andere. „Bedarf wieder öffnen“ ebenso je Chance.
+- **Angebot aus dem Bedarf einer Chance:** übernimmt deren bestätigte Leistungen und ordnet das Angebot der Chance zu. Versandfreigabe, Versand und Zusage prüfen den Bedarf der Chance des Angebots – nicht mehr den der Firma.
+- **Pipeline je Chance:** Offene Chancen erscheinen als eigene Karten mit Firmenname und Chancentitel in ihrer Spalte; ihre Phase lässt sich dort ändern („verloren“ mit Grund). Eine Firma mit offenen Chancen erscheint über diese Karten, Kunden bleiben zusätzlich in „Gewonnen“ sichtbar.
+- **Heute:** Fällige nächste Schritte offener Chancen stehen in der Wiedervorlage und damit in der Fokusliste – ohne den Schritt der Firma doppelt zu zeigen.
+- **Behoben vor dem Release:** Eine zweite Deklaration in `formguard.js` hätte das Skript und damit den Eingabeschutz stillgelegt; der Browser-Test hat es gefunden, ein Strukturtest verhindert die Wiederholung.
+- **Schemawechsel 31 → 32** (Bedarfsfelder an der Chance). 616 Tests (6 neu) unter Python 3.10 und 3.13, 15 Browser-Tests (1 neu).
+
 ## 2.0.0-dev18 – Mehrere Verkaufschancen je Firma (Teil 1)
 
 Etappe C, Produktreview M13 Teil 1. Eine Firma kann jetzt mehrere mögliche Projekte haben, ohne dass sie doppelt angelegt werden muss.

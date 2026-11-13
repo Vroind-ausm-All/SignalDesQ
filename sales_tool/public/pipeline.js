@@ -7,6 +7,19 @@
   let moving = null, dragId = null;
   const COLS = [...pipelineStages, 'verloren'];
   const label = s => s === 'verloren' ? 'Verloren' : stageNames[s];
+  // 2.0.0-dev19 (M13 Teil 2): offene Chancen als eigene Karten; eine Firma mit offenen Chancen erscheint über ihre Chancen
+  const expandedC = new Set();
+  const CH_STAGES = {bedarf: 'Bedarf klären', termin: 'Termin', angebot: 'Angebot', gewonnen: 'Gewonnen', verloren: 'Verloren'};
+  function chanceCard(c) {
+    const isOpen = expandedC.has(c.id);
+    return `<article class="pipeline-card pc pc-chance ${isOpen ? 'open' : ''}" data-pchance="${c.id}">
+      <div class="pc-head"><button type="button" class="pc-toggle" data-pc-ctoggle="${c.id}" aria-expanded="${isOpen}">
+        ${window.leadGradeChip ? window.leadGradeChip(c.lead_id) : ''}<span class="pc-name">${esc(short(c.company, 30))}<small class="pc-sub">Chance: ${esc(short(c.title, 40))}</small></span><span class="pc-chev" aria-hidden="true">▾</span></button></div>
+      ${isOpen ? `<div class="pc-body">
+        <div class="pipeline-card-bottom"><span>${c.next_step ? esc(short(c.next_step, 60)) + ' · ' : ''}${c.next_date ? esc(fmtDate(c.next_date)) : 'Nächsten Schritt festlegen'}</span><button type="button" data-lead="${c.lead_id}" aria-label="Firma öffnen" title="Firma öffnen">↗</button></div>
+        <label class="pipeline-change-label">PHASE DER CHANCE<select aria-label="Phase der Chance ${esc(c.title)}" data-chance-update="${c.id}">${Object.entries(CH_STAGES).map(([k, l]) => `<option value="${k}" ${k === c.stage ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+      </div>` : ''}</article>`;
+  }
 
   function card(l, sa) {
     const isOpen = expanded.has(l.id);
@@ -23,24 +36,28 @@
   }
 
   window.renderPipeline = function () {
-    const open = leads.filter(l => !['gesperrt', 'verloren'].includes(l.stage));
+    const chances = window.openChances || [];
+    const viaChance = new Set(chances.map(c => c.lead_id));
+    const all = leads.filter(l => !['gesperrt', 'verloren'].includes(l.stage));
+    const open = all.filter(l => l.stage === 'gewonnen' || !viaChance.has(l.id));  // Kunden bleiben sichtbar, neue Chancen kommen dazu
     const lost = leads.filter(l => l.stage === 'verloren').length;
-    $('#pipelineSummary').innerHTML = `<div><small>AKTIVE CHANCEN</small><b>${open.filter(l => l.stage !== 'gewonnen').length}</b></div><div><small>GESPRÄCHE / RÜCKMELDUNGEN</small><b>${open.filter(l => ['antwort', 'termin'].includes(l.stage)).length}</b></div><div><small>OFFENE ANGEBOTE</small><b>${open.filter(l => l.stage === 'angebot').length}</b></div><div><small>GEWONNEN</small><b>${open.filter(l => l.stage === 'gewonnen').length}</b></div>`;
+    $('#pipelineSummary').innerHTML = `<div><small>AKTIVE CHANCEN</small><b>${chances.length + open.filter(l => ['antwort', 'termin', 'angebot'].includes(l.stage)).length}</b></div><div><small>GESPRÄCHE / RÜCKMELDUNGEN</small><b>${open.filter(l => ['antwort', 'termin'].includes(l.stage)).length}</b></div><div><small>OFFENE ANGEBOTE</small><b>${open.filter(l => l.stage === 'angebot').length}</b></div><div><small>GEWONNEN</small><b>${open.filter(l => l.stage === 'gewonnen').length}</b></div>`;
     const board = $('#pipelineBoard');
     board.classList.toggle('pc-moving', moving != null);
     const mv = moving != null ? leads.find(l => l.id === moving) : null;
     if ($('#pipelineHint')) $('#pipelineHint').innerHTML = mv ? `<b>${esc(mv.company)}</b> verschieben: Zielspalte anklicken · <button type="button" class="text-button" data-pc-cancel>Abbrechen (Esc)</button>`
       : 'Karte anklicken für Details · ziehen oder ⇄ antippen und Zielspalte wählen, um die Phase zu ändern';
     // 2.0.0-dev15: leere Pipeline erklärt den nächsten Schritt statt nur leere Spalten zu zeigen
-    if (!open.length && $('#pipelineHint')) $('#pipelineHint').innerHTML = `<b>Noch keine Firmen in der Pipeline.</b> <button type="button" class="btn btn-primary" data-go-action='${esc(JSON.stringify({view: 'finder'}))}'>Firmen finden</button> <button type="button" class="btn btn-ghost" data-go-action='${esc(JSON.stringify({view: 'new_lead'}))}'>Firma erfassen</button>`;
+    if (!open.length && !chances.length && $('#pipelineHint')) $('#pipelineHint').innerHTML = `<b>Noch keine Firmen in der Pipeline.</b> <button type="button" class="btn btn-primary" data-go-action='${esc(JSON.stringify({view: 'finder'}))}'>Firmen finden</button> <button type="button" class="btn btn-ghost" data-go-action='${esc(JSON.stringify({view: 'new_lead'}))}'>Firma erfassen</button>`;
     board.innerHTML = COLS.map(stage => {
       if (stage === 'verloren') {
         return `<section class="pipeline-column pc-lost" data-pcol="verloren" ${mv ? 'tabindex="0" role="button"' : ''} aria-label="Spalte Verloren"><div class="pipeline-col-head"><span>Verloren</span><b>${lost}</b></div><div class="pipeline-empty">Hierher ziehen, wenn eine Chance nicht weiterverfolgt wird</div></section>`;
       }
       const rank = window.leadGradeRank || (() => 0);  // 2.0.0-dev3: Passung (A vor B) vor dem alten Score
       const cards = open.filter(l => l.stage === stage).sort((a, b) => rank(a.id) - rank(b.id) || b.score - a.score);
+      const chs = chances.filter(c => c.lead_stage === stage);
       const sa = (window.leadStageAction || {})[stage];
-      return `<section class="pipeline-column" data-pcol="${stage}" ${mv ? 'tabindex="0" role="button"' : ''} aria-label="Spalte ${esc(stageNames[stage])}"><div class="pipeline-col-head"><span>${stageNames[stage]}</span><b>${cards.length}</b></div>${sa ? `<button type="button" class="text-button pipeline-col-action" data-go-action="${esc(JSON.stringify({view: sa.view === 'lead' ? 'leads' : sa.view, section: sa.section, stage}))}">${esc(sa.label)} ↗</button>` : ''}<div class="pipeline-cards">${cards.map(l => card(l, sa)).join('') || '<div class="pipeline-empty">Noch keine Firma in dieser Phase</div>'}</div></section>`;
+      return `<section class="pipeline-column" data-pcol="${stage}" ${mv ? 'tabindex="0" role="button"' : ''} aria-label="Spalte ${esc(stageNames[stage])}"><div class="pipeline-col-head"><span>${stageNames[stage]}</span><b>${cards.length + chs.length}</b></div>${sa ? `<button type="button" class="text-button pipeline-col-action" data-go-action="${esc(JSON.stringify({view: sa.view === 'lead' ? 'leads' : sa.view, section: sa.section, stage}))}">${esc(sa.label)} ↗</button>` : ''}<div class="pipeline-cards">${chs.map(chanceCard).join('')}${cards.map(l => card(l, sa)).join('') || (chs.length ? '' : '<div class="pipeline-empty">Noch keine Firma in dieser Phase</div>')}</div></section>`;
     }).join('');
   };
 
@@ -58,7 +75,21 @@
   function init() {
     const board = $('#pipelineBoard');
     if (!board) return;
+    board.addEventListener('change', async e => {
+      const sel = e.target.closest('[data-chance-update]');
+      if (!sel) return;
+      const c = (window.openChances || []).find(x => x.id === Number(sel.dataset.chanceUpdate));
+      if (!c) return;
+      let body = {stage: sel.value};
+      if (sel.value === 'gewonnen' && !confirm('Ist diese Chance tatsächlich verbindlich gewonnen?')) { window.renderPipeline(); return; }
+      if (sel.value === 'verloren') { body = window.withLostReason ? await window.withLostReason({company: `${c.company} – ${c.title}`, stage: c.lead_stage}, {stage: 'verloren'}) : null; if (!body) { window.renderPipeline(); return; } }
+      try { await api(`/chances/${c.id}`, 'PATCH', body); await reload(); toast(`Chance „${c.title}“ → ${CH_STAGES[sel.value]}`); }
+      catch (err) { window.renderPipeline(); toast(err.message, true); }
+    });
     board.addEventListener('click', e => {
+      const ct = e.target.closest('[data-pc-ctoggle]');
+      if (ct) { const id = Number(ct.dataset.pcCtoggle); expandedC.has(id) ? expandedC.delete(id) : expandedC.add(id); window.renderPipeline(); return; }
+      if (e.target.closest('[data-pchance]') && !e.target.closest('button,select,a,label,input')) return;
       const t = e.target.closest('[data-pc-toggle]');
       if (t) { const id = Number(t.dataset.pcToggle); expanded.has(id) ? expanded.delete(id) : expanded.add(id); window.renderPipeline(); return; }
       const m = e.target.closest('[data-pc-move]');

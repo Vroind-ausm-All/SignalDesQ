@@ -77,7 +77,7 @@ def checks(conn, row):
     cust = json.loads(row['customer_json'])
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (row['lead_id'],)).fetchone()
     lock = contact_lock(conn, lead) if lead else 'nicht mehr vorhanden'
-    need = need_status(conn, row['lead_id'])
+    need = need_status(conn, row['lead_id'], row['opportunity_id'])  # 2.0.0-dev19: Bedarf der Chance dieses Angebots
     today = dt.date.today().isoformat()
     leaks = sorted(set(_leaks(cust)))
     items = [
@@ -179,7 +179,7 @@ def set_status(conn, pid, data):
             raise ValueError('Steuerstatus noch offen: Angebot nicht als gesendet/angenommen markieren.')
         lead = conn.execute('SELECT * FROM leads WHERE id=?', (row['lead_id'],)).fetchone()
         assert_contact_allowed(conn, lead, 'Angebot versenden/annehmen')
-        assert_need_confirmed(conn, row['lead_id'], 'Angebot als gesendet/angenommen markieren')
+        assert_need_confirmed(conn, row['lead_id'], 'Angebot als gesendet/angenommen markieren', row['opportunity_id'])
         if not row['released_at']:
             from .workday import ContactLocked
             raise ContactLocked('Erst die Versandfassung freigeben: Versand und Zusage beziehen sich immer auf einen geprüften Stand.')

@@ -75,6 +75,15 @@ def wiedervorlage(conn, today=None):
     if research:
         add('recherche', f'{research} Firma(en) mit fälligem Recherche-Schritt', 'Recherche', None, t, 'Gesammelt ansehen', 'tasks',
             detail='Am schnellsten: Firmen-Berichte für alle auf einmal erstellen')
+    # 2.0.0-dev19 (M13 Teil 2): fällige nächste Schritte einzelner Chancen – ohne Doppelung mit dem Schritt der Firma
+    for r in conn.execute("""SELECT o.id, o.title, o.next_step, o.next_date, l.id AS lead_id, l.company, l.next_step AS lead_step
+                             FROM opportunities o JOIN leads l ON l.id=o.lead_id
+                             WHERE o.stage IN ('bedarf','termin','angebot') AND o.next_step<>'' AND o.next_date<>'' AND o.next_date<=?
+                             AND l.stage NOT IN ('gesperrt','verloren') ORDER BY o.next_date""", (t,)):
+        if r['next_step'].strip() == (r['lead_step'] or '').strip():
+            continue
+        add('naechster_schritt', f"{r['title']}: {r['next_step']}", r['company'], r['lead_id'], r['next_date'], 'Firma öffnen', 'lead', r['lead_id'],
+            'Nächster Schritt einer Chance')
     for r in conn.execute("""SELECT c.*, l.company FROM calls c JOIN leads l ON l.id=c.lead_id
                              WHERE c.outcome='rueckruf_vereinbart' AND c.callback_date<>'' AND c.callback_date<=? AND l.stage NOT IN ('gesperrt','verloren')
                              AND l.permission<>'nicht_kontaktieren'

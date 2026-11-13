@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev18)
+# Bekannte Einschränkungen (Stand 2.0.0-dev19)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -118,9 +118,18 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 
 ## Verkaufschancen je Firma, Teil 1 (2.0.0-dev18)
 
-- Die ausführliche Bedarfsanalyse und die Freigabe „Bedarf bestätigt“ gelten noch für die ganze Firma. Die erste Chance zeigt sie an; weitere Chancen haben ein kurzes eigenes Anliegen. Die Versandfreigabe eines Angebots prüft deshalb noch den Bedarf der Firma, nicht den der Chance (Teil 2).
-- Pipeline, Heute, Fokusliste und Firmenliste zeigen weiterhin Firmen mit ihrer Firmenphase; offene Chancen einzeln dort zu sehen, folgt in Teil 2.
+- (bis dev18) Bedarfsanalyse und Freigabe galten für die ganze Firma – seit dev19 je Chance.
+- (bis dev18) Pipeline und Heute zeigten nur Firmen – seit dev19 auch einzelne Chancen; die Firmenliste zeigt weiterhin Firmen.
 - Paketempfehlungen, Website-Bewertung und Firmen-Bericht beziehen sich auf die Firma, nicht auf eine Chance.
 - Eine automatisch mit dem ersten Angebot entstandene Chance hebt die Firmenphase mindestens auf „Rückmeldung“.
 - Firmentermine ohne Chance bleiben möglich, solange keine Chance offen ist. Bei mehreren offenen Chancen muss ein Termin oder Angebot einer Chance zugeordnet werden.
 - Aufgaben sind noch keiner Chance zugeordnet; die Startaufgaben nach einer Zusage tragen die Angebotsnummer im Titel.
+
+## Bedarf und Freigabe je Chance, Pipeline und Heute (2.0.0-dev19)
+
+- Die erste Chance einer Firma nutzt weiterhin die Bedarfsanalyse der Firma; ihre Freigabe steht im Überblick der Akte, die Freigabe weiterer Chancen direkt an der Chance.
+- Die Freigabe an der Chance nimmt eine Leistung auf; weitere Leistungen ergänzt du im Angebot.
+- Paketabgleich („Pakete abgleichen“), Website-Bewertung und Firmen-Bericht beziehen sich weiterhin auf die Firma.
+- In der Pipeline lassen sich Chancen-Karten über die Phasenauswahl verschieben, nicht per Ziehen.
+- Die Firmenliste und ihre Arbeitsansicht „Heute fällig“ zählen die nächsten Schritte der Firma, nicht die einzelner Chancen; in „Heute“ und der Fokusliste stehen beide.
+- Aufgaben sind weiterhin keiner Chance zugeordnet.

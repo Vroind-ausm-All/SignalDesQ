@@ -1,6 +1,6 @@
 # SignalDesk – Kunden finden, bewerten, erreichen, abrechnen (lokal)
 
-> **Stand 2.0.0-dev18: Entwicklungsstand, kein fertiges Release.** Geprüft mit automatischen Tests unter Linux (Python 3.10, 3.12, 3.13) und im Browser. Erste Messung an echten Quellen: [`docs/PRAXISTEST_70191.md`](docs/PRAXISTEST_70191.md); Website-Zuordnung noch ungemessen. Vor der Nutzung vorhandener Daten eine Sicherung erstellen.
+> **Stand 2.0.0-dev19: Entwicklungsstand, kein fertiges Release.** Geprüft mit automatischen Tests unter Linux (Python 3.10, 3.12, 3.13) und im Browser. Erste Messung an echten Quellen: [`docs/PRAXISTEST_70191.md`](docs/PRAXISTEST_70191.md); Website-Zuordnung noch ungemessen. Vor der Nutzung vorhandener Daten eine Sicherung erstellen.
 
 SignalDesk ist ein Vertriebsarbeitsplatz für Soloselbstständige und kleine Dienstleister. Es läuft auf deinem Rechner, speichert alles in einer lokalen Datei und versendet nichts.
 

@@ -535,6 +535,23 @@ Fehlerschleifen: (1) Die Vorlage der Altdatenbank trägt ihre Schemaversion nur 
 
 **Entscheid:** Weiter mit M13 Teil 2 (dev19).
 
+## Arbeitspaket 18 – Bedarf und Freigabe je Chance, Pipeline und Heute (2.0.0-dev19)
+
+Auftrag: weitermachen, wo aufgehört wurde – M13 Teil 2.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 616 Tests bestanden (6 neu in `tests/test_v2_chances_need.py`, darunter ein Strukturtest; ein älterer Test bestätigt den Bedarf jetzt an der Chance des Angebots) |
+| Browser-Tests | 15 von 15 (`test_chances_browser.py` klickt jetzt eindeutig auf „Chance speichern“, weil die Karte zusätzlich das Freigabe-Formular hat; neu `test_chance_need_browser.py`: Auswahl der Chance in der Bedarfsanalyse, Speichern ohne Firmenänderung, Freigabe an der Chance, Angebot aus ihrem Bedarf, Pipeline-Karten je Chance) |
+| Abnahme | Freigabe einer Chance gilt nicht für eine andere; Angebote prüfen den Bedarf ihrer Chance; T08 vollständig |
+| Migration | Schema 31 → 32, neue Spalten mit Vorgabewerten; bestehende Chancen unverändert |
+
+Fehlerschleifen: (1) Der Browser-Test fand eine doppelte Deklaration `rebase` in `formguard.js`, die das ganze Skript und damit den Eingabeschutz stillgelegt hätte – jetzt wird die vorhandene Funktion nach außen gegeben, ein Strukturtest prüft das. Lehre: neue Bezeichner in bestehenden Skripten vor dem Einfügen suchen und `node --check` auf jede geänderte Datei anwenden.
+
+**Selbstbewertung 4 von 5.** Abzug: Aufgaben und Paketabgleich hängen noch an der Firma; Chancen-Karten lassen sich in der Pipeline nicht ziehen.
+
+**Entscheid:** M13 ist abgeschlossen. Weiter mit M14 (Briefings je Leistungsbereich).
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

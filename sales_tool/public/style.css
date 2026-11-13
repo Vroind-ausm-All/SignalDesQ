@@ -737,3 +737,10 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 .ch-body{padding:0 14px 12px;display:grid;gap:6px}
 .ch-mini{margin:0;padding-left:18px;font-size:13px}
 .ch-new{border:1px solid var(--line);border-radius:10px;padding:12px;margin:8px 0;background:var(--surface-2)}
+.ch-need{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.ch-need .sales-row{flex-basis:100%}
+.ch-confirm{flex-basis:100%;border:1px solid var(--line);border-radius:9px;padding:6px 12px;background:var(--surface-2)}
+.ch-confirm summary{cursor:pointer;font-weight:600;font-size:13px}
+.ch-need-for{display:block;margin:8px 0;max-width:420px}
+.pc-chance{border-left:3px solid var(--accent)}
+.pc-sub{display:block;font-size:11px;font-weight:400;color:var(--muted)}
