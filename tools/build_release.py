@@ -31,7 +31,8 @@ EXCLUDE_FILES = ('.gitignore', '.gitattributes', '.source-date-epoch')
 # Eine feste Liste verhindert, dass beliebige Nutzerdaten in das Paket geraten.
 RELEASE_ADDITIONS = ('sales_tool/research/service_profile.py', 'docs/MASTERPLAN_SOLOSELBSTAENDIGE.md',
                      'docs/V2_ENTWICKLUNGSSTAND.md', 'docs/UEBERGABE_FABLE.md', 'sales_tool/qualification.py',
-                     'sales_tool/public/assessment.js', 'sales_tool/reach.py', 'sales_tool/public/reach.js', 'sales_tool/postcalc.py', 'sales_tool/public/postcalc.js', 'sales_tool/research/osm_local.py', 'sales_tool/public/osmlocal.js', 'docs/LAUNCH_AUDIT.md', 'docs/ARCHITECTURE_DECISIONS.md', 'docs/SELF_REVIEW_LOG.md', 'docs/PRAXISTEST_70191.md', 'docs/OPENSTREETMAP_LOKAL.md', 'sales_tool/appearance.py', 'sales_tool/public/theme.js', 'sales_tool/public/formguard.js', 'sales_tool/public/nav.js', 'sales_tool/public/leadlist.js', 'sales_tool/focus.py', 'docs/UI_UX_VORSCHLAEGE.md')
+                     'sales_tool/public/assessment.js', 'sales_tool/reach.py', 'sales_tool/public/reach.js', 'sales_tool/postcalc.py', 'sales_tool/public/postcalc.js', 'sales_tool/research/osm_local.py', 'sales_tool/public/osmlocal.js', 'docs/LAUNCH_AUDIT.md', 'docs/ARCHITECTURE_DECISIONS.md', 'docs/SELF_REVIEW_LOG.md', 'docs/PRAXISTEST_70191.md', 'docs/OPENSTREETMAP_LOKAL.md', 'sales_tool/appearance.py', 'sales_tool/public/theme.js', 'sales_tool/public/formguard.js', 'sales_tool/public/nav.js', 'sales_tool/public/leadlist.js', 'sales_tool/focus.py', 'docs/UI_UX_VORSCHLAEGE.md',
+                     'sales_tool/catalog.py', 'docs/LEISTUNGSKATALOG.md')
 FORBIDDEN = re.compile(r'(\.sqlite3(-wal|-shm)?|\.sdenc|\.db|\.env|\.pem|\.key|id_rsa)$', re.I)
 SECRET = re.compile(rb'(-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|sk-ant-[A-Za-z0-9]{10}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30})')
 EXECUTABLE = ('.sh', '.command')

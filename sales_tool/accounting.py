@@ -726,7 +726,11 @@ def invoice_from_proposal(conn, data):
     elif mode == 'abschlag':
         if monthly:
             raise ValueError('Für monatliche Leistungen keine Abschlagsrechnung – Monatsrechnung verwenden.')
-        pct = data.get('percent', 40)
+        # 2.0.0-dev16: Anzahlung laut Angebot (Kalkulationsgrundlagen); ältere Angebote ohne Angabe wie bisher 40 %
+        agreed = customer.get('deposit_pct', 40)
+        if 'percent' not in data and not agreed:
+            raise ValueError('Laut Angebot ist keine Anzahlung vorgesehen – Schlussrechnung verwenden oder einen Abschlag in Prozent angeben.')
+        pct = data.get('percent', agreed)
         if isinstance(pct, bool) or type(pct) not in (int, float) or not 1 <= pct <= 99:
             raise ValueError('Abschlag in Prozent: 1–99.')
         amount = int((Decimal(net_total) * Decimal(str(pct)) / 100).quantize(Decimal('1'), rounding=ROUND_HALF_UP))

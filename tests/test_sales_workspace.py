@@ -22,32 +22,45 @@ from tmpclean import cleanup_tmp  # noqa: E402 – Worker beenden, dann löschen
 
 
 class PricingUnitTests(unittest.TestCase):
+    """2.0.0-dev16 (Produktreview M12): Aufrufe mit Paket und Zusatzleistungen rechnen über den zentralen Katalog."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
+        self.conn = connect(Path(self.tmp.name) / 'p.sqlite3')
+        init_db(self.conn)
+
+    def tearDown(self):
+        self.conn.close()
+        cleanup_tmp(self.tmp)
+
     def test_package_scope_and_addons_are_explicit(self):
-        p=quote_preview({'package':'conversion','addons':['copy','analytics'],'tax_mode':'regel_19'})
-        c=p['customer'];self.assertGreaterEqual(len(c['included']),7)
-        self.assertTrue(any('Redaktion' in v for v in c['included']))
-        self.assertTrue(any('Media-Budget' in v for v in c['excluded']))
+        p=quote_preview(self.conn,{'package':'conversion','addons':['copy','analytics'],'tax_mode':'regel_19'})
+        c=p['customer']
+        self.assertEqual([x['service'] for x in c['positions']],['webdesign','texte','seo_geo','texte','aufwand'])
+        self.assertEqual(c['positions'][4]['title'],'Messkonzept & Dashboard')
+        self.assertTrue(any('Garantie' in v for v in c['excluded']))
+        self.assertNotIn('Texte (separate Position)',c['excluded'],'Texte stehen als eigene Position im Angebot – kein Widerspruch')
+        self.assertIn('Fotografie (separate Position)',c['excluded'])
         self.assertEqual(round(c['net_eur']*1.19,2),c['total_eur'])
-        self.assertLess(p['internal']['cost_with_buffer_eur'],c['net_eur'])
+        self.assertEqual(p['internal']['mode'],'baukasten')
 
     def test_customer_export_contains_no_internal_rate_or_hours(self):
-        p=quote_preview({'package':'portal','cost_rate_eur':137,'addons':['integration'],'tax_mode':'regel_19'})
+        p=quote_preview(self.conn,{'package':'portal','addons':['integration'],'tax_mode':'regel_19'})
         md=customer_markdown(p['customer'])
         self.assertIn('Festpreis',md)
         self.assertIn('Nicht enthalten',md)
-        self.assertNotIn('137',md)
-        self.assertNotIn('Stundensatz',md)
-        self.assertNotIn('Kalkulation',md)
-        self.assertNotIn('estimated_hours',md)
+        self.assertIn('Eine Schnittstellen-Integration',md)
+        for secret in ('Stundensatz','Kalkulation','estimated_hours','€/h','catalog_version'):
+            self.assertNotIn(secret,md)
 
     def test_monthly_care_offer_is_explicit_recurring(self):
-        p=quote_preview({'package':'care','tax_mode':'regel_19'})
+        p=quote_preview(self.conn,{'package':'care','tax_mode':'regel_19'})
         self.assertEqual(p['customer']['billing'],'monatlich')
         self.assertIn('pro Monat',customer_markdown(p['customer']))
-        self.assertIn('Kündigungsfristen',customer_markdown(p['customer']))
+        self.assertIn('Kündigungsfrist',customer_markdown(p['customer']))
 
     def test_unknown_tax_mode_marks_draft_as_incomplete(self):
-        p=quote_preview({'package':'pilot','tax_mode':'offen'})
+        p=quote_preview(self.conn,{'package':'pilot','tax_mode':'offen'})
         self.assertIn('offen',customer_markdown(p['customer']))
         self.assertNotIn('Gesamtbetrag:',customer_markdown(p['customer']))
 
@@ -59,8 +72,11 @@ class PricingUnitTests(unittest.TestCase):
             {'package':'brand','tax_mode':'unknown'},
             {'package':'brand','margin_pct':100},
             {'package':'pilot','cost_rate_eur':float('nan')},
+            {'package':'raumfahrt'},
         ):
-            with self.subTest(data=data),self.assertRaises(ValueError): quote_preview(data)
+            with self.subTest(data=data),self.assertRaises(ValueError): quote_preview(self.conn,data)
+        with self.assertRaisesRegex(ValueError,'zentralen Leistungskatalog'):
+            quote_preview(self.conn,{'package':'pilot','target_margin_pct':35})
 
 
 class WorkspaceApiTests(unittest.TestCase):
@@ -100,7 +116,7 @@ class WorkspaceApiTests(unittest.TestCase):
     def test_full_quote_and_public_export_hides_internal(self):
         lead_id=self.lead()
         payload={'lead_id':lead_id,'package':'brand','addons':['training'],
-                 'cost_rate_eur':61,'tax_mode':'regel_19','customer_goal':'Mehr Wiedererkennung'}
+                 'tax_mode':'regel_19','customer_goal':'Mehr Wiedererkennung'}
         code,offer=self.call('POST','/api/workspace/proposals',payload)
         self.assertEqual(code,201)
         self.assertIn('internal',offer)

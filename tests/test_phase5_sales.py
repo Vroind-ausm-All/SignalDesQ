@@ -14,7 +14,8 @@ from urllib.request import Request, urlopen
 
 from sales_tool import sales_integration as si
 from sales_tool.model import connect, init_db
-from sales_tool.sales_workspace import PACKAGES, customer_markdown, quote_preview
+from sales_tool.catalog import VORLAGEN as PACKAGES, vorlagen
+from sales_tool.sales_workspace import customer_markdown, quote_preview
 from sales_tool.server import make_handler
 
 TODAY = dt.date.today()
@@ -121,11 +122,12 @@ class OfferMatchingTests(SalesBase):
 
     def test_automation_package_in_customer_document(self):
         self.assertIn('automation', PACKAGES)
-        prev = quote_preview({'package': 'automation', 'tax_mode': 'regel_19'})
+        prev = quote_preview(self.conn, {'package': 'automation', 'tax_mode': 'regel_19'})
         md = customer_markdown(prev['customer'])
         for section in ('## Liefergegenstände', '## Abnahmekriterien', '## Mögliche Drittanbieter- und Folgekosten'):
             self.assertIn(section, md)
-        self.assertGreaterEqual(prev['customer']['net_eur'], PACKAGES['automation']['minimum_eur'])
+        # 2.0.0-dev16: derselbe Preis wie die Vorlage im zentralen Katalog
+        self.assertEqual(prev['customer']['net_eur'], next(v['once_net_eur'] for v in vorlagen(self.conn) if v['key'] == 'automation'))
         self.assertNotIn('estimated_hours', prev['customer'])
         for internal in ('cost_rate', 'Deckungsbeitrag', 'Stunden', 'risk'):
             self.assertNotIn(internal, md)

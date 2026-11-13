@@ -65,7 +65,9 @@ class CatalogTests(PricingBase):
         c, i = self.pos(service='logo', size='M')
         self.assertEqual((i['hours'], i['labor_eur'], i['buffer_eur'], i['price_eur']), (22, 1452, 145.2, 1600))
         self.assertIn('22 h × 66 €/h + 10 % Puffer', i['formula'])
-        self.assertEqual(c['scope'], 'Standard: 3 Entwürfe, 2 Korrekturschleifen, Farb-/Schwarzweiß-Varianten, Favicon')
+        # 2.0.0-dev16: Korrekturschleifen sind ein eigenes Katalogfeld und werden an den Umfang angehängt
+        self.assertEqual(c['scope'], 'Standard: 3 Entwürfe, Farb-/Schwarzweiß-Varianten, Favicon · 2 Korrekturschleifen')
+        self.assertEqual(c['revisions'], 2)
         _, i = self.pos(service='texte', qty=4)
         self.assertEqual(i['price_eur'], 880)
         _, i = self.pos(service='kunst', size='M')
@@ -156,8 +158,10 @@ class QuoteTests(PricingBase):
         stored = self.conn.execute('SELECT customer_json, internal_json FROM proposals WHERE id=?', (p['id'],)).fetchone()
         self.assertEqual(len(json.loads(stored['customer_json'])['positions']), 6)
         self.assertEqual(json.loads(stored['internal_json'])['mode'], 'baukasten')
+        # 2.0.0-dev16 (M12): Aufrufe mit Paket rechnen über die Vorlage des zentralen Katalogs – kein zweiter Preisrechner
         legacy = make_proposal(self.conn, {'lead_id': self.lead, 'package': 'conversion', 'tax_mode': 'regel_19'})
-        self.assertNotIn('positions', legacy['customer'], 'alte Paket-Angebote funktionieren unverändert')
+        self.assertEqual([x['service'] for x in legacy['customer']['positions']], [x['service'] for x in pr.TEMPLATES['conversion']])
+        self.assertEqual(legacy['customer']['package'], 'conversion')
 
     def test_templates_and_matching_draft(self):
         for key, tpl in pr.TEMPLATES.items():

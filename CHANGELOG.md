@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.0-dev16 – Ein zentraler Leistungskatalog
+
+Etappe C, Teil 1 aus dem Produktreview vom 13.11.2026 (Maßnahme M12), ergänzt um passende Teile aus dem Bewertungsmodell für Websites und dem Leitfaden zum Kundenonboarding vom selben Tag. Die übrigen Empfehlungen beider Dokumente stehen als M27–M39 in `docs/ROADMAP.md`.
+
+- **Ein Katalog statt vier Listen:** Bisher gab es fünf Angebote, sechs Pakete mit fünf Zusatzleistungen und 26 Baukasten-Leistungen mit jeweils eigenen Titeln, Preisen und Zeiträumen. Jetzt sind die 26 Leistungen die einzige Quelle; die sechs Vorlagen (Pilot, Conversion-Sprint, Brand, Growth Care, Kundenportal, Automatisierung) sind Zusammenstellungen davon. Die Zuordnung steht in `docs/LEISTUNGSKATALOG.md` und unter *Einstellungen → Leistungen & Preise → Herkunft*.
+- **Eine geänderte Leistung wirkt überall gleich:** Vorlagenpreis, Paketempfehlung in der Firmenakte, neues Angebot, Angebotskarten der Hilfe und die Auswahl „Leistung“ rechnen mit denselben Katalogwerten – auch ohne Neuladen. Die Vorlagen-Auswahl im Angebot zeigt den aktuellen Preis.
+- **Gespeicherte Angebote bleiben unverändert** in Text und Preis. Neue Angebote merken sich intern den Katalogstand.
+- **Bitte prüfen:** Die früheren Paketpreise („ab 18.500 €“ für das Kundenportal, „ab 790 €“ für Growth Care) stimmten nicht mit dem überein, was der Baukasten für dieselbe Vorlage berechnet (13.510 € bzw. 370 € je Monat). Alle Stellen zeigen jetzt den Baukastenpreis; abweichende eigene Preise bitte über die Katalogwerte festlegen.
+- **Korrekturschleifen je Leistung:** eigenes Feld je Leistung und Umfang, in den Einstellungen änderbar, im Kundendokument je Position zusammengeführt. Für gestalterische Leistungen ohne festgelegte Zahl erscheint intern ein offener Punkt – nie im Kundendokument (Prüffall K01 dauerhaft gelöst).
+- **Kein Widerspruch bei Ausschlüssen:** „Texte (separate Position)“ und ähnliche Hinweise entfallen, wenn die Leistung selbst im Angebot steht.
+- **Vor dem Versand klären:** Intern listet das Angebot je Leistungsbereich die offenen Punkte – bei Medien Nutzungsumfang, Quelldateien und Produktion, bei Software Betrieb, Schnittstellen, Datenübernahme und Übergabe.
+- **Zahlungsplan als Einstellung:** Anzahlung bei Beauftragung (Startwert 40 %) ist einstellbar, im Angebot sichtbar und intern als „mit dem Kunden vereinbaren“ markiert. Die Abschlagsrechnung übernimmt den Prozentsatz aus dem Angebot statt fester 40 %.
+- **Webseiten-Analyse abgegrenzt:** eine Person prüft aus vier Blickwinkeln; Nutzerstudie, umfassende Technik- oder Barrierefreiheitsprüfung und Wirkungszusagen sind ausdrücklich nicht enthalten. Stunden unverändert.
+- Der frühere Paket-Rechner ist entfernt; ältere Aufrufe mit Paket und Zusatzleistungen rechnen über den Katalog, Kostensatz-, Risiko- und Margenangaben werden mit Erklärung abgelehnt. Laufende Betreuungsleistungen nennen „fortlaufend, monatlich“ als Zeitraum.
+- Kein Schemawechsel, keine Datenmigration nötig (Kennungen unverändert). 585 Tests (15 neu) unter Python 3.10 und 3.13, 12 Browser-Tests (1 neu); ältere Tests des Paket-Rechners rechnen jetzt über den Katalog.
+
 ## 2.0.0-dev15 – Heute als Fokusliste, Arbeitsansichten, geführter Einstieg
 
 Etappe B, Teil 2 aus dem Produktreview vom 13.11.2026 (Maßnahmen M08, M09, M11) – damit ist Etappe B abgeschlossen.

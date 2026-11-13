@@ -238,7 +238,7 @@ def sources(conn, lead_id):
 
 def dossier(conn, lead_id):
     """Gesprächsvorbereitung: belegte Fakten, Beobachtungen und Hypothesen – Interpretationen getrennt von Fakten."""
-    from .sales_workspace import PACKAGES
+    from .catalog import VORLAGEN as PACKAGES
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
     if not lead:
         raise LookupError('Lead nicht gefunden.')

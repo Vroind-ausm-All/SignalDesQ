@@ -70,3 +70,12 @@ Optimierungsliste zum Master-Prompt – höchstens zehn Punkte, jeder überprüf
 - **Gespeichert** wird in `app_settings` (wie Gewichte und Profile); der Browser hält eine Kopie nur für den Seitenstart.
 - **Rückbau:** Darstellung auf „Klassisch, Hell“ stellen. Die Rollen selbst bleiben; sie kosten nichts.
 
+
+## E8 – Zentraler Leistungskatalog (2.0.0-dev16, Review M12)
+
+- **Variante A:** die 26 Baukasten-Leistungen als einzige Quelle; Pakete und Angebote werden zu Vorlagen (Zusammenstellungen), deren Preis aus den Positionen berechnet wird.
+- **Variante B:** eine neue Tabelle `services` in der Datenbank mit Migration aller vier Listen und frei anlegbaren Leistungen.
+- **Variante C:** die Pakete behalten eigene Preise, der Baukasten rechnet daneben weiter.
+- **Gewählt: A.** C ist genau der Zustand, den das Review bemängelt (Empfehlung „ab 18.500 €“, Angebot 13.510 € für dieselbe Vorlage). B bringt Migration und Rückbaurisiko für eine Eigenschaft (eigene Leistungen anlegen), die noch niemand gebraucht hat. A behält alle Kennungen, braucht deshalb keine Datenmigration, und eigene Werte liegen wie bisher in `app_settings` (`service_overrides`).
+- **Gespeicherte Angebote** sind Kopien (Kunden- und interner Teil als JSON) und werden nie umgerechnet; neue Angebote speichern intern einen Katalogstand (Prüfsumme aus Katalog, eigenen Werten und Grundlagen).
+- **Rückbau:** Vorlagen-Positionen in `catalog.VORLAGEN` ändern oder eigene Werte zurücksetzen. Die früheren Zahlen stehen in `catalog.FRUEHER` (nur zur Nachvollziehbarkeit).

@@ -5,6 +5,8 @@ import datetime as dt
 import sqlite3
 from pathlib import Path
 
+from .catalog import VORLAGEN
+
 STAGES = ("recherche", "qualifiziert", "kontakt", "antwort", "termin", "angebot", "gewonnen", "verloren", "gesperrt")
 INDUSTRIES = ("Industrie & B2B-Technik", "B2B-SaaS", "Professionelle Dienstleistungen", "Sonstige")
 SIGNALS = {
@@ -17,13 +19,10 @@ SIGNALS = {
     "empfehlung": (21, "Persönliche Empfehlung / Einführung"),
     "kein_signal": (0, "Kein überprüftes Signal"),
 }
-OFFERS = {
-    "pilot": {"title": "Website- & Anfrage-Pilot", "price_from": 990, "price_to": 2500, "period": "1–2 Wochen", "outcome": "Abgegrenzte Analyse und eine konkrete, kleine Verbesserung"},
-    "conversion": {"title": "Conversion- & Web-Sprint", "price_from": 4500, "price_to": 8500, "period": "3–4 Wochen", "outcome": "Messbare Anfragen-/Demo-Strecke mit Tracking"},
-    "portal": {"title": "Kundenportal & Prozess-App", "price_from": 12000, "price_to": 30000, "period": "6–10 Wochen", "outcome": "Ein manueller Prozess als benutzbare Web-App"},
-    "brand": {"title": "Brand & Design-System", "price_from": 3500, "price_to": 7000, "period": "2–4 Wochen", "outcome": "Konsequenter Markenauftritt mit wiederverwendbaren Komponenten"},
-    "automation": {"title": "Automatisierungsprojekt", "price_from": 6900, "price_to": 15000, "period": "4–6 Wochen", "outcome": "Ein manueller Ablauf läuft automatisiert und nachvollziehbar"},
-}
+# 2.0.0-dev16 (Produktreview M12): Die Auswahl „Leistung“ einer Firma sind die Vorlagen des zentralen Katalogs.
+# Preise und Zeiträume werden dort aus den Positionen berechnet (catalog.offers_for_client); bis dev15 standen hier
+# eigene Preisspannen (festgehalten in catalog.FRUEHER['angebote']).
+OFFERS = {k: {"title": v["title"], "outcome": v["outcome"]} for k, v in VORLAGEN.items()}
 PERMISSIONS = ("unbekannt", "opt_in", "bestandskunde_pruefen", "telefon_einzelfall", "nicht_kontaktieren")
 CONTACT_ROUTES = ("unbekannt", "persoenliche_empfehlung", "inbound", "veranstaltung", "netzwerk", "brief", "ausschreibung", "sonstiges")
 

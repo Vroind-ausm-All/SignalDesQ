@@ -54,7 +54,8 @@
 
   async function fromProposal(id, mode) {
     try {
-      const inv = await api('/accounting/invoices/from-proposal', 'POST', {proposal_id: id, mode, ...(mode === 'abschlag' ? {percent: 40} : {})});
+      // 2.0.0-dev16: Abschlag laut Angebot (Kalkulationsgrundlagen), ältere Angebote 40 % – der Server liest den Wert aus dem Angebot
+      const inv = await api('/accounting/invoices/from-proposal', 'POST', {proposal_id: id, mode});
       toast('Rechnungsentwurf aus Angebot erstellt – Empfängeradresse prüfen');
       showTab('invoices');
       openEditor(inv);

@@ -18,7 +18,7 @@
     const hints = r.hints.length ? `<div><b>Hinweise aus der Recherche (nicht bestätigt)</b><ul>${r.hints.map(h => `<li><small>${esc(h.source)}:</small> ${esc(h.text)}</li>`).join('')}</ul></div>` : '';
     const notes = r.notes.length ? `<p class="muted">${r.notes.map(esc).join(' ')}</p>` : '';
     return `<article class="si-rec ${basis ? 'si-basis' : ''}">
-      <div class="dc-item-head"><div><b>${esc(r.rank)}. ${esc(r.title)}</b><small>ab ${euros(r.minimum_eur)} netto · Festpreis nach Kalkulation</small></div>
+      <div class="dc-item-head"><div><b>${esc(r.rank)}. ${esc(r.title)}</b><small>Vorlage laut Katalog: ${esc(r.price_label || '')} · Festpreis nach Kalkulation</small></div>
         <span class="si-status ${esc(r.status)}">${basis ? 'Angebotsgrundlage' : 'unverbindlich'}</span></div>
       <div class="sg-two">${confirmed}${hints}</div>${notes}
       ${basis ? `<div class="form-actions"><button type="button" class="btn btn-primary" data-si-quote="${r.id}">Als Angebotsgrundlage verwenden →</button></div>` : ''}
