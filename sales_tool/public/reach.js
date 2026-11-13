@@ -4,7 +4,7 @@
 (function () {
   const esc = v => escapeHTML(String(v ?? ''));
   const when = s => s ? `${fmtDate(s.slice(0, 10))} ${s.slice(11, 16)}` : '';
-  const LEVEL = {frei: 'wait', luft: 'ok', gut: 'mid', voll: 'off'};
+  const LEVEL = {frei: 'wait', luft: 'ok', gut: 'mid', voll: 'bad'};
   let weekdays = [];
 
   function renderInbound(v, window_) {

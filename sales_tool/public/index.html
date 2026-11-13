@@ -599,24 +599,11 @@
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="loginOverlay" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="loginTitle"><div class="modal login-modal"><header><div><div class="eyebrow">SIGNALDESK · TEAM</div><h2 id="loginTitle">Anmelden</h2></div></header><div class="modal-body"><form id="loginForm" class="sales-form"><label>Benutzername<input name="username" autocomplete="username" required maxlength="40"></label><label>Passwort<input name="password" type="password" autocomplete="current-password" required maxlength="200"></label><div id="loginError" class="sales-banner hidden" role="alert"></div><button type="submit" class="btn btn-primary">Anmelden</button></form><p class="muted">Der Login wurde von deiner Administration eingeschaltet. Passwort vergessen? Die Administration kann es zurücksetzen.</p></div></div></div>
-<div id="modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><header><div><div class="eyebrow">LEAD INTELLIGENCE</div><h2 id="modalTitle">Neuer Lead</h2></div><button class="icon-close" id="closeModal" aria-label="Schließen">✕</button></header><div class="modal-body"><section id="leadFile" class="lf-file hidden" aria-live="polite"></section><form id="leadForm"><input type="hidden" name="id"><div class="field-grid"><label class="field-wide">Firma <span>*</span><input name="company" required maxlength="200" placeholder="Beispiel GmbH"></label><label>Website<input name="website" type="url" placeholder="https://..."></label><label>Standort<input name="location" maxlength="160" placeholder="z. B. Stuttgart"></label><label>Kontaktrolle<input name="contact_role" maxlength="120" placeholder="z. B. Marketing / Inhaber"></label><label>Kontaktperson<input name="contact_name" maxlength="160" placeholder="Optional"></label><label>Branche<select name="industry" id="industrySelect"></select></label><label>Mitarbeitende (Schätzung)<input name="employees" type="number" min="0" step="1" placeholder="50"></label><label>Signaltyp<select name="signal_type" id="signalSelect"></select></label><label>Signaldatum<input name="signal_date" type="date"></label><label class="field-wide">Öffentliche Quelle / Beleg-URL<input name="signal_source" type="url" placeholder="https://unternehmen.de/news/..."></label><label class="field-wide">Signal-Beobachtung<textarea name="signal_note" rows="2" maxlength="2000" placeholder="Was ist faktisch erkennbar? Was ist bloß eine Hypothese?"></textarea></label><label>Passendes Angebot<select name="offer" id="offerSelect"></select></label><label>Geschätztes Projektbudget (€)<input name="estimated_budget" type="number" min="0" step="1" placeholder="8500"></label><label>Pipeline-Phase<select name="stage" id="stageSelect"></select></label><label>Wie kam der Kontakt zustande?<select name="contact_route" id="routeSelect"></select></label><label>Rechtsstatus Kontakt<select name="permission" id="permissionSelect"></select></label><label class="field-wide">Dokumentation Einwilligung / Rechtsprüfung<input name="permission_evidence" maxlength="500" placeholder="Datum, Quelle, Umfang – kein bloßes Bauchgefühl"></label><label class="field-wide">Notizen<textarea name="note" rows="2" maxlength="4000"></textarea></label><label>Nächster Schritt<input name="next_step" maxlength="500" placeholder="z. B. persönliches Intro erfragen"></label><label>Nächster Termin<input name="next_date" type="date"></label></div><div class="score-panel"><div><strong>Prioritätsscore</strong><span>keine Abschlusswahrscheinlichkeit</span></div><div id="modalScore">—</div></div><div id="scoreReasons" class="reasons"></div><div class="form-actions"><button type="button" id="deleteLeadBtn" class="btn btn-danger hidden">Lead löschen</button><button type="button" class="btn btn-ghost" id="cancelLead">Abbrechen</button><button type="submit" class="btn btn-primary">Lead speichern</button></div></form><div id="leadExtras" class="hidden"><div class="divider"></div><div class="rp-modal-bar"><div><b>Firmen-Bericht</b><small>Impressum, Website-Bewertung, Inhalte & Ansprechpartner, Kaufsignale und Pakete in einem Klick</small></div><button type="button" class="btn btn-primary" id="leadReportBtn">Bericht öffnen / erstellen ▶</button></div><div class="divider"></div>
-<section class="audit-panel" aria-labelledby="factsTitle">
-  <div class="audit-title"><div><div class="eyebrow">FIRMENDATEN · BELEGE</div><h3 id="factsTitle">Firmendaten & Belege</h3></div><button type="button" class="btn btn-primary" id="leadImprintBtn">Impressum lesen &amp; übernehmen ↻</button></div>
-  <div id="leadCompanyData" class="dc-company"></div>
-  <details class="dc-facts-details"><summary>Alle Feldbelege anzeigen</summary><div id="leadFacts" class="sales-list"></div></details>
-</section>
+<div id="modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><header class="lf-modal-head"><div class="lf-title"><div class="eyebrow" id="modalEyebrow">LEAD INTELLIGENCE</div><h2 id="modalTitle">Neuer Lead</h2><small id="modalMeta" class="muted"></small></div><div class="lf-head-actions"><button type="button" class="btn btn-primary hidden" id="lfHeadNext"></button><button class="icon-close" id="closeModal" aria-label="Schließen">✕</button></div><nav class="lf-tabs hidden" id="leadTabs" role="tablist" aria-label="Bereiche der Firmenakte"><button type="button" role="tab" id="lfTab-ueberblick" data-lf-tab="ueberblick" aria-controls="leadFile" aria-selected="true">Überblick</button><button type="button" role="tab" id="lfTab-kontakt" data-lf-tab="kontakt" aria-controls="lfPanelKontakt" aria-selected="false" tabindex="-1">Kontakt &amp; Verlauf</button><button type="button" role="tab" id="lfTab-bedarf" data-lf-tab="bedarf" aria-controls="lfPanelBedarf" aria-selected="false" tabindex="-1">Bedarf &amp; Angebot</button><button type="button" role="tab" id="lfTab-recherche" data-lf-tab="recherche" aria-controls="lfPanelRecherche" aria-selected="false" tabindex="-1">Recherche</button><button type="button" role="tab" id="lfTab-stammdaten" data-lf-tab="stammdaten" aria-controls="leadForm" aria-selected="false" tabindex="-1">Stammdaten</button></nav></header><div class="modal-body"><section id="leadFile" class="lf-file hidden" aria-live="polite" role="tabpanel" aria-labelledby="lfTab-ueberblick" data-lf-panel="ueberblick"></section><form id="leadForm" role="tabpanel" aria-labelledby="lfTab-stammdaten" data-lf-panel="stammdaten"><input type="hidden" name="id"><div class="field-grid"><label class="field-wide">Firma <span>*</span><input name="company" required maxlength="200" placeholder="Beispiel GmbH"></label><label>Website<input name="website" type="url" placeholder="https://..."></label><label>Standort<input name="location" maxlength="160" placeholder="z. B. Stuttgart"></label><label>Kontaktrolle<input name="contact_role" maxlength="120" placeholder="z. B. Marketing / Inhaber"></label><label>Kontaktperson<input name="contact_name" maxlength="160" placeholder="Optional"></label><label>Branche<select name="industry" id="industrySelect"></select></label><label>Mitarbeitende (Schätzung)<input name="employees" type="number" min="0" step="1" placeholder="50"></label><label>Signaltyp<select name="signal_type" id="signalSelect"></select></label><label>Signaldatum<input name="signal_date" type="date"></label><label class="field-wide">Öffentliche Quelle / Beleg-URL<input name="signal_source" type="url" placeholder="https://unternehmen.de/news/..."></label><label class="field-wide">Signal-Beobachtung<textarea name="signal_note" rows="2" maxlength="2000" placeholder="Was ist faktisch erkennbar? Was ist bloß eine Hypothese?"></textarea></label><label>Passendes Angebot<select name="offer" id="offerSelect"></select></label><label>Geschätztes Projektbudget (€)<input name="estimated_budget" type="number" min="0" step="1" placeholder="8500"></label><label>Pipeline-Phase<select name="stage" id="stageSelect"></select></label><label>Wie kam der Kontakt zustande?<select name="contact_route" id="routeSelect"></select></label><label>Rechtsstatus Kontakt<select name="permission" id="permissionSelect"></select></label><label class="field-wide">Dokumentation Einwilligung / Rechtsprüfung<input name="permission_evidence" maxlength="500" placeholder="Datum, Quelle, Umfang – kein bloßes Bauchgefühl"></label><label class="field-wide">Notizen<textarea name="note" rows="2" maxlength="4000"></textarea></label><label>Nächster Schritt<input name="next_step" maxlength="500" placeholder="z. B. persönliches Intro erfragen"></label><label>Nächster Termin<input name="next_date" type="date"></label></div><div class="score-panel"><div><strong>Prioritätsscore</strong><span>keine Abschlusswahrscheinlichkeit</span></div><div id="modalScore">—</div></div><div id="scoreReasons" class="reasons"></div><div class="form-actions"><button type="button" id="deleteLeadBtn" class="btn btn-danger hidden">Lead löschen</button><button type="button" class="btn btn-ghost" id="cancelLead">Abbrechen</button><button type="submit" class="btn btn-primary">Lead speichern</button></div></form><div id="leadExtras" class="hidden">
+<div class="lf-panel" id="lfPanelKontakt" role="tabpanel" aria-labelledby="lfTab-kontakt" data-lf-panel="kontakt">
+<h3>Aktivitätsprotokoll</h3><form id="activityForm" class="activity-form"><select name="activity_type"><option value="notiz">Notiz</option><option value="anfrage">Anfrage (Inbound)</option><option value="gespraech">Gespräch</option><option value="angebot">Angebot</option><option value="einwand">Einwand</option><option value="abschluss">Abschluss</option><option value="widerspruch">Widerspruch</option></select><input name="detail" placeholder="Was wurde besprochen?" maxlength="2000"><button class="btn btn-ghost" type="submit">＋ Protokollieren</button></form><div id="activityRows" class="activities"></div>
 <div class="divider"></div>
-
-<section class="audit-panel" aria-labelledby="scoreTitle">
-  <div class="audit-title"><div><div class="eyebrow">WEBSITE-BEDARFS-SCORER v2</div><h3 id="scoreTitle">Website-Bewertung</h3></div><button type="button" class="btn btn-primary" id="leadScoreBtn">Website bewerten ↗</button></div>
-  <div id="leadScoreStatus" class="audit-status" role="status" aria-live="polite">Noch keine Bewertung.</div>
-  <div id="leadScoreResult"></div>
-</section>
-<div class="divider"></div>
-<section class="audit-panel" aria-labelledby="sigTitle">
-  <div class="audit-title"><div><div class="eyebrow">BUYING SIGNALS</div><h3 id="sigTitle">Kaufsignale & Hypothesen</h3></div><button type="button" class="btn btn-primary" id="leadCorrelateBtn">Signale verknüpfen ↗</button></div>
-  <div id="leadSignals"></div>
-</section>
+<h3>Gesprächsvorbereitung · manueller Entwurf</h3><p class="muted">Nur für zulässige Kontaktwege; keine automatische Nachricht.</p><div class="draft" id="draftText"></div><button id="copyDraft" class="btn btn-ghost">Text kopieren</button> <button type="button" id="exportBrief" class="btn btn-ghost">↓ Bedarfsbriefing als Markdown</button>
 <div class="divider"></div>
 <section class="audit-panel contact-panel" aria-labelledby="contactTitle">
   <div class="audit-title"><div><div class="eyebrow">BUYING COMMITTEE · B2B</div><h3 id="contactTitle">Entscheider & öffentliche Geschäftskontakte</h3></div><span class="audit-chip">Eigene Recherche · ohne Anbieter</span></div>
@@ -644,19 +631,8 @@
   <div id="siRoleMap"></div>
   <div id="siContacts" class="sales-list"></div>
 </section>
-<div class="divider"></div>
-<section class="audit-panel" aria-labelledby="auditTitle">
-  <div class="audit-title"><div><div class="eyebrow">WEBSITE INTELLIGENCE</div><h3 id="auditTitle">Website- & KI-Bedarfsanalyse</h3></div><span class="audit-chip">Mit Quellenprüfung</span></div>
-  <p class="muted">Zuerst eine Website speichern, dann die Analyse starten. Nur öffentliche Seiten, maximal 5 Unterseiten. Keine automatische Kontaktaufnahme.</p>
-  <div class="audit-controls">
-    <label>Analysemodus<select id="analysisProvider"><option value="ollama">Ollama · lokale KI</option><option value="rules">Ohne KI · Regelmodus</option></select></label>
-    <label>Ollama-Modell<input id="analysisModel" value="qwen3:8b" maxlength="80" spellcheck="false"></label>
-    <button type="button" class="btn btn-primary" id="startAnalysis">Website analysieren ↗</button>
-  </div>
-  <div id="analysisStatus" class="audit-status" role="status" aria-live="polite">Bisher keine Analyse.</div>
-  <div id="analysisResults" class="audit-results"></div>
-</section>
-<div class="divider"></div>
+</div>
+<div class="lf-panel" id="lfPanelBedarf" role="tabpanel" aria-labelledby="lfTab-bedarf" data-lf-panel="bedarf">
 <h3>Bedarfsanalyse – Erstgespräch</h3>
 <p class="muted">Nur Aussagen aus dem Gespräch dokumentieren. Freie Notizfelder bitte ohne sensible, unnötige Angaben. Speichern aktualisiert nicht automatisch den Lead-Status.</p>
 <div class="discovery-progress" id="discoveryProgress">Noch keine Bedarfsanalyse</div>
@@ -685,7 +661,39 @@
   <p class="muted">Aus Rechercheergebnissen abgeleitet. Übernehmen legt eine Aufgabe an; Kontaktaktionen brauchen danach eine eigene Freigabe.</p>
   <div id="siSuggestions" class="sales-list"></div>
 </section>
-<div class="divider"></div><h3>Gesprächsvorbereitung · manueller Entwurf</h3><p class="muted">Nur für zulässige Kontaktwege; keine automatische Nachricht.</p><div class="draft" id="draftText"></div><button id="copyDraft" class="btn btn-ghost">Text kopieren</button> <button type="button" id="exportBrief" class="btn btn-ghost">↓ Bedarfsbriefing als Markdown</button><h3>Aktivitätsprotokoll</h3><form id="activityForm" class="activity-form"><select name="activity_type"><option value="notiz">Notiz</option><option value="anfrage">Anfrage (Inbound)</option><option value="gespraech">Gespräch</option><option value="angebot">Angebot</option><option value="einwand">Einwand</option><option value="abschluss">Abschluss</option><option value="widerspruch">Widerspruch</option></select><input name="detail" placeholder="Was wurde besprochen?" maxlength="2000"><button class="btn btn-ghost" type="submit">＋ Protokollieren</button></form><div id="activityRows" class="activities"></div></div></div></div></div>
+</div>
+<div class="lf-panel" id="lfPanelRecherche" role="tabpanel" aria-labelledby="lfTab-recherche" data-lf-panel="recherche">
+<div class="rp-modal-bar"><div><b>Firmen-Bericht</b><small>Impressum, Website-Bewertung, Inhalte & Ansprechpartner, Kaufsignale und Pakete in einem Klick</small></div><button type="button" class="btn btn-primary" id="leadReportBtn">Bericht öffnen / erstellen ▶</button></div><div class="divider"></div>
+<section class="audit-panel" aria-labelledby="factsTitle">
+  <div class="audit-title"><div><div class="eyebrow">FIRMENDATEN · BELEGE</div><h3 id="factsTitle">Firmendaten & Belege</h3></div><button type="button" class="btn btn-primary" id="leadImprintBtn">Impressum lesen &amp; übernehmen ↻</button></div>
+  <div id="leadCompanyData" class="dc-company"></div>
+  <details class="dc-facts-details"><summary>Alle Feldbelege anzeigen</summary><div id="leadFacts" class="sales-list"></div></details>
+</section>
+<div class="divider"></div>
+
+<section class="audit-panel" aria-labelledby="scoreTitle">
+  <div class="audit-title"><div><div class="eyebrow">WEBSITE-BEDARFS-SCORER v2</div><h3 id="scoreTitle">Website-Bewertung</h3></div><button type="button" class="btn btn-primary" id="leadScoreBtn">Website bewerten ↗</button></div>
+  <div id="leadScoreStatus" class="audit-status" role="status" aria-live="polite">Noch keine Bewertung.</div>
+  <div id="leadScoreResult"></div>
+</section>
+<div class="divider"></div>
+<section class="audit-panel" aria-labelledby="sigTitle">
+  <div class="audit-title"><div><div class="eyebrow">BUYING SIGNALS</div><h3 id="sigTitle">Kaufsignale & Hypothesen</h3></div><button type="button" class="btn btn-primary" id="leadCorrelateBtn">Signale verknüpfen ↗</button></div>
+  <div id="leadSignals"></div>
+</section>
+<div class="divider"></div>
+<section class="audit-panel" aria-labelledby="auditTitle">
+  <div class="audit-title"><div><div class="eyebrow">WEBSITE INTELLIGENCE</div><h3 id="auditTitle">Website- & KI-Bedarfsanalyse</h3></div><span class="audit-chip">Mit Quellenprüfung</span></div>
+  <p class="muted">Zuerst eine Website speichern, dann die Analyse starten. Nur öffentliche Seiten, maximal 5 Unterseiten. Keine automatische Kontaktaufnahme.</p>
+  <div class="audit-controls">
+    <label>Analysemodus<select id="analysisProvider"><option value="ollama">Ollama · lokale KI</option><option value="rules">Ohne KI · Regelmodus</option></select></label>
+    <label>Ollama-Modell<input id="analysisModel" value="qwen3:8b" maxlength="80" spellcheck="false"></label>
+    <button type="button" class="btn btn-primary" id="startAnalysis">Website analysieren ↗</button>
+  </div>
+  <div id="analysisStatus" class="audit-status" role="status" aria-live="polite">Bisher keine Analyse.</div>
+  <div id="analysisResults" class="audit-results"></div>
+</section>
+</div></div></div></div></div>
 <script src="/app.js" defer></script>
 <script src="/workspace.js" defer></script>
 <script src="/accounting.js" defer></script>

@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev11. Was erledigt ist, steht im [`CHANGELOG.md`](../CHANGELOG.md); die Lücken im Einzelnen in [`LAUNCH_AUDIT.md`](LAUNCH_AUDIT.md),
+Stand 2.0.0-dev12. Was erledigt ist, steht im [`CHANGELOG.md`](../CHANGELOG.md); die Lücken im Einzelnen in [`LAUNCH_AUDIT.md`](LAUNCH_AUDIT.md),
 die Oberflächen-Vorschläge mit Messwerten in [`UI_UX_VORSCHLAEGE.md`](UI_UX_VORSCHLAEGE.md).
 
 Die Suche bleibt grundsätzlich ohne festgelegte Branche. Jede Stufe endet mit einem lauffähigen Stand, Tests unter Python 3.10
@@ -16,14 +16,15 @@ und 3.13, Browser-Tests und einem Eintrag im [`SELF_REVIEW_LOG.md`](SELF_REVIEW_
 | dev9 | Betriebe ohne Rechtsform einbezogen und gekennzeichnet, Branche aus OSM-Merkmal, „Alle Treffer übernehmen“ |
 | dev10 | Datenschutz-Nachweis mit Löschfrist für Betriebe ohne Rechtsform, Hinweistext nach Art. 14 DSGVO, Löschen nach Fristablauf |
 | dev11 | Themes (Klassisch, Schiefer, Sand, Kontrast), Hell/Dunkel, Dichte „Kompakt“; geprüfte Kontraste |
+| dev12 | Firmenakte mit fünf Reitern und stehendem Kopf; einheitliche Statusmarken mit Symbol |
 
 ## Als Nächstes – lokaler Pilot
 
 | Nr. | Arbeitspaket | Warum | Voraussetzung |
 |---|---|---|---|
 | 1 | **Praxistest auf dem eigenen Rechner:** echten OSM-Auszug einlesen, danach Website-Zuordnung und Firmen-Berichte an 50–100 Betrieben gegen eine von Hand geprüfte Referenzliste messen | Website-Zuordnung, Tempo bei tausenden Treffern und Branchenabdeckung sind in der Cloud-Umgebung nicht messbar | Eigentümer führt aus; parallel zu allem anderen |
-| 2 | **Firmenakte mit Reitern** (Vorschlag V2): Überblick, Kontakt & Erreichbarkeit, Bewertung, Verlauf, Stammdaten; stehender Kopf mit nächster Aktion | Der Lead-Dialog ist heute rund zehn Bildschirme lang | – |
-| 3 | **Einheitliche Statusmarken** (V6) für Passung, Phase, Frist und Quelle – mit Symbol, nicht nur Farbe | elf Varianten; Farbe allein trägt Bedeutung | – |
+| 2 | ~~Firmenakte mit Reitern~~ (V2) – erledigt in 2.0.0-dev12 | – | – |
+| 3 | ~~Einheitliche Statusmarken~~ (V6) – erledigt in 2.0.0-dev12. Offen: Filter- und Zählerchips (`sw-chip`, `rc-chip`, `td-chip`) angleichen | – | – |
 | 4 | **Bereich „Einstellungen“** (V3), danach **Navigation auf sechs Bereiche** (V4); alten Lead-Fit in der Anzeige ablösen | Einstellungen liegen in fünf Ansichten verstreut; 16 Navigationseinträge | – |
 | 5 | **Lead-Liste mit Filterchips und gespeicherten Ansichten** (V5) | Filtern geht nur nach Phase | Nr. 3 |
 | 6 | **Branche für GLEIF-Treffer** aus Impressum und Website-Inhalt | 64 % der GLEIF-Treffer ohne Branche | Praxistest (Nr. 1) |
@@ -32,7 +33,7 @@ und 3.13, Browser-Tests und einem Eintrag im [`SELF_REVIEW_LOG.md`](SELF_REVIEW_
 | 9 | **Zeiten je Leistung** in der Nachkalkulation; Katalogwerte aus Ist-Zeiten vorschlagen | Kalkulation lernt aus der Praxis | Nr. 8, genug abgeschlossene Aufträge |
 | 10 | **Übrige Hintergrund-Module auf die neustartfeste Auftragsliste** | fünf Module laufen noch als einfacher Thread | – |
 
-Vorgeschlagener Zuschnitt der nächsten Stufen: **dev12** = Nr. 2 + 3, **dev13** = Nr. 4, **dev14** = Nr. 5 + 8.
+Vorgeschlagener Zuschnitt der nächsten Stufen: **dev13** = Nr. 4, **dev14** = Nr. 5 + 8.
 Nr. 6 und 7 folgen, sobald der Praxistest Daten liefert.
 
 ## Danach – Buchhaltung

@@ -399,6 +399,26 @@ Nachbesserungen innerhalb des Pakets:
 
 **Entscheid:** Vorschläge V2–V9 dem Eigentümer zur Auswahl vorlegen; Empfehlung V2 → V3 → V6.
 
+## Arbeitspaket 11 – Firmenakte mit Reitern, einheitliche Statusmarken (2.0.0-dev12)
+
+Auftrag: weitermachen nach dem Merge von dev10/dev11; umgesetzt wurden die empfohlenen Vorschläge V2 und V6 aus `UI_UX_VORSCHLAEGE.md`.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 543 Tests bestanden (6 neu) |
+| Browser-Tests | 8 von 8 (1 neu: Kopf, jeder Reiter zeigt genau seinen Bereich, Tastatur, Sprung in verdeckten Reiter, neuer Lead ohne Reiter); die älteren Tests, die in der Firmenakte klicken, laufen unverändert |
+| Kein Element verloren | alle 27 IDs des Dialogs vor dev12 vorhanden, jedes im fachlich richtigen Reiter (Test) |
+| Länge | längster Reiter 2.322 px statt rund 7.800 px für den ganzen Dialog (1366 × 768, Test verlangt unter 4.000 px) |
+| Statusmarken | jede der fünf Stufen mit Symbol; negative Zustände in sechs Skripten von „off“ auf „bad“ umgestellt (Test) |
+
+**Selbstbewertung 4 von 5.** Abzug, weil Filter- und Zählerchips noch eigene Formen haben und die Reiter keine Zähler zeigen (etwa offene Aufgaben).
+
+Nachbesserung innerhalb des Pakets: Im ersten Entwurf stand im Reiter „Kontakt & Verlauf“ das Aktivitätsprotokoll ganz unten unter der Entscheider-Recherche – im Bildschirmfoto gesehen und nach oben gezogen, weil es die häufigste Handlung ist.
+
+**Verbleibende Schwachstellen:** (1) Einstellungen weiter verstreut (V3 offen); (2) Darstellung je Installation; (3) weiterhin kein Lauf mit echtem OpenStreetMap-Auszug.
+
+**Entscheid:** als Nächstes V3 (Bereich Einstellungen), dann V4 (Navigation).
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

@@ -4,7 +4,7 @@
 (function () {
   const esc = v => escapeHTML(String(v ?? ''));
   const STATUS = {queued: ['wartet', 'wait'], running: ['läuft', 'wait'], paused: ['pausiert', 'mid'], done: ['fertig', 'ok'],
-    partial: ['teilweise fertig', 'mid'], failed: ['fehlgeschlagen', 'off'], cancelled: ['abgebrochen', 'off'], skipped: ['übersprungen', 'off']};
+    partial: ['teilweise fertig', 'mid'], failed: ['fehlgeschlagen', 'bad'], cancelled: ['abgebrochen', 'off'], skipped: ['übersprungen', 'off']};
   const KIND = {sweep: 'Sammelsuche', website: 'Website-Suche', report: 'Firmen-Berichte', catalog_import: 'GLEIF-Katalog'};
   const open = new Set();
   let timer = null;

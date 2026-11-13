@@ -10,7 +10,7 @@
   const NEED_SKIP = ['anreise', 'aufwand', 'tagessatz'];
   let catalog = null, file = null, filter = '', cdPoll = null;
   const CD_STATE = {uebernommen: ['übertragen', 'ok'], laeuft: ['wird gelesen …', 'wait'], vorschlag: ['Website bestätigen', 'mid'],
-    ohne_website: ['keine Website', 'off'], kein_impressum: ['kein Impressum gefunden', 'mid'], fehler: ['nicht gelesen', 'off'], offen: ['noch nicht gelesen', 'mid']};
+    ohne_website: ['keine Website', 'off'], kein_impressum: ['kein Impressum gefunden', 'mid'], fehler: ['nicht gelesen', 'bad'], offen: ['noch nicht gelesen', 'mid']};
   const CD_FIELDS = {legal_name: 'Firmenname', street: 'Straße', zip: 'PLZ', city: 'Ort', register_number: 'Registernr.', vat_id: 'USt-IdNr.',
     business_phone: 'Telefon', business_email: 'E-Mail'};
 
@@ -66,6 +66,61 @@
       <ol class="lf-tl">${items.slice(0, 80).map(e => `<li><span class="lf-ic" aria-hidden="true">${KIND_ICON[e.kind] || '•'}</span><div><b>${esc(e.title)}</b><small>${esc(e.at)}${e.detail ? ' · ' + esc(e.detail) : ''}</small></div></li>`).join('') || '<li class="muted">Noch nichts dokumentiert.</li>'}</ol>`;
   }
 
+  // 2.0.0-dev12: Firmenakte mit Reitern. Kopf mit Name, Phase, Passung und nächster Aktion bleibt beim Scrollen stehen.
+  const TABS = ['ueberblick', 'kontakt', 'bedarf', 'recherche', 'stammdaten'];
+  const panel = name => document.querySelector(`[data-lf-panel="${name}"]`);
+  let headAction = null;
+
+  function setTab(name, focus = false) {
+    if (!TABS.includes(name)) name = 'ueberblick';
+    for (const t of TABS) {
+      const on = t === name, b = document.querySelector(`[data-lf-tab="${t}"]`);
+      panel(t)?.classList.toggle('lf-panel-off', !on);
+      if (b) { b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); }
+    }
+    const scroller = $('#modal .modal');
+    if (scroller) scroller.scrollTop = 0;
+  }
+
+  function resetTabs(existing) {
+    const tabs = $('#leadTabs');
+    if (!tabs) return;
+    tabs.classList.toggle('hidden', !existing);
+    tabs.closest('header')?.classList.toggle('with-tabs', !!existing);
+    $('#lfHeadNext')?.classList.add('hidden');
+    headAction = null;
+    if ($('#modalMeta')) $('#modalMeta').textContent = '';
+    if ($('#modalEyebrow')) $('#modalEyebrow').textContent = existing ? 'FIRMENAKTE' : 'NEUER LEAD';
+    if (existing) setTab('ueberblick');
+    else for (const t of TABS) panel(t)?.classList.toggle('lf-panel-off', t !== 'stammdaten');
+  }
+
+  function head(f) {
+    const grade = f.assessment?.fit.grade;
+    $('#modalTitle').textContent = f.lead.company;
+    $('#modalMeta').textContent = `Phase ${f.lead.stage} · Passung ${grade === 'X' ? 'Ausschluss' : (grade || 'offen')} · Belege ${f.coverage.pct} %`;
+    const btn = $('#lfHeadNext'), n = f.next;
+    headAction = n && n.action && !n.blocked ? n.action : null;
+    if (btn) { btn.classList.toggle('hidden', !headAction); btn.textContent = headAction ? headAction.label + ' ▶' : ''; btn.title = headAction ? 'Als Nächstes: ' + n.label : ''; }
+  }
+
+  window.leadTabs = {reset: resetTabs, show: setTab, reveal(el) { const p = el && el.closest('[data-lf-panel]'); if (p) setTab(p.dataset.lfPanel); }};
+
+  function initTabs() {
+    const tabs = $('#leadTabs');
+    if (!tabs) return;
+    tabs.addEventListener('click', e => { const b = e.target.closest('[data-lf-tab]'); if (b) setTab(b.dataset.lfTab); });
+    tabs.addEventListener('keydown', e => {
+      const cur = TABS.indexOf(document.activeElement?.dataset?.lfTab);
+      if (cur < 0) return;
+      const next = {ArrowRight: cur + 1, ArrowLeft: cur - 1, Home: 0, End: TABS.length - 1}[e.key];
+      if (next === undefined) return;
+      e.preventDefault();
+      setTab(TABS[(next + TABS.length) % TABS.length], true);
+    });
+    $('#lfHeadNext')?.addEventListener('click', () => { if (headAction) go(headAction); });
+  }
+
   async function render(id) {
     const box = $('#leadFile');
     try {
@@ -73,8 +128,9 @@
       if (currentLeadId !== id) return;
       const n = file.next, need = file.need;
       const svcs = await services();
-      box.innerHTML = `<div class="lf-head"><div><span class="eyebrow">FIRMENAKTE</span><h3>${esc(file.lead.company)}</h3>
-          <small class="muted">Passung ${file.assessment?.fit.grade === 'X' ? 'Ausschluss' : (file.assessment?.fit.grade || 'offen')} · Belege ${file.coverage.pct} % · Phase ${esc(file.lead.stage)}${file.lead.next_step ? ` · nächster Schritt: ${esc(file.lead.next_step)}${file.lead.next_date ? ' (' + esc(fmtDate(file.lead.next_date)) + ')' : ''}` : ''}</small></div>
+      head(file);
+      box.innerHTML = `<div class="lf-head"><div><span class="eyebrow">VEREINBART</span>
+          <small class="muted">${file.lead.next_step ? `Nächster Schritt: ${esc(file.lead.next_step)}${file.lead.next_date ? ' (' + esc(fmtDate(file.lead.next_date)) + ')' : ''}` : 'Kein nächster Schritt eingetragen – unter „Stammdaten“ festhalten.'}</small></div>
         <div class="lf-next ${n.blocked ? 'blocked' : ''}"><small>${n.blocked ? 'Gesperrt' : 'Als Nächstes'}</small><b>${esc(n.label)}</b><small>${esc(n.detail || '')}</small>
           ${n.action ? `<button type="button" class="btn btn-primary" data-lf-go='${esc(JSON.stringify(n.action))}'>${esc(n.action.label)} ▶</button>` : ''}</div></div>
         ${file.lock ? `<div class="lf-lock" role="alert">⛔ Kontaktsperre: Firma ist ${esc(file.lock)}. Anruf, Termin, Mail-Entwurf und Angebot sind gesperrt. Ein Widerspruch lässt sich immer dokumentieren.</div>` : ''}
@@ -88,7 +144,7 @@
           <div class="lf-need" id="lfNeed"><b>Bedarf ${need.confirmed ? `bestätigt <span class="sw-web ok">am ${esc(fmtDate(need.confirmed_at.slice(0, 10)))}</span>` : '<span class="sw-web mid">noch nicht bestätigt</span>'}</b>
             ${need.confirmed ? `<small>${esc(need.note)}</small><ul class="lf-need-list">${need.needs.map(x => `<li>${esc(svcs.find(s => s.key === x.service)?.title || x.service)}${x.size ? ' · ' + esc({S: 'Basis', M: 'Standard', L: 'Umfangreich'}[x.size]) : ''}${x.qty ? ' · ' + x.qty + '×' : ''}</li>`).join('')}</ul>
               <div class="acc-btn-group"><button type="button" class="btn btn-primary" data-lf-quote>Angebot aus bestätigtem Bedarf</button><button type="button" class="text-button" data-lf-reopen>Bedarf neu klären</button></div>`
-            : `<small class="muted">Manuelle Freigabe: erst nach einem dokumentierten Gespräch (${need.talks} vorhanden) und mit Problem und Ziel aus der Bedarfsanalyse unten. Ein Angebot gilt erst danach als „beim Kunden“.</small>
+            : `<small class="muted">Manuelle Freigabe: erst nach einem dokumentierten Gespräch (${need.talks} vorhanden) und mit Problem und Ziel aus der Bedarfsanalyse (Reiter „Bedarf &amp; Angebot“). Ein Angebot gilt erst danach als „beim Kunden“.</small>
               ${file.lock ? '' : `<details class="lf-need-form"><summary>Bedarf bestätigen …</summary><form id="lfNeedForm">
                 <label>Bestätigt<select name="via"><option value="gespraech">im Telefonat</option><option value="termin">im Termin</option><option value="schriftlich">schriftlich vom Kunden</option></select></label>
                 <label>Was hat der Kunde bestätigt?<textarea name="note" rows="2" maxlength="1000" required placeholder="z. B. Website-Relaunch mit Anfrageformular bis März, Budget freigegeben"></textarea></label>
@@ -110,8 +166,8 @@
 
   async function go(action) {
     if (action.view === 'quote_from_need') return quoteFromNeed();
-    if (action.focus === 'permission') { $('#leadForm [name=permission]')?.focus(); $('#leadForm [name=permission]')?.scrollIntoView({behavior: 'smooth', block: 'center'}); return; }
-    if (action.focus === 'need') { const d = $('#lfNeed details'); if (d) { d.open = true; d.scrollIntoView({behavior: 'smooth', block: 'center'}); } else $('#discoveryForm')?.scrollIntoView({behavior: 'smooth'}); return; }
+    if (action.focus === 'permission') { setTab('stammdaten'); $('#leadForm [name=permission]')?.focus(); $('#leadForm [name=permission]')?.scrollIntoView({behavior: 'smooth', block: 'center'}); return; }
+    if (action.focus === 'need') { const d = $('#lfNeed details'); if (d) { setTab('ueberblick'); d.open = true; d.scrollIntoView({behavior: 'smooth', block: 'center'}); } else { setTab('bedarf'); $('#discoveryForm')?.scrollIntoView({behavior: 'smooth'}); } return; }
     if (action.view === 'signals' || action.view === 'accounting') { closeModal(); return switchView(action.view); }
     closeModal();
     return window.goAction(action);
@@ -128,6 +184,7 @@
   }
 
   function init() {
+    initTabs();
     if (!$('#leadFile')) return;
     const box = $('#leadFile');
     box.addEventListener('click', async e => {

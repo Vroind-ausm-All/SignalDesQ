@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev12 – Firmenakte mit Reitern, einheitliche Statusmarken
+
+- **Firmenakte mit fünf Reitern:** Überblick · Kontakt & Verlauf · Bedarf & Angebot · Recherche · Stammdaten. Der Dialog war rund 7.800 Pixel lang (etwa zehn Bildschirme); der längste Reiter hat jetzt rund 2.300 Pixel.
+- **Kopf bleibt stehen:** Firmenname, Phase, Passung, Belegabdeckung und der Knopf für die nächste Aktion sind beim Scrollen und in jedem Reiter sichtbar.
+- Im Reiter „Kontakt & Verlauf“ steht das Aktivitätsprotokoll oben, weil man es am häufigsten braucht.
+- Sprünge aus „Als Nächstes“ öffnen den passenden Reiter, z. B. „Rechtsgrundlage klären“ die Stammdaten.
+- Reiter per Tastatur: Pfeiltasten, Pos1 und Ende. Ein neuer Lead öffnet wie bisher nur das Formular.
+- **Einheitliche Statusmarken:** fünf Stufen – erledigt ✓, Hinweis !, Problem ✕, offen ○, neutral –. Jede trägt ein Symbol, damit die Bedeutung nicht nur an der Farbe hängt. Bisher war „passt nicht“ an einer Stelle grau, an anderer rot; Probleme sind jetzt überall rot.
+- Kein Schemawechsel, keine Daten geändert. 543 Tests (6 neu) unter Python 3.10 und 3.13, 8 Browser-Tests (1 neu).
+
 ## 2.0.0-dev11 – Darstellung: Themes, Hell/Dunkel, Kompakt
 
 - **Vier Themes, jedes hell und dunkel:** Klassisch (bisheriger Stand), Schiefer (kühles Grau, blauer Akzent), Sand (warme Erdtöne, Terrakotta) und Kontrast (kräftige Linien, höchster Kontrast). Auswahl unter *Erweitert → Datenqualität & System → Darstellung*, mit Vorschau-Kacheln.

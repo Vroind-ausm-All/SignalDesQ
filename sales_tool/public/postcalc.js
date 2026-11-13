@@ -5,7 +5,7 @@
   const esc = v => escapeHTML(String(v ?? ''));
   const num = v => (v === null || v === undefined ? '–' : String(v).replace('.', ','));
   const eur = v => (v === null || v === undefined ? '–' : Number(v).toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €');
-  const ST = {nicht_begonnen: ['keine Zeiten', 'wait'], laeuft: ['läuft', 'ok'], ueberzogen: ['über Kalkulation', 'off'], abgeschlossen: ['abgeschlossen', 'mid']};
+  const ST = {nicht_begonnen: ['keine Zeiten', 'wait'], laeuft: ['läuft', 'ok'], ueberzogen: ['über Kalkulation', 'bad'], abgeschlossen: ['abgeschlossen', 'mid']};
 
   function card(p) {
     const st = ST[p.status] || [p.status, 'wait'];
