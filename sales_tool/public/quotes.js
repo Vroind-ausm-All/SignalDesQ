@@ -236,7 +236,8 @@
       if (!leadId) return toast('Bitte Firma auswählen', true);
       if (!positions.length) return toast('Bitte mindestens eine Position hinzufügen', true);
       try {
-        const saved = await api('/workspace/proposals', 'POST', {lead_id: leadId, ...payload()});
+        const ch = $('#quoteForm [name=opportunity_id]')?.value;  // 2.0.0-dev18: Chance des Angebots
+        const saved = await api('/workspace/proposals', 'POST', {lead_id: leadId, ...payload(), ...(ch ? {opportunity_id: ch} : {})});
         toast('Angebotsentwurf gespeichert – noch nicht versendet');
         await window.refreshSalesQuotes();
         await window.wsOpenProposal(saved.id);

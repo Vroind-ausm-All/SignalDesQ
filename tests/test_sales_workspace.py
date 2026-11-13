@@ -10,7 +10,7 @@ from urllib.request import Request, urlopen
 
 import sys
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).parent))
-from s5_helpers import confirm_need  # noqa: E402
+from s5_helpers import confirm_need, release_offer  # noqa: E402
 from sales_tool.model import connect, init_db
 from sales_tool.server import make_handler
 from sales_tool.sales_workspace import quote_preview, customer_markdown, daily_view, create_call, create_mail_draft
@@ -129,6 +129,10 @@ class WorkspaceApiTests(unittest.TestCase):
         self.assertEqual(code,409)  # v1.18: erst nach bestätigtem Bedarf
         self.assertIn('Bedarf',err['error'])
         confirm_need(self.path,lead_id)
+        code,err=self.call('PATCH','/api/workspace/proposals/'+str(offer['id']),{'status':'gesendet_manuell'})
+        self.assertEqual(code,409)  # 2.0.0-dev17: erst die Versandfassung freigeben
+        self.assertIn('Versandfassung',err['error'])
+        release_offer(self.path,offer['id'])
         code,status=self.call('PATCH','/api/workspace/proposals/'+str(offer['id']),{'status':'gesendet_manuell'})
         self.assertEqual(code,200)
         code,history=self.call('GET','/api/workspace/proposals')
@@ -139,6 +143,7 @@ class WorkspaceApiTests(unittest.TestCase):
         _,offer=self.call('POST','/api/workspace/proposals',{'lead_id':lid,'package':'pilot','tax_mode':'regel_19'})
         ident=str(offer['id'])
         confirm_need(self.path,lid)
+        release_offer(self.path,offer['id'])
         self.call('PATCH','/api/workspace/proposals/'+ident,{'status':'gesendet_manuell'})
         self.call('PATCH','/api/workspace/proposals/'+ident,{'status':'gesendet_manuell'})
         _,view=self.call('GET','/api/workspace')

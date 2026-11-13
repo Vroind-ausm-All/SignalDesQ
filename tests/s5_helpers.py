@@ -17,3 +17,15 @@ def confirm_need(db_or_conn, lead_id, needs=None):
         return run(db_or_conn)
     with connect(db_or_conn) as conn:
         return run(conn)
+
+
+def release_offer(db_or_conn, proposal_id):
+    """2.0.0-dev17: Versandfassung freigeben, wie ein Nutzer es tut (alle Prüfpunkte bestätigt)."""
+    from sales_tool import offer_flow
+
+    def run(conn):
+        return offer_flow.release(conn, proposal_id, {'confirm': list(offer_flow.CONFIRMATIONS)})
+    if hasattr(db_or_conn, 'execute'):
+        return run(db_or_conn)
+    with connect(db_or_conn) as conn:
+        return run(conn)

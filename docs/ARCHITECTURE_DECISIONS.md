@@ -79,3 +79,12 @@ Optimierungsliste zum Master-Prompt – höchstens zehn Punkte, jeder überprüf
 - **Gewählt: A.** C ist genau der Zustand, den das Review bemängelt (Empfehlung „ab 18.500 €“, Angebot 13.510 € für dieselbe Vorlage). B bringt Migration und Rückbaurisiko für eine Eigenschaft (eigene Leistungen anlegen), die noch niemand gebraucht hat. A behält alle Kennungen, braucht deshalb keine Datenmigration, und eigene Werte liegen wie bisher in `app_settings` (`service_overrides`).
 - **Gespeicherte Angebote** sind Kopien (Kunden- und interner Teil als JSON) und werden nie umgerechnet; neue Angebote speichern intern einen Katalogstand (Prüfsumme aus Katalog, eigenen Werten und Grundlagen).
 - **Rückbau:** Vorlagen-Positionen in `catalog.VORLAGEN` ändern oder eigene Werte zurücksetzen. Die früheren Zahlen stehen in `catalog.FRUEHER` (nur zur Nachvollziehbarkeit).
+
+## E9 – Verkaufschancen je Firma (2.0.0-dev18, Review M13)
+
+- **Variante A:** neue Tabelle `opportunities`; Angebote und Termine verweisen auf eine Chance; die Firmenphase (`leads.stage`) bleibt als Spalte und wird aus den Chancen abgeleitet (nur nach oben bzw. zum Abschluss).
+- **Variante B:** Phase, Bedarf und nächster Schritt vollständig von der Firma in die Chance verschieben und alle rund 30 lesenden Stellen auf einmal umstellen.
+- **Variante C:** Chancen nur als Notizen ohne eigene Phase.
+- **Gewählt: A, in zwei Teilen.** B ist ein großer Umbau ohne Zwischenstand, der sich nicht sicher abnehmen lässt. C erfüllt die Abnahme nicht. Mit A lesen alle bisherigen Ansichten weiter die Firmenphase, die nun aus den Chancen folgt; neue Ereignisse (Termin, Versand, Zusage) schreiben auf ihre Chance. Teil 2 verschiebt Bedarfsanalyse und Freigabe in die Chance und zeigt Chancen in Pipeline und Heute.
+- **Erste Chance:** nutzt bis Teil 2 die Bedarfsanalyse der Firma (Tabelle `discovery`), damit kein Bedarf doppelt gespeichert wird.
+- **Rückbau:** Die Spalten `opportunity_id` dürfen leer sein; ohne Chancen verhält sich SignalDesk wie vorher. Die Tabelle kann bleiben.

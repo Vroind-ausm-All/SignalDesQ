@@ -26,6 +26,7 @@ from .sales_workspace import (
 )
 from .accounting_api import route_accounting, route_print
 from .lead_finder import route_lead_finder
+from .offer_flow import route_offer_flow
 from .imprint_batch import route_imprint, route_company_data, recover_batches
 from .company_data import check_suppressed, suppress_lead
 from .website_scorer import route_scoring, recover_audits
@@ -51,7 +52,7 @@ from . import focus as focus_mod
 from .research import osm_local
 from . import netpolicy
 from .backup_restore import route_restore
-from .workday import route_workday, ContactLocked, check_stage_change, assert_contact_allowed, assert_need_confirmed, after_proposal_sent, after_meeting_done
+from .workday import route_workday, ContactLocked, check_stage_change, assert_contact_allowed, after_meeting_done
 from .report import route_report, recover_reports
 from .pricing import route_pricing
 from . import auth
@@ -204,7 +205,7 @@ def validate(fields: dict, partial=False):
 
 STATIC_FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
     "/style.css": ("style.css", "text/css"), "/theme.js": ("theme.js", "text/javascript"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/nav.js": ("nav.js", "text/javascript"), "/leadlist.js": ("leadlist.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/offerflow.js": ("offerflow.js", "text/javascript"), "/chances.js": ("chances.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/nav.js": ("nav.js", "text/javascript"), "/leadlist.js": ("leadlist.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
 
 LOOPBACK_HOSTS = frozenset({'127.0.0.1', 'localhost', '::1'})
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
@@ -449,44 +450,28 @@ def make_handler(db_path, allowed_hosts=None):
                 if route == '/api/workspace/proposals':
                     if method == 'GET': return self._send(200,proposal_rows(conn))
                     if method == 'POST': return self._send(201,make_proposal(conn,self._body()))
+                if route_offer_flow(self, conn, method, route):  # 2.0.0-dev17: Versandfassung, Projektstart
+                    return
+                from .chances import route_chances
+                if route_chances(self, conn, method, route):  # 2.0.0-dev18: Verkaufschancen je Firma
+                    return
                 proposal_match=re.fullmatch(r'/api/workspace/proposals/(\d+)(/customer)?',route)
                 if proposal_match:
                     ident=int(proposal_match.group(1))
                     if method=='GET':
                         try: detail=proposal_detail(conn,ident,customer_only=bool(proposal_match.group(2)))
                         except ValueError as exc: return self._error(str(exc),404)
-                        if proposal_match.group(2): detail['markdown']=customer_markdown(detail['customer'])
+                        if proposal_match.group(2):
+                            from .offer_flow import release_info, state as offer_state
+                            rel=release_info(conn.execute('SELECT * FROM proposals WHERE id=?',(ident,)).fetchone())
+                            detail['markdown']=customer_markdown(detail['customer'],rel)
+                            detail['release']=rel
+                            detail['filename']=offer_state(conn,ident)['filename']
                         return self._send(200,detail)
                     if method=='PATCH' and not proposal_match.group(2):
-                        body=self._body()
-                        if not isinstance(body,dict) or set(body)!={'status'} or body['status'] not in QUOTE_STATUSES:
-                            return self._error('Ungültiger Angebotsstatus.')
-                        row=conn.execute('SELECT id FROM proposals WHERE id=?',(ident,)).fetchone()
-                        if not row: return self._error('Angebot nicht gefunden.',404)
-                        if body['status'] in ('gesendet_manuell','angenommen'):
-                            current=proposal_detail(conn,ident,customer_only=True)
-                            if current['customer']['tax_mode']=='offen':
-                                return self._error('Steuerstatus noch offen: Angebot nicht als gesendet/angenommen markieren.')
-                            plead=conn.execute('SELECT * FROM leads WHERE id=?',(current['lead_id'],)).fetchone()
-                            assert_contact_allowed(conn,plead,'Angebot versenden/annehmen')
-                            assert_need_confirmed(conn,current['lead_id'],'Angebot als gesendet/angenommen markieren')
-                        prev=conn.execute('SELECT status,lead_id FROM proposals WHERE id=?',(ident,)).fetchone()
-                        conn.execute("UPDATE proposals SET status=?,updated_at=datetime('now') WHERE id=?",(body['status'],ident))
-                        if body['status']=='angenommen' and prev['status']!='angenommen':
-                            lead_row=conn.execute('SELECT stage FROM leads WHERE id=?',(prev['lead_id'],)).fetchone()
-                            if lead_row and lead_row['stage'] not in ('gesperrt','gewonnen'):
-                                conn.execute("UPDATE leads SET stage='gewonnen',updated_at=datetime('now') WHERE id=?",(prev['lead_id'],))
-                            conn.execute('INSERT INTO activities(lead_id,activity_type,detail) VALUES (?,?,?)',
-                                         (prev['lead_id'],'abschluss','Angebot #'+str(ident)+' als angenommen dokumentiert. Nächster Schritt: Rechnung/Abschlag erstellen.'))
-                        if body['status']=='gesendet_manuell' and prev['status']!='gesendet_manuell':
-                            from datetime import timedelta
-                            followup=(date.today()+timedelta(days=7)).isoformat()
-                            conn.execute('INSERT INTO tasks(lead_id,title,due_date) VALUES (?,?,?)',
-                                         (prev['lead_id'],'Angebotsstatus und zulässige Rückfrage prüfen (#'+str(ident)+')',followup))
-                            after_proposal_sent(conn,prev['lead_id'],conn.execute('SELECT number FROM proposals WHERE id=?',(ident,)).fetchone()['number'] or '#'+str(ident))
-                        conn.commit()
-                        return self._send(200,{'saved':True,'status':body['status'],
-                                               'notice':'Der Status wird nur dokumentiert. Keine Nachricht wurde gesendet.'})
+                        from .offer_flow import set_status
+                        try: return self._send(200,set_status(conn,ident,self._body()))
+                        except LookupError as exc: return self._error(str(exc),404)
                 if route == '/api/workspace/calls':
                     if method=='GET':
                         lid=query.get('lead_id',[''])[0]
@@ -761,6 +746,9 @@ def make_handler(db_path, allowed_hosts=None):
                         conn.execute(f"UPDATE leads SET {set_clause}, updated_at=datetime('now') WHERE id = ?", (*data.values(), ident))
                         if data.get("stage") == "gesperrt":
                             suppress_lead(conn, ident)
+                        if data.get("stage") == "verloren" and row["stage"] != "verloren":
+                            from .chances import close_open
+                            close_open(conn, ident, data.get("lost_reason"), data.get("lost_note"))  # 2.0.0-dev18: keine offene Chance bei verlorener Firma
                         conn.commit()
                         if data.get("website") and data["website"] != row["website"]:  # v1.19: neue Website → Impressum lesen
                             conn.execute("UPDATE leads SET imprint_checked_at='' WHERE id=? AND (legal_name='' OR legal_name IS NULL)", (ident,))
@@ -914,7 +902,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 29  # 2.0.0-dev10 – bei Schemaänderungen erhöhen (Datenschutz-Nachweis für Betriebe ohne Rechtsform)
+SCHEMA_VERSION = 31  # 2.0.0-dev18 – bei Schemaänderungen erhöhen (Verkaufschancen je Firma)
 
 
 def backup_before_migration(db):
@@ -940,6 +928,9 @@ def prepare_database(db):
         if 0 < old_version < 29:
             from .company_data import backfill_sole_records
             backfill_sole_records(conn)  # 2.0.0-dev10: Nachweise für bereits übernommene Betriebe ohne Rechtsform nachziehen
+        if 0 < old_version < 31:
+            from .chances import ensure_first_chances
+            ensure_first_chances(conn)  # 2.0.0-dev18: eine erste Chance je Firma mit Verkaufsbezug, Angebote und Termine zugeordnet
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
         conn.execute("""UPDATE analysis_runs SET status='failed',error='Analyse durch Neustart unterbrochen.',
                         finished_at=datetime('now') WHERE status IN ('queued','running')""")

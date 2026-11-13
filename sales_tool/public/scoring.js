@@ -20,16 +20,18 @@
       return `<div class="sales-banner ${a.status === 'failed' ? 'sales-warning' : ''}">${a.status === 'failed' ? 'Bewertung fehlgeschlagen: ' + esc(a.error) : 'Bewertung läuft … (Seiten werden gerendert, ca. 20–60 Sekunden)'}</div>`;
     }
     const s = a.score, sum = a.summary;
-    const tile = (label, v, note) => `<div class="sc-tile"><small>${esc(label)}</small><b>${val(v)}</b>${note ? `<small>${note}</small>` : ''}</div>`;
+    // 2.0.0-dev17 (M27): Werte heißen, was sie sind – Auffälligkeiten (höher = mehr Hinweise), keine Qualitätsnote
+    const tile = (label, v, note, unit = '') => `<div class="sc-tile"><small>${esc(label)}</small><b>${val(v)}${v === null || v === undefined ? '' : unit}</b>${note ? `<small>${note}</small>` : ''}</div>`;
     const ar = s.basis.area_scores || {};
     const tiles = `<div class="sc-tiles">
-      ${tile('Gesamt (Priorität)', s.overall, esc(s.basis.overall_note || `Gewichtung ${s.basis.weights.potential}/${s.basis.weights.fit}/${s.basis.weights.signal}`))}
-      ${tile('Design & UX', s.design, `Belege ${ar.design ? ar.design.coverage_pct : 0} %`)}
-      ${tile('Web & Conversion', s.web, `Belege ${ar.web ? ar.web.coverage_pct : 0} %`)}
-      ${tile('Prozess & App', s.process, 'Hypothesen')}
-      ${tile('Passung zur Agentur', s.fit, esc(s.basis.fit_basis))}
+      ${tile('Akquise-Priorität', s.overall, esc(s.basis.overall_note || `aus Auffälligkeiten, Profilnähe und Anlass (${s.basis.weights.potential}/${s.basis.weights.fit}/${s.basis.weights.signal})`))}
+      ${tile('Auffällig: Design & UX', s.design, `Belege ${ar.design ? ar.design.coverage_pct : 0} %`, ' %')}
+      ${tile('Auffällig: Web & Conversion', s.web, `Belege ${ar.web ? ar.web.coverage_pct : 0} %`, ' %')}
+      ${tile('Auffällig: Prozess & App', s.process, 'nur Hypothesen', ' %')}
+      ${tile('Profilnähe (für die Priorität)', s.fit, esc(s.basis.fit_basis))}
       ${tile('Projektanlass', s.signal, esc(s.basis.signal_basis))}
-      ${tile('Belegabdeckung', s.coverage + ' %', 'Anteil bewertbarer Rubriken')}</div>`;
+      ${tile('Belegabdeckung', s.coverage + ' %', 'Anteil bewertbarer Rubriken')}</div>
+      <p class="muted sc-legend">So lesen: <b>Auffällig</b> = Anteil der geprüften Rubriken mit Hinweis – höher heißt mehr belegte Hinweise, keine schlechte Website. <b>Unbekannt</b> zählt nie als schlecht. <b>Akquise-Priorität</b> ordnet nur deine Recherche. Die <b>Passung</b> A/B/C der Firma und eine <b>Verkaufschance</b> (Bedarf, Zeitpunkt, Budget) stehen getrennt in der Firmenakte; eine Qualitätsnote für Websites gibt SignalDesk bewusst nicht.</p>`;
     const cmp = a.comparison ? `<p class="muted">${a.comparison.comparable ? `Vorherige Bewertung: ${val(a.comparison.previous_overall)} → Veränderung ${a.comparison.delta === null ? '–' : (a.comparison.delta > 0 ? '+' : '') + a.comparison.delta}` : esc(a.comparison.note)}</p>` : '';
     const shots = a.screenshots.length ? `<div class="sc-shots">${a.screenshots.map(sh => `<a href="/api/screenshots/${sh.id}" target="_blank" rel="noopener"><img src="/api/screenshots/${sh.id}" alt="Screenshot ${esc(SHOT[sh.kind] || sh.kind)} ${esc(sh.page_url)}" loading="lazy"><small>${esc(SHOT[sh.kind] || sh.kind)}</small></a>`).join('')}</div>` : '<p class="muted">Keine Screenshots (ohne Browser-Rendering erfasst).</p>';
     const obs = sum.observations.length ? sum.observations.map(f => `<li><b>${esc(f.issue || f.label)}</b> <span class="sc-cert ${esc(f.certainty)}">${esc(CERT[f.certainty])}</span><br><small>${esc(f.evidence)}${f.source_url ? ` · <a href="${esc(f.source_url)}" target="_blank" rel="noopener noreferrer">Fundstelle ↗</a>` : ''}</small></li>`).join('') : '<li>Keine auffälligen Rubriken.</li>';
@@ -67,7 +69,8 @@
       renderPicker();
       const ov = await api('/scoring/overview');
       $('#scQueue').innerHTML = ov.queue.length ? ov.queue.map(q => `<div class="sales-item"><div><strong>${esc(q.company)}</strong><small>${esc({queued: 'wartet', running: 'läuft …', failed: 'fehlgeschlagen'}[q.status] || q.status)}${q.error ? ' · ' + esc(q.error) : ''}</small></div></div>`).join('') : '<div class="empty">Keine laufenden Bewertungen.</div>';
-      $('#scRanking').innerHTML = ov.ranking.length ? ov.ranking.map(r => `<tr><td><b>${esc(r.company)}</b><small>${esc(r.website)}</small></td><td><b>${val(r.overall)}</b></td><td>${val(r.design)}</td><td>${val(r.web)}</td><td>${val(r.process)}</td><td>${val(r.fit)}</td><td>${val(r.signal)}</td><td>${r.coverage} %</td><td><small>${esc(r.version)}${r.active ? '' : ' (alt)'}</small></td><td><button type="button" class="btn btn-ghost" data-sc-open="${r.audit_id}">Details</button></td></tr>`).join('') : '<tr><td colspan="10" class="empty">Noch keine Website bewertet.</td></tr>';
+      const pct = v => v === null || v === undefined ? val(v) : esc(v) + ' %';
+      $('#scRanking').innerHTML = ov.ranking.length ? ov.ranking.map(r => `<tr><td><b>${esc(r.company)}</b><small>${esc(r.website)}</small></td><td><b>${val(r.overall)}</b></td><td>${pct(r.design)}</td><td>${pct(r.web)}</td><td>${pct(r.process)}</td><td>${val(r.fit)}</td><td>${val(r.signal)}</td><td>${r.coverage} %</td><td><small>${esc(r.version)}${r.active ? '' : ' (alt)'}</small></td><td><button type="button" class="btn btn-ghost" data-sc-open="${r.audit_id}">Details</button></td></tr>`).join('') : '<tr><td colspan="10" class="empty">Noch keine Website bewertet.</td></tr>';
       renderConfig();
       clearTimeout(pollTimer);
       if (ov.queue.some(q => ['queued', 'running'].includes(q.status))) pollTimer = setTimeout(() => { if (currentView === 'scoring') window.refreshScoring(); }, 3000);
@@ -97,8 +100,8 @@
   function renderConfig() {
     const c = meta.config;
     const num = (name, v, min, max, step = 1) => `<input type="number" name="${name}" value="${v}" min="${min}" max="${max}" step="${step}">`;
-    $('#scConfigForm').innerHTML = `<p class="muted">Aktive Version <b>${esc(meta.hash)}</b>. Gesamtwert = gewichtetes Mittel aus belegbarem Potenzial, Passung und aktuellem Anlass (Vorschlag 35/35/30). Teil-Scores werden nur bei ausreichender Belegabdeckung berechnet.</p>
-      <div class="acc-row3"><label>Gewicht Potenzial ${num('ow_potential', c.overall_weights.potential, 0, 100)}</label><label>Gewicht Passung ${num('ow_fit', c.overall_weights.fit, 0, 100)}</label><label>Gewicht Anlass ${num('ow_signal', c.overall_weights.signal, 0, 100)}</label></div>
+    $('#scConfigForm').innerHTML = `<p class="muted">Aktive Version <b>${esc(meta.hash)}</b>. Akquise-Priorität = gewichtetes Mittel aus Auffälligkeiten (belegbares Verbesserungspotenzial), Profilnähe und aktuellem Anlass (Vorschlag 35/35/30); Unbekanntes fällt heraus statt niedrig zu zählen. Teil-Scores werden nur bei ausreichender Belegabdeckung berechnet.</p>
+      <div class="acc-row3"><label>Gewicht Auffälligkeiten ${num('ow_potential', c.overall_weights.potential, 0, 100)}</label><label>Gewicht Profilnähe ${num('ow_fit', c.overall_weights.fit, 0, 100)}</label><label>Gewicht Anlass ${num('ow_signal', c.overall_weights.signal, 0, 100)}</label></div>
       <div class="acc-row3"><label>Bereich Design ${num('aw_design', c.area_weights.design, 0, 100, 0.5)}</label><label>Bereich Web ${num('aw_web', c.area_weights.web, 0, 100, 0.5)}</label><label>Bereich Prozess ${num('aw_process', c.area_weights.process, 0, 100, 0.5)}</label></div>
       <div class="sales-row"><label>Mindest-Belegabdeckung für Gesamtwert (%) ${num('min_coverage_pct', c.min_coverage_pct, 10, 100)}</label><label>Mindest-Abdeckung je Bereich (%) ${num('min_area_coverage_pct', c.min_area_coverage_pct, 10, 100)}</label></div>
       <div class="table-wrap"><table class="acc-table"><thead><tr><th>Aktiv</th><th>Rubrik</th><th>Bereich</th><th>Gewicht</th></tr></thead><tbody>${Object.entries(c.rubrics).map(([id, r]) => `<tr><td><input type="checkbox" data-rub-on="${id}" ${r.enabled ? 'checked' : ''}></td><td>${esc(meta.rubric_text[id])}</td><td>${esc(AREA[r.area])}</td><td><input type="number" data-rub-w="${id}" value="${r.weight}" min="0" max="10" step="0.5"></td></tr>`).join('')}</tbody></table></div>

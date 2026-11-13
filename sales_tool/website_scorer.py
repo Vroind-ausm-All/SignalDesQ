@@ -631,12 +631,15 @@ def score(cap, lead, cfg, catalog_keys):
     aw = cfg['area_weights']
     avail = [(aw[k], v['score']) for k, v in area_scores.items() if v['score'] is not None and aw.get(k, 0) > 0]
     potential = round(sum(w * s for w, s in avail) / sum(w for w, _ in avail)) if avail else None
-    ind = INDUSTRY_FIT.get(lead.get('industry'), 25)
+    # 2.0.0-dev17 (M27): Unbekanntes zählt nie als schlecht – fehlt die Branche, fällt sie aus der Rechnung heraus;
+    # fehlen Branche und Größe, bleibt die Profilnähe offen statt niedrig.
+    ind = INDUSTRY_FIT.get(lead.get('industry')) if lead.get('industry') else None
     size = _size_fit(lead.get('employees'))
     related = 100 if any(f['result'] == 'auffaellig' and f['offer'] for f in findings) else 0
-    parts = [(0.4, ind), (0.3, related)] + ([(0.3, size)] if size is not None else [])
-    fit = round(sum(w * v for w, v in parts) / sum(w for w, _ in parts))
-    fit_basis = f'Branche {ind}, Größe {"unbekannt" if size is None else size}, Leistungsbezug {related}'
+    parts = ([(0.4, ind)] if ind is not None else []) + [(0.3, related)] + ([(0.3, size)] if size is not None else [])
+    fit = round(sum(w * v for w, v in parts) / sum(w for w, _ in parts)) if ind is not None or size is not None else None
+    fit_basis = (f'Branche {"unbekannt" if ind is None else ind}, Größe {"unbekannt" if size is None else size}, Leistungsbezug {related}'
+                 + (' – Profilnähe offen, bis Branche oder Größe bekannt sind' if fit is None else ''))
     signal, signal_basis = _signal_score(lead)
     coverage = round(100 * evaluated_w / total_w) if total_w else 0
     ow = cfg['overall_weights']
@@ -647,8 +650,9 @@ def score(cap, lead, cfg, catalog_keys):
     else:
         known = [(ow[k], v) for k, v in components.items() if v is not None and ow[k] > 0]
         overall = round(sum(w * v for w, v in known) / sum(w for w, _ in known))
-        if signal is None:
-            reason = 'Gesamtwert ohne Anlass-Komponente berechnet (kein dokumentierter Projektanlass).'
+        missing = [x for x, v in (('Anlass', signal), ('Profilnähe', fit)) if v is None]
+        if missing:
+            reason = f"Priorität ohne {' und '.join(missing)} berechnet (nicht bekannt – zählt nicht als schlecht)."
     return {'findings': findings, 'area_scores': area_scores, 'potential': potential, 'fit': fit, 'fit_basis': fit_basis,
             'signal': signal, 'signal_basis': signal_basis, 'coverage': coverage, 'overall': overall, 'overall_note': reason,
             'weights': ow}
@@ -689,7 +693,9 @@ def summarize(result, cap, lead, packages):
     return {'observations': flagged[:10], 'uncertainties': uncert[:15],
             'offers': sorted(offers.values(), key=lambda o: -o['weight']),
             'questions': questions[:5], 'next_step': next_step,
-            'disclaimer': 'Optimierungspotenzial aus öffentlich sichtbaren Merkmalen – keine Aussage über Kaufbereitschaft, Budget oder Werbeeinwilligung. Paketempfehlungen sind vor der Bedarfsklärung unverbindlich.'}
+            'disclaimer': 'Auffälligkeiten aus öffentlich sichtbaren Merkmalen: ein höherer Wert heißt mehr belegte Hinweise, nicht „schlechte Website“ – '
+                          'SignalDesk vergibt keine Qualitätsnote. Keine Aussage über Kaufbereitschaft, Budget oder Werbeeinwilligung. '
+                          'Paketempfehlungen sind vor der Bedarfsklärung unverbindlich.'}
 
 
 def _now():

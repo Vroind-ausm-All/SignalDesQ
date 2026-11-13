@@ -52,7 +52,7 @@
       (f !== 'ready' || r.next_step.step === 'ready') && (f !== 'insufficient' || r.priority === null) && (f !== 'new' || r.signals_new));
     $('#rcRows').innerHTML = rows.length ? rows.map(r => {
       const steps = Object.entries(r.steps).map(([k, v]) => `<span class="rc-chip ${v ? 'done' : ''}" title="${esc(data.step_labels[k])}">${v ? '✓' : '○'} ${esc(STEP_SHORT[k])}</span>`).join('');
-      const web = r.website_running ? 'Website: läuft …' : r.website_overall !== null ? `Website <b>${r.website_overall}</b>` : r.website_coverage !== null ? 'Website <span class="sc-unknown">unzureichend</span>' : 'Website –';
+      const web = r.website_running ? 'Website: läuft …' : r.website_overall !== null ? `Website-Priorität <b>${r.website_overall}</b>` : r.website_coverage !== null ? 'Website <span class="sc-unknown">Datenlage unzureichend</span>' : 'Website noch nicht geprüft';
       const sig = r.signals ? `Signale ${r.signals_pro} pro${r.signals_contra ? ` · <b class="late">${r.signals_contra} contra</b>` : ''}${r.signals_new ? ` · <span class="rc-new">${r.signals_new} neu</span>` : ''}` : 'Signale –';
       const hyp = r.hypothesis ? `Hypothese: ${esc(r.hypothesis.strength)}` : 'Hypothese –';
       return `<tr><td><input type="checkbox" data-rc-sel="${r.lead_id}" ${selected.has(r.lead_id) ? 'checked' : ''} aria-label="${esc(r.company)} auswählen"></td>

@@ -58,6 +58,8 @@ def init_workspace(conn):
     for name in ('number','valid_until'):
         if name not in cols:
             conn.execute(f"ALTER TABLE proposals ADD COLUMN {name} TEXT DEFAULT ''")
+    from .offer_flow import init_offer_flow
+    init_offer_flow(conn)  # 2.0.0-dev17: Freigabe, Versand und Entscheidung mit Zeitpunkt, Weg und Stand
     conn.commit()
 
 
@@ -134,7 +136,7 @@ def create_call(conn, data):
 
 
 def create_meeting(conn,data):
-    if not isinstance(data,dict) or set(data)-{'lead_id','title','starts_at','duration_min','location','notes'}:
+    if not isinstance(data,dict) or set(data)-{'lead_id','title','starts_at','duration_min','location','notes','opportunity_id'}:
         raise ValueError('Ungültige Termindaten.')
     lead=_lead(conn,data.get('lead_id'))
     from .workday import assert_contact_allowed, after_meeting_created
@@ -145,11 +147,18 @@ def create_meeting(conn,data):
     except ValueError as exc: raise ValueError('Termin als YYYY-MM-DDTHH:MM angeben.') from exc
     if type(data.get('duration_min',30)) is not int or not 15<=data.get('duration_min',30)<=180:
         raise ValueError('Termindauer 15–180 Minuten.')
-    cur=conn.execute('INSERT INTO meetings(lead_id,title,starts_at,duration_min,location,notes) VALUES (?,?,?,?,?,?)',(
-        lead['id'],title,when,data.get('duration_min',30),_optional_text(data,'location',300),_optional_text(data,'notes',2000)))
+    from .chances import open_chances, for_new_offer, advance
+    # 2.0.0-dev18: Termin gehört zur gewählten Chance, sonst zur einzigen offenen; ohne offene Chance ist er ein Firmentermin
+    opened=open_chances(conn,lead['id'])
+    chance=for_new_offer(conn,lead['id'],data.get('opportunity_id')) if data.get('opportunity_id') not in (None,'') else (opened[0]['id'] if len(opened)==1 else None)
+    if chance is None and len(opened)>1:
+        raise ValueError('Diese Firma hat mehrere offene Chancen – bitte auswählen, zu welcher der Termin gehört.')
+    cur=conn.execute('INSERT INTO meetings(lead_id,title,starts_at,duration_min,location,notes,opportunity_id) VALUES (?,?,?,?,?,?,?)',(
+        lead['id'],title,when,data.get('duration_min',30),_optional_text(data,'location',300),_optional_text(data,'notes',2000),chance))
     after_meeting_created(conn,lead['id'],when)
+    advance(conn,chance,'termin')
     conn.commit()
-    return {'id':cur.lastrowid,'saved':True}
+    return {'id':cur.lastrowid,'saved':True,'opportunity_id':chance}
 
 
 def daily_view(conn):
@@ -176,10 +185,15 @@ def make_proposal(conn,data):
     lead=_lead(conn,data['lead_id'])
     from .workday import assert_contact_allowed, after_proposal, need_status
     assert_contact_allowed(conn,lead,'Angebot erstellen')
-    payload={k:v for k,v in data.items() if k!='lead_id'}
+    payload={k:v for k,v in data.items() if k not in ('lead_id','opportunity_id')}
     from .pricing import build_quote
     # Sprint D: Baukasten mit Positionen; ältere Aufrufe mit Paket werden über den zentralen Katalog übersetzt (dev16)
     proposal=build_quote(conn,payload) if 'positions' in payload else quote_preview(conn,payload)
+    from .chances import for_new_offer
+    # 2.0.0-dev18: jedes Angebot gehört zu einer Chance (gewählt, die einzige offene oder eine neue)
+    chance=for_new_offer(conn,lead['id'],data.get('opportunity_id'),proposal['customer']['project_label'])
+    if proposal['customer'].get('package') not in (None,'','baukasten'):
+        conn.execute("UPDATE opportunities SET offer=? WHERE id=? AND offer=''",(proposal['customer']['package'],chance))
     from .accounting import _next_number
     issued=dt.date.today()
     number=_next_number(conn,'AN',issued.year)
@@ -188,11 +202,11 @@ def make_proposal(conn,data):
                                  'offer_date':issued.isoformat(),'valid_until':valid_until})
     ns=need_status(conn,lead['id'])
     proposal['internal']['need_confirmed_at']=ns['confirmed_at']  # intern: Freigabegrundlage, nie im Kundendokument
-    cur=conn.execute('INSERT INTO proposals(lead_id,internal_json,customer_json,number,valid_until) VALUES (?,?,?,?,?)',(
-        lead['id'],json.dumps(proposal['internal'],ensure_ascii=False),json.dumps(proposal['customer'],ensure_ascii=False),number,valid_until))
+    cur=conn.execute('INSERT INTO proposals(lead_id,internal_json,customer_json,number,valid_until,opportunity_id) VALUES (?,?,?,?,?,?)',(
+        lead['id'],json.dumps(proposal['internal'],ensure_ascii=False),json.dumps(proposal['customer'],ensure_ascii=False),number,valid_until,chance))
     after_proposal(conn,lead['id'],number)
     conn.commit()
-    return {'id':cur.lastrowid,'status':'entwurf','number':number,'need_confirmed':bool(ns['confirmed']),**proposal}
+    return {'id':cur.lastrowid,'status':'entwurf','number':number,'need_confirmed':bool(ns['confirmed']),'opportunity_id':chance,**proposal}
 
 
 def proposal_rows(conn):
@@ -214,9 +228,15 @@ def proposal_detail(conn,ident,customer_only=False):
     return result
 
 
-def customer_markdown(customer):
+def customer_markdown(customer,release=None):
+    """Kundendokument. Ohne Freigabe (2.0.0-dev17, M35) trägt es sichtbar „Entwurf“; die Versandfassung nennt ihren Stand."""
     def safe(s): return re.sub(r'[\r\n]+',' ',str(s)).strip()
-    lines=[f"# Angebot: {safe(customer['project_label'])}",f"**An:** {safe(customer.get('customer_company',''))}"]
+    lines=[f"# Angebot: {safe(customer['project_label'])}"]
+    if release and not release.get('changed'):
+        lines.append(f"*Versandfassung · Stand {safe(release['stand'])} · freigegeben am {safe(release['released_at'])}*")
+    else:
+        lines.append('**ENTWURF – nicht zum Versand freigegeben.**')
+    lines.append(f"**An:** {safe(customer.get('customer_company',''))}")
     if customer.get('offer_number'):
         lines.append(f"**Angebotsnummer:** {safe(customer['offer_number'])} · **Datum:** {safe(customer.get('offer_date',''))} · **Gültig bis:** {safe(customer.get('valid_until',''))}")
     lines+=['',
@@ -253,8 +273,11 @@ def customer_markdown(customer):
                   '## Festpreis',f"**{customer['net_eur']:.2f} EUR netto{' pro Monat' if customer.get('billing')=='monatlich' else ''}**",safe(customer['tax_note'])]
         if customer['tax_mode']!='offen': lines.append(f"**Gesamtbetrag: {customer['total_eur']:.2f} EUR{' pro Monat' if customer.get('billing')=='monatlich' else ''}**")
     lines += ['', '## Zahlung und Änderungen',safe(customer['payment_plan']),safe(customer['change_requests']),
-              '', '## Hinweise',safe(customer['guarantee']),
-              'Dieses Dokument ist ein Angebotsentwurf. Kundendaten, Fristen, Vertrags- und Steuerangaben vor Versand prüfen.']
+              '', '## Hinweise',safe(customer['guarantee'])]
+    if release and not release.get('changed'):
+        lines.append(f"Dieses Angebot ist bis {safe(customer.get('valid_until') or 'zum genannten Datum')} gültig. Stand {safe(release['stand'])}.")
+    else:
+        lines.append('Dieses Dokument ist ein Angebotsentwurf. Kundendaten, Fristen, Vertrags- und Steuerangaben vor Versand prüfen.')
     return '\n'.join(lines)+'\n'
 
 

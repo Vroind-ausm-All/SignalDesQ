@@ -1,6 +1,6 @@
 # UI/UX – Vorschläge für mehr Übersicht
 
-Stand 2.0.0-dev16 (keine Änderung an den Vorschlägen; dev16 betrifft den Leistungskatalog). Grundlage: Screenshots aller Hauptansichten in allen Themes und eine Messung im Browser bei 1366 × 768 Pixeln
+Stand 2.0.0-dev17 (keine Änderung an den Vorschlägen; dev16/dev17 betreffen Katalog und Angebotsablauf). Grundlage: Screenshots aller Hauptansichten in allen Themes und eine Messung im Browser bei 1366 × 768 Pixeln
 (häufigste Laptop-Auflösung) mit zwölf fiktiven Leads. Alle Vorschläge bauen auf den Farbrollen aus dev11 auf und funktionieren
 damit ohne Zusatzaufwand in jedem Theme, hell wie dunkel.
 
