@@ -19,6 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 import test_sprintB_sweep as tb  # noqa: E402
 import test_sprintC_report as tc  # noqa: E402
+from s5_helpers import release_offer  # noqa: E402
 
 from sales_tool import profiles as pf  # noqa: E402
 from sales_tool import report as rp  # noqa: E402
@@ -157,6 +158,7 @@ class ExampleDayTests(DayBase):
             self.assertNotIn(secret, blob, secret)
         self.assertIn('need_confirmed_at', self.ok('GET', f"/api/workspace/proposals/{offer['id']}")['internal'])
         self.assertFalse(self.conn.execute("SELECT 1 FROM tasks WHERE lead_id=? AND title LIKE 'Festpreisangebot%' AND done=0", (lid,)).fetchone())
+        release_offer(self.conn, offer['id'])  # 2.0.0-dev17: Versand nur für eine freigegebene Fassung
         self.ok('PATCH', f"/api/workspace/proposals/{offer['id']}", {'status': 'gesendet_manuell'})
         f = self.file(lid)
         nexts.append(f['next'])

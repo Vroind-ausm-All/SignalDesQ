@@ -313,8 +313,8 @@
    <button type="button" class="btn btn-primary" id="scStart" disabled>Ausgewählte bewerten ↗</button></section>
   <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">02 / WARTESCHLANGE</span><h2>Laufende Bewertungen</h2></div><button type="button" class="text-button" id="scRefresh">Aktualisieren ↻</button></div><div id="scQueue" class="sales-list"></div></section>
  </div>
- <section class="panel sales-section"><span class="eyebrow">03 / PRIORISIERUNG</span><h2>Bewertete Firmen</h2><p class="muted">Höheres Potenzial = mehr öffentlich belegbarer Verbesserungsbedarf. Gesamtwert nur bei ausreichender Belegabdeckung.</p>
-  <div class="table-wrap"><table class="sc-rank"><thead><tr><th>FIRMA</th><th>GESAMT</th><th>DESIGN</th><th>WEB</th><th>PROZESS</th><th>PASSUNG</th><th>ANLASS</th><th>BELEGE</th><th>VERSION</th><th></th></tr></thead><tbody id="scRanking"></tbody></table></div></section>
+ <section class="panel sales-section"><span class="eyebrow">03 / PRIORISIERUNG</span><h2>Bewertete Firmen</h2><p class="muted">Auffällig = Anteil der geprüften Rubriken mit Hinweis (höher = mehr belegte Hinweise, keine Qualitätsnote). Priorität ordnet deine Recherche und erscheint nur bei ausreichender Belegabdeckung; „unbekannt“ zählt nie als schlecht.</p>
+  <div class="table-wrap"><table class="sc-rank"><thead><tr><th>FIRMA</th><th>PRIORITÄT</th><th>AUFFÄLLIG DESIGN</th><th>AUFFÄLLIG WEB</th><th>AUFFÄLLIG PROZESS</th><th>PROFILNÄHE</th><th>ANLASS</th><th>BELEGE</th><th>VERSION</th><th></th></tr></thead><tbody id="scRanking"></tbody></table></div></section>
  <section class="panel sales-section hidden" id="scDetailPanel"><div class="studio-section-head"><div><span class="eyebrow">ERGEBNIS</span><h2 id="scDetailTitle">Bewertung</h2></div><button type="button" class="text-button" id="scDetailClose">Schließen ✕</button></div><div id="scDetail"></div></section>
  <section class="panel sales-section"><details id="scConfigBox"><summary><b>Bewertungsraster & Gewichtung anpassen</b> <small class="muted">– jede Änderung erzeugt eine neue Bewertungsversion</small></summary><form id="scConfigForm" class="sales-form"></form></details></section>
 </div>
@@ -723,6 +723,7 @@
 <script src="/sweep.js" defer></script>
 <script src="/report.js" defer></script>
 <script src="/quotes.js" defer></script>
+<script src="/offerflow.js" defer></script>
 <script src="/tasks.js" defer></script>
 <script src="/pipeline.js" defer></script>
 <script src="/jobs.js" defer></script>

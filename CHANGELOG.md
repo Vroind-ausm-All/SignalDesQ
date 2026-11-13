@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0-dev17 – Versandfassung, Projektstart nach Zusage, klare Begriffe der Website-Bewertung
+
+Das P0-Paket aus den Ergänzungen zum Produktreview (13.11.2026): Leitfaden Kundenonboarding (M35, M36) und Bewertungsmodell (M27). Vor dem Umbau auf mehrere Verkaufschancen (M13).
+
+- **Versandfassung statt Dauer-Entwurf (M35):** Ein gespeichertes Angebot ist zunächst ein Entwurf – Export und Dateiname sagen das sichtbar. „Versandfassung freigeben“ prüft automatisch Steuerstatus, bestätigten Bedarf, zulässigen Kontakt, Bindefrist und ob interne Werte im Kundendokument stehen, und verlangt vier selbst bestätigte Prüfpunkte (Empfänger, Inhalt, Lesbarkeit, nächster Schritt). Danach gibt es den Export ohne Entwurfshinweis mit **Stand-Kennung** im Dokument und im Dateinamen (`Angebot_AN-…_Stand-xxxxxxxx.md`).
+- **Versand und Zusage mit Ereignis, Zeitpunkt, Weg und Stand:** „Als versendet dokumentieren“ (E-Mail, Post, persönlich, Portal) und „Zusage/Absage dokumentieren“ (Weg, Person, Datum, Notiz) gehen nur für einen freigegebenen Stand. Die freie Statusauswahl ist ersetzt; dokumentierte Ereignisse lassen sich nicht zurückdrehen. SignalDesk versendet weiterhin nichts.
+- **Projektstart nach der Zusage (M36):** SignalDesk schlägt Startaufgaben vor – Auftrag persönlich bestätigen, Startgespräch, Materialien und Nutzungsrechte (Medien), Zugänge und Testdaten (Software), Kurzüberblick, erster Zwischenstand – jeweils mit Angebotsnummer im Titel. Offene Nachfassaufgaben zu diesem Angebot werden aufgelistet und auf Wunsch beendet. Angelegt wird nur, was du bestätigst; ein zweiter Klick legt nichts doppelt an. Bei einer Absage lassen sich die Nachfassaufgaben ebenso beenden.
+- **Begriffe der Website-Bewertung (M27):** Die Werte heißen jetzt „Auffällig: Design & UX“ usw. (in %, höher = mehr belegte Hinweise) und „Akquise-Priorität“ statt „Gesamt“ – eine Qualitätsnote für Websites gibt es bewusst nicht. „Passung zur Agentur“ im Scoring heißt „Profilnähe“, damit es nicht mit der Passung A/B/C der Firmenakte verwechselt wird. Eine kurze Leseanleitung steht unter den Werten.
+- **Unbekannt zählt nicht als schlecht:** Eine Firma ohne Branche bekam bisher eine niedrige Profilnähe (25). Jetzt fällt die unbekannte Branche aus der Rechnung; fehlen Branche und Größe, bleibt die Profilnähe offen und die Priorität wird ohne sie berechnet.
+- **Schemawechsel 29 → 30** (neue Spalten am Angebot; vor dem Update wird automatisch gesichert). Ältere Angebote bleiben unverändert und gelten als Entwurf, bis du sie freigibst. 601 Tests (16 neu) unter Python 3.10 und 3.13, 13 Browser-Tests (1 neu); ältere Tests dokumentieren den Versand jetzt nach einer Freigabe.
+
 ## 2.0.0-dev16 – Ein zentraler Leistungskatalog
 
 Etappe C, Teil 1 aus dem Produktreview vom 13.11.2026 (Maßnahme M12), ergänzt um passende Teile aus dem Bewertungsmodell für Websites und dem Leitfaden zum Kundenonboarding vom selben Tag. Die übrigen Empfehlungen beider Dokumente stehen als M27–M39 in `docs/ROADMAP.md`.

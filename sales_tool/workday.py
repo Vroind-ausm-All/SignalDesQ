@@ -218,7 +218,7 @@ def ensure_task(conn, lead_id, title, days, action_type=None):
 # Automatisch gesetzte nächste Schritte – nur diese (oder ein leerer) werden ersetzt; was du selbst einträgst, bleibt stehen
 AUTO_STEP_RE = re.compile(r'^(Firmen-Bericht erstellen|Kontaktweg klären|Festpreisangebot aus bestätigtem Bedarf|Vereinbarten Termin eintragen|'
                           r'Bedarf klären und Termin vereinbaren|Termin am .* danach Bedarf bestätigen|Bedarf aus dem Termin bestätigen|'
-                          r'Angebot .* (prüfen und manuell versenden|nachfassen)|Erneut anrufen \(|Nicht erreicht nach )')
+                          r'Angebot .* (prüfen und manuell versenden|nachfassen)|Erneut anrufen \(|Nicht erreicht nach |Projektstart .*: )')
 
 
 def _advance(conn, lead, stage=None, next_step='', days=None):

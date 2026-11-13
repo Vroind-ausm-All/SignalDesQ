@@ -500,6 +500,23 @@ Fehlerschleifen: (1) Der Browser-Test zeigte, dass die Angebotskarten der Hilfe 
 
 **Entscheid:** Vor dem Modellumbau M13 kommt ein P0-Paket aus den Ergänzungen (dev17): M27 Begriffe der Website-Bewertung, M35 Versandfassung, M36 Übergang nach Annahme.
 
+## Arbeitspaket 16 – Versandfassung, Projektstart, Begriffe (2.0.0-dev17)
+
+Auftrag: „Erstelle bitte jedes Mal einen PR und arbeite direkt am nächsten Schritt“ – laut Roadmap das P0-Paket aus den Ergänzungen (M27, M35, M36) vor dem Modellumbau M13.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 601 Tests bestanden (16 neu in `tests/test_v2_offer_flow.py`; vier ältere Tests geben die Versandfassung vor dem Versand frei) |
+| Browser-Tests | 13 von 13 (neu `test_offer_flow_browser.py`: Entwurf-Download, Freigabe nur mit Prüfpunkten, Download mit Stand, Versand, Zusage, Projektstart ohne Duplikat) |
+| Migration | Schema 29 → 30; Altbestand aus `fixtures/migration/v1_6.sql` mit einem versendeten Angebot: Spalten ergänzt, Angebot unverändert, gilt als Entwurf |
+| Release-Paket | gebaut, enthält `offer_flow.py` und `offerflow.js` |
+
+Fehlerschleifen: (1) `$$` nimmt in dieser App nur einen Selektor – die erste Fassung von `offerflow.js` hätte im Browser nichts gefunden; ein Strukturtest verhindert die Wiederholung. (2) Der Browser-Test zeigte, dass der Projektstart nach bewusst abgewählten Vorschlägen dauerhaft „offen“ blieb – jetzt gilt er als erledigt, sobald er übernommen ist und keine Nachfassaufgabe mehr offen ist. (3) Beim Prüfen der Begriffe fiel auf, dass eine unbekannte Branche die Profilnähe auf 25 drückte – behoben.
+
+**Selbstbewertung 4 von 5.** Abzug: Die Versandfassung ist Markdown; ein gestaltetes PDF entsteht weiterhin außerhalb, und die Wiedervorlage nach dem Versand ist noch fest 7 Tage.
+
+**Entscheid:** Weiter mit M13 (mehrere Verkaufschancen je Firma) als eigenem Modellumbau mit Migration und Prüfung an einer Kopie vorhandener Daten.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

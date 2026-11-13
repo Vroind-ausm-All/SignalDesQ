@@ -42,7 +42,8 @@
           : `<p class="muted">Status: ${esc(imp.review_status === 'offen' ? 'noch nicht übernommen' : imp.review_status)}</p>`}`
       : '<div class="empty">Kein Impressum ausgelesen.</div>';
     const w = d.website;
-    const webBody = w ? `<div class="rp-scores">${[['overall', 'Gesamt'], ['design', 'Design & UX'], ['web', 'Web & Conversion'], ['process', 'Prozess & App'], ['coverage', 'Belegabdeckung %']].map(([k, l]) => `<div><small>${l}</small><b>${w.scores[k] ?? '–'}</b></div>`).join('')}</div>
+    const webBody = w ? `<div class="rp-scores">${[['overall', 'Akquise-Priorität', ''], ['design', 'Auffällig: Design & UX', ' %'], ['web', 'Auffällig: Web & Conversion', ' %'], ['process', 'Auffällig: Prozess & App', ' %'], ['coverage', 'Belegabdeckung', ' %']].map(([k, l, u]) => `<div><small>${l}</small><b>${w.scores[k] === null || w.scores[k] === undefined ? 'unbekannt' : w.scores[k] + u}</b></div>`).join('')}</div>
+        <p class="muted">Auffällig = Anteil geprüfter Rubriken mit Hinweis (höher = mehr Hinweise, keine Qualitätsnote).</p>
         ${w.screenshots.length ? `<div class="rp-shots">${w.screenshots.map(id => `<img src="/api/screenshots/${id}" alt="Screenshot der Website" loading="lazy">`).join('')}</div>` : ''}
         <h4>Beobachtungen (gemessen bzw. beobachtet)</h4><ul class="rp-list">${w.observations.map(o => `<li><b>${esc(o.issue || o.label)}</b> – ${esc(o.evidence)} <small>${esc(o.certainty || '')}</small> ${link(o.source_url, 'Fundstelle')}</li>`).join('') || '<li>Keine auffälligen Beobachtungen.</li>'}</ul>
         ${w.uncertainties.length ? `<p class="muted">Unsicherheiten: ${w.uncertainties.map(esc).join(' · ')}</p>` : ''}

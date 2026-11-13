@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev16)
+# Bekannte Einschränkungen (Stand 2.0.0-dev17)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -103,4 +103,15 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Ein leeres Feld „Korrekturschleifen“ heißt „Startwert“. Wo der Katalog einen Startwert hat (Logo, Texte), lässt sich „nicht festgelegt“ nicht wählen – nur eine Zahl ab 0.
 - „Vor dem Versand klären“ ist eine Erinnerung ohne Abhaken; was geklärt wurde, wird nicht gespeichert (folgt mit den Briefings, M14).
 - Paketempfehlungen und Website-Bewertung verweisen auf Vorlagen, nicht auf einzelne Leistungen; die Verbindung Befund → Leistung ist M32.
-- Der Hinweis „Dieses Dokument ist ein Angebotsentwurf“ steht weiterhin in jedem Kundenexport. Eine bewusst freigegebene Versandfassung ist M35 (geplant für dev17).
+- (bis dev16) Der Hinweis „Dieses Dokument ist ein Angebotsentwurf“ stand in jedem Kundenexport – seit dev17 gibt es die freigegebene Versandfassung.
+
+## Versandfassung, Versand, Zusage, Projektstart (2.0.0-dev17)
+
+- Die Versandfassung ist ein Markdown-Dokument. Ein gestaltetes PDF in deinem Erscheinungsbild erstellst du weiterhin außerhalb von SignalDesk; die Stand-Kennung im Dateinamen hilft, Mail, PDF und gespeicherten Stand zuzuordnen.
+- Die vier Prüfpunkte vor der Freigabe sind Selbstauskünfte; SignalDesk prüft automatisch nur Steuerstatus, Bedarf, Kontaktsperre, Bindefrist und interne Werte im Dokument.
+- Ein freigegebenes Angebot lässt sich nicht mehr ändern. Für eine geänderte Fassung erstellst du ein neues Angebot; eine Revision mit sichtbarem Vorgänger ist M15.
+- Dokumentierter Versand, Zusage oder Absage lassen sich nicht zurücknehmen. Bei einem Irrtum: Notiz in der Firmenakte und ggf. ein neues Angebot.
+- Die Wiedervorlage nach dem Versand ist weiterhin fest auf 7 Kalendertage gesetzt (M16).
+- Startaufgaben sind gewöhnliche Aufgaben mit Angebotsnummer im Titel; einen Projektstatus („wartet auf …“, „bereit“) und einen Projektkompass gibt es noch nicht (M38).
+- Ältere, bereits als versendet oder angenommen markierte Angebote zeigen „vor 2.0.0-dev17, ohne Stand“; sie lassen sich nachträglich freigeben.
+- Die Profilnähe der Website-Bewertung (Branche, Größe, Leistungsbezug) ist eine andere Zahl als die Passung A/B/C der Firmenakte. Beide bleiben bewusst getrennt.

@@ -58,6 +58,8 @@ def init_workspace(conn):
     for name in ('number','valid_until'):
         if name not in cols:
             conn.execute(f"ALTER TABLE proposals ADD COLUMN {name} TEXT DEFAULT ''")
+    from .offer_flow import init_offer_flow
+    init_offer_flow(conn)  # 2.0.0-dev17: Freigabe, Versand und Entscheidung mit Zeitpunkt, Weg und Stand
     conn.commit()
 
 
@@ -214,9 +216,15 @@ def proposal_detail(conn,ident,customer_only=False):
     return result
 
 
-def customer_markdown(customer):
+def customer_markdown(customer,release=None):
+    """Kundendokument. Ohne Freigabe (2.0.0-dev17, M35) trägt es sichtbar „Entwurf“; die Versandfassung nennt ihren Stand."""
     def safe(s): return re.sub(r'[\r\n]+',' ',str(s)).strip()
-    lines=[f"# Angebot: {safe(customer['project_label'])}",f"**An:** {safe(customer.get('customer_company',''))}"]
+    lines=[f"# Angebot: {safe(customer['project_label'])}"]
+    if release and not release.get('changed'):
+        lines.append(f"*Versandfassung · Stand {safe(release['stand'])} · freigegeben am {safe(release['released_at'])}*")
+    else:
+        lines.append('**ENTWURF – nicht zum Versand freigegeben.**')
+    lines.append(f"**An:** {safe(customer.get('customer_company',''))}")
     if customer.get('offer_number'):
         lines.append(f"**Angebotsnummer:** {safe(customer['offer_number'])} · **Datum:** {safe(customer.get('offer_date',''))} · **Gültig bis:** {safe(customer.get('valid_until',''))}")
     lines+=['',
@@ -253,8 +261,11 @@ def customer_markdown(customer):
                   '## Festpreis',f"**{customer['net_eur']:.2f} EUR netto{' pro Monat' if customer.get('billing')=='monatlich' else ''}**",safe(customer['tax_note'])]
         if customer['tax_mode']!='offen': lines.append(f"**Gesamtbetrag: {customer['total_eur']:.2f} EUR{' pro Monat' if customer.get('billing')=='monatlich' else ''}**")
     lines += ['', '## Zahlung und Änderungen',safe(customer['payment_plan']),safe(customer['change_requests']),
-              '', '## Hinweise',safe(customer['guarantee']),
-              'Dieses Dokument ist ein Angebotsentwurf. Kundendaten, Fristen, Vertrags- und Steuerangaben vor Versand prüfen.']
+              '', '## Hinweise',safe(customer['guarantee'])]
+    if release and not release.get('changed'):
+        lines.append(f"Dieses Angebot ist bis {safe(customer.get('valid_until') or 'zum genannten Datum')} gültig. Stand {safe(release['stand'])}.")
+    else:
+        lines.append('Dieses Dokument ist ein Angebotsentwurf. Kundendaten, Fristen, Vertrags- und Steuerangaben vor Versand prüfen.')
     return '\n'.join(lines)+'\n'
 
 
