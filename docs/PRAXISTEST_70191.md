@@ -73,7 +73,7 @@ Eine gezielte Handwerks-Abfrage nur über OpenStreetMap (zwölf Gewerke, mit und
 
 ## 7. So wiederholst du die Messung bei dir
 
-1. SignalDesk starten, unter „Datenqualität & System“ das Zielkundenprofil einstellen (Standort 70191, Handwerks-Branchen).
+1. SignalDesk starten, unter „Einstellungen → Zielkunden“ (bis dev13: „Datenqualität & System“) das Zielkundenprofil einstellen (Standort 70191, Handwerks-Branchen).
 2. „Firmen finden“: Ort `70191`, Umkreis „nur dieser Ort“, Handwerks-Branchen anklicken, Website-Suche an.
 3. Notieren: Treffer je Quelle, wie viele ein Handwerksbetrieb sind, bei wie vielen die Website stimmt (von Hand prüfen), wie viele Firmen-Berichte brauchbar sind.
 4. Zeigt „Quellen prüfen“ OpenStreetMap als überlastet: später wiederholen und die Uhrzeit notieren.

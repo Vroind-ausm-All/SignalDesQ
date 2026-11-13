@@ -33,8 +33,7 @@ class ServiceProfileBrowserTests(unittest.TestCase):
                         errors = []
                         page.on('pageerror', lambda exc: errors.append(str(exc)))
                         page.goto(f'http://127.0.0.1:{server.server_port}')
-                        page.locator('.nav-more summary').click()
-                        page.locator('[data-view="quality"]').click()
+                        page.locator('.sidebar [data-view="settings"]').click()  # 2.0.0-dev14: eigener Bereich Einstellungen
                         campaign = page.locator('#serviceProfileThemes [data-service-theme="campaign"] [data-keywords]')
                         campaign.wait_for(timeout=15000)
                         page.locator('#serviceProfileForm input[name="name"]').fill('Agenturprofil')
@@ -47,8 +46,7 @@ class ServiceProfileBrowserTests(unittest.TestCase):
                             && p.profile.themes.campaign.keywords.includes('Kundentag');
                         }""", timeout=15000)
                         page.reload()
-                        page.locator('.nav-more summary').click()
-                        page.locator('[data-view="quality"]').click()
+                        page.locator('.sidebar [data-view="settings"]').click()  # 2.0.0-dev14: eigener Bereich Einstellungen
                         campaign.wait_for(timeout=15000)
                         self.assertEqual(page.locator('#serviceProfileForm input[name="name"]').input_value(), 'Agenturprofil')
                         self.assertFalse(page.locator('#serviceProfileThemes [data-service-theme="recruiting"] [data-enabled]').is_checked())

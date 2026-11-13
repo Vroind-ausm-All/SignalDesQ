@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev13)
+# Bekannte Einschränkungen (Stand 2.0.0-dev14)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -80,4 +80,11 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Zurückgehaltene Eingaben liegen nur im Arbeitsspeicher des Browserfensters. Nach einem Neuladen sind sie weg; der Browser warnt vorher.
 - Die Passung ersetzt in Liste und Pipeline die alte Punktzahl. Der alte Lead-Fit wird weiter berechnet und ist unter „Stammdaten“ eingeklappt sichtbar; die Recherchepriorität unter „Firmen-Berichte“ ist ein eigener Wert und wird mit der neuen Navigation eingeordnet.
 - Bestehende Firmen behalten Branche und Leistung, auch wenn diese früher automatisch vorbelegt wurden (z. B. „Conversion- & Web-Sprint“ bei übernommenen Suchtreffern). Das lässt sich unter „Stammdaten“ auf „noch keine Leistung gewählt“ zurücksetzen.
+
+## Navigation und Adressen (2.0.0-dev14)
+
+- Adressen gelten innerhalb einer SignalDesk-Installation; eine kopierte Adresse öffnet beim Empfänger nur dann dieselbe Firma, wenn er dieselbe Datenbank hat.
+- Adressen gibt es für Ansichten, Firmen, Einstellungsabschnitte und die Filter der Firmenliste. Filter anderer Listen (Pipeline, Recherche, Buchhaltung) stehen noch nicht in der Adresse.
+- Ein Firmen-Bericht hat noch keine eigene Adresse; nach dem Neuladen erscheint die Übersicht der Berichte.
+- Die Firmenakte bleibt ein Dialog über der Liste. Ob sie eine eigene Seite wird, ist noch offen (Review U04).
 

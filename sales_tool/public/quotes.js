@@ -151,6 +151,10 @@
   // ------------------------------------------------------------ Start
   function init() {
     if (!$('#qbPositions')) return;
+    // 2.0.0-dev14: Kalkulationsgrundlagen und Katalog stehen unter Einstellungen – nur diese laden, nicht die ganze Angebotsansicht
+    window.loadPricingSettings = async function () {
+      try { if (!cat) await loadCatalog(); else { renderSettings(); renderCatalog(); } } catch (e) { toast(e.message, true); }
+    };
     const origRefresh = window.refreshSalesQuotes;
     window.refreshSalesQuotes = async function () {
       await origRefresh();

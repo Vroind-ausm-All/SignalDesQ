@@ -135,7 +135,7 @@
       const head = await file.slice(0, 2000).text();
       if (/"?LEI"?[,;]"?Entity\.LegalName/.test(head) || file.size > 300000) {
         // GLEIF-Export oder große Firmenliste: als Firmenliste importieren (Sichtung unter „Firmen finden“)
-        toast('Große Firmenliste erkannt – wird unter „Firmen finden“ zum Sichten importiert');
+        toast('Große Firmenliste erkannt – wird unter „Finden → Suche & Sichtung“ zum Sichten importiert');
         return window.importCompanyFile ? window.importCompanyFile(file) : toast('Import nicht verfügbar', true);
       }
       csvText = await file.text();

@@ -65,6 +65,8 @@
       return;
     }
     switchView(a.view);
+    // 2.0.0-dev14: Sprungziel innerhalb der Ansicht, z. B. Einstellungen → Zielkundenprofil
+    if (a.anchor) setTimeout(() => $('#' + a.anchor)?.scrollIntoView({behavior: 'smooth', block: 'start'}), 80);
   };
 
   // ------------------------------------------------------------ Rendern

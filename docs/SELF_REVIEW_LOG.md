@@ -443,6 +443,29 @@ Nachbesserungen innerhalb des Pakets:
 
 **Entscheid:** weiter mit Etappe B (dev14: Einstellungen und sechs Bereiche mit direkten Adressen).
 
+## Arbeitspaket 13 – Sechs Bereiche und Einstellungen (2.0.0-dev14)
+
+Auftrag: nächsten Sprint fertigstellen – laut abgeglichener Roadmap Etappe B, Teil 1 (Review M06, M07).
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 560 Tests bestanden (6 neu in `tests/test_v2_navigation.py`) |
+| Browser-Tests | 10 von 10 (neu `test_navigation_browser.py`: Bereiche, Adressen, Neuladen, Zurück/Vor, Firma per Adresse, Filter in der Adresse, Einstellungen, schmaler Bildschirm; Abnahmefall **T05**). Fünf ältere Tests navigieren jetzt über die Bereiche statt über „Erweitert“. |
+| Zuordnung | alle 16 bisherigen Menüziele als Reiter oder Hilfe-Verweis erreichbar (Test), Tabelle in `ROADMAP.md` |
+| Struktur | keine doppelten IDs, kein Abschnitt außerhalb einer Ansicht (Test, mit eingebautem Fehler geprüft) |
+| Release-Paket | gebaut, enthält `nav.js` |
+
+**Selbstbewertung 4 von 5.** Abzug: Adressen fehlen noch für Filter weiterer Listen und für Firmen-Berichte; die Frage „Firmenakte als eigene Seite“ ist bewusst offen.
+
+Gefunden und behoben während des Pakets:
+1. Der Abschnitt „Wiederkehrende Recherche“ landete beim Verschieben hinter statt in der Ansicht „Recherche & Berichte“ und wäre auf jeder Seite erschienen. Der Browser-Test fiel darüber; ein Strukturtest verhindert es künftig.
+2. Ein Klick auf einen Bereich öffnete zunächst die zuletzt benutzte Unteransicht. Das Review verlangt eine klare Standardansicht je Bereich – geändert.
+3. Am Bereich „Einstellungen“ erschien ein Hinweispunkt, weil der KI-Status als Zähler galt – nur echte Zähler setzen den Punkt.
+4. Die Einstellungen luden zunächst die ganze Angebotsansicht nach; dabei kam eine 400-Antwort der Angebotsliste bei unvollständigen Testdaten zum Vorschein. Geladen werden jetzt nur Katalog und Kalkulationsgrundlagen.
+5. **Bestehender Fehler:** Der App-Start lief los, bevor alle Skripte geladen waren („renderPipeline is not defined“ beim Neuladen). Durch zwei weitere Skripte trat das häufiger auf; der Start wartet jetzt auf das vollständige Laden.
+
+**Entscheid:** weiter mit dev15 (Review M08-Rest, M09, M11: Heute als Fokusliste, Filterchips und gespeicherte Ansichten, geführter Einstieg).
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

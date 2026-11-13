@@ -75,7 +75,8 @@
         if (window.refreshReach) await window.refreshReach();
       } catch (err) { toast(err.message, true); }
     });
-    document.querySelectorAll('[data-view="quotes"], [data-go="quotes"]').forEach(b => b.addEventListener('click', refresh));
+    document.querySelectorAll('[data-go="quotes"]').forEach(b => b.addEventListener('click', refresh));
+    document.addEventListener('signaldesk:view', e => { if (e.detail.view === 'quotes') refresh(); });  // 2.0.0-dev14: Bereichsreiter
     const orig = window.reload;
     if (typeof orig === 'function') window.reload = async function (...args) { const r = await orig.apply(this, args); await refresh(); return r; };
     refresh();

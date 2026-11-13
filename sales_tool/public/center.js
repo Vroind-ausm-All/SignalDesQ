@@ -14,7 +14,7 @@
     for (const group of [FIND_VIEWS, RESEARCH_VIEWS]) {
       for (const [view] of group) {
         const el = $('#view' + view[0].toUpperCase() + view.slice(1));
-        if (!el || el.querySelector('.rc-subnav')) continue;
+        if (!el || el.querySelector('.rc-subnav') || document.getElementById('areaBar')) continue;  // 2.0.0-dev14: Bereichsreiter ersetzen die Unter-Navigation
         el.insertAdjacentHTML('afterbegin', `<nav class="rc-subnav" aria-label="${group === FIND_VIEWS ? 'Kunden finden' : 'Recherchieren'}">${group.map(([v, l]) => `<button type="button" data-rc-sub="${v}">${esc(l)}</button>`).join('')}</nav>`);
       }
     }
@@ -22,7 +22,7 @@
   window.markResearchSubnav = function (view) {
     $$('.rc-subnav button').forEach(b => b.classList.toggle('active', b.dataset.rcSub === view));
     const inResearch = RESEARCH_VIEWS.some(([v]) => v === view);
-    $('.nav[data-view="center"]').classList.toggle('active', inResearch);
+    $('.nav[data-view="center"]')?.classList.toggle('active', inResearch);  // seit 2.0.0-dev14 gibt es diesen Eintrag nicht mehr
   };
 
   // ------------------------------------------------------------ Laden

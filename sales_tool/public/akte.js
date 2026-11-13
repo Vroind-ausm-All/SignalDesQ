@@ -25,7 +25,7 @@
         <small>${esc(sug.evidence || '')}${sug.fields.length ? ` · ${sug.fields.length} Firmendaten schon gelesen` : ''}</small></span>
         <span class="acc-btn-group"><button type="button" class="btn btn-primary" data-lf-sug="bestaetigen">✓ Website passt – Daten übernehmen</button><button type="button" class="text-button" data-lf-sug="ablehnen">✕ passt nicht</button></span></div>` : ''}
       ${cd.can_run && cd.state !== 'laeuft' ? `<button type="button" class="text-button" data-lf-read>${cd.checked_at ? 'Impressum erneut lesen' : 'Impressum jetzt lesen'}</button>` : ''}
-      ${cd.auto ? '' : '<small class="muted">Automatische Übertragung ist ausgeschaltet (Datenqualität & System).</small>'}</div>`;
+      ${cd.auto ? '' : '<small class="muted">Automatische Übertragung ist ausgeschaltet (Einstellungen → Daten & Zugang).</small>'}</div>`;
   }
 
   async function services() {

@@ -168,7 +168,7 @@ def fit(conn, lead, profile=None, lock=None):
     lid = lead['id']
     cand = _candidate(conn, lid)
     crits, warnings = [], []
-    profile_action = {'label': 'Zielkundenprofil einstellen', 'view': 'quality', 'anchor': 'targetProfile'}
+    profile_action = {'label': 'Zielkundenprofil einstellen', 'view': 'settings', 'anchor': 'targetProfile'}  # 2.0.0-dev14: eigener Bereich
 
     key, basis = _industry(lead, cand)
     if not profile['industries']:
