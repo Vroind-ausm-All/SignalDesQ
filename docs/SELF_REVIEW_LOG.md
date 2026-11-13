@@ -466,6 +466,23 @@ Gefunden und behoben während des Pakets:
 
 **Entscheid:** weiter mit dev15 (Review M08-Rest, M09, M11: Heute als Fokusliste, Filterchips und gespeicherte Ansichten, geführter Einstieg).
 
+## Arbeitspaket 14 – Fokusliste, Arbeitsansichten, Einstieg (2.0.0-dev15)
+
+Auftrag: nächsten Schritt ausarbeiten – laut Roadmap Etappe B, Teil 2 (Review M08, M09, M11).
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 570 Tests bestanden (9 neu in `tests/test_v2_focus.py`) |
+| Browser-Tests | 11 von 11 (neu `test_focus_leadlist_browser.py`: Fokus, Erste Schritte, Arbeitsansichten, gespeicherte Ansicht, Leerzustand, Spalten, Start mit verzögertem Skript; Abnahmefall **T01**) |
+| Reihenfolge | überfällige Zusage vor Termin vor heute Fälligem vor Nachfassen; Rückrufzusage vor A-Passung (Test) |
+| Release-Paket | gebaut, enthält `focus.py` und `leadlist.js` |
+
+**Selbstbewertung 4 von 5.** Abzug: Stapelaktionen fehlen noch, und die Fokus-Reihenfolge ist eine feste Regel, die erst der Pilot bestätigen muss.
+
+Korrektur eines früheren Eintrags: In Arbeitspaket 13 stand der Startfehler („renderPipeline is not defined“) als behoben. Er war es nicht vollständig – die Prüfung `readyState === 'loading'` greift bei verzögerten Skripten nie, drei grüne Läufe waren Zufall. Jetzt wartet der Start immer auf `DOMContentLoaded`; ein Browser-Test lädt ein Skript absichtlich verzögert. Mit der alten Prüfung schlägt dieser Test fehl (geprüft).
+
+**Entscheid:** Etappe B ist abgeschlossen. Weiter mit Etappe C – zuerst M12 (ein gemeinsamer Leistungskatalog mit Migration), danach M13 (mehrere Verkaufschancen je Firma).
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

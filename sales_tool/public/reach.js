@@ -26,7 +26,7 @@
       <div>${window.leadGradeChip ? window.leadGradeChip(i.lead_id) : ''}<b>${esc(i.company)}</b>${i.fits_now ? ' <span class="sw-web ok">jetzt passendes Zeitfenster</span>' : ''}${i.open_now === true ? ' <span class="sw-web ok">jetzt geöffnet</span>' : i.open_now === false ? ' <span class="sw-web off">jetzt geschlossen</span>' : ''}
         <small>${esc(i.hint)}</small></div>
       <button type="button" class="text-button" data-go-action='${esc(JSON.stringify({view: 'lead', lead_id: i.lead_id}))}'>Akte öffnen</button></div>`).join('')
-      : '<div class="empty">Keine Firma mit Passung A oder B in den Phasen Qualifiziert bis Rückmeldung. Zielkundenprofil einstellen und Firmen-Berichte erstellen.</div>';
+      : `<div class="empty">Keine Firma mit Passung A oder B in den Phasen Qualifiziert bis Rückmeldung.<div class="empty-actions"><button type="button" class="btn btn-ghost" data-go-action='${esc(JSON.stringify({view: 'settings', anchor: 'targetProfile'}))}'>Zielkunden festlegen</button><button type="button" class="btn btn-ghost" data-go-action='${esc(JSON.stringify({view: 'center'}))}'>Firmen-Berichte erstellen</button></div></div>`;  // 2.0.0-dev15: Leerzustand mit nächstem Schritt
     $('#rcListNote').textContent = c.notice;
   }
 

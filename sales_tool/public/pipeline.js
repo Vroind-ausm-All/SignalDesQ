@@ -31,6 +31,8 @@
     const mv = moving != null ? leads.find(l => l.id === moving) : null;
     if ($('#pipelineHint')) $('#pipelineHint').innerHTML = mv ? `<b>${esc(mv.company)}</b> verschieben: Zielspalte anklicken · <button type="button" class="text-button" data-pc-cancel>Abbrechen (Esc)</button>`
       : 'Karte anklicken für Details · ziehen oder ⇄ antippen und Zielspalte wählen, um die Phase zu ändern';
+    // 2.0.0-dev15: leere Pipeline erklärt den nächsten Schritt statt nur leere Spalten zu zeigen
+    if (!open.length && $('#pipelineHint')) $('#pipelineHint').innerHTML = `<b>Noch keine Firmen in der Pipeline.</b> <button type="button" class="btn btn-primary" data-go-action='${esc(JSON.stringify({view: 'finder'}))}'>Firmen finden</button> <button type="button" class="btn btn-ghost" data-go-action='${esc(JSON.stringify({view: 'new_lead'}))}'>Firma erfassen</button>`;
     board.innerHTML = COLS.map(stage => {
       if (stage === 'verloren') {
         return `<section class="pipeline-column pc-lost" data-pcol="verloren" ${mv ? 'tabindex="0" role="button"' : ''} aria-label="Spalte Verloren"><div class="pipeline-col-head"><span>Verloren</span><b>${lost}</b></div><div class="pipeline-empty">Hierher ziehen, wenn eine Chance nicht weiterverfolgt wird</div></section>`;

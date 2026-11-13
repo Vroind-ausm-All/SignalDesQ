@@ -29,7 +29,11 @@
     </div>
     <div class="content" id="viewDashboard">
       <div class="eyebrow" id="tdGreeting">DEIN ARBEITSTAG</div>
-      <div class="page-title td-title"><div><h1>Heute.</h1><p>Von oben nach unten: erst Zugesagtes und Termine, dann Angebote und Freigaben, danach Recherche und neue Firmen. Jeder Punkt führt direkt zur passenden Stelle.</p></div><button class="btn btn-primary" id="tdNext">Nächster Schritt →</button></div>
+      <div class="page-title td-title"><div><h1>Heute.</h1><p>Oben die drei nächsten Schritte mit Grund und Frist – Zugesagtes und Termine vor neuer Akquise. Darunter Eingang, Wiedervorlage und Potenzial; Tagesplan und Tagesabschluss zum Aufklappen.</p></div><button class="btn btn-primary" id="tdNext">Nächster Schritt →</button></div>
+      <section class="panel td-focus" id="tdFocus" aria-labelledby="tdFocusTitle"><div class="panel-header"><h3 id="tdFocusTitle">Als Nächstes</h3><span class="muted" id="tdFocusMore"></span></div>
+        <ol class="td-focus-list" id="tdFocusList"><li class="empty">Wird geladen …</li></ol><p class="muted td-note" id="tdFocusNote"></p></section>
+      <section class="panel td-onb hidden" id="tdOnboarding" aria-labelledby="tdOnbTitle"><div class="panel-header"><h3 id="tdOnbTitle">Erste Schritte</h3><span class="muted" id="tdOnbState"></span></div>
+        <ol class="td-onb-list" id="tdOnbList"></ol><div class="td-onb-foot"><span class="muted">Die Schritte verschwinden von selbst, sobald alles eingerichtet ist.</span><button type="button" class="text-button" id="tdOnbHide">Ausblenden</button></div></section>
       <div class="td-cols" id="erreichbarkeit">
         <section class="panel" aria-labelledby="rcInTitle"><div class="panel-header"><h3 id="rcInTitle">Eingang &amp; Rückrufe</h3><span class="muted" id="rcInCount"></span></div>
           <form id="rcInForm" class="sales-form rc-in-form"><input name="who" maxlength="120" placeholder="Wer hat sich gemeldet?" aria-label="Wer hat sich gemeldet?">
@@ -41,15 +45,15 @@
           <div class="td-list" id="rcList"></div><p class="muted td-note" id="rcListNote"></p></section>
       </div>
       <div class="panel rc-cap" id="rcCap"></div>
-      <section class="panel td-plan" aria-labelledby="tdPlanTitle"><div class="panel-header"><h3 id="tdPlanTitle">Tagesplan</h3><span class="muted" id="tdPlanState"></span></div><ol class="td-steps" id="tdSteps"></ol></section>
       <div class="td-cols">
         <section class="panel" id="wiedervorlage" aria-labelledby="tdWvTitle"><div class="panel-header"><h3 id="tdWvTitle">Wiedervorlage</h3><span class="muted" id="tdWvCount"></span></div><div class="td-list" id="tdWv"></div></section>
         <section class="panel" aria-labelledby="tdPotTitle"><div class="panel-header"><h3 id="tdPotTitle">Offenes Potenzial</h3><button class="text-button" data-go="quotes">Angebote ↗</button></div>
           <div class="td-pot-kpis" id="tdPotKpis"></div><div class="td-list" id="tdPot"></div><p class="muted td-note" id="tdPotNote"></p></section>
       </div>
-      <section class="panel td-close" id="tagesabschluss" aria-labelledby="tdCloseTitle"><div class="panel-header"><h3 id="tdCloseTitle">Tagesabschluss</h3><span class="muted" id="tdCloseState"></span></div>
+      <details class="panel td-plan" id="tdPlanBox"><summary class="panel-header"><h3 id="tdPlanTitle">Tagesplan</h3><span class="muted" id="tdPlanState"></span></summary><ol class="td-steps" id="tdSteps"></ol></details>
+      <details class="panel td-close" id="tagesabschluss"><summary class="panel-header"><h3 id="tdCloseTitle">Tagesabschluss</h3><span class="muted" id="tdCloseState"></span></summary>
         <p class="muted">Was heute erledigt wurde, was morgen ansteht – und welche Firmen ohne nächsten Schritt liegen bleiben würden.</p>
-        <div id="tdCloseBody"></div></section>
+        <div id="tdCloseBody"></div></details>
       <div class="section-heading"><div><span class="eyebrow">DEAL FLOW · KLICKBAR</span><h2>Pipeline – was steht an?</h2></div><button class="text-button" data-go="pipeline">Pipeline öffnen ↗</button></div>
       <div class="td-stages" id="tdStages"></div>
       <details class="panel td-status"><summary><b>Was funktioniert gerade?</b> <span class="muted" id="tdStatusSummary"></span></summary><div class="td-list" id="tdStatus"></div></details>
@@ -82,7 +86,7 @@
       <section class="panel research-report" id="researchReport" aria-live="polite"><div class="research-welcome"><div class="research-welcome-icon">◎</div><h2>Dein Recherchebericht erscheint hier</h2><p>Die Ergebnisse zeigen nur öffentlich belegte Daten. Aussagen über Kaufinteresse, Budget oder unbeobachtete Schwachstellen werden nicht erfunden.</p></div></section>
       <section class="panel research-history"><div class="studio-section-head"><div><span class="eyebrow">VERLAUF</span><h2>Gespeicherte Recherchen</h2></div><button type="button" class="text-button" id="researchRefresh">Aktualisieren ↻</button></div><div id="researchHistory" class="research-history-list"><span class="muted">Noch keine Recherchen.</span></div></section>
     </div>
-    <div class="content hidden" id="viewLeads"><div class="eyebrow">RESEARCH → DISCOVERY → ABSCHLUSS</div><div class="page-title"><div><h1>Leads & Signale</h1><p>Belege statt Bauchgefühl. Passung, Phase und Leistung auf einen Blick – Unbekanntes bleibt sichtbar unbekannt.</p></div><button class="btn btn-primary" id="newLeadBtn2">＋ Lead hinzufügen</button></div><div class="toolbar"><input id="leadSearch" class="search" placeholder="⌕   Firma, Signal oder Notiz suchen…"><select id="stageFilter" aria-label="Status filtern"><option value="">Alle Phasen</option></select><button id="resetFilter" class="btn btn-ghost">Zurücksetzen</button><label class="import-label btn btn-ghost">CSV importieren<input type="file" id="csvImport" accept=".csv,text/csv" hidden></label></div><div class="panel table-wrap"><table><thead><tr><th>UNTERNEHMEN</th><th>KAUFSIGNAL</th><th>LEISTUNG</th><th>STATUS</th><th>PASSUNG</th><th> </th></tr></thead><tbody id="leadRows"></tbody></table></div><div class="inline-info">Reihenfolge nach Passung zum Zielkundenprofil (A vor B, Unbekanntes vor „passt kaum“). Unbekannte Angaben zählen nicht als schlecht. Die Passung ist keine Kaufwahrscheinlichkeit.</div></div>
+    <div class="content hidden" id="viewLeads"><div class="eyebrow">FIRMEN · ARBEITSLISTE</div><div class="page-title"><div><h1>Firmen.</h1><p>Deine Arbeitsmenge: nächster Schritt, Phase, Passung und letzter Kontakt auf einen Blick. Arbeitsansichten filtern, eigene Ansichten speichern – Unbekanntes bleibt sichtbar unbekannt.</p></div><button class="btn btn-primary" id="newLeadBtn2">＋ Lead hinzufügen</button></div><div class="toolbar"><input id="leadSearch" class="search" placeholder="⌕   Firma, Signal oder Notiz suchen…"><select id="stageFilter" aria-label="Status filtern"><option value="">Alle Phasen</option></select><button id="resetFilter" class="btn btn-ghost">Zurücksetzen</button><label class="import-label btn btn-ghost">CSV importieren<input type="file" id="csvImport" accept=".csv,text/csv" hidden></label></div><div class="ll-views" id="leadViews" role="group" aria-label="Arbeitsansichten"></div><div class="ll-bar"><div class="ll-info" id="leadFilterInfo" role="status" aria-live="polite"></div><div class="ll-cols">Weitere Spalten: <label><input type="checkbox" data-ll-col="signal"> Kaufsignal</label> <label><input type="checkbox" data-ll-col="offer"> Leistung</label></div></div><div class="panel table-wrap"><table><thead id="leadHead"><tr><th>FIRMA</th><th>NÄCHSTER SCHRITT</th><th>PHASE</th><th>PASSUNG</th><th>LETZTER KONTAKT</th><th> </th></tr></thead><tbody id="leadRows"></tbody></table></div><div class="inline-info">Reihenfolge nach Passung zum Zielkundenprofil (A vor B, Unbekanntes vor „passt kaum“). Unbekannte Angaben zählen nicht als schlecht. Die Passung ist keine Kaufwahrscheinlichkeit.</div></div>
     <div class="content hidden" id="viewPipeline">
       <div class="eyebrow">VON DER ERSTEN IDEE ZUM ERSTEN AUFTRAG</div>
       <div class="page-title"><div><h1>Deal-Pipeline</h1><p>Jede Firma hat einen Status. Verschiebe sie bewusst und halte den nächsten Schritt fest.</p></div><button class="btn btn-primary" id="pipelineNewLead">＋ Lead anlegen</button></div>
@@ -727,6 +731,7 @@
 <script src="/akte.js" defer></script>
 <script src="/formguard.js" defer></script>
 <script src="/workday.js" defer></script>
+<script src="/leadlist.js" defer></script>
 <script src="/nav.js" defer></script>
 <dialog id="lostDialog" class="lost-dialog"><form id="lostForm" class="sales-form"><h3>Warum verloren?</h3><p class="muted">Firma: <b id="lostCompany"></b>. Der Grund hilft dir später zu sehen, woran Chancen scheitern.</p>
  <label>Grund<select name="lost_reason" required><option value="kein_bedarf">Kein Bedarf</option><option value="kein_budget">Kein Budget</option><option value="zeitpunkt">Falscher Zeitpunkt – später wieder</option><option value="wettbewerber">Anderer Anbieter gewählt</option><option value="inhouse">Wird intern gelöst</option><option value="preis">Preis zu hoch</option><option value="nicht_erreicht">Niemanden erreicht</option><option value="passt_nicht">Passt nicht zu meinem Angebot</option><option value="sonstiges">Sonstiges</option></select></label>

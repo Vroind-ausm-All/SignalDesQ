@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev14)
+# Bekannte Einschränkungen (Stand 2.0.0-dev15)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -87,4 +87,12 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Adressen gibt es für Ansichten, Firmen, Einstellungsabschnitte und die Filter der Firmenliste. Filter anderer Listen (Pipeline, Recherche, Buchhaltung) stehen noch nicht in der Adresse.
 - Ein Firmen-Bericht hat noch keine eigene Adresse; nach dem Neuladen erscheint die Übersicht der Berichte.
 - Die Firmenakte bleibt ein Dialog über der Liste. Ob sie eine eigene Seite wird, ist noch offen (Review U04).
+
+## Fokusliste, Einstieg und Arbeitsansichten (2.0.0-dev15)
+
+- Die Fokusliste ordnet nach festen Regeln (überfällige Zusagen, Termine, heute Zugesagtes, Nachfassen, dann neue Akquise). Externe Verpflichtungen außerhalb von SignalDesk kennt sie nicht; „nichts fällig“ heißt nur, dass in SignalDesk nichts fällig ist.
+- „Letzter Kontakt“ zählt dokumentierte Gespräche, Anfragen, Angebote, Einwände, Abschlüsse, Anrufe und erledigte Termine – keine internen Notizen und keine E-Mails, die nicht in SignalDesk protokolliert wurden.
+- Gespeicherte Ansichten gelten für die ganze Installation (wie die Darstellung). Die Wahl zusätzlicher Spalten merkt sich nur der jeweilige Browser.
+- Stapelaktionen auf gefilterten Firmen (Review U09) gibt es noch nicht.
+- „Erste Schritte“ prüft, ob Preise, Zielkunden (Region und Branche) und Zeiten gespeichert sind – nicht, ob die Werte stimmen.
 

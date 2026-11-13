@@ -666,3 +666,46 @@
 #viewSettings section,#viewSettings details{scroll-margin-top:16px}
 .settings-link p{margin:6px 0 0}
 @media(max-width:900px){.area-bar{padding:0 16px}}
+/* 2.0.0-dev15: Heute – Fokusliste, Erste Schritte, aufklappbarer Tagesplan und Tagesabschluss */
+.td-focus{margin-bottom:16px;border-color:var(--accent-line)}
+.td-focus-list,.td-onb-list{list-style:none;margin:0;padding:6px 18px 4px}
+.td-focus-item,.td-onb-step{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.td-focus-item:last-child,.td-onb-step:last-child{border-bottom:0}
+.td-focus-item b,.td-onb-step b{font-size:14px}
+.td-focus-item small,.td-onb-step small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.td-focus-item .td-focus-why{color:var(--ink-2)}
+.td-focus-item.overdue .td-focus-why{color:var(--danger-fg)}
+.td-focus-num{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);font-weight:800}
+.td-focus-item.overdue .td-focus-num{background:var(--danger-bg);color:var(--danger-fg)}
+.td-focus-empty{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;color:var(--muted)}
+.td-focus .td-note{padding:0 18px 12px;margin:0}
+.td-onb{margin-bottom:16px;border-color:var(--info-line)}
+.td-onb-step.done b{color:var(--muted)}
+.td-onb-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:0 18px 12px}
+.td-onb-foot p{margin:0;font-size:12px}
+details.td-plan>summary,details.td-close>summary{cursor:pointer;list-style:none}
+details.td-plan>summary::-webkit-details-marker,details.td-close>summary::-webkit-details-marker{display:none}
+details.td-plan>summary h3::before,details.td-close>summary h3::before{content:"▸ ";color:var(--muted)}
+details.td-plan[open]>summary h3::before,details.td-close[open]>summary h3::before{content:"▾ "}
+details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
+@media(max-width:640px){.td-focus-item,.td-onb-step{grid-template-columns:28px minmax(0,1fr)}.td-focus-item .btn,.td-onb-step .btn,.td-onb-step .sw-web{grid-column:2;justify-self:start}}
+/* 2.0.0-dev15: Firmenliste – Arbeitsansichten, aktive Filter, Leerzustände */
+.ll-views{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 10px}
+.ll-chip{border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700}
+.ll-chip small{color:var(--muted);font-weight:800;margin-left:3px}
+.ll-chip.on,.ll-saved.on .ll-chip{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-ink)}
+.ll-chip:hover{border-color:var(--accent-line)}
+.ll-add{border-style:dashed}
+.ll-saved{display:inline-flex;align-items:center}
+.ll-saved .ll-chip{border-radius:999px 0 0 999px}
+.ll-del{border:1px solid var(--line-2);border-left:0;background:var(--surface);color:var(--muted);border-radius:0 999px 999px 0;padding:6px 9px;font-size:11px}
+.ll-del:hover{color:var(--danger-fg)}
+.ll-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 10px;font-size:13px}
+.ll-info b{color:var(--ink)}
+.ll-cols{color:var(--muted);font-size:12px}
+.ll-cols label{margin-left:8px;white-space:nowrap}
+.ll-next small{display:block;margin-top:3px}
+.ll-today{color:var(--accent-ink)}
+.ll-empty{padding:26px 19px!important;color:var(--ink-2)}
+.ll-empty .btn{margin-left:8px}
+.empty-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:10px}

@@ -238,7 +238,8 @@ async function exportLeadBrief(){
 }
 
 // 2.0.0-dev14: erst starten, wenn alle Skripte geladen sind (sonst fehlen z. B. renderPipeline oder die Hüllen anderer Module)
-window.appReady=(async()=>{if(document.readyState==='loading')await new Promise(r=>document.addEventListener('DOMContentLoaded',r,{once:true}));try{config=await api('/config');buildSelects();setupEvents();setupResearchEvents();renderOffers();$('#today').textContent=new Intl.DateTimeFormat('de-DE',{weekday:'short',day:'2-digit',month:'long',year:'numeric'}).format(new Date());await reload()}catch(e){(e.message==='Bitte anmelden.'||toast('Start fehlgeschlagen: '+e.message,true));console.error(e)}})();
+// Verzögerte Skripte laufen bei readyState 'interactive' – also vor DOMContentLoaded. Darum immer auf das Ereignis warten, außer die Seite ist schon fertig.
+window.appReady=(async()=>{if(document.readyState!=='complete')await new Promise(r=>{document.addEventListener('DOMContentLoaded',r,{once:true});window.addEventListener('load',r,{once:true})});try{config=await api('/config');buildSelects();setupEvents();setupResearchEvents();renderOffers();$('#today').textContent=new Intl.DateTimeFormat('de-DE',{weekday:'short',day:'2-digit',month:'long',year:'numeric'}).format(new Date());await reload()}catch(e){(e.message==='Bitte anmelden.'||toast('Start fehlgeschlagen: '+e.message,true));console.error(e)}})();
 
 
 // v0.6 – own source-led public-contact research, no third-party contact provider.
