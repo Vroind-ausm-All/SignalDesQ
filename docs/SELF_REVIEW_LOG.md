@@ -517,6 +517,24 @@ Fehlerschleifen: (1) `$$` nimmt in dieser App nur einen Selektor – die erste F
 
 **Entscheid:** Weiter mit M13 (mehrere Verkaufschancen je Firma) als eigenem Modellumbau mit Migration und Prüfung an einer Kopie vorhandener Daten.
 
+## Arbeitspaket 17 – Verkaufschancen je Firma, Teil 1 (2.0.0-dev18)
+
+Auftrag: nach dem PR direkt am nächsten Schritt weiterarbeiten – laut Roadmap M13. Weil Phase und Bedarf heute in rund 30 Dateien an der Firma hängen, ist M13 in zwei Teile geteilt (Entscheidung E9).
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 610 Tests bestanden (9 neu in `tests/test_v2_chances.py`) |
+| Browser-Tests | 14 von 14 (neu `test_chances_browser.py`: Chancen in der Akte, zweite Chance, Verlust nur mit Grund, Auswahl im Angebot und beim Termin) |
+| Migration | Kopie einer älteren Datenbank (Vorlage v1.6 plus fünf Firmen in verschiedenen Phasen): genau eine erste Chance je Firma mit Verkaufsbezug, Angebote und Termine zugeordnet, Firmenphasen unverändert, zweiter Start ohne Duplikate |
+| Abnahme T08 | zwei offene Chancen mit getrennten Phasen, Anliegen und Terminen; Verlust einer Chance lässt die andere offen und Rechnungen unverändert |
+| Release-Paket | gebaut, enthält `chances.py` und `chances.js` |
+
+Fehlerschleifen: (1) Die Vorlage der Altdatenbank trägt ihre Schemaversion nur im Kommentar – der Migrationstest setzt sie jetzt ausdrücklich, sonst wäre die Migration im Test nie gelaufen. (2) Bei zwei gleichzeitig verlorenen Chancen nahm die Firma den Grund der falschen Chance – jetzt zählt die zuletzt geänderte. (3) Die Chancen-Auswahl im Angebot bot bei genau einer offenen Chance eine überflüssige Option „automatisch“ – entfernt.
+
+**Selbstbewertung 4 von 5.** Abzug: Bedarfsanalyse und Freigabe hängen noch an der Firma, und Pipeline/Heute zeigen noch keine einzelnen Chancen – das ist Teil 2 und so dokumentiert.
+
+**Entscheid:** Weiter mit M13 Teil 2 (dev19).
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

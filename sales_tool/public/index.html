@@ -142,7 +142,7 @@
     <section class="panel sales-section"><span class="eyebrow">MAIL · VORBEREITEN, NICHT SENDEN</span><h2>Mail-Assistent</h2><p class="muted">Entwürfe für bereits vereinbarte Kommunikation. Ohne Mail-Anbieter gibt es keinen Versand; Werbeeinwilligung separat prüfen.</p><form class="sales-form" id="wsMailForm"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><label>Anlass<select name="draft_type"><option value="nach_gespraech">Nach einem Gespräch</option><option value="terminbestaetigung">Terminbestätigung</option><option value="angebot_begleiten">Angebot begleiten</option><option value="rueckfrage">Vereinbarte Rückfrage</option></select></label><label>Dokumentierte Gesprächsvereinbarung / Kontaktanlass<textarea name="contact_basis" rows="2" required maxlength="500" placeholder="z. B. am 17.10. um schriftliche Zusammenfassung gebeten"></textarea></label><button type="submit" class="btn btn-primary">Entwurf erstellen</button></form><div id="wsMailPreview" class="sales-mail-preview"></div><div class="sales-subhead">Letzte gespeicherte Entwürfe</div><div id="wsMailHistory" class="sales-list"></div></section>
   </div>
   <div class="sales-cols">
-    <section class="panel sales-section" id="meeting"><span class="eyebrow">TERMINE</span><h2>Discovery & Projektgespräche</h2><form id="wsMeetingForm" class="sales-form"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><label>Termintitel<input name="title" required maxlength="180" placeholder="Bedarfsgespräch"></label><div class="sales-row"><label>Datum & Uhrzeit<input name="starts_at" type="datetime-local" required></label><label>Dauer<select name="duration_min"><option value="30">30 Min</option><option value="45">45 Min</option><option value="60">60 Min</option><option value="90">90 Min</option></select></label></div><label>Ort / Link<input name="location" maxlength="300" placeholder="Telefon, Online, Büro"></label><label>Agenda<input name="notes" maxlength="2000" placeholder="Welche Fragen klären wir?"></label><button type="submit" class="btn btn-primary">Termin speichern</button></form><div id="wsMeetings" class="sales-list"></div></section>
+    <section class="panel sales-section" id="meeting"><span class="eyebrow">TERMINE</span><h2>Discovery & Projektgespräche</h2><form id="wsMeetingForm" class="sales-form"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><label>Chance<select name="opportunity_id" data-ch-select="termin"><option value="">ohne Chance (Firmentermin)</option></select></label><label>Termintitel<input name="title" required maxlength="180" placeholder="Bedarfsgespräch"></label><div class="sales-row"><label>Datum & Uhrzeit<input name="starts_at" type="datetime-local" required></label><label>Dauer<select name="duration_min"><option value="30">30 Min</option><option value="45">45 Min</option><option value="60">60 Min</option><option value="90">90 Min</option></select></label></div><label>Ort / Link<input name="location" maxlength="300" placeholder="Telefon, Online, Büro"></label><label>Agenda<input name="notes" maxlength="2000" placeholder="Welche Fragen klären wir?"></label><button type="submit" class="btn btn-primary">Termin speichern</button></form><div id="wsMeetings" class="sales-list"></div></section>
     <section class="panel sales-section" id="agenda"><div class="studio-section-head"><div><span class="eyebrow">PRIORITÄTEN</span><h2>Als Nächstes</h2></div><button type="button" class="text-button" id="wsRefresh">Aktualisieren ↻</button></div><div id="wsAgenda" class="sales-list"></div><div class="legal-foot">Nur dokumentierte, rechtlich zulässige Kontakte ansprechen. Ein Bedarfssignal ersetzt keine Telefon- oder E-Mail-Berechtigung.</div></section>
   </div>
   <section class="panel sales-section"><span class="eyebrow">PROTOKOLL</span><h2>Letzte Anruf-Ergebnisse</h2><div id="wsRecentCalls" class="sales-list"></div></section>
@@ -153,6 +153,7 @@
    <section class="panel sales-section"><span class="eyebrow">01 / ANGEBOT ZUSAMMENSTELLEN</span><h2>Positionen</h2>
      <form id="quoteForm" class="sales-form">
        <label>Interessent / Unternehmen<select name="lead_id" class="sales-lead-select" required></select></label>
+       <label>Chance<select name="opportunity_id" data-ch-select="angebot"><option value="">neue Chance (aus dem Projekttitel)</option></select></label>
        <div class="sales-row"><label>Vorlage (optional)<select id="quotePackage" name="package"></select></label><button type="button" class="btn btn-ghost qb-tpl" id="qbTemplate">Vorlage laden</button></div>
        <label>Projekttitel<input name="project_label" maxlength="140" placeholder="z. B. Neuer Webauftritt mit Shop-Anbindung"></label>
        <label>Ergebnis / Kundenziel<textarea name="customer_goal" rows="2" maxlength="500" placeholder="Konkretes, realistisch erreichbares Ergebnis"></textarea></label>
@@ -648,6 +649,18 @@
 </section>
 </div>
 <div class="lf-panel" id="lfPanelBedarf" role="tabpanel" aria-labelledby="lfTab-bedarf" data-lf-panel="bedarf">
+<section class="audit-panel ch-panel" aria-labelledby="chTitle">
+  <div class="audit-title"><div><div class="eyebrow">VERKAUFSCHANCEN</div><h3 id="chTitle">Chancen dieser Firma</h3></div><button type="button" class="btn btn-ghost" id="chNewBtn">＋ Neue Chance</button></div>
+  <p class="muted">Jedes mögliche Projekt hat eine eigene Phase, ein eigenes Anliegen, eigene Termine und Angebote. Der Verlust einer Chance beendet keine andere.</p>
+  <form id="chNewForm" class="sales-form ch-new hidden">
+    <div class="sales-row"><label>Titel<input name="title" maxlength="120" required placeholder="z. B. Neue Website, Kundenportal"></label><label>Leistung (optional)<select name="offer"></select></label></div>
+    <label>Anliegen laut Kunde<textarea name="problem" rows="2" maxlength="1000" placeholder="Nur, was der Kunde gesagt hat"></textarea></label>
+    <div class="sales-row"><label>Gewünschtes Ergebnis<input name="desired_outcome" maxlength="1000"></label><label>Zeitrahmen<input name="timing" maxlength="200" placeholder="oder noch unklar"></label></div>
+    <div class="form-actions"><button type="submit" class="btn btn-primary">Chance anlegen</button><button type="button" class="btn btn-ghost" id="chNewCancel">Abbrechen</button></div>
+  </form>
+  <div id="chList" class="ch-list"><div class="empty">Noch keine Chance. Sie entsteht mit dem ersten Angebot oder über „Neue Chance“.</div></div>
+</section>
+<div class="divider"></div>
 <h3>Bedarfsanalyse – Erstgespräch</h3>
 <p class="muted">Nur Aussagen aus dem Gespräch dokumentieren. Freie Notizfelder bitte ohne sensible, unnötige Angaben. Speichern aktualisiert nicht automatisch den Lead-Status.</p>
 <div class="discovery-progress" id="discoveryProgress">Noch keine Bedarfsanalyse</div>
@@ -724,6 +737,7 @@
 <script src="/report.js" defer></script>
 <script src="/quotes.js" defer></script>
 <script src="/offerflow.js" defer></script>
+<script src="/chances.js" defer></script>
 <script src="/tasks.js" defer></script>
 <script src="/pipeline.js" defer></script>
 <script src="/jobs.js" defer></script>

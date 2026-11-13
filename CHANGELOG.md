@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.0-dev18 – Mehrere Verkaufschancen je Firma (Teil 1)
+
+Etappe C, Produktreview M13 Teil 1. Eine Firma kann jetzt mehrere mögliche Projekte haben, ohne dass sie doppelt angelegt werden muss.
+
+- **Chancen in der Firmenakte:** Im Reiter „Bedarf & Angebot“ stehen oben die Chancen der Firma. Jede hat eine eigene Phase (Bedarf klären, Termin, Angebot, Gewonnen, Verloren), eine Leistung aus dem Katalog, einen nächsten Schritt mit Datum, eigene Angebote und Termine. „＋ Neue Chance“ legt ein weiteres Projekt mit eigenem Anliegen, Ergebnis und Zeitrahmen an.
+- **Verlust ohne Nebenwirkung:** „Verloren“ verlangt einen Grund. Der Verlust einer Chance beendet keine andere und ändert keine Rechnung.
+- **Angebote und Termine gehören zu einer Chance:** Im Angebot und beim Termin wählst du die Chance. Bei einer offenen Chance ist sie vorausgewählt, bei mehreren musst du wählen; ein Angebot kann ausdrücklich eine neue Chance beginnen. Versand hebt die Chance auf „Angebot“, die Zusage macht nur diese Chance „gewonnen“.
+- **Firmenphase folgt den Chancen:** Offene Chancen heben sie an. Eine gewonnene Chance macht die Firma zum Kunden, eine neue Chance stuft einen Kunden nicht zurück. Erst wenn alle Chancen verloren sind, gilt die Firma als verloren – mit dem Grund der zuletzt verlorenen Chance. Wird die Firma selbst auf „verloren“ gesetzt, schließen ihre offenen Chancen mit demselben Grund. Eine Sperre bleibt immer bestehen.
+- **Bestand:** Beim ersten Start bekommt jede Firma mit Gespräch, Termin, Bedarf oder Angebot genau eine erste Chance; vorhandene Angebote und Termine werden ihr zugeordnet. Nichts wird gelöscht oder umgerechnet, die Firmenphase bleibt unverändert. Vor dem Update wird automatisch gesichert.
+- **Noch nicht je Chance (Teil 2, dev19):** Die ausführliche Bedarfsanalyse und die Freigabe „Bedarf bestätigt“ gelten weiterhin für die Firma; die erste Chance zeigt sie an. Pipeline, Heute und Firmenliste zeigen weiter Firmen, nicht einzelne Chancen.
+- **Schemawechsel 30 → 31.** 610 Tests (9 neu) unter Python 3.10 und 3.13, 14 Browser-Tests (1 neu).
+
 ## 2.0.0-dev17 – Versandfassung, Projektstart nach Zusage, klare Begriffe der Website-Bewertung
 
 Das P0-Paket aus den Ergänzungen zum Produktreview (13.11.2026): Leitfaden Kundenonboarding (M35, M36) und Bewertungsmodell (M27). Vor dem Umbau auf mehrere Verkaufschancen (M13).

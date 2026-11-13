@@ -195,6 +195,8 @@ def set_status(conn, pid, data):
         follow = (dt.date.today() + dt.timedelta(days=7)).isoformat()
         conn.execute('INSERT INTO tasks(lead_id,title,due_date) VALUES (?,?,?)', (row['lead_id'], f'Angebotsstatus und zulässige Rückfrage prüfen (#{pid})', follow))
         after_proposal_sent(conn, row['lead_id'], num)
+        from .chances import advance
+        advance(conn, row['opportunity_id'], 'angebot')  # 2.0.0-dev18: Phase der zugehörigen Chance
         conn.commit()
         return {'saved': True, 'status': new, 'notice': 'Der Versand ist dokumentiert. SignalDesk hat nichts gesendet.'}
     channel = data.get('channel') or ('email' if new == 'angenommen' else '')
@@ -212,6 +214,8 @@ def set_status(conn, pid, data):
                      (row['lead_id'], 'abschluss', f"Angebot {num} (Stand {row['release_sha'][:8]}) als angenommen dokumentiert: {how}."
                       + (f' {note}' if note else '') + ' Nächster Schritt: Projektstart.'))
         _advance(conn, _lead(conn, row['lead_id']), None, f'Projektstart {num}: Startaufgaben anlegen', 0)
+        from .chances import win
+        win(conn, row['opportunity_id'])  # 2.0.0-dev18: nur diese Chance ist gewonnen; andere bleiben offen
         notice = 'Zusage dokumentiert. Bitte jetzt den Projektstart festlegen – Startaufgaben und offene Nachfassaufgaben prüfen.'
     else:
         conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',

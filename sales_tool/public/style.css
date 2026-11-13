@@ -728,3 +728,12 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 .of-confirm{border:1px solid var(--line);border-radius:9px;padding:8px 12px;display:grid;gap:6px;margin:4px 0 0}
 .of-confirm legend{font-size:12px;font-weight:600;padding:0 4px}
 .of-step code{font-size:12px}
+
+/* 2.0.0-dev18 – Verkaufschancen je Firma (Review M13 Teil 1) */
+.ch-list{display:grid;gap:8px;margin-top:8px}
+.ch-item{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0}
+.ch-item summary{cursor:pointer;padding:10px 14px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.ch-item summary small{flex-basis:100%;color:var(--muted)}
+.ch-body{padding:0 14px 12px;display:grid;gap:6px}
+.ch-mini{margin:0;padding-left:18px;font-size:13px}
+.ch-new{border:1px solid var(--line);border-radius:10px;padding:12px;margin:8px 0;background:var(--surface-2)}

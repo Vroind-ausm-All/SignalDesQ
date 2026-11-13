@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev17. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev18. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -51,7 +51,7 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 | M10 | Globale Suche und Strg+K (V8) | P2 | offen | später | Firma, Chance, Angebotsnummer über ein Suchfeld | M07 |
 | M11 | Geführter Einstieg und Leerzustände (V9) | P1 | erledigt | dev15 | „Erste Schritte“ mit echter Prüfung (Preise, Zielkunden, Zeiten, erste Firma oder Anfrage), ohne Recherchelauf; Leerzustände mit Knopf zum nächsten Schritt | Beispieldaten gibt es bewusst nicht |
 | M12 | Zentraler Leistungskatalog | P1 | erledigt | dev16 | Eine Kennung je Leistung; 5/6/26 (+5 Zusatzleistungen) nachvollziehbar zusammengeführt ([`LEISTUNGSKATALOG.md`](LEISTUNGSKATALOG.md)); geänderte Leistung wirkt gleich auf Vorlage, Empfehlung, Angebot und Oberfläche; gespeicherte Angebote unverändert (Unit- und Browser-Test); Korrekturschleifen je Leistung ohne Widerspruch (K01) | Eigene Leistungen anlegen/ausblenden; frühere Paketpreise weichen von den Baukastenpreisen ab – vom Eigentümer zu prüfen |
-| M13 | Mehrere Verkaufschancen je Firma | P1 | offen | Etappe C | T08: zwei Chancen mit getrennten Phasen, Bedarf, Terminen | Datenmodell, Migration mit Prüfliste |
+| M13 | Mehrere Verkaufschancen je Firma | P1 | teilweise | dev18 (Teil 1) | T08: zwei Chancen mit getrennten Phasen, Anliegen und Terminen; Verlust einer Chance beendet keine andere, keine Rechnung ändert sich; Bestand mit genau einer ersten Chance (Migration an Kopie geprüft) | Teil 2 (dev19): Bedarfsanalyse und Freigabe je Chance; Pipeline/Heute je Chance |
 | M14 | Briefings für Medien und Software | P1 | offen | Etappe C | Fragen je Leistungsbereich; Annahme auf bestätigte Angaben rückführbar | M13 |
 | M15 | Angebotsrevisionen und Varianten | P1 | offen | Etappe C | T11: Revision mit Vorgänger; angenommene Fassung bleibt | M12, M13 |
 | M16 | Nachfassen mit Anlass, Frist und Ergebnis | P1 | teilweise | dev3 | Rückrufe, Wiederholversuche, Parken vorhanden; offen: Bezug zu Chance und Angebot; Wiedervorlage nach Versand ist fest 7 Kalendertage (Leitfaden Onboarding) | M13 |
@@ -98,7 +98,7 @@ Eigentümer; in die App kommen nur die Abläufe.
 |---|---|---|
 | A – verlässliche tägliche Bedienung | M01–M05, Beginn M21 | **erledigt** in dev12/dev13; M21 wartet auf den Eigentümer |
 | B – klare Navigation und Arbeitslisten | dev14 = M06 Einstellungen + M07 Teil 1; dev15 = M08, M09, M11 | **erledigt**; offen aus M07: Adressen für weitere Listen und Berichte |
-| C – mehrere Projekte je Firma | M12 Katalog (dev16, **erledigt**); P0-Paket M27, M35, M36 (dev17, **erledigt**); **als Nächstes dev18 = M13 Chancen**, danach M14 Briefings (mit Prüfpunkten je Leistungsbereich aus dev16), M15 Revisionen, M16 | **läuft**; Modellumbau M13 separat abgenommen, mit Kopie vorhandener Daten geprüft |
+| C – mehrere Projekte je Firma | M12 Katalog (dev16, **erledigt**); P0-Paket M27, M35, M36 (dev17, **erledigt**); M13 Teil 1 Chancen (dev18, **erledigt**); **als Nächstes dev19 = M13 Teil 2** (Bedarf und Freigabe je Chance, Pipeline/Heute je Chance), danach M14 Briefings (mit Prüfpunkten je Leistungsbereich aus dev16), M15 Revisionen, M16 | **läuft**; Migration an einer Kopie vorhandener Daten geprüft |
 | C′ – Bewertung fundieren | M28, M29 nach Pilot außerhalb der App; M32 nach M13 | M27 erledigt (dev17); Pilot außerhalb der App liegt beim Eigentümer |
 | D – Auftrag, Lernen, Anbindung | M17–M20, M24/M25, M37–M39 nach Pilotbedarf; M30, M33, M34 nach ersten Reviews; M22/M23 parallel nach Fehlerbild; M10 bei wachsendem Bestand | später |
 
@@ -131,7 +131,8 @@ Eigentümer; in die App kommen nur die Abläufe.
 | T04 | Notiz eingeben und Escape drücken | **bestanden** (dev13, Browser-Test) |
 | T05 | Aus gefilterter Liste in die Firma und zurück | **bestanden** (dev14, Browser-Test: Filter und Firma in der Adresse, Zurück schließt die Firma) |
 | T06 | Rückruf nach erfolglosem Versuch planen | Funktion seit dev3; als Szenario noch nicht geprüft |
-| T07–T13 | Projektanfrage, zwei Chancen, Medien-/Softwareangebot, Revision, Übergabe, Zeitüberschreitung | offen (Etappen C und D); für T09/T10 liefert dev16 Korrekturschleifen und Prüfpunkte je Leistungsbereich |
+| T08 | Zwei Chancen einer Firma mit getrennten Phasen, Bedarf, Terminen | **bestanden für Phase, Anliegen und Termine** (dev18, Unit- und Browser-Test); Bedarfsanalyse je Chance mit Teil 2 |
+| T07, T09–T13 | Projektanfrage, Medien-/Softwareangebot, Revision, Übergabe, Zeitüberschreitung | offen (Etappen C und D); für T09/T10 liefert dev16 Korrekturschleifen und Prüfpunkte je Leistungsbereich |
 | T14 | Recherche während eines Fehlers wieder aufnehmen | Kernabläufe seit Masterplan 2.0; vollständig mit M23 |
 | T15 | Sicherung in getrennte Testinstallation zurückspielen | Wiederherstellung vorhanden; als Szenario mit Etappe C prüfen |
 

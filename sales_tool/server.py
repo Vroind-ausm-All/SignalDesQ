@@ -205,7 +205,7 @@ def validate(fields: dict, partial=False):
 
 STATIC_FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
     "/style.css": ("style.css", "text/css"), "/theme.js": ("theme.js", "text/javascript"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/offerflow.js": ("offerflow.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/nav.js": ("nav.js", "text/javascript"), "/leadlist.js": ("leadlist.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/offerflow.js": ("offerflow.js", "text/javascript"), "/chances.js": ("chances.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/nav.js": ("nav.js", "text/javascript"), "/leadlist.js": ("leadlist.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
 
 LOOPBACK_HOSTS = frozenset({'127.0.0.1', 'localhost', '::1'})
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
@@ -451,6 +451,9 @@ def make_handler(db_path, allowed_hosts=None):
                     if method == 'GET': return self._send(200,proposal_rows(conn))
                     if method == 'POST': return self._send(201,make_proposal(conn,self._body()))
                 if route_offer_flow(self, conn, method, route):  # 2.0.0-dev17: Versandfassung, Projektstart
+                    return
+                from .chances import route_chances
+                if route_chances(self, conn, method, route):  # 2.0.0-dev18: Verkaufschancen je Firma
                     return
                 proposal_match=re.fullmatch(r'/api/workspace/proposals/(\d+)(/customer)?',route)
                 if proposal_match:
@@ -743,6 +746,9 @@ def make_handler(db_path, allowed_hosts=None):
                         conn.execute(f"UPDATE leads SET {set_clause}, updated_at=datetime('now') WHERE id = ?", (*data.values(), ident))
                         if data.get("stage") == "gesperrt":
                             suppress_lead(conn, ident)
+                        if data.get("stage") == "verloren" and row["stage"] != "verloren":
+                            from .chances import close_open
+                            close_open(conn, ident, data.get("lost_reason"), data.get("lost_note"))  # 2.0.0-dev18: keine offene Chance bei verlorener Firma
                         conn.commit()
                         if data.get("website") and data["website"] != row["website"]:  # v1.19: neue Website → Impressum lesen
                             conn.execute("UPDATE leads SET imprint_checked_at='' WHERE id=? AND (legal_name='' OR legal_name IS NULL)", (ident,))
@@ -896,7 +902,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 30  # 2.0.0-dev17 – bei Schemaänderungen erhöhen (Angebot: Freigabe, Versand, Entscheidung)
+SCHEMA_VERSION = 31  # 2.0.0-dev18 – bei Schemaänderungen erhöhen (Verkaufschancen je Firma)
 
 
 def backup_before_migration(db):
@@ -922,6 +928,9 @@ def prepare_database(db):
         if 0 < old_version < 29:
             from .company_data import backfill_sole_records
             backfill_sole_records(conn)  # 2.0.0-dev10: Nachweise für bereits übernommene Betriebe ohne Rechtsform nachziehen
+        if 0 < old_version < 31:
+            from .chances import ensure_first_chances
+            ensure_first_chances(conn)  # 2.0.0-dev18: eine erste Chance je Firma mit Verkaufsbezug, Angebote und Termine zugeordnet
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
         conn.execute("""UPDATE analysis_runs SET status='failed',error='Analyse durch Neustart unterbrochen.',
                         finished_at=datetime('now') WHERE status IN ('queued','running')""")
