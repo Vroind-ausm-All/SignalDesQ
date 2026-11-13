@@ -247,6 +247,8 @@ def init_db(conn: sqlite3.Connection):
     init_osm_local(conn)  # 2.0.0-dev7: OpenStreetMap-Betriebe aus lokalem Auszug
     from .chances import init_chances
     init_chances(conn)  # 2.0.0-dev18: mehrere Verkaufschancen je Firma
+    from .briefing import init_briefing
+    init_briefing(conn)  # 2.0.0-dev20: Briefing je Chance und Leistungsbereich
     conn.commit()
 
 

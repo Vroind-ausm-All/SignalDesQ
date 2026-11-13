@@ -77,7 +77,7 @@ class ChancesBrowserTests(unittest.TestCase):
                         second.locator('.ch-edit button[type=submit]').click()  # dev19: Karte hat zusätzlich das Freigabe-Formular
                         page.locator(f'#chList [data-ch="{ids["Kundenportal"]}"] summary .pill.bad').wait_for()
                         first = page.locator(f'#chList [data-ch="{ids["Markenauftritt"]}"]')
-                        self.assertIn('Bedarf klären', first.locator('summary').inner_text())
+                        self.assertIn('Bedarf klären', first.locator(':scope > summary').inner_text())  # dev20: Karte enthält zusätzlich das Briefing
                         if SHOTS:
                             page.locator('.ch-panel').screenshot(path=str(Path(SHOTS) / 'chancen.png'))
                         page.locator('#closeModal').click()

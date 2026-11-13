@@ -234,6 +234,12 @@ def quote_from_need(conn, lead_id, data):
         payload['project_label'] = str(data['project_label'])[:140]
     if chance not in (None, ''):
         payload['opportunity_id'] = chance  # 2.0.0-dev19: Angebot gehört zur Chance, deren Bedarf bestätigt ist
+    from .briefing import assumptions
+    from .chances import first_chance
+    oid = int(chance) if chance not in (None, '') else first_chance(conn, lead_id)
+    brief = assumptions(conn, oid)[0] if oid else ''
+    if brief:  # 2.0.0-dev20: geklärte Angaben und ausdrücklich offene Voraussetzungen aus dem Briefing
+        payload['assumptions'] = f"{payload['assumptions']} {brief}"[:1000]
     return make_proposal(conn, payload)
 
 

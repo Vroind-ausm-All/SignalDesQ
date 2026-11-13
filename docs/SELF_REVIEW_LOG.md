@@ -552,6 +552,23 @@ Fehlerschleifen: (1) Der Browser-Test fand eine doppelte Deklaration `rebase` in
 
 **Entscheid:** M13 ist abgeschlossen. Weiter mit M14 (Briefings je Leistungsbereich).
 
+## Arbeitspaket 19 – Briefing je Chance (2.0.0-dev20)
+
+Auftrag: direkt am nächsten Schritt weiterarbeiten – laut Roadmap M14. Fragen aus dem Onboarding-Leitfaden (Medien, Software) und dem Bewertungsmodell (Analyse), Leistungsbereiche aus dem zentralen Katalog.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 623 Tests bestanden (7 neu in `tests/test_v2_briefing.py`) |
+| Browser-Tests | 16 von 16 (neu `test_briefing_browser.py`: Briefing an der Chance, Antworten speichern, Übernahme ins Angebot; `test_chances_browser.py` wählt die Kopfzeile der Karte eindeutig, `test_akte_tabs_browser.py` wartet jetzt den Start ab – im Gesamtlauf klickte er vorher zu früh, allein lief er grün) |
+| Abnahme M14 | Fragen je Leistungsbereich; jede Angebotsannahme stammt aus einer geklärten Angabe oder einer ausdrücklich offenen Voraussetzung; Schnappschuss intern am Angebot |
+| Migration | Schema 32 → 33, neue Tabelle und Spalte mit Vorgabewert |
+
+Fehlerschleife: Gewählte Bereiche erschienen in Klickreihenfolge statt in fester Reihenfolge – jetzt immer wie im Katalog.
+
+**Selbstbewertung 4 von 5.** Abzug: feste Fragen ohne eigene Ergänzungen; das Briefing blockiert die Freigabe bewusst nicht.
+
+**Entscheid:** Weiter mit M15 (Angebotsrevisionen und Varianten).
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

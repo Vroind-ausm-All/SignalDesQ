@@ -455,6 +455,9 @@ def make_handler(db_path, allowed_hosts=None):
                 from .chances import route_chances
                 if route_chances(self, conn, method, route):  # 2.0.0-dev18: Verkaufschancen je Firma
                     return
+                from .briefing import route_briefing
+                if route_briefing(self, conn, method, route):  # 2.0.0-dev20: Briefing je Chance
+                    return
                 proposal_match=re.fullmatch(r'/api/workspace/proposals/(\d+)(/customer)?',route)
                 if proposal_match:
                     ident=int(proposal_match.group(1))
@@ -915,7 +918,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 32  # 2.0.0-dev19 – bei Schemaänderungen erhöhen (Bedarf und Freigabe je Chance)
+SCHEMA_VERSION = 33  # 2.0.0-dev20 – bei Schemaänderungen erhöhen (Briefing je Chance)
 
 
 def backup_before_migration(db):

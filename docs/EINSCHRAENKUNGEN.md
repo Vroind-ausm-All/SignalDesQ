@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev19)
+# Bekannte Einschränkungen (Stand 2.0.0-dev20)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -133,3 +133,11 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - In der Pipeline lassen sich Chancen-Karten über die Phasenauswahl verschieben, nicht per Ziehen.
 - Die Firmenliste und ihre Arbeitsansicht „Heute fällig“ zählen die nächsten Schritte der Firma, nicht die einzelner Chancen; in „Heute“ und der Fokusliste stehen beide.
 - Aufgaben sind weiterhin keiner Chance zugeordnet.
+
+## Briefing je Chance (2.0.0-dev20)
+
+- Die Fragen sind feste Vorschläge aus dem Onboarding-Leitfaden und dem Bewertungsmodell; eigene Fragen lassen sich noch nicht ergänzen.
+- Unbeantwortete Fragen blockieren die Versandfreigabe nicht, sie erscheinen als Hinweis. Ob ein Angebot ohne vollständiges Briefing verschickt wird, entscheidest du.
+- Die Voraussetzungen im Angebot sind auf 1.000 Zeichen begrenzt; lange Briefings werden gekürzt übernommen.
+- Antworten sind Arbeitsnotizen. Was davon im Angebot steht, sieht der Kunde – vor dem Übernehmen prüfen, ob eine Angabe dort hingehört.
+- Materialien und Zugänge werden nur als Text erfasst (keine Dateiablage, keine Passwortfelder); die Material- und Entscheidungsliste ist M39.

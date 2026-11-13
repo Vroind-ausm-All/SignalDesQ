@@ -92,6 +92,13 @@ def checks(conn, row):
     hints = [x for x in json.loads(row['internal_json'] or '{}').get('open_points', []) if 'Zahlungsplan' not in x] if row['internal_json'] else []
     if cust.get('payment_plan'):
         hints.append(f"Zahlungsplan „{cust['payment_plan']}“ mit dem Kunden ausdrücklich vereinbaren.")
+    if row['opportunity_id']:  # 2.0.0-dev20 (M14): Briefing der Chance
+        from .briefing import get as briefing
+        s = briefing(conn, row['opportunity_id'])['summary']
+        if s['unbeantwortet']:
+            hints.append(f"Briefing: {s['unbeantwortet']} Frage(n) noch unbeantwortet – als geklärt, offen oder entfällt markieren.")
+        if s['offen'] and 'Offene Voraussetzungen' not in (cust.get('assumptions') or ''):
+            hints.append(f"Briefing: {s['offen']} offene Voraussetzung(en) stehen noch nicht unter „Voraussetzungen“ im Angebot.")
     return {'checks': items, 'hints': hints, 'ready': all(i['ok'] for i in items)}
 
 

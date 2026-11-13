@@ -200,8 +200,10 @@ def make_proposal(conn,data):
     valid_until=(issued+dt.timedelta(days=OFFER_VALID_DAYS)).isoformat()
     proposal['customer'].update({'customer_company':lead['company'],'offer_number':number,
                                  'offer_date':issued.isoformat(),'valid_until':valid_until})
-    ns=need_status(conn,lead['id'])
+    ns=need_status(conn,lead['id'],chance)
     proposal['internal']['need_confirmed_at']=ns['confirmed_at']  # intern: Freigabegrundlage, nie im Kundendokument
+    from .briefing import snapshot
+    proposal['internal']['briefing']=snapshot(conn,chance)  # 2.0.0-dev20: Angaben, auf denen das Angebot beruht (intern)
     cur=conn.execute('INSERT INTO proposals(lead_id,internal_json,customer_json,number,valid_until,opportunity_id) VALUES (?,?,?,?,?,?)',(
         lead['id'],json.dumps(proposal['internal'],ensure_ascii=False),json.dumps(proposal['customer'],ensure_ascii=False),number,valid_until,chance))
     after_proposal(conn,lead['id'],number)

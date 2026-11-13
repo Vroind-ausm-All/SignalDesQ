@@ -23,6 +23,7 @@
       <div class="ch-body">
         <p class="muted">${need.length ? need.map(esc).join('<br>') : (c.is_first ? 'Bedarf: in der Bedarfsanalyse unten (gilt für die erste Chance).' : 'Noch kein Anliegen festgehalten.')}${need.length ? `<br><small>Quelle: ${esc(c.need_source)}</small>` : ''}</p>
         ${needBlock(c)}
+        <details class="ch-brief" data-ch-brief="${c.id}"><summary>Briefing <small>${esc(briefLine(c.briefing))}</small></summary><div class="ch-brief-body"><div class="muted">wird geladen …</div></div></details>
         ${props ? `<div class="sales-subhead">Angebote</div><ul class="ch-mini">${props}</ul>` : ''}
         ${meets ? `<div class="sales-subhead">Termine</div><ul class="ch-mini">${meets}</ul>` : ''}
         ${c.stage === 'gewonnen' ? '<p class="muted">Gewonnen – für ein weiteres Projekt eine neue Chance anlegen.</p>' : `<form class="sales-form ch-edit" data-ch-form="${c.id}">
@@ -81,6 +82,29 @@
     for (const k of DISC) if (form.elements[k]) form.elements[k].value = d[k] || (k === 'budget_status' ? 'offen' : '');
     $('#discoveryProgress').textContent = `Chance „${(data.chances.find(c => String(c.id) === String(chance)) || {}).title || ''}“: ${d.completeness.answered} von ${d.completeness.total} Kernfragen erfasst`;
     window.leadGuard?.rebase?.('discoveryForm');
+  }
+
+  // 2.0.0-dev20 (M14): Briefing je Chance – Fragen je Leistungsbereich, jede bewusst geklärt, offen oder entfällt
+  function briefLine(s) {
+    if (!s) return '';
+    const total = s.geklaert + s.offen + s.entfaellt + s.unbeantwortet;
+    return total ? `${s.geklaert} geklärt · ${s.offen} offen · ${s.entfaellt} entfällt · ${s.unbeantwortet} unbeantwortet` : 'Leistungsbereich wählen, dann passende Fragen klären';
+  }
+  async function renderBrief(box) {
+    const id = box.dataset.chBrief, body = box.querySelector('.ch-brief-body');
+    try {
+      const b = await api(`/chances/${id}/briefing`);
+      const areaBoxes = Object.entries(b.all_areas).map(([k, l]) => `<label class="ch-area"><input type="checkbox" name="area" value="${esc(k)}" ${b.areas.some(a => a.key === k) ? 'checked' : ''}>${esc(l)}</label>`).join('');
+      const groups = b.areas.map(a => `<fieldset class="ch-brief-area"><legend>${esc(a.label)}</legend>${b.items.filter(i => i.area === a.key).map(i => `
+        <div class="ch-q" data-q="${esc(i.key)}"><div><b>${esc(i.label)}</b> <small>${esc(i.question)}</small><small class="muted">Zunächst anfordern: ${esc(i.request)}</small></div>
+          <div class="sales-row"><select name="status" aria-label="Status ${esc(i.label)}"><option value="">– unbeantwortet –</option>${Object.entries(b.statuses).map(([k, l]) => `<option value="${k}" ${k === i.status ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>
+          <input name="answer" maxlength="1000" value="${esc(i.answer)}" placeholder="Angabe des Kunden bzw. was fehlt, wer liefert, bis wann" aria-label="Antwort ${esc(i.label)}"></div></div>`).join('')}</fieldset>`).join('');
+      body.innerHTML = `<form class="sales-form" data-ch-brief-form="${id}">
+        <div class="ch-areas"><span class="muted">Leistungsbereiche${b.chosen ? '' : ' (aus Bedarf, Leistung und Angeboten erkannt)'}:</span> ${areaBoxes}</div>
+        ${groups || '<p class="muted">Noch kein Leistungsbereich erkannt – oben wählen und speichern.</p>'}
+        <p class="muted">${esc(briefLine(b.summary))}. Geklärte Angaben und offene Voraussetzungen übernimmt das Angebot unter „Voraussetzungen“.</p>
+        <button type="submit" class="btn btn-primary">Briefing speichern</button></form>`;
+    } catch (e) { body.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
   }
 
   function render() {
@@ -143,6 +167,17 @@
       const lead = e.target.closest('#quoteForm [name=lead_id], #wsMeetingForm [name=lead_id]');
       if (lead) fillSelect(lead.form.querySelector('[data-ch-select]'), lead.value);
     });
+    $('#qbBriefing')?.addEventListener('click', async () => {
+      const v = $('#quoteForm [name=opportunity_id]')?.value, ta = $('#quoteForm [name=assumptions]');
+      if (!/^\d+$/.test(v || '')) return toast('Erst Firma und Chance wählen – das Briefing gehört zu einer Chance.', true);
+      try {
+        const r = await api(`/chances/${v}/briefing/voraussetzungen`);
+        if (!r.text) return toast('Im Briefing dieser Chance ist noch nichts als geklärt oder offen markiert.', true);
+        ta.value = (ta.value.trim() ? ta.value.trim() + ' ' : '') + r.text;
+        ta.dispatchEvent(new Event('change', {bubbles: true}));
+        toast(`Übernommen: ${r.summary.geklaert} geklärte Angabe(n), ${r.summary.offen} offene Voraussetzung(en)`);
+      } catch (err) { toast(err.message, true); }
+    });
     $('#discoveryChance')?.addEventListener('change', e => showNeed(e.target.value).catch(err => toast(err.message, true)));
     document.addEventListener('click', async e => {
       const an = e.target.closest('[data-ch-analysis]');
@@ -163,7 +198,23 @@
         try { await api(`/leads/${leadId}/need/reopen`, 'POST', {reason, opportunity_id: Number(ro.dataset.chReopen)}); toast('Bedarf wieder offen'); await load(leadId); } catch (err) { toast(err.message, true); }
       }
     });
+    document.addEventListener('toggle', e => { const b = e.target.closest?.('[data-ch-brief]'); if (b && b.open) renderBrief(b); }, true);
     document.addEventListener('submit', async e => {
+      const bf = e.target.closest('[data-ch-brief-form]');
+      if (bf) {
+        e.preventDefault();
+        const areas = Array.from(bf.querySelectorAll('[name=area]:checked')).map(x => x.value);
+        const answers = Array.from(bf.querySelectorAll('[data-q]')).map(q => ({key: q.dataset.q, status: q.querySelector('[name=status]').value, answer: q.querySelector('[name=answer]').value}));
+        try {
+          await api(`/chances/${bf.dataset.chBriefForm}/briefing`, 'PUT', {areas, answers});
+          toast('Briefing gespeichert');
+          const box = bf.closest('[data-ch-brief]');
+          await renderBrief(box);
+          const c = data.chances.find(x => String(x.id) === bf.dataset.chBriefForm);
+          if (c) { c.briefing = (await api(`/chances/${c.id}/briefing`)).summary; box.querySelector('summary small').textContent = briefLine(c.briefing); }
+        } catch (err) { toast(err.message, true); }
+        return;
+      }
       // Bedarfsanalyse einer weiteren Chance speichern (die erste Chance speichert wie bisher die Firma)
       if (e.target.id === 'discoveryForm' && e.target.dataset.chance) {
         e.preventDefault(); e.stopImmediatePropagation();

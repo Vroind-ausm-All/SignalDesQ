@@ -744,3 +744,13 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 .ch-need-for{display:block;margin:8px 0;max-width:420px}
 .pc-chance{border-left:3px solid var(--accent)}
 .pc-sub{display:block;font-size:11px;font-weight:400;color:var(--muted)}
+/* 2.0.0-dev20 – Briefing je Chance (Review M14) */
+.ch-brief{border:1px solid var(--line);border-radius:9px;padding:6px 12px}
+.ch-brief summary{cursor:pointer;font-weight:600;font-size:13px}
+.ch-brief summary small{font-weight:400;color:var(--muted);margin-left:6px}
+.ch-brief-body{display:grid;gap:8px;margin-top:8px}
+.ch-areas{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:13px}
+.ch-area{display:inline-flex;gap:4px;align-items:center}
+.ch-brief-area{border:1px solid var(--line);border-radius:9px;padding:8px 12px;display:grid;gap:8px}
+.ch-brief-area legend{font-size:12px;font-weight:600;padding:0 4px}
+.ch-q small{display:block}

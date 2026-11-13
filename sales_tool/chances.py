@@ -143,6 +143,8 @@ def _view(conn, row):
         d['need_source'] = 'Bedarfsanalyse dieser Chance'
     d['need_confirmed'] = bool(d.get('confirmed_at'))
     d.pop('needs_json', None)
+    from .briefing import get as briefing
+    d['briefing'] = briefing(conn, row['id'])['summary']  # 2.0.0-dev20 (M14)
     d['stage_label'] = STAGE_LABELS[row['stage']]
     d['open'] = row['stage'] in OPEN
     d['offer_title'] = VORLAGEN[row['offer']]['title'] if row['offer'] in VORLAGEN else ''
