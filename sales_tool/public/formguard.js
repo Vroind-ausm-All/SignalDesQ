@@ -173,5 +173,6 @@
   });
   window.addEventListener('beforeunload', e => { if (dirty().length) { e.preventDefault(); e.returnValue = ''; } });
 
-  window.leadGuard = {remember, afterOpen, onClose, requestClose, dirty, dialogOpen, cancel: () => { hideDialog(); focusDirty(dirty()); }};
+  // 2.0.0-dev19: rebase nach außen – nach dem Laden einer anderen Chance in die Bedarfsanalyse gilt dieser Stand als gespeichert
+  window.leadGuard = {remember, afterOpen, onClose, requestClose, dirty, dialogOpen, rebase, cancel: () => { hideDialog(); focusDirty(dirty()); }};
 })();

@@ -48,8 +48,9 @@ class AkteTabsBrowserTests(unittest.TestCase):
                         page.on('pageerror', lambda exc: errors.append(str(exc)))
                         page.on('request', lambda r: outside.append(r.url) if '127.0.0.1' not in r.url else None)
                         page.goto(base)
+                        page.wait_for_load_state('networkidle')  # erst nach dem Start klicken (sonst ist die Firmenliste ggf. noch verborgen)
                         page.locator('.sidebar [data-view="leads"]').click()
-                        page.locator('#leadRows tr, tbody tr', has_text='Beispiel Malerbetrieb').first.click()
+                        page.locator('#leadRows tr', has_text='Beispiel Malerbetrieb').first.click()
                         page.locator('#leadTabs').wait_for(state='visible', timeout=15000)
 
                         # Kopf: Firmenname, Kennzahlen, nächste Aktion; Start im Überblick

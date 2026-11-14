@@ -177,7 +177,7 @@ class StartTests(StatusTests):
         self.assertEqual(keys, ['bestaetigung', 'startgespraech', 'material', 'zugaenge', 'ueberblick', 'zwischenstand'])  # Logo + Software
         self.assertTrue(all(s['title'].startswith(p['number']) for s in plan['suggestions']))
         follow = {f['title'] for f in plan['followups']}
-        self.assertEqual(follow, {f"Angebotsstatus und zulässige Rückfrage prüfen (#{p['id']})", f"Angebot {p['number']} telefonisch nachfassen"})
+        self.assertEqual(follow, {f"Angebot {p['number']} nachfassen (#{p['id']}) – zulässigen Weg prüfen: Entscheidung erfragen", f"Angebot {p['number']} telefonisch nachfassen"})
         self.assertTrue(plan['next_step'].startswith(f"Projektstart {p['number']}"))
         out = of.start(self.conn, p['id'], {'create': ['bestaetigung', 'startgespraech', 'zugaenge'], 'close': [f['id'] for f in plan['followups']]})
         self.assertEqual((out['created'], out['closed']), (3, 2))

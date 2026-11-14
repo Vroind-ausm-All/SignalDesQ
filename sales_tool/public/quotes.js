@@ -43,6 +43,7 @@
     if (s.kind === 'tag') p.days = opts.days || 1;
     if (s.kind === 'anreise') Object.assign(p, {km: opts.km || 25, minutes: opts.minutes || 30, trips: opts.trips || 1});
     if (opts.title) p.title = opts.title;
+    if (opts.optional) p.optional = true;  // 2.0.0-dev22: optionale Position
     return p;
   }
 
@@ -58,7 +59,7 @@
       if (s.kind === 'tag') fields = `<label>Tage<input type="number" data-qb-f="days" data-i="${i}" value="${p.days}" min="0.5" step="0.5"></label>`;
       if (s.kind === 'anreise') fields = `<label>km einfach<input type="number" data-qb-f="km" data-i="${i}" value="${p.km}" min="1" step="1"></label><label>Min. einfach<input type="number" data-qb-f="minutes" data-i="${i}" value="${p.minutes}" min="0" step="5"></label><label>Fahrten<input type="number" data-qb-f="trips" data-i="${i}" value="${p.trips}" min="1" step="1"></label>`;
       return `<div class="qb-pos"><span class="qb-n">${i + 1}</span><div class="qb-pos-main"><input class="qb-title" data-qb-f="title" data-i="${i}" value="${esc(p.title || s.title)}" maxlength="140" aria-label="Bezeichnung">
-        <div class="qb-fields">${fields}</div>${pr ? `<small class="muted">${esc(pr.formula)}</small>` : ''}</div>
+        <div class="qb-fields">${fields}<label class="qb-opt"><input type="checkbox" data-qb-f="optional" data-i="${i}" ${p.optional ? 'checked' : ''}> optional (nicht im Festpreis)</label></div>${pr ? `<small class="muted">${esc(pr.formula)}</small>` : ''}</div>
         <div class="qb-price">${pr ? `<b>${money(pr.price_eur)}</b>${s.billing === 'monatlich' ? '<small>/ Monat</small>' : ''}` : '<small>–</small>'}</div>
         <div class="qb-tools"><button type="button" class="text-button" data-qb-up="${i}" aria-label="nach oben" ${i ? '' : 'disabled'}>↑</button><button type="button" class="text-button" data-qb-del="${i}" aria-label="entfernen">✕</button></div></div>`;
     }).join('') : '<div class="empty">Noch keine Positionen. Leistung oben auswählen oder eine Vorlage laden.</div>';
@@ -87,7 +88,7 @@
   // ------------------------------------------------------------ Anzeige
   function renderQuote(q) {
     const c = q.customer, i = q.internal;
-    const rows = c.positions.map((p, n) => `<tr><td>${n + 1}</td><td><b>${esc(p.title)}</b><small>${esc(p.scope)}${p.note ? ' · ' + esc(p.note) : ''}</small></td><td class="num">${money(p.price_eur)}${p.billing === 'monatlich' ? '<small>/ Monat</small>' : ''}</td></tr>`).join('');
+    const rows = c.positions.map((p, n) => `<tr class="${p.optional ? 'qb-optional' : ''}"><td>${n + 1}</td><td><b>${esc(p.title)}</b>${p.optional ? ' <span class="pill off">optional</span>' : ''}<small>${esc(p.scope)}${p.note ? ' · ' + esc(p.note) : ''}</small></td><td class="num">${p.optional ? '<small>nicht im Festpreis</small>' : ''}${money(p.price_eur)}${p.billing === 'monatlich' ? '<small>/ Monat</small>' : ''}</td></tr>`).join('');
     const vatOnce = c.tax_mode === 'regel_19';
     $('#quoteCustomer').innerHTML = `<div class="eyebrow">ENTWURF · FESTPREISE</div><h3>${esc(c.project_label)}</h3><p><strong>Ergebnis:</strong> ${esc(c.goal)}</p>
       <table class="qb-table"><thead><tr><th>Pos.</th><th>Leistung</th><th class="num">Festpreis netto</th></tr></thead><tbody>${rows}</tbody></table>
@@ -96,10 +97,11 @@
       ${c.deliverables.length ? `<h4>Liefergegenstände</h4><ul>${c.deliverables.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
       ${c.excluded.length ? `<h4>Nicht enthalten</h4><ul>${c.excluded.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
       ${c.third_party_costs.length ? `<h4>Mögliche Kosten Dritter (nicht im Festpreis)</h4><ul>${c.third_party_costs.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+      ${c.options && c.options.length ? `<p class="muted"><b>Optionale Positionen:</b> ${esc(c.options_note)}</p>` : ''}
       ${c.revision_note ? `<p class="muted"><b>Korrekturschleifen:</b> ${esc(c.revision_note)}</p>` : ''}
       <p class="muted">${esc(c.weeks)} · ${esc(c.payment_plan)}</p>`;
     $('#quoteInternal').innerHTML = `<div class="table-wrap"><table class="qb-table qb-internal"><thead><tr><th>Position</th><th class="num">Aufwand</th><th class="num">× Satz</th><th class="num">+ Puffer</th><th class="num">+ Fremdkosten</th><th class="num">= Festpreis</th><th class="num">€/h effektiv</th></tr></thead><tbody>
-      ${i.positions.map(p => `<tr class="${p.effective_hourly !== null && p.effective_hourly < i.min_hourly_earning - 0.005 ? 'warn' : ''}"><td><b>${esc(p.title)}</b><small>${esc(p.formula)}${p.fixed ? ' · fester Preis' : ''}</small></td>
+      ${i.positions.map(p => `<tr class="${p.effective_hourly !== null && p.effective_hourly < i.min_hourly_earning - 0.005 ? 'warn' : ''} ${p.optional ? 'qb-optional' : ''}"><td><b>${esc(p.title)}</b><small>${esc(p.formula)}${p.fixed ? ' · fester Preis' : ''}${p.optional ? ' · optional, nicht in der Summe' : ''}</small></td>
         <td class="num">${p.hours.toLocaleString('de-DE')} h</td><td class="num">${money(p.labor_eur)}</td><td class="num">${money(p.buffer_eur)}</td><td class="num">${money(p.external_eur)}</td><td class="num"><b>${money(p.price_eur)}</b></td><td class="num">${p.effective_hourly === null ? '–' : money(p.effective_hourly)}</td></tr>`).join('')}
       <tr class="sum"><td>Summe</td><td class="num">${i.estimated_hours.toLocaleString('de-DE')} h</td><td></td><td></td><td class="num">${money(i.external_cost_eur)}</td><td class="num">${money(i.total_price_eur)}</td><td class="num"><b>${i.effective_hourly === null ? '–' : money(i.effective_hourly)}</b></td></tr></tbody></table></div>
       <div class="qb-check ${i.ok ? 'ok' : 'warn'}">${i.ok ? `✓ Alle Positionen erreichen deinen Mindestverdienst von ${money(i.min_hourly_earning)} je Stunde.` : '! ' + i.warnings.map(esc).join('<br>! ')}</div>
@@ -123,6 +125,32 @@
         $('#quoteSaved').insertAdjacentHTML('beforeend', `<div class="sales-row"><button type="button" class="btn btn-ghost" data-quote-invoice="${id}" data-mode="monat">Monatsrechnung für die laufenden Positionen</button></div>`);
       }
     } catch { /* still */ }
+  };
+
+  // 2.0.0-dev21 (M15): Vorgänger in den Baukasten laden und als neue Fassung speichern
+  window.quoteStartRevision = async function (pid) {
+    try {
+      const r = await api(`/workspace/proposals/${pid}/revision`);
+      const f = $('#quoteForm');
+      f.elements.lead_id.value = String(r.lead_id);
+      f.elements.lead_id.dispatchEvent(new Event('change', {bubbles: true}));
+      await new Promise(res => setTimeout(res, 150));  // Firmenwechsel leert zuerst die Positionen
+      const p = r.payload;
+      if (p.positions) window.quoteApplyTemplate(p.template || '', p.positions); else if (p.package) window.quoteApplyTemplate(p.package);
+      for (const k of ['project_label', 'customer_goal', 'assumptions', 'tax_mode']) if (p[k] != null && f.elements[k]) f.elements[k].value = p[k];
+      f.dataset.revisionOf = String(r.revision_of);
+      $('#qbRevisionOf').textContent = `${r.number} (wird Fassung ${r.next_no})`;
+      $('#qbRevision').classList.remove('hidden');
+      $('#qbRevisionReason').value = '';
+      $('#qbRevisionReason').focus();
+      f.scrollIntoView({behavior: 'smooth', block: 'start'});
+      changed();
+      toast(`${r.number} geladen – ändern, Grund eintragen, als neue Fassung speichern`);
+    } catch (e) { toast(e.message, true); }
+  };
+  window.quoteEndRevision = function () {
+    delete $('#quoteForm').dataset.revisionOf;
+    $('#qbRevision').classList.add('hidden');
   };
 
   window.quoteApplyTemplate = function (pkg, list) {
@@ -196,6 +224,7 @@
       positions.push(newPosition(key, {size: $('#qbSize').value, qty: q, days: q}));
       changed();
     });
+    $('#qbRevisionCancel').addEventListener('click', () => { window.quoteEndRevision(); toast('Überarbeitung abgebrochen – der Vorgänger bleibt unverändert'); });
     $('#qbTemplate').addEventListener('click', () => { const v = $('#quotePackage').value; if (!v) return toast('Bitte eine Vorlage wählen', true); window.quoteApplyTemplate(v); });
     document.addEventListener('click', e => {
       const q = e.target.closest('[data-qb-quick]');
@@ -219,7 +248,8 @@
       const f = e.target.closest('[data-qb-f]');
       if (!f) return;
       const p = positions[Number(f.dataset.i)], k = f.dataset.qbF;
-      p[k] = k === 'title' || k === 'size' ? f.value : Number(f.value);
+      p[k] = k === 'optional' ? f.checked : k === 'title' || k === 'size' ? f.value : Number(f.value);
+      if (k === 'optional' && !f.checked) delete p.optional;
       changed();
     });
     // Speichern/Berechnen des Formulars übernimmt der Baukasten (vor den Handlern des alten Paket-Rechners)
@@ -237,7 +267,9 @@
       if (!positions.length) return toast('Bitte mindestens eine Position hinzufügen', true);
       try {
         const ch = $('#quoteForm [name=opportunity_id]')?.value;  // 2.0.0-dev18: Chance des Angebots
-        const saved = await api('/workspace/proposals', 'POST', {lead_id: leadId, ...payload(), ...(ch ? {opportunity_id: ch} : {})});
+        const rev = $('#quoteForm').dataset.revisionOf;  // 2.0.0-dev21: Revision eines Vorgängers
+        const saved = await api('/workspace/proposals', 'POST', {lead_id: leadId, ...payload(), ...(rev ? {revision_of: Number(rev), revision_reason: $('#qbRevisionReason').value.trim()} : ch ? {opportunity_id: ch} : {})});
+        if (rev) window.quoteEndRevision();
         toast('Angebotsentwurf gespeichert – noch nicht versendet');
         await window.refreshSalesQuotes();
         await window.wsOpenProposal(saved.id);

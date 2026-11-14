@@ -134,7 +134,7 @@ class OfferLinkTests(Base):
     def test_sending_and_acceptance_move_only_their_chance(self):
         a = ch.create(self.conn, self.lead, {'title': 'A'})
         b = ch.create(self.conn, self.lead, {'title': 'B'})
-        confirm_need(self.conn, self.lead)
+        confirm_need(self.conn, self.lead, chance=b['id'])  # 2.0.0-dev19: Freigabe gilt je Chance
         p = make_proposal(self.conn, {'lead_id': self.lead, 'positions': LOGO, 'tax_mode': 'regel_19', 'opportunity_id': b['id']})
         release_offer(self.conn, p['id'])
         of.set_status(self.conn, p['id'], {'status': 'gesendet_manuell'})

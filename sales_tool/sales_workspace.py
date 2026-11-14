@@ -185,28 +185,48 @@ def make_proposal(conn,data):
     lead=_lead(conn,data['lead_id'])
     from .workday import assert_contact_allowed, after_proposal, need_status
     assert_contact_allowed(conn,lead,'Angebot erstellen')
-    payload={k:v for k,v in data.items() if k not in ('lead_id','opportunity_id')}
+    payload={k:v for k,v in data.items() if k not in ('lead_id','opportunity_id','revision_of','revision_reason')}
+    rev_of=data.get('revision_of')
+    if rev_of not in (None,'') and (isinstance(rev_of,bool) or not str(rev_of).isdigit()): raise ValueError('Ungültiger Vorgänger.')
     from .pricing import build_quote
     # Sprint D: Baukasten mit Positionen; ältere Aufrufe mit Paket werden über den zentralen Katalog übersetzt (dev16)
     proposal=build_quote(conn,payload) if 'positions' in payload else quote_preview(conn,payload)
     from .chances import for_new_offer
     # 2.0.0-dev18: jedes Angebot gehört zu einer Chance (gewählt, die einzige offene oder eine neue)
-    chance=for_new_offer(conn,lead['id'],data.get('opportunity_id'),proposal['customer']['project_label'])
+    pred=None
+    if rev_of not in (None,''):  # 2.0.0-dev21 (M15): Revision ersetzt ausdrücklich einen Vorgänger – gleiche Firma, gleiche Chance
+        from .revisions import assert_revisable
+        pred=assert_revisable(conn,int(rev_of))
+        if pred['lead_id']!=lead['id']: raise ValueError('Der Vorgänger gehört zu einer anderen Firma.')
+    chance=pred['opportunity_id'] if pred is not None and pred['opportunity_id'] else for_new_offer(conn,lead['id'],data.get('opportunity_id'),proposal['customer']['project_label'])
     if proposal['customer'].get('package') not in (None,'','baukasten'):
         conn.execute("UPDATE opportunities SET offer=? WHERE id=? AND offer=''",(proposal['customer']['package'],chance))
     from .accounting import _next_number
     issued=dt.date.today()
-    number=_next_number(conn,'AN',issued.year)
+    rev_no=1
+    if pred is not None:
+        from .revisions import apply
+        number,rev_no,pred=apply(conn,pred['id'],data.get('revision_reason'),proposal)
+    else:
+        number=_next_number(conn,'AN',issued.year)
     valid_until=(issued+dt.timedelta(days=OFFER_VALID_DAYS)).isoformat()
     proposal['customer'].update({'customer_company':lead['company'],'offer_number':number,
                                  'offer_date':issued.isoformat(),'valid_until':valid_until})
-    ns=need_status(conn,lead['id'])
+    ns=need_status(conn,lead['id'],chance)
     proposal['internal']['need_confirmed_at']=ns['confirmed_at']  # intern: Freigabegrundlage, nie im Kundendokument
-    cur=conn.execute('INSERT INTO proposals(lead_id,internal_json,customer_json,number,valid_until,opportunity_id) VALUES (?,?,?,?,?,?)',(
-        lead['id'],json.dumps(proposal['internal'],ensure_ascii=False),json.dumps(proposal['customer'],ensure_ascii=False),number,valid_until,chance))
+    from .briefing import snapshot
+    proposal['internal']['briefing']=snapshot(conn,chance)  # 2.0.0-dev20: Angaben, auf denen das Angebot beruht (intern)
+    proposal['internal']['payload']=payload  # 2.0.0-dev21: Bauplan für spätere Revisionen (intern)
+    reason=(proposal['internal'].get('revision') or {}).get('reason','')
+    cur=conn.execute('INSERT INTO proposals(lead_id,internal_json,customer_json,number,valid_until,opportunity_id,revision_of,revision_no,revision_reason) VALUES (?,?,?,?,?,?,?,?,?)',(
+        lead['id'],json.dumps(proposal['internal'],ensure_ascii=False),json.dumps(proposal['customer'],ensure_ascii=False),number,valid_until,chance,
+        pred['id'] if pred is not None else None,rev_no,reason))
+    if pred is not None:
+        from .revisions import link
+        link(conn,pred,cur.lastrowid,number,reason)
     after_proposal(conn,lead['id'],number)
     conn.commit()
-    return {'id':cur.lastrowid,'status':'entwurf','number':number,'need_confirmed':bool(ns['confirmed']),'opportunity_id':chance,**proposal}
+    return {'id':cur.lastrowid,'status':'entwurf','number':number,'need_confirmed':bool(ns['confirmed']),'opportunity_id':chance,'revision_no':rev_no,**proposal}
 
 
 def proposal_rows(conn):
@@ -215,6 +235,7 @@ def proposal_rows(conn):
              'expired':bool(r['valid_until'] and r['status'] in ('entwurf','gesendet_manuell') and r['valid_until']<dt.date.today().isoformat()),
              'project_label':json.loads(r['customer_json'])['project_label'],
              'net_eur':json.loads(r['customer_json'])['net_eur'],'created_at':r['created_at'],
+             'revision_no':r['revision_no'] or 1,'superseded':bool(r['superseded_by']),
              'invoiced':bool(conn.execute("SELECT 1 FROM invoices WHERE proposal_id=? AND kind<>'storno' AND status<>'storniert' LIMIT 1",(r['id'],)).fetchone())}
             for r in conn.execute('SELECT p.*,l.company FROM proposals p JOIN leads l ON l.id=p.lead_id ORDER BY p.id DESC LIMIT 100')]
 
@@ -236,16 +257,22 @@ def customer_markdown(customer,release=None):
         lines.append(f"*Versandfassung · Stand {safe(release['stand'])} · freigegeben am {safe(release['released_at'])}*")
     else:
         lines.append('**ENTWURF – nicht zum Versand freigegeben.**')
+    rev=customer.get('revision')
+    if rev:  # 2.0.0-dev21: Revision nennt ihren Vorgänger
+        lines.append(f"**Überarbeitete Fassung {safe(rev['no'])}** – ersetzt Angebot {safe(rev['replaces'])}{' vom '+safe(rev['replaces_date']) if rev.get('replaces_date') else ''}.")
     lines.append(f"**An:** {safe(customer.get('customer_company',''))}")
     if customer.get('offer_number'):
         lines.append(f"**Angebotsnummer:** {safe(customer['offer_number'])} · **Datum:** {safe(customer.get('offer_date',''))} · **Gültig bis:** {safe(customer.get('valid_until',''))}")
     lines+=['',
            '## Ziel und Ergebnis',safe(customer['goal'])]
+    if rev:
+        lines+=['',f"## Änderungen gegenüber Angebot {safe(rev['replaces'])}"]+(['Anlass: '+safe(rev['reason'])] if rev.get('reason') else [])+['- '+safe(x) for x in rev.get('changes',[])]
     if customer.get('positions'):
         money=lambda v: f"{v:,.2f} €".replace(',','X').replace('.',',').replace('X','.')
         lines+=['','## Leistungen und Festpreise','','| Pos. | Leistung | Umfang | Festpreis netto |','|---|---|---|---|']
         for n,pos in enumerate(customer['positions'],1):
-            lines.append(f"| {n} | {safe(pos['title'])} | {safe(pos['scope'])}{' · '+safe(pos['note']) if pos.get('note') else ''} | {money(pos['price_eur'])}{' / Monat' if pos['billing']=='monatlich' else ''} |")
+            opt=pos.get('optional')  # 2.0.0-dev22: optionale Positionen klar außerhalb des Festpreises
+            lines.append(f"| {n} | {safe(pos['title'])}{' (optional)' if opt else ''} | {safe(pos['scope'])}{' · '+safe(pos['note']) if pos.get('note') else ''} | {'optional: ' if opt else ''}{money(pos['price_eur'])}{' / Monat' if pos['billing']=='monatlich' else ''}{' – nicht im Festpreis' if opt else ''} |")
         if customer.get('once_net_eur'): lines.append(f"| | **Summe einmalig** | | **{money(customer['once_net_eur'])}** |")
         if customer.get('monthly_net_eur'): lines.append(f"| | **Summe monatlich** | | **{money(customer['monthly_net_eur'])} / Monat** |")
         lines+=['','## Was enthalten ist']
@@ -255,6 +282,8 @@ def customer_markdown(customer,release=None):
     else:
         lines+=['','## Enthaltene Leistungen']
         lines += ['- '+safe(x) for x in customer['included']]
+    if customer.get('options'):
+        lines += ['','## Optionale Positionen']+[f"- Pos. {o['position']} {safe(o['title'])}: {safe(o['scope'])}" for o in customer['options']]+[safe(customer.get('options_note',''))]
     if customer.get('deliverables'): lines += ['','## Liefergegenstände']+['- '+safe(x) for x in customer['deliverables']]
     lines += ['','## Nicht enthalten']+['- '+safe(x) for x in customer['excluded']]
     if customer.get('assumptions'): lines+=['','## Voraussetzungen',safe(customer['assumptions'])]

@@ -535,6 +535,81 @@ Fehlerschleifen: (1) Die Vorlage der Altdatenbank trägt ihre Schemaversion nur 
 
 **Entscheid:** Weiter mit M13 Teil 2 (dev19).
 
+## Arbeitspaket 18 – Bedarf und Freigabe je Chance, Pipeline und Heute (2.0.0-dev19)
+
+Auftrag: weitermachen, wo aufgehört wurde – M13 Teil 2.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 616 Tests bestanden (6 neu in `tests/test_v2_chances_need.py`, darunter ein Strukturtest; ein älterer Test bestätigt den Bedarf jetzt an der Chance des Angebots) |
+| Browser-Tests | 15 von 15 (`test_chances_browser.py` klickt jetzt eindeutig auf „Chance speichern“, weil die Karte zusätzlich das Freigabe-Formular hat; neu `test_chance_need_browser.py`: Auswahl der Chance in der Bedarfsanalyse, Speichern ohne Firmenänderung, Freigabe an der Chance, Angebot aus ihrem Bedarf, Pipeline-Karten je Chance) |
+| Abnahme | Freigabe einer Chance gilt nicht für eine andere; Angebote prüfen den Bedarf ihrer Chance; T08 vollständig |
+| Migration | Schema 31 → 32, neue Spalten mit Vorgabewerten; bestehende Chancen unverändert |
+
+Fehlerschleifen: (1) Der Browser-Test fand eine doppelte Deklaration `rebase` in `formguard.js`, die das ganze Skript und damit den Eingabeschutz stillgelegt hätte – jetzt wird die vorhandene Funktion nach außen gegeben, ein Strukturtest prüft das. Lehre: neue Bezeichner in bestehenden Skripten vor dem Einfügen suchen und `node --check` auf jede geänderte Datei anwenden.
+
+**Selbstbewertung 4 von 5.** Abzug: Aufgaben und Paketabgleich hängen noch an der Firma; Chancen-Karten lassen sich in der Pipeline nicht ziehen.
+
+**Entscheid:** M13 ist abgeschlossen. Weiter mit M14 (Briefings je Leistungsbereich).
+
+## Arbeitspaket 19 – Briefing je Chance (2.0.0-dev20)
+
+Auftrag: direkt am nächsten Schritt weiterarbeiten – laut Roadmap M14. Fragen aus dem Onboarding-Leitfaden (Medien, Software) und dem Bewertungsmodell (Analyse), Leistungsbereiche aus dem zentralen Katalog.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 625 Tests bestanden (7 neu in `tests/test_v2_briefing.py`, 2 in `tests/test_tmpclean.py`) |
+| Browser-Tests | 16 von 16 (neu `test_briefing_browser.py`: Briefing an der Chance, Antworten speichern, Übernahme ins Angebot; `test_chances_browser.py` wählt die Kopfzeile der Karte eindeutig, `test_akte_tabs_browser.py` wartet jetzt den Start ab – im Gesamtlauf klickte er vorher zu früh, allein lief er grün) |
+| Abnahme M14 | Fragen je Leistungsbereich; jede Angebotsannahme stammt aus einer geklärten Angabe oder einer ausdrücklich offenen Voraussetzung; Schnappschuss intern am Angebot |
+| Migration | Schema 32 → 33, neue Tabelle und Spalte mit Vorgabewert |
+
+Fehlerschleifen: (1) Gewählte Bereiche erschienen in Klickreihenfolge statt in fester Reihenfolge – jetzt immer wie im Katalog. (2) Die CI-Prüfung `e2e` scheiterte beim Aufräumen von `test_ui_workday.py` („Directory not empty“): Ein Hintergrund- oder Anfrage-Thread legte während des Löschens SQLite-Begleitdateien neu an. Der Test nutzt jetzt die gemeinsame Aufräumhilfe (erst Worker beenden), und die Hilfe wiederholt auch bei diesem Linux-Fehler; ein Test zeigt, dass die alte Hilfe hier scheiterte.
+
+**Selbstbewertung 4 von 5.** Abzug: feste Fragen ohne eigene Ergänzungen; das Briefing blockiert die Freigabe bewusst nicht.
+
+**Entscheid:** Weiter mit M15 (Angebotsrevisionen und Varianten).
+
+## Arbeitspaket 20 – Angebotsrevisionen (2.0.0-dev21)
+
+Auftrag: weiterarbeiten bis zum Nutzungslimit, vorher jeweils einen nachvollziehbaren, abgeschlossenen Schritt sichern. M15 ist deshalb in zwei eigenständig abnehmbare Teile geteilt (Revisionen, dann Optionen/Varianten).
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 629 Tests bestanden (4 neu in `tests/test_v2_revisions.py`) |
+| Browser-Tests | 17 von 17 (neu `test_revision_browser.py`: Überarbeiten lädt den Vorgänger, Position entfernen, Grund, Fassung -R2 mit Änderungsliste, alte Fassung „Ersetzt“) |
+| Abnahme T11 | Revision zeigt Vorgänger und wesentliche Änderungen; Vorgänger unverändert und ersetzt; angenommener Stand bleibt |
+| Migration | Schema 33 → 34, vier Spalten mit Vorgabewerten |
+
+**Selbstbewertung 4 von 5.** Abzug: Optionen und Varianten fehlen noch (Teil 2); bei rekonstruierten Altangeboten können Feinheiten fehlen (dokumentiert).
+
+## Arbeitspaket 21 – Optionale Positionen (2.0.0-dev22)
+
+Zweiter Teil von M15. Statt eines eigenen Variantenmodells (Basis/Standard/Erweitert nebeneinander) gibt es optionale Positionen: Das deckt den häufigen Fall „das könnten wir zusätzlich machen“ ab, ohne eine zweite Kalkulationslogik. Eine gewählte Option wird über eine Revision fest übernommen.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 631 Tests bestanden (2 neu in `tests/test_v2_options.py`) |
+| Browser-Tests | 18 von 18 (neu `test_options_browser.py`): Haken „optional“, Vorschau zeigt „nicht im Festpreis“, Summe entspricht den festen Positionen |
+| Doppelkalkulation | Festpreis, monatlich, Laufzeit, Zahlungsplan, interne Kosten und Rechnung „voll“ ohne Optionen (Unit-Test) |
+| Migration | keine |
+
+**Selbstbewertung 4 von 5.** Abzug: kein Variantenvergleich nebeneinander (bewusst, dokumentiert); die Annahme einer einzelnen Option braucht den Umweg über eine Revision.
+
+## Arbeitspaket 22 – Nachfassen mit Anlass, Frist und Ergebnis (2.0.0-dev23)
+
+M16 auf versendete Angebote begrenzt: Dort hängt am meisten Umsatz, und dort fehlte der Bezug. Nachfassen nach Erstkontakt hat mit Anrufprotokoll und Wiederholversuchen schon einen eigenen Weg.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 638 Tests bestanden (6 neu in `tests/test_v2_followups.py`, 1 neu in `tests/test_release_modules.py`; ein bestehender Test auf den neuen Aufgabentitel angepasst, der Hinweis „zulässigen Weg prüfen“ bleibt im Titel) |
+| Browser-Tests | 19 von 19 (neu `test_followup_browser.py`): Frist und Anlass beim Versand, Ergebnis „nicht erreicht“ mit neuer Frist, dann „nicht weiter nachfassen“ |
+| Fund beim Testen | Eine ungültige Frist wurde erst nach dem Statuswechsel geprüft; ein zweiter Versuch in derselben Verbindung galt dann als „unverändert“. Prüfung vor jede Änderung gezogen. |
+| Doppelung in Heute | Nachfassaufgabe und gleichlautender nächster Schritt der Firma erschienen doppelt – jetzt nur einmal |
+| Migration | Schema 34 → 35, fünf Spalten an `tasks` mit Vorgabewerten |
+| Release-Paket | Erster Bau ohne das neue, noch nicht committete Modul. Ergänzt; neuer Test verlangt jedes Modul und jede Oberflächendatei im Paket; Paket entpackt und Datenbank daraus angelegt |
+
+**Selbstbewertung 4 von 5.** Abzug: In der allgemeinen Aufgabenliste abgehakte Nachfassaufgaben haben kein Ergebnis (dokumentiert).
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

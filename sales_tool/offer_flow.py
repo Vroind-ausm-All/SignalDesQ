@@ -77,7 +77,7 @@ def checks(conn, row):
     cust = json.loads(row['customer_json'])
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (row['lead_id'],)).fetchone()
     lock = contact_lock(conn, lead) if lead else 'nicht mehr vorhanden'
-    need = need_status(conn, row['lead_id'])
+    need = need_status(conn, row['lead_id'], row['opportunity_id'])  # 2.0.0-dev19: Bedarf der Chance dieses Angebots
     today = dt.date.today().isoformat()
     leaks = sorted(set(_leaks(cust)))
     items = [
@@ -92,6 +92,15 @@ def checks(conn, row):
     hints = [x for x in json.loads(row['internal_json'] or '{}').get('open_points', []) if 'Zahlungsplan' not in x] if row['internal_json'] else []
     if cust.get('payment_plan'):
         hints.append(f"Zahlungsplan „{cust['payment_plan']}“ mit dem Kunden ausdrücklich vereinbaren.")
+    if cust.get('options'):  # 2.0.0-dev22 (M15): Optionen sind nie Teil der Zusage
+        hints.append(f"{len(cust['options'])} optionale Position(en) sind nicht im Festpreis und nicht Teil einer Zusage – gewünschte Optionen vorher per „Überarbeiten“ fest aufnehmen.")
+    if row['opportunity_id']:  # 2.0.0-dev20 (M14): Briefing der Chance
+        from .briefing import get as briefing
+        s = briefing(conn, row['opportunity_id'])['summary']
+        if s['unbeantwortet']:
+            hints.append(f"Briefing: {s['unbeantwortet']} Frage(n) noch unbeantwortet – als geklärt, offen oder entfällt markieren.")
+        if s['offen'] and 'Offene Voraussetzungen' not in (cust.get('assumptions') or ''):
+            hints.append(f"Briefing: {s['offen']} offene Voraussetzung(en) stehen noch nicht unter „Voraussetzungen“ im Angebot.")
     return {'checks': items, 'hints': hints, 'ready': all(i['ok'] for i in items)}
 
 
@@ -107,7 +116,17 @@ def state(conn, pid):
             'sent_stand': row['sent_sha'][:8], 'decided_at': row['decided_at'], 'decision_channel': row['decision_channel'],
             'decision_person': row['decision_person'], 'decision_note': row['decision_note'],
             'filename': f"Angebot_{safe_num}_Stand-{sha[:8]}.md" if released else f"ENTWURF_Angebot_{safe_num}.md",
+            'revision_no': row['revision_no'] or 1, 'superseded_by': row['superseded_by'],
+            'superseded_number': (conn.execute('SELECT number FROM proposals WHERE id=?', (row['superseded_by'],)).fetchone() or {'number': ''})['number'] if row['superseded_by'] else '',
+            'revisable': row['status'] in ('entwurf', 'gesendet_manuell') and not row['superseded_by'],
             **checks(conn, row), 'confirmations': CONFIRMATIONS, 'channels': CHANNELS, 'decision_channels': DECISION_CHANNELS}
+
+
+def _not_superseded(conn, row):
+    """2.0.0-dev21 (M15): Ein durch eine Revision ersetztes Angebot wird weder freigegeben noch versendet noch angenommen."""
+    if row['superseded_by']:
+        nxt = conn.execute('SELECT number FROM proposals WHERE id=?', (row['superseded_by'],)).fetchone()
+        raise ValueError(f"Dieses Angebot ist durch {nxt['number'] if nxt else 'eine Revision'} ersetzt – bitte die neue Fassung verwenden.")
 
 
 def release_info(row):
@@ -123,6 +142,7 @@ def release(conn, pid, data):
     row = _row(conn, pid)
     if row['released_at']:
         return state(conn, pid)  # bereits freigegeben – nichts ändert sich
+    _not_superseded(conn, row)
     if row['status'] == 'abgelehnt':
         raise ValueError('Ein abgelehntes Angebot wird nicht mehr freigegeben.')
     c = checks(conn, row)
@@ -163,10 +183,12 @@ def set_status(conn, pid, data):
     """Status dokumentieren – nur vorwärts: Entwurf → versendet → angenommen/abgelehnt."""
     from .sales_workspace import QUOTE_STATUSES
     from .workday import after_proposal_sent, assert_contact_allowed, assert_need_confirmed, _advance, _lead
-    if not isinstance(data, dict) or 'status' not in data or set(data) - {'status', 'channel', 'date', 'person', 'note'} or data['status'] not in QUOTE_STATUSES:
+    if not isinstance(data, dict) or 'status' not in data or set(data) - {'status', 'channel', 'date', 'person', 'note', 'follow_up', 'follow_reason'} or data['status'] not in QUOTE_STATUSES:
         raise ValueError('Ungültiger Angebotsstatus.')
     row = _row(conn, pid)
     new, prev = data['status'], row['status']
+    if new != prev:
+        _not_superseded(conn, row)
     if new == prev:
         return {'saved': True, 'status': new, 'unchanged': True, 'notice': 'Status war bereits so dokumentiert – nichts geändert.'}
     if prev in ('angenommen', 'abgelehnt') or new == 'entwurf':
@@ -179,7 +201,7 @@ def set_status(conn, pid, data):
             raise ValueError('Steuerstatus noch offen: Angebot nicht als gesendet/angenommen markieren.')
         lead = conn.execute('SELECT * FROM leads WHERE id=?', (row['lead_id'],)).fetchone()
         assert_contact_allowed(conn, lead, 'Angebot versenden/annehmen')
-        assert_need_confirmed(conn, row['lead_id'], 'Angebot als gesendet/angenommen markieren')
+        assert_need_confirmed(conn, row['lead_id'], 'Angebot als gesendet/angenommen markieren', row['opportunity_id'])
         if not row['released_at']:
             from .workday import ContactLocked
             raise ContactLocked('Erst die Versandfassung freigeben: Versand und Zusage beziehen sich immer auf einen geprüften Stand.')
@@ -188,17 +210,22 @@ def set_status(conn, pid, data):
         channel = data.get('channel') or 'email'
         if channel not in CHANNELS:
             raise ValueError('Versandweg: ' + ', '.join(CHANNELS))
+        # 2.0.0-dev23 (M16): Frist selbst gewählt (Vorgabe 7 Tage nach dem Versanddatum), Anlass, Bezug zu Angebot und Chance
+        from .followups import create as create_followup, due_date
+        follow = due_date(data.get('follow_up'), dt.date.fromisoformat(when))
+        reason = _text(data, 'follow_reason', 160)
         conn.execute("""UPDATE proposals SET status=?, sent_at=?, sent_channel=?, sent_sha=release_sha, updated_at=datetime('now') WHERE id=?""",
                      (new, when, channel, pid))
         conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
                      (row['lead_id'], 'angebot', f"Angebot {num} (Stand {row['release_sha'][:8]}) am {when} {CHANNELS[channel]} versendet – außerhalb von SignalDesk."))
-        follow = (dt.date.today() + dt.timedelta(days=7)).isoformat()
-        conn.execute('INSERT INTO tasks(lead_id,title,due_date) VALUES (?,?,?)', (row['lead_id'], f'Angebotsstatus und zulässige Rückfrage prüfen (#{pid})', follow))
-        after_proposal_sent(conn, row['lead_id'], num)
+        tid = create_followup(conn, row, num, follow, reason)
+        step = conn.execute('SELECT title FROM tasks WHERE id=?', (tid,)).fetchone()['title']
+        after_proposal_sent(conn, row['lead_id'], num, (follow - dt.date.today()).days, step)
         from .chances import advance
         advance(conn, row['opportunity_id'], 'angebot')  # 2.0.0-dev18: Phase der zugehörigen Chance
         conn.commit()
-        return {'saved': True, 'status': new, 'notice': 'Der Versand ist dokumentiert. SignalDesk hat nichts gesendet.'}
+        return {'saved': True, 'status': new, 'follow_up': follow.isoformat(),
+                'notice': f"Der Versand ist dokumentiert. SignalDesk hat nichts gesendet. Nachfassen am {follow.strftime('%d.%m.%Y')}."}
     channel = data.get('channel') or ('email' if new == 'angenommen' else '')
     if channel and channel not in DECISION_CHANNELS:
         raise ValueError('Weg der Entscheidung: ' + ', '.join(DECISION_CHANNELS))
@@ -257,8 +284,8 @@ def start_plan(conn, pid):
             ex = conn.execute('SELECT done FROM tasks WHERE lead_id=? AND title=? ORDER BY id DESC LIMIT 1', (row['lead_id'], s['title'])).fetchone()
             sugg.append({**s, 'exists': bool(ex), 'done': bool(ex and ex['done'])})
     follow = [{'id': t['id'], 'title': t['title'], 'due_date': t['due_date']}
-              for t in conn.execute('SELECT id, title, due_date FROM tasks WHERE lead_id=? AND done=0 ORDER BY id', (row['lead_id'],))
-              if (num in t['title'] or f'#{pid})' in t['title']) and FOLLOWUP_RE.search(t['title'])]
+              for t in conn.execute('SELECT id, title, due_date, proposal_id FROM tasks WHERE lead_id=? AND done=0 ORDER BY id', (row['lead_id'],))
+              if t['proposal_id'] == pid or (not t['proposal_id'] and (num in t['title'] or f'#{pid})' in t['title']) and FOLLOWUP_RE.search(t['title']))]
     lead = conn.execute('SELECT next_step FROM leads WHERE id=?', (row['lead_id'],)).fetchone()
     return {'proposal_id': pid, 'number': num, 'status': row['status'], 'suggestions': sugg, 'followups': follow,
             'next_step': lead['next_step'] if lead else ''}
@@ -291,7 +318,7 @@ def start(conn, pid, data):
         created += 1
     closed = 0
     for tid in dict.fromkeys(data.get('close', [])):
-        closed += conn.execute("UPDATE tasks SET done=1, done_at=datetime('now') WHERE id=? AND done=0", (tid,)).rowcount
+        closed += conn.execute("UPDATE tasks SET done=1, done_at=datetime('now'), outcome=CASE WHEN proposal_id IS NULL THEN outcome ELSE 'entschieden' END WHERE id=? AND done=0", (tid,)).rowcount
     if created or closed:
         conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
                      (row['lead_id'], 'notiz', f"Angebot {plan['number']}: {created} Startaufgabe(n) angelegt, {closed} Nachfassaufgabe(n) bewusst beendet."))

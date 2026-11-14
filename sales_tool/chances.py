@@ -9,8 +9,9 @@ Regeln
 - Die **Firmenphase** (Spalte `leads.stage`) folgt den Chancen nur nach oben bzw. zum Abschluss: offene Chancen heben sie an,
   eine gewonnene Chance macht die Firma zum Kunden, erst wenn alle Chancen verloren sind, gilt die Firma als verloren.
   Eine Sperre bleibt immer bestehen; ein Kunde wird durch eine neue Chance nicht zurückgestuft.
-- Die **erste Chance** einer Firma nutzt (Teil 1) weiterhin die Bedarfsanalyse und die Bedarfsfreigabe der Firma. Weitere
-  Chancen haben ein eigenes Anliegen; Bedarfsanalyse und Freigabe je Chance folgen in Teil 2 (dev19).
+- Die **erste Chance** einer Firma nutzt die Bedarfsanalyse und die Bedarfsfreigabe der Firma (Tabelle `discovery`). Jede
+  weitere Chance hat seit Teil 2 (dev19) eine eigene Bedarfsanalyse und eine eigene Freigabe; Angebote prüfen den Bedarf
+  ihrer Chance.
 - Bestand: Beim ersten Start legt `ensure_first_chances` für Firmen mit Gespräch, Termin, Bedarf oder Angebot genau eine erste
   Chance an und ordnet ihr vorhandene Angebote und Termine zu. Nichts wird gelöscht oder umgerechnet.
 """
@@ -49,6 +50,24 @@ def init_chances(conn):
         cols = {r[1] for r in conn.execute(f'PRAGMA table_info({table})')}
         if 'opportunity_id' not in cols:
             conn.execute(f'ALTER TABLE {table} ADD COLUMN opportunity_id INTEGER REFERENCES opportunities(id) ON DELETE SET NULL')
+    # 2.0.0-dev19 (Teil 2): vollständige Bedarfsanalyse und Freigabe je weiterer Chance (gleiche Felder wie `discovery`)
+    cols = {r[1] for r in conn.execute('PRAGMA table_info(opportunities)')}
+    for name, default in (('impact', "''"), ('current_solution', "''"), ('decision_process', "''"), ('budget_note', "''"),
+                          ('needs_json', "'[]'"), ('confirmed_at', "''"), ('confirmed_via', "''"), ('confirmed_note', "''")):
+        if name not in cols:
+            conn.execute(f'ALTER TABLE opportunities ADD COLUMN {name} TEXT NOT NULL DEFAULT {default}')
+
+
+def need_row(conn, lead_id, chance):
+    """Wohin gehört der Bedarf? None = Bedarfsanalyse der Firma (keine bzw. erste Chance), sonst die Zeile der Chance."""
+    if chance in (None, '', 0, '0'):
+        return None
+    if isinstance(chance, bool) or not str(chance).isdigit():
+        raise ValueError('Ungültige Chance.')
+    row = _row(conn, int(chance))
+    if row['lead_id'] != lead_id:
+        raise ValueError('Die Chance gehört zu einer anderen Firma.')
+    return None if row['is_first'] else row
 
 
 def _title_for(conn, lead):
@@ -115,13 +134,17 @@ def _view(conn, row):
     from .catalog import VORLAGEN
     from .qualification import LOST_REASONS
     d = dict(row)
-    if row['is_first']:  # Teil 1: Bedarf der ersten Chance = Bedarfsanalyse der Firma
-        disc = conn.execute('SELECT problem, desired_outcome, timing, budget_status FROM discovery WHERE lead_id=?', (row['lead_id'],)).fetchone()
+    if row['is_first']:  # Bedarf der ersten Chance = Bedarfsanalyse der Firma
+        disc = conn.execute('SELECT problem, desired_outcome, timing, budget_status, confirmed_at FROM discovery WHERE lead_id=?', (row['lead_id'],)).fetchone()
         if disc:
-            d.update({k: disc[k] for k in ('problem', 'desired_outcome', 'timing', 'budget_status')})
+            d.update({k: disc[k] for k in ('problem', 'desired_outcome', 'timing', 'budget_status', 'confirmed_at')})
         d['need_source'] = 'Bedarfsanalyse der Firma'
     else:
-        d['need_source'] = 'Anliegen dieser Chance'
+        d['need_source'] = 'Bedarfsanalyse dieser Chance'
+    d['need_confirmed'] = bool(d.get('confirmed_at'))
+    d.pop('needs_json', None)
+    from .briefing import get as briefing
+    d['briefing'] = briefing(conn, row['id'])['summary']  # 2.0.0-dev20 (M14)
     d['stage_label'] = STAGE_LABELS[row['stage']]
     d['open'] = row['stage'] in OPEN
     d['offer_title'] = VORLAGEN[row['offer']]['title'] if row['offer'] in VORLAGEN else ''
@@ -142,6 +165,11 @@ def list_chances(conn, lead_id):
     from .qualification import LOST_REASONS
     return {'lead_id': lead_id, 'chances': [_view(conn, r) for r in rows], 'stages': STAGE_LABELS, 'lost_reasons': LOST_REASONS,
             'open': sum(1 for r in rows if r['stage'] in OPEN)}
+
+
+def first_chance(conn, lead_id):
+    row = conn.execute('SELECT id FROM opportunities WHERE lead_id=? AND is_first=1', (lead_id,)).fetchone()
+    return row['id'] if row else None
 
 
 def open_chances(conn, lead_id):
@@ -314,7 +342,21 @@ def sync_lead(conn, lead_id, last_lost=None):
 
 # ---------------------------------------------------------------- HTTP
 
+def open_overview(conn):
+    """Alle offenen Chancen nicht gesperrter Firmen – für Pipeline und Heute (2.0.0-dev19)."""
+    from .catalog import VORLAGEN
+    rows = conn.execute("""SELECT o.id, o.lead_id, o.title, o.offer, o.stage, o.next_step, o.next_date, o.is_first, l.company
+                            FROM opportunities o JOIN leads l ON l.id=o.lead_id
+                            WHERE o.stage IN ('bedarf','termin','angebot') AND l.stage NOT IN ('gesperrt','verloren')
+                            ORDER BY (o.next_date=''), o.next_date, o.id""").fetchall()
+    return [{**dict(r), 'stage_label': STAGE_LABELS[r['stage']], 'lead_stage': LEAD_STAGE[r['stage']],
+             'offer_title': VORLAGEN[r['offer']]['title'] if r['offer'] in VORLAGEN else ''} for r in rows]
+
+
 def route_chances(h, conn, method, route):
+    if route == '/api/chances' and method == 'GET':
+        h._send(200, open_overview(conn))
+        return True
     m = re.fullmatch(r'/api/leads/(\d+)/chances', route)
     if m:
         lid = int(m.group(1))
