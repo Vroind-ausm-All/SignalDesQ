@@ -81,14 +81,57 @@
       <button type="button" class="btn btn-primary" data-of-start>${s.status === 'angenommen' ? 'Projektstart übernehmen' : 'Ausgewählte Aufgaben beenden'}</button></li>`;
   }
 
+  // 2.0.0-dev24 (M17, T12): Übergabe und Abnahme des angenommenen Auftrags
+  const ST_LABEL = {offen: 'offen', erledigt: 'erledigt', entfaellt: 'entfällt'};
+  function stepHandover(h) {
+    if (!h) return '';
+    const finished = ['abgenommen', 'vorbehalt'].includes(h.status);
+    const editable = ['in_arbeit', 'nachbesserung'].includes(h.status);
+    const group = (kinds, title) => {
+      const its = h.items.filter(i => kinds.includes(i.kind));
+      if (!its.length) return '';
+      return `<div class="sales-subhead">${esc(title)}</div><ul class="ho-items">${its.map(i => {
+        const locked = finished && ['liefer', 'kriterium'].includes(i.kind);
+        return `<li class="ho-${esc(i.state)}" data-ho-row="${i.id}"><span>${esc(i.label)}${i.due_date ? ` <small>bis ${esc(fmtDate(i.due_date))}</small>` : ''}${i.note ? ` <small class="muted">${esc(i.note)}</small>` : ''}</span>
+          ${locked ? `<b>${esc(ST_LABEL[i.state])}</b>` : `<select data-ho-item="${i.id}" aria-label="Stand: ${esc(i.label)}">${h.states.map(s => `<option value="${s}" ${s === i.state ? 'selected' : ''}>${esc(ST_LABEL[s])}</option>`).join('')}</select>
+          <input data-ho-note maxlength="300" placeholder="Begründung bei „entfällt“" value="${esc(i.note)}" aria-label="Notiz">`}</li>`;
+      }).join('')}</ul>`;
+    };
+    const add = editable ? `<div class="sales-row ho-add"><select data-ho-addkind aria-label="Art"><option value="liefer">Liefergegenstand</option><option value="kriterium">Abnahmekriterium</option></select>
+      <input data-ho-addlabel maxlength="300" placeholder="Eigenen Punkt ergänzen" aria-label="Eigener Punkt"><button type="button" class="btn btn-ghost" data-ho-add>Ergänzen</button></div>` : '';
+    const hand = editable ? `<div class="sales-subhead">${h.round > 1 ? 'Erneut übergeben' : 'Übergabe dokumentieren'}</div>
+      ${h.blocking ? `<p class="qb-check warn">! Noch ${h.blocking} Liefergegenstand/Nachbesserung offen – erledigen oder begründet entfallen lassen.</p>` : ''}
+      <div class="sales-row"><label>Weg<select data-ho-channel>${opt(h.channels, 'email')}</select></label>
+      <label>Datum<input type="date" data-ho-date value="${today()}" max="${today()}"></label>
+      <label>Abnahme einholen bis<input type="date" data-ho-due value="${esc(h.default_due)}" min="${today()}"></label></div>
+      <div class="sales-row"><label>Notiz<input data-ho-hnote maxlength="500" placeholder="z. B. Zugänge übergeben, Einweisung erfolgt"></label>
+      <button type="button" class="btn btn-primary" data-ho-handover ${h.can_hand_over ? '' : 'disabled'}>Übergabe dokumentieren</button></div>` : '';
+    const acc = h.can_accept ? `<div class="sales-subhead">Abnahme dokumentieren</div>
+      <p class="muted">Übergeben am ${esc(fmtDate(h.handed_at))}. Restpunkte und Nachbesserungen bitte einzeln, je Zeile einer.</p>
+      <div class="sales-row"><label>Ergebnis<select data-ho-result>${opt(h.results, 'abgenommen')}</select></label>
+      <label>Weg<select data-ho-achannel>${opt(h.channels, 'email')}</select></label>
+      <label>Datum<input type="date" data-ho-adate value="${today()}" min="${esc(h.handed_at)}" max="${today()}"></label>
+      <label>Person<input data-ho-person maxlength="120" placeholder="Wer hat abgenommen?"></label></div>
+      <label>Restpunkte / Nachbesserungen<textarea data-ho-points rows="3" maxlength="3000" placeholder="leer lassen bei vollständiger Abnahme"></textarea></label>
+      <div class="sales-row"><label>Frist für die Punkte<input type="date" data-ho-pdue value="${esc(h.default_due)}" min="${today()}"></label>
+      <label>Notiz<input data-ho-anote maxlength="500"></label>
+      <button type="button" class="btn btn-primary" data-ho-accept>Abnahme dokumentieren</button></div>` : '';
+    const result = finished ? `<p><b>${esc(h.result_label)}</b> am ${esc(fmtDate(h.accepted_at))}${h.accepted_person ? ' durch ' + esc(h.accepted_person) : ''}${h.rest_open ? ` · <span class="pill bad">${h.rest_open} Restpunkt(e) offen</span>` : ''}</p>
+      ${h.final_invoice_due ? '<p class="qb-check warn">! Laut Zahlungsplan ist die Schlussrechnung fällig – unter „Abrechnen“ erstellen.</p>' : ''}` : '';
+    return `<li class="of-step ${h.status === 'abgenommen' ? 'done' : ''}" id="ofHandover"><b>5 · Übergabe & Abnahme</b> <span class="pill ${finished ? 'ok' : ''}" data-ho-status>${esc(h.status_label)}</span>
+      ${result}${group(['liefer'], 'Liefergegenstände')}${group(['kriterium'], 'Abnahmekriterien')}${group(['nachbesserung'], 'Nachbesserungen')}${group(['restpunkt'], 'Restpunkte')}
+      ${add}${hand}${acc}<div class="sales-row"><button type="button" class="btn btn-ghost" data-ho-protocol>${finished ? 'Abnahmeprotokoll herunterladen (.md)' : 'Protokoll-Entwurf zur Abnahme (.md)'}</button></div></li>`;
+  }
+
   async function render(id) {
     const box = $('#quoteSaved');
     if (!box) return;
-    let s, p = null, f = null;
+    let s, p = null, f = null, ho = null;
     try {
       s = await api('/workspace/proposals/' + id + '/versand');
       if (['angenommen', 'abgelehnt'].includes(s.status)) p = await api('/workspace/proposals/' + id + '/start');
       if (s.status !== 'entwurf') f = await api('/workspace/proposals/' + id + '/nachfassen');
+      if (s.status === 'angenommen' && !s.superseded_by) ho = await api('/workspace/proposals/' + id + '/abnahme');
     } catch (e) { toast(e.message, true); return; }
     current = {id, s, p};
     box.querySelector('[data-quote-status]')?.closest('label')?.remove();
@@ -102,7 +145,7 @@
     // 2.0.0-dev21 (M15): ersetzte Fassungen sind nur noch Nachweis; aktuelle Fassungen lassen sich überarbeiten
     const steps = s.superseded_by ? `<li class="of-step done"><b>Ersetzt</b><span>Diese Fassung ist durch ${esc(s.superseded_number)} ersetzt. Freigabe, Versand und Zusage gehen nur noch dort.</span>
         <button type="button" class="btn btn-ghost" data-quote-open="${s.superseded_by}">${esc(s.superseded_number)} öffnen</button></li>`
-      : `${stepRelease(s)}${stepSend(s)}${stepFollow(s, f)}${stepDecision(s)}${stepStart(p, s)}`;
+      : `${stepRelease(s)}${stepSend(s)}${stepFollow(s, f)}${stepDecision(s)}${stepStart(p, s)}${stepHandover(ho)}`;
     (head || box).insertAdjacentHTML(head ? 'afterend' : 'afterbegin', `<ol class="of-panel" id="ofPanel" data-of-id="${id}">${steps}</ol>
       <div class="of-revisions" id="ofRevisions">${s.revisable ? `<button type="button" class="btn btn-ghost" data-of-revise="${id}">Überarbeiten (neue Fassung)</button>` : ''}<div data-of-history></div></div>`);
     try {
@@ -147,6 +190,32 @@
             follow_up: panel.querySelector('[data-of-followdate]').value, follow_reason: panel.querySelector('[data-of-followreason]').value});
           return after(r.notice);
         }
+        const hoUrl = `/workspace/proposals/${id}/abnahme`;
+        const val = sel => panel.querySelector(sel)?.value ?? '';
+        if (e.target.closest('[data-ho-protocol]')) {
+          const d = await api(hoUrl + '/protokoll');
+          wsDownload(d.filename, d.markdown, 'text/markdown;charset=utf-8');
+          return;
+        }
+        if (e.target.closest('[data-ho-add]')) {
+          await api(hoUrl, 'POST', {action: 'add', kind: val('[data-ho-addkind]'), label: val('[data-ho-addlabel]')});
+          return after('Punkt ergänzt');
+        }
+        if (e.target.closest('[data-ho-handover]')) {
+          const r = await api(hoUrl, 'POST', {action: 'uebergabe', channel: val('[data-ho-channel]'), date: val('[data-ho-date]'), due: val('[data-ho-due]'), note: val('[data-ho-hnote]')});
+          await after(r.notice);
+          $('#ofHandover')?.scrollIntoView({block: 'center'});
+          return;
+        }
+        if (e.target.closest('[data-ho-accept]')) {
+          const due = val('[data-ho-pdue]');
+          const points = val('[data-ho-points]').split('\n').map(x => x.trim()).filter(Boolean).map(label => ({label, due}));
+          const r = await api(hoUrl, 'POST', {action: 'abnahme', result: val('[data-ho-result]'), channel: val('[data-ho-achannel]'), date: val('[data-ho-adate]'),
+            person: val('[data-ho-person]'), note: val('[data-ho-anote]'), points});
+          await after(r.notice);
+          $('#ofHandover')?.scrollIntoView({block: 'center'});
+          return;
+        }
         const fu = e.target.closest('[data-of-fu]');
         if (fu) {
           const box = fu.closest('[data-of-fu-item]');
@@ -178,6 +247,13 @@
       const fd = sd && $('#ofPanel [data-of-followdate]');
       if (fd && !fd.dataset.touched && sd.value) fd.value = [plusDays(sd.value, 7), today()].sort().pop();
       if (e.target.matches?.('#ofPanel [data-of-followdate]')) e.target.dataset.touched = '1';
+      const it = e.target.closest('#ofPanel [data-ho-item]');
+      if (it && current) {
+        const note = it.closest('[data-ho-row]').querySelector('[data-ho-note]').value;
+        api(`/workspace/proposals/${current.id}/abnahme`, 'POST', {action: 'item', item_id: Number(it.dataset.hoItem), state: it.value, note})
+          .then(r => after(r.notice || 'Stand gespeichert')).catch(err => { toast(err.message, true); window.wsOpenProposal(current.id); });
+        return;
+      }
       const oc = e.target.closest('[data-of-fu-outcome]');
       if (oc) {
         const needs = ['entscheidung_offen', 'rueckfragen', 'nicht_erreicht'].includes(oc.value);

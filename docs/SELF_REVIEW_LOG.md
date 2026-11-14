@@ -610,6 +610,21 @@ M16 auf versendete Angebote begrenzt: Dort hängt am meisten Umsatz, und dort fe
 
 **Selbstbewertung 4 von 5.** Abzug: In der allgemeinen Aufgabenliste abgehakte Nachfassaufgaben haben kein Ergebnis (dokumentiert).
 
+## Arbeitspaket 23 – Auftragsübergabe und Abnahme (2.0.0-dev24)
+
+„Schlank“ heißt hier: keine Projektverwaltung, sondern genau die Nachweise, die ein Solo-Auftrag braucht. Dazu gehört, was übergeben wurde, wann und wie, was der Kunde abgenommen hat und was noch offen ist. Am Angebot statt in einem neuen Bereich, weil dort Versand und Zusage schon stehen.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 641 Tests bestanden (3 neu in `tests/test_v2_handover.py`) |
+| Browser-Tests | 20 von 20 (neu `test_handover_browser.py`): Liefergegenstände abhaken, Übergabe, Abnahme mit Restpunkt, Protokoll-Download, Restpunkt erledigt → abgenommen |
+| Abnahme T12 | bestanden |
+| Fund beim Testen | Erwartung im eigenen Test falsch gezählt (fünf statt sechs Verlaufseinträge) – Code war richtig, Test korrigiert |
+| Abgrenzung | Abnahmeaufgaben tauchen nicht im Nachfassen auf und lassen sich dort nicht mit einem Ergebnis schließen (Unit-Test) |
+| Migration | Schema 35 → 36, zwei neue Tabellen |
+
+**Selbstbewertung 4 von 5.** Abzug: Protokoll nur als Markdown; Restpunkte nach der Abnahme sind bewusst keine Zusatzaufträge (M18 offen).
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

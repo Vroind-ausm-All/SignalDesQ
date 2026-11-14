@@ -420,7 +420,7 @@ def timeline(conn, lead_id, limit=200):
     for r in q('SELECT * FROM activities WHERE lead_id=?'):
         T.append(_ev(r['created_at'], 'aktivitaet', {'notiz': 'Notiz', 'gespraech': 'Gespräch', 'anfrage': 'Anfrage', 'angebot': 'Angebot',
                                                     'einwand': 'Einwand', 'abschluss': 'Abschluss', 'widerspruch': 'Widerspruch',
-                                                    'bedarf': 'Bedarf'}.get(r['activity_type'], r['activity_type']), r['detail']))
+                                                    'bedarf': 'Bedarf', 'projekt': 'Auftrag'}.get(r['activity_type'], r['activity_type']), r['detail']))
     for r in q('SELECT * FROM calls WHERE lead_id=?'):
         T.append(_ev(r['created_at'], 'anruf', 'Telefonat: ' + r['outcome'].replace('_', ' '), r['notes'] + (f" · Rückruf {r['callback_date']}" if r['callback_date'] else ''), r['id']))
     for r in q('SELECT * FROM meetings WHERE lead_id=?'):

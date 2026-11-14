@@ -97,7 +97,7 @@ def wiedervorlage(conn, today=None):
                              WHERE p.superseded_by IS NULL AND p.status IN ('entwurf','gesendet_manuell') AND l.stage NOT IN ('gesperrt','verloren') ORDER BY p.updated_at"""):
         age = _days_since(r['updated_at'], today)
         expires = r['valid_until'] or ''
-        linked = conn.execute('SELECT 1 FROM tasks WHERE proposal_id=? LIMIT 1', (r['id'],)).fetchone()  # 2.0.0-dev23 (M16)
+        linked = conn.execute("SELECT 1 FROM tasks WHERE proposal_id=? AND action_type='followup' LIMIT 1", (r['id'],)).fetchone()  # 2.0.0-dev23 (M16)
         if r['status'] == 'gesendet_manuell' and age >= 7 and not linked:
             add('nachfassen', f"Angebot {r['number'] or '#' + str(r['id'])} nachfassen", r['company'], r['lead_id'], '', 'Angebot öffnen', 'quotes',
                 r['id'], f"seit {age} Tagen beim Kunden · {_net(r):,.0f} € netto".replace(',', '.'))

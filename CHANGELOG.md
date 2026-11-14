@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.0-dev24 – Auftragsübergabe und Abnahme
+
+Etappe D, Produktreview M17 (Abnahmefall T12).
+
+- **Schritt „Übergabe & Abnahme“** am angenommenen Angebot. Liefergegenstände und Abnahmekriterien werden aus dem Angebot übernommen (optionale Positionen nicht); eigene Punkte lassen sich ergänzen. Jeder Punkt ist offen, erledigt oder entfällt – „entfällt“ nur mit Begründung.
+- **Übergabe dokumentieren** (Datum, Weg, Notiz) erst, wenn kein Liefergegenstand mehr offen ist. Dabei setzt du eine Frist, bis wann die Abnahme eingeholt wird; daraus wird eine Aufgabe.
+- **Abnahme dokumentieren:** abgenommen, abgenommen mit Restpunkten oder Nachbesserung nötig. Restpunkte und Nachbesserungen werden einzeln zu Aufgaben mit Frist. Nach einer Nachbesserung folgt eine erneute Übergabe; sind alle Restpunkte erledigt, gilt der Auftrag als vollständig abgenommen.
+- **Abnahmeprotokoll** zum Herunterladen: vor der Abnahme als Entwurf mit Ankreuzfeldern und Unterschriftszeilen, danach mit Ergebnis, Person und Restpunkten. Ohne Preise, Stunden oder interne Notizen.
+- Hinweis auf die Schlussrechnung, wenn der Zahlungsplan „nach Abnahme“ vorsieht. Die Auftragskarte der Nachkalkulation zeigt den Abnahmestand.
+- Übergabe- und Abnahmeaufgaben sind keine Nachfassaufgaben und erscheinen nicht im Schritt „Nachfassen“.
+- **Schemawechsel 35 → 36** (Übergaben und ihre Punkte). 641 Tests (3 neu) unter Python 3.10 und 3.13, 20 Browser-Tests (1 neu).
+
 ## 2.0.0-dev23 – Nachfassen mit Anlass, Frist und Ergebnis
 
 Etappe C, Produktreview M16. Damit ist Etappe C abgeschlossen.

@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev23)
+# Bekannte Einschränkungen (Stand 2.0.0-dev24)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -162,3 +162,11 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Eine Nachfassaufgabe, die in der allgemeinen Aufgabenliste einfach abgehakt wird, hat kein Ergebnis. Das Ergebnis lässt sich nur am Angebot festhalten.
 - „Zusage angekündigt“ und „Absage angekündigt“ ändern den Angebotsstatus nicht. Die Entscheidung dokumentierst du weiterhin bewusst am Angebot.
 - Längste Frist: 120 Tage. Längere Pausen gehören als Wiedervorlage an die Chance.
+
+## Übergabe und Abnahme (2.0.0-dev24)
+
+- Das Abnahmeprotokoll ist eine Markdown-Datei zum Ausdrucken oder Weiterverarbeiten, kein gestaltetes PDF und keine elektronische Unterschrift.
+- Ob eine Abnahme rechtlich wirksam ist (z. B. stillschweigende Abnahme, Fristen nach Werkvertragsrecht), prüft SignalDesk nicht. Die Formulierung im Protokoll ist ein Vorschlag, keine Rechtsberatung.
+- Die Schlussrechnung wird nicht automatisch erstellt; SignalDesk weist nur darauf hin, wenn der Zahlungsplan „nach Abnahme“ vorsieht.
+- Dokumentierte Übergaben und Abnahmen lassen sich nicht zurücknehmen. Nach der Abnahme bleiben Liefergegenstände und Kriterien unverändert; neue Arbeit ist ein Restpunkt oder ein Zusatzauftrag (M18, noch offen).
+- Liefergegenstände kommen aus den Katalogtexten des Angebots. Bei älteren Angeboten ohne diese Angaben werden die festen Positionen übernommen.

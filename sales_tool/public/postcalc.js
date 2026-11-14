@@ -11,7 +11,7 @@
     const st = ST[p.status] || [p.status, 'wait'];
     const pct = p.estimated_hours ? Math.min(100, Math.round(100 * p.actual_hours / p.estimated_hours)) : 0;
     return `<article class="pk-card ${p.done ? 'done' : ''}" data-pk="${p.proposal_id}">
-      <div class="pk-head"><div><b>${esc(p.company)}</b> <span class="sw-web ${st[1]}">${esc(st[0])}</span><small>${esc(p.number)}${p.label ? ' · ' + esc(p.label) : ''} · ${eur(p.net_eur)} netto</small></div>
+      <div class="pk-head"><div><b>${esc(p.company)}</b> <span class="sw-web ${st[1]}">${esc(st[0])}</span>${p.handover ? ` <span class="sw-web ${p.handover.status === 'abgenommen' ? 'ok' : 'wait'}">Abnahme: ${esc(p.handover.label)}</span>` : ''}<small>${esc(p.number)}${p.label ? ' · ' + esc(p.label) : ''} · ${eur(p.net_eur)} netto</small></div>
         <div class="pk-nums"><span><small>kalkuliert</small><b>${num(p.estimated_hours)} h</b></span><span><small>gebraucht</small><b>${num(p.actual_hours)} h</b></span>
           <span><small>${p.done ? 'Verdienst je Stunde' : 'übrig'}</small><b class="${p.below_minimum ? 'rc-late' : ''}">${p.done ? eur(p.actual_hourly) : num(p.remaining_hours) + ' h'}</b></span></div></div>
       <div class="priority-bar pk-bar ${p.status === 'ueberzogen' ? 'over' : ''}"><i data-w="${pct}"></i></div>

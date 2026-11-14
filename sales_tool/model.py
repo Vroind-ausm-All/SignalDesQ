@@ -253,6 +253,8 @@ def init_db(conn: sqlite3.Connection):
     init_revisions(conn)  # 2.0.0-dev21: Angebotsrevisionen mit Vorgänger
     from .followups import init_followups
     init_followups(conn)  # 2.0.0-dev23: Nachfassen mit Anlass, Frist und Ergebnis
+    from .handover import init_handover
+    init_handover(conn)  # 2.0.0-dev24: Übergabe und Abnahme je Auftrag
     conn.commit()
 
 

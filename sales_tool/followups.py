@@ -71,7 +71,7 @@ def create(conn, prow, number, due, reason):
 
 def for_proposal(conn, pid):
     rows = conn.execute('''SELECT id, title, due_date, done, done_at, reason, outcome, outcome_note FROM tasks
-                           WHERE proposal_id=? ORDER BY id''', (pid,)).fetchall()
+                           WHERE proposal_id=? AND action_type='followup' ORDER BY id''', (pid,)).fetchall()
     today = dt.date.today().isoformat()
     items = [{'id': r['id'], 'title': r['title'], 'due_date': r['due_date'], 'done': bool(r['done']), 'done_at': r['done_at'],
               'reason': r['reason'], 'outcome': r['outcome'], 'outcome_label': LABELS.get(r['outcome'], r['outcome']),
@@ -85,7 +85,7 @@ def record(conn, task_id, data):
     if not isinstance(data, dict) or set(data) - {'outcome', 'note', 'next_date', 'next_reason'} or data.get('outcome') not in OUTCOMES:
         raise ValueError('Ergebnis: ' + ', '.join(OUTCOMES))
     t = conn.execute('SELECT * FROM tasks WHERE id=?', (task_id,)).fetchone()
-    if not t or not t['proposal_id']:
+    if not t or not t['proposal_id'] or t['action_type'] != 'followup':
         raise LookupError('Nachfassaufgabe zu einem Angebot nicht gefunden.')
     if t['done']:
         raise ValueError('Für dieses Nachfassen ist bereits ein Ergebnis festgehalten.')
@@ -127,7 +127,7 @@ def record(conn, task_id, data):
 
 def close_for(conn, pid, outcome='beendet', note=''):
     """Offene Nachfassaufgaben eines Angebots mit Ergebnis beenden (z. B. bei Ersetzung durch eine Revision)."""
-    return conn.execute("UPDATE tasks SET done=1, done_at=datetime('now'), outcome=?, outcome_note=? WHERE proposal_id=? AND done=0",
+    return conn.execute("UPDATE tasks SET done=1, done_at=datetime('now'), outcome=?, outcome_note=? WHERE proposal_id=? AND action_type='followup' AND done=0",
                         (outcome, note[:500], pid)).rowcount
 
 

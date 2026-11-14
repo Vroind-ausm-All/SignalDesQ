@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev23. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev24. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -55,7 +55,7 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 | M14 | Briefings für Medien und Software | P1 | erledigt | dev20 | Fragen je Leistungsbereich der Chance (Medien, Software, Analyse, Sichtbarkeit), jede geklärt/offen/entfällt; Angebot übernimmt Grundlage und offene Voraussetzungen, Schnappschuss intern (Unit- und Browser-Test) | Eigene Fragen; Materialliste (M39) |
 | M15 | Angebotsrevisionen und Varianten | P1 | erledigt | dev21, dev22 | T11: Revision mit Vorgänger, Grund und Änderungsliste; Vorgänger ersetzt und unverändert; angenommene Fassung bleibt; optionale Positionen ausgewiesen, nicht im Festpreis, nicht in der Rechnung (Unit- und Browser-Test) | Varianten zur Wahl = optionale Positionen oder Revision; kein Variantenvergleich nebeneinander |
 | M16 | Nachfassen mit Anlass, Frist und Ergebnis | P1 | erledigt | dev3, dev23 | Versand mit selbst gewählter Frist (Vorgabe 7 Tage ab Versanddatum) und Anlass; Nachfassaufgabe mit Bezug zu Angebot und Chance; Ergebnis Pflicht, bei offener Entscheidung neue Frist; Revision und Entscheidung beenden mit Ergebnis (Unit- und Browser-Test) | Nachfassen ohne Angebot (Erstkontakt, Rückruf) bleibt bei Anruf- und Aufgabenprotokoll |
-| M17 | Schlanke Auftragsübergabe und Abnahme | P2 | offen | Etappe D | T12 | M13, M15 |
+| M17 | Schlanke Auftragsübergabe und Abnahme | P2 | erledigt | dev24 | T12: Liefergegenstände und Abnahmekriterien aus dem angenommenen Angebot; Übergabe erst ohne offene Liefergegenstände; Abnahme, Abnahme mit Restpunkten oder Nachbesserung mit Aufgaben und Frist; Protokoll für den Kunden ohne interne Zahlen (Unit- und Browser-Test) | Schlussrechnung nur als Hinweis; Zusatzaufträge M18 |
 | M18 | Zusatzaufträge und Leistungsänderungen | P2 | offen | Etappe D | Ursprungsumfang bleibt erkennbar | M15, M17 |
 | M19 | Bestandskunden und Betreuungsleistungen | P2 | offen | Etappe D | Betreuung und neue Projekte getrennt | M13 |
 | M20 | Zeiten je Leistung und Lernvorschläge | P2 | teilweise | dev5 | Ist-Zeiten je Auftrag vorhanden; offen: je Position | Leistungskennung je Position seit dev16 vorhanden; abgeschlossene Aufträge |
@@ -98,9 +98,9 @@ Eigentümer; in die App kommen nur die Abläufe.
 |---|---|---|
 | A – verlässliche tägliche Bedienung | M01–M05, Beginn M21 | **erledigt** in dev12/dev13; M21 wartet auf den Eigentümer |
 | B – klare Navigation und Arbeitslisten | dev14 = M06 Einstellungen + M07 Teil 1; dev15 = M08, M09, M11 | **erledigt**; offen aus M07: Adressen für weitere Listen und Berichte |
-| C – mehrere Projekte je Firma | M12 Katalog (dev16), P0-Paket M27/M35/M36 (dev17), M13 Chancen (dev18/dev19) – **erledigt**; M14 Briefings (dev20, **erledigt**); M15 Revisionen und optionale Positionen (dev21/dev22, **erledigt**); M16 Nachfassen (dev23, **erledigt**); als Nächstes Etappe D (M17 Auftragsübergabe und Abnahme) | **läuft**; Migrationen an einer Kopie vorhandener Daten geprüft |
+| C – mehrere Projekte je Firma | M12 Katalog (dev16), P0-Paket M27/M35/M36 (dev17), M13 Chancen (dev18/dev19) – **erledigt**; M14 Briefings (dev20, **erledigt**); M15 Revisionen und optionale Positionen (dev21/dev22, **erledigt**); M16 Nachfassen (dev23, **erledigt**); Etappe D begonnen | **erledigt**; Migrationen an einer Kopie vorhandener Daten geprüft |
 | C′ – Bewertung fundieren | M28, M29 nach Pilot außerhalb der App; M32 nach M13 | M27 erledigt (dev17); Pilot außerhalb der App liegt beim Eigentümer |
-| D – Auftrag, Lernen, Anbindung | M17–M20, M24/M25, M37–M39 nach Pilotbedarf; M30, M33, M34 nach ersten Reviews; M22/M23 parallel nach Fehlerbild; M10 bei wachsendem Bestand | später |
+| D – Auftrag, Lernen, Anbindung | M17 Übergabe und Abnahme (dev24, **erledigt**); als Nächstes M18 Zusatzaufträge; M18–M20, M24/M25, M37–M39 nach Pilotbedarf; M30, M33, M34 nach ersten Reviews; M22/M23 parallel nach Fehlerbild; M10 bei wachsendem Bestand | später |
 
 ## Zuordnung der bisherigen Menüziele (M07, Stand dev14)
 
@@ -132,7 +132,8 @@ Eigentümer; in die App kommen nur die Abläufe.
 | T05 | Aus gefilterter Liste in die Firma und zurück | **bestanden** (dev14, Browser-Test: Filter und Firma in der Adresse, Zurück schließt die Firma) |
 | T06 | Rückruf nach erfolglosem Versuch planen | Funktion seit dev3; als Szenario noch nicht geprüft |
 | T08 | Zwei Chancen einer Firma mit getrennten Phasen, Bedarf, Terminen | **bestanden** (dev18: Phase, Anliegen, Termine; dev19: Bedarfsanalyse und Freigabe je Chance – Unit- und Browser-Tests) |
-| T07, T09–T13 | Projektanfrage, Medien-/Softwareangebot, Revision, Übergabe, Zeitüberschreitung | offen (Etappen C und D); für T09/T10 liefert dev16 Korrekturschleifen und Prüfpunkte je Leistungsbereich |
+| T12 | Übergabe und Abnahme eines Auftrags | **bestanden** (dev24: Liefergegenstände, Übergabe, Abnahme mit Restpunkt, Protokoll – Unit- und Browser-Test) |
+| T07, T09–T11, T13 | Projektanfrage, Medien-/Softwareangebot, Revision, Zeitüberschreitung | offen bzw. als Funktion vorhanden (T11 Revision seit dev21); für T09/T10 liefert dev16 Korrekturschleifen und Prüfpunkte je Leistungsbereich |
 | T14 | Recherche während eines Fehlers wieder aufnehmen | Kernabläufe seit Masterplan 2.0; vollständig mit M23 |
 | T15 | Sicherung in getrennte Testinstallation zurückspielen | Wiederherstellung vorhanden; als Szenario mit Etappe C prüfen |
 

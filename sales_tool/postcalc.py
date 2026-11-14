@@ -170,7 +170,13 @@ def project(conn, row):
             'remaining_hours': remaining, 'variance_pct': variance, 'planned_hourly': planned_hourly, 'actual_hourly': actual_hourly,
             'min_hourly': minimum, 'estimated_external_eur': est_ext, 'actual_external_eur': ext, 'status': status, 'verdict': verdict,
             'done': done, 'done_at': closing['done_at'] if closing else '', 'closing_note': closing['note'] if closing else '',
-            'below_minimum': bool(done and actual_hourly is not None and minimum and actual_hourly < minimum), 'entries': entries[:50]}
+            'below_minimum': bool(done and actual_hourly is not None and minimum and actual_hourly < minimum), 'entries': entries[:50],
+            'handover': _handover(conn, row['id'])}
+
+
+def _handover(conn, pid):
+    from .handover import summary  # 2.0.0-dev24 (M17): Stand von Übergabe und Abnahme auf der Auftragskarte
+    return summary(conn, pid)
 
 
 def remaining_by_proposal(conn):

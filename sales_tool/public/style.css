@@ -769,3 +769,12 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 .of-fu p{margin:.1rem 0 .3rem}
 .of-fu-done{margin:.4rem 0 0;padding-left:1.1rem;font-size:.92em}
 .of-fu-done small{display:block;color:var(--muted)}
+
+/* 2.0.0-dev24 (M17): Übergabe und Abnahme */
+.ho-items{list-style:none;margin:.2rem 0 .5rem;padding:0}
+.ho-items li{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--line)}
+.ho-items li>span{flex:1 1 16rem}
+.ho-items li small{display:inline-block;margin-left:.3rem}
+.ho-items li.ho-erledigt>span{color:var(--muted)}
+.ho-items li.ho-entfaellt>span{color:var(--muted);text-decoration:line-through}
+.ho-items input[data-ho-note]{flex:0 1 14rem}
