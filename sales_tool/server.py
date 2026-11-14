@@ -461,6 +461,9 @@ def make_handler(db_path, allowed_hosts=None):
                 from .revisions import route_revisions
                 if route_revisions(self, conn, method, route):  # 2.0.0-dev21: Revisionen und Fassungen
                     return
+                from .followups import route_followups
+                if route_followups(self, conn, method, route):  # 2.0.0-dev23: Nachfassen mit Ergebnis
+                    return
                 proposal_match=re.fullmatch(r'/api/workspace/proposals/(\d+)(/customer)?',route)
                 if proposal_match:
                     ident=int(proposal_match.group(1))
@@ -921,7 +924,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 34  # 2.0.0-dev21 – bei Schemaänderungen erhöhen (Angebotsrevisionen)
+SCHEMA_VERSION = 35  # 2.0.0-dev23 – bei Schemaänderungen erhöhen (Nachfassen mit Angebotsbezug)
 
 
 def backup_before_migration(db):

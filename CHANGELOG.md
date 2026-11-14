@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.0-dev23 – Nachfassen mit Anlass, Frist und Ergebnis
+
+Etappe C, Produktreview M16. Damit ist Etappe C abgeschlossen.
+
+- **Versand mit Nachfassfrist:** Beim Dokumentieren des Versands wählst du, wann nachgefasst wird (Vorgabe: 7 Tage nach dem Versanddatum, nicht nach heute) und kannst einen Anlass nennen. Die Nachfassaufgabe ist mit Angebot und Chance verknüpft; der nächste Schritt der Firma folgt dieser Frist.
+- **Ergebnis festhalten** am Angebot (Schritt „Nachfassen“): erreicht/Entscheidung offen, Rückfragen oder Änderungswünsche, nicht erreicht, Zusage oder Absage angekündigt, nicht weiter nachfassen. Bleibt die Entscheidung offen, ist eine neue Frist Pflicht. Ohne offene Frist zeigt das Angebot „kein nächster Schritt“.
+- Alle Ergebnisse stehen im Verlauf der Firma. Rückfragen verweisen auf „Überarbeiten“; angekündigte Entscheidungen ändern den Status nicht von selbst.
+- **Heute:** zeigt die Nachfassaufgabe zur gewählten Frist statt pauschal nach 7 Tagen; derselbe Schritt erscheint nicht doppelt als nächster Schritt der Firma. Der Vorschlag „Follow-up bearbeiten“ entfällt für Angebote mit eigener Nachfassaufgabe.
+- Revisionen beenden verknüpfte Nachfassaufgaben des Vorgängers mit „ersetzt“, der Projektstart bzw. Abschluss mit „Entscheidung dokumentiert“.
+- Fehlerbehebung: Ein ungültiger Versandweg oder eine ungültige Frist hinterlässt keinen halb gespeicherten Versand mehr in der laufenden Verbindung.
+- **Schemawechsel 34 → 35** (Nachfassbezug an Aufgaben). 638 Tests (7 neu) unter Python 3.10 und 3.13, 19 Browser-Tests (1 neu). Neuer Test: jedes Modul gehört ins Release-Paket.
+
 ## 2.0.0-dev22 – Optionale Positionen im Angebot
 
 Etappe C, Produktreview M15 Teil 2. Damit ist M15 abgeschlossen.

@@ -4,6 +4,7 @@
 (function () {
   const esc = v => escapeHTML(String(v ?? ''));
   const today = () => new Date().toISOString().slice(0, 10);
+  const plusDays = (iso, n) => { const d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
   const opt = (obj, sel) => Object.entries(obj).map(([k, v]) => `<option value="${esc(k)}" ${k === sel ? 'selected' : ''}>${esc(v)}</option>`).join('');
   let current = null;
 
@@ -29,8 +30,26 @@
     if (['angenommen', 'abgelehnt'].includes(s.status)) return '';
     return `<li class="of-step ${s.released ? '' : 'off'}"><b>2 · Versand dokumentieren</b><p class="muted">Erst nachdem du die freigegebene Fassung selbst verschickt hast.</p>
       <div class="sales-row"><label>Weg<select data-of-channel ${s.released ? '' : 'disabled'}>${opt(s.channels, 'email')}</select></label>
-      <label>Datum<input type="date" data-of-sentdate value="${today()}" max="${today()}" ${s.released ? '' : 'disabled'}></label>
+      <label>Datum<input type="date" data-of-sentdate value="${today()}" max="${today()}" ${s.released ? '' : 'disabled'}></label></div>
+      <div class="sales-row"><label>Nachfassen am<input type="date" data-of-followdate value="${plusDays(today(), 7)}" min="${today()}" ${s.released ? '' : 'disabled'}></label>
+      <label>Anlass<input data-of-followreason maxlength="160" placeholder="z. B. Entscheidung nach der Gesellschafterrunde" ${s.released ? '' : 'disabled'}></label>
       <button type="button" class="btn btn-ghost" data-of-sent ${s.released ? '' : 'disabled'}>Als versendet dokumentieren</button></div></li>`;
+  }
+
+  // 2.0.0-dev23 (M16): Nachfassen mit Anlass, Frist und Ergebnis
+  function stepFollow(s, f) {
+    if (!f || !f.items.length) return '';
+    const done = f.items.filter(i => i.done);
+    const hist = done.length ? `<ul class="of-fu-done">${done.map(i => `<li><b>${esc(i.outcome_label || 'erledigt')}</b> · ${esc(i.reason)}${i.due_date ? ' · Frist ' + esc(fmtDate(i.due_date)) : ''}${i.outcome_note ? `<small>${esc(i.outcome_note)}</small>` : ''}</li>`).join('')}</ul>` : '';
+    const live = s.status === 'gesendet_manuell';
+    const open = f.open.map(i => `<div class="of-fu" data-of-fu-item="${i.id}"><p><b>${i.overdue ? '<span class="pill bad">überfällig</span> ' : ''}Fällig ${esc(fmtDate(i.due_date))}</b> · ${esc(i.reason)}</p>
+      ${live ? `<div class="sales-row"><label>Ergebnis<select data-of-fu-outcome>${opt(f.outcomes, 'entscheidung_offen')}</select></label>
+      <label>Nächstes Nachfassen<input type="date" data-of-fu-next value="${esc(f.default_next)}" min="${today()}"></label></div>
+      <div class="sales-row"><label>Notiz<input data-of-fu-note maxlength="500" placeholder="Was wurde gesagt?"></label>
+      <label>Nächster Anlass<input data-of-fu-reason maxlength="160" placeholder="optional"></label>
+      <button type="button" class="btn btn-ghost" data-of-fu="${i.id}">Ergebnis festhalten</button></div>` : '<p class="muted">Nach der Entscheidung beim Projektstart bzw. Abschluss beenden.</p>'}</div>`).join('');
+    const state = f.open.length ? '' : (live ? ' <span class="pill bad">kein nächster Schritt</span>' : '');
+    return `<li class="of-step ${f.open.length ? '' : 'done'}" id="ofFollow"><b>Nachfassen${state}</b>${open}${hist}</li>`;
   }
 
   function stepDecision(s) {
@@ -65,10 +84,11 @@
   async function render(id) {
     const box = $('#quoteSaved');
     if (!box) return;
-    let s, p = null;
+    let s, p = null, f = null;
     try {
       s = await api('/workspace/proposals/' + id + '/versand');
       if (['angenommen', 'abgelehnt'].includes(s.status)) p = await api('/workspace/proposals/' + id + '/start');
+      if (s.status !== 'entwurf') f = await api('/workspace/proposals/' + id + '/nachfassen');
     } catch (e) { toast(e.message, true); return; }
     current = {id, s, p};
     box.querySelector('[data-quote-status]')?.closest('label')?.remove();
@@ -82,7 +102,7 @@
     // 2.0.0-dev21 (M15): ersetzte Fassungen sind nur noch Nachweis; aktuelle Fassungen lassen sich überarbeiten
     const steps = s.superseded_by ? `<li class="of-step done"><b>Ersetzt</b><span>Diese Fassung ist durch ${esc(s.superseded_number)} ersetzt. Freigabe, Versand und Zusage gehen nur noch dort.</span>
         <button type="button" class="btn btn-ghost" data-quote-open="${s.superseded_by}">${esc(s.superseded_number)} öffnen</button></li>`
-      : `${stepRelease(s)}${stepSend(s)}${stepDecision(s)}${stepStart(p, s)}`;
+      : `${stepRelease(s)}${stepSend(s)}${stepFollow(s, f)}${stepDecision(s)}${stepStart(p, s)}`;
     (head || box).insertAdjacentHTML(head ? 'afterend' : 'afterbegin', `<ol class="of-panel" id="ofPanel" data-of-id="${id}">${steps}</ol>
       <div class="of-revisions" id="ofRevisions">${s.revisable ? `<button type="button" class="btn btn-ghost" data-of-revise="${id}">Überarbeiten (neue Fassung)</button>` : ''}<div data-of-history></div></div>`);
     try {
@@ -123,8 +143,20 @@
           return after('Versandfassung freigegeben – noch nichts versendet');
         }
         if (e.target.closest('[data-of-sent]')) {
-          const r = await api('/workspace/proposals/' + id, 'PATCH', {status: 'gesendet_manuell', channel: panel.querySelector('[data-of-channel]').value, date: panel.querySelector('[data-of-sentdate]').value});
+          const r = await api('/workspace/proposals/' + id, 'PATCH', {status: 'gesendet_manuell', channel: panel.querySelector('[data-of-channel]').value, date: panel.querySelector('[data-of-sentdate]').value,
+            follow_up: panel.querySelector('[data-of-followdate]').value, follow_reason: panel.querySelector('[data-of-followreason]').value});
           return after(r.notice);
+        }
+        const fu = e.target.closest('[data-of-fu]');
+        if (fu) {
+          const box = fu.closest('[data-of-fu-item]');
+          const outcome = box.querySelector('[data-of-fu-outcome]').value;
+          const body = {outcome, note: box.querySelector('[data-of-fu-note]').value};
+          if (['entscheidung_offen', 'rueckfragen', 'nicht_erreicht'].includes(outcome)) Object.assign(body, {next_date: box.querySelector('[data-of-fu-next]').value, next_reason: box.querySelector('[data-of-fu-reason]').value});
+          const r = await api(`/tasks/${fu.dataset.ofFu}/ergebnis`, 'POST', body);
+          await after(r.notice || 'Ergebnis festgehalten');
+          $('#ofFollow')?.scrollIntoView({block: 'center'});
+          return;
         }
         const dec = e.target.closest('[data-of-decide]');
         if (dec) {
@@ -141,6 +173,17 @@
         }
       } catch (err) { toast(err.message, true); }
     }, true);
+    document.addEventListener('change', e => {
+      const sd = e.target.closest('#ofPanel [data-of-sentdate]');
+      const fd = sd && $('#ofPanel [data-of-followdate]');
+      if (fd && !fd.dataset.touched && sd.value) fd.value = [plusDays(sd.value, 7), today()].sort().pop();
+      if (e.target.matches?.('#ofPanel [data-of-followdate]')) e.target.dataset.touched = '1';
+      const oc = e.target.closest('[data-of-fu-outcome]');
+      if (oc) {
+        const needs = ['entscheidung_offen', 'rueckfragen', 'nicht_erreicht'].includes(oc.value);
+        oc.closest('[data-of-fu-item]').querySelectorAll('[data-of-fu-next],[data-of-fu-reason]').forEach(x => { x.disabled = !needs; });
+      }
+    });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

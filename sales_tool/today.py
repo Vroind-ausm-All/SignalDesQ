@@ -71,6 +71,8 @@ def wiedervorlage(conn, today=None):
         if RESEARCH_RE.search(r['next_step']):
             research += 1  # v1.13: Recherche-Schritte nicht einzeln, sondern als ein Sammelpunkt
             continue
+        if any(i['lead_id'] == r['id'] and i['title'] == r['next_step'] for i in items):
+            continue  # 2.0.0-dev23: derselbe Schritt steht schon als fällige Aufgabe da (z. B. Nachfassen eines Angebots)
         add('naechster_schritt', r['next_step'], r['company'], r['id'], r['next_date'], 'Lead öffnen', 'lead', r['id'])
     if research:
         add('recherche', f'{research} Firma(en) mit fälligem Recherche-Schritt', 'Recherche', None, t, 'Gesammelt ansehen', 'tasks',
@@ -95,7 +97,8 @@ def wiedervorlage(conn, today=None):
                              WHERE p.superseded_by IS NULL AND p.status IN ('entwurf','gesendet_manuell') AND l.stage NOT IN ('gesperrt','verloren') ORDER BY p.updated_at"""):
         age = _days_since(r['updated_at'], today)
         expires = r['valid_until'] or ''
-        if r['status'] == 'gesendet_manuell' and age >= 7:
+        linked = conn.execute('SELECT 1 FROM tasks WHERE proposal_id=? LIMIT 1', (r['id'],)).fetchone()  # 2.0.0-dev23 (M16)
+        if r['status'] == 'gesendet_manuell' and age >= 7 and not linked:
             add('nachfassen', f"Angebot {r['number'] or '#' + str(r['id'])} nachfassen", r['company'], r['lead_id'], '', 'Angebot öffnen', 'quotes',
                 r['id'], f"seit {age} Tagen beim Kunden · {_net(r):,.0f} € netto".replace(',', '.'))
         elif r['status'] == 'entwurf' and age >= 2:

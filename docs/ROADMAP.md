@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev22. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev23. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -54,7 +54,7 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 | M13 | Mehrere Verkaufschancen je Firma | P1 | erledigt | dev18, dev19 | T08: zwei Chancen mit getrennten Phasen, Bedarfsanalysen, Freigaben und Terminen; Verlust einer Chance beendet keine andere, keine Rechnung ändert sich; Angebote prüfen den Bedarf ihrer Chance; Pipeline und Heute je Chance; Bestand mit genau einer ersten Chance (Migration an Kopie geprüft) | Aufgaben je Chance; Paketabgleich je Chance |
 | M14 | Briefings für Medien und Software | P1 | erledigt | dev20 | Fragen je Leistungsbereich der Chance (Medien, Software, Analyse, Sichtbarkeit), jede geklärt/offen/entfällt; Angebot übernimmt Grundlage und offene Voraussetzungen, Schnappschuss intern (Unit- und Browser-Test) | Eigene Fragen; Materialliste (M39) |
 | M15 | Angebotsrevisionen und Varianten | P1 | erledigt | dev21, dev22 | T11: Revision mit Vorgänger, Grund und Änderungsliste; Vorgänger ersetzt und unverändert; angenommene Fassung bleibt; optionale Positionen ausgewiesen, nicht im Festpreis, nicht in der Rechnung (Unit- und Browser-Test) | Varianten zur Wahl = optionale Positionen oder Revision; kein Variantenvergleich nebeneinander |
-| M16 | Nachfassen mit Anlass, Frist und Ergebnis | P1 | teilweise | dev3 | Rückrufe, Wiederholversuche, Parken vorhanden; offen: Bezug zu Chance und Angebot; Wiedervorlage nach Versand ist fest 7 Kalendertage (Leitfaden Onboarding) | M13 |
+| M16 | Nachfassen mit Anlass, Frist und Ergebnis | P1 | erledigt | dev3, dev23 | Versand mit selbst gewählter Frist (Vorgabe 7 Tage ab Versanddatum) und Anlass; Nachfassaufgabe mit Bezug zu Angebot und Chance; Ergebnis Pflicht, bei offener Entscheidung neue Frist; Revision und Entscheidung beenden mit Ergebnis (Unit- und Browser-Test) | Nachfassen ohne Angebot (Erstkontakt, Rückruf) bleibt bei Anruf- und Aufgabenprotokoll |
 | M17 | Schlanke Auftragsübergabe und Abnahme | P2 | offen | Etappe D | T12 | M13, M15 |
 | M18 | Zusatzaufträge und Leistungsänderungen | P2 | offen | Etappe D | Ursprungsumfang bleibt erkennbar | M15, M17 |
 | M19 | Bestandskunden und Betreuungsleistungen | P2 | offen | Etappe D | Betreuung und neue Projekte getrennt | M13 |
@@ -98,7 +98,7 @@ Eigentümer; in die App kommen nur die Abläufe.
 |---|---|---|
 | A – verlässliche tägliche Bedienung | M01–M05, Beginn M21 | **erledigt** in dev12/dev13; M21 wartet auf den Eigentümer |
 | B – klare Navigation und Arbeitslisten | dev14 = M06 Einstellungen + M07 Teil 1; dev15 = M08, M09, M11 | **erledigt**; offen aus M07: Adressen für weitere Listen und Berichte |
-| C – mehrere Projekte je Firma | M12 Katalog (dev16), P0-Paket M27/M35/M36 (dev17), M13 Chancen (dev18/dev19) – **erledigt**; M14 Briefings (dev20, **erledigt**); M15 Revisionen und optionale Positionen (dev21/dev22, **erledigt**); **als Nächstes dev23 = M16** (Nachfassen mit Anlass, Frist und Ergebnis) | **läuft**; Migrationen an einer Kopie vorhandener Daten geprüft |
+| C – mehrere Projekte je Firma | M12 Katalog (dev16), P0-Paket M27/M35/M36 (dev17), M13 Chancen (dev18/dev19) – **erledigt**; M14 Briefings (dev20, **erledigt**); M15 Revisionen und optionale Positionen (dev21/dev22, **erledigt**); M16 Nachfassen (dev23, **erledigt**); als Nächstes Etappe D (M17 Auftragsübergabe und Abnahme) | **läuft**; Migrationen an einer Kopie vorhandener Daten geprüft |
 | C′ – Bewertung fundieren | M28, M29 nach Pilot außerhalb der App; M32 nach M13 | M27 erledigt (dev17); Pilot außerhalb der App liegt beim Eigentümer |
 | D – Auftrag, Lernen, Anbindung | M17–M20, M24/M25, M37–M39 nach Pilotbedarf; M30, M33, M34 nach ersten Reviews; M22/M23 parallel nach Fehlerbild; M10 bei wachsendem Bestand | später |
 

@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev22)
+# Bekannte Einschränkungen (Stand 2.0.0-dev23)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -154,3 +154,11 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Varianten zur Wahl (Basis/Standard/Erweitert nebeneinander mit eigener Gesamtsumme) gibt es nicht. Abbilden lässt sich das über optionale Positionen oder getrennte Fassungen.
 - Mindestens eine Position muss fest im Angebot stehen.
 - Interne Stunden, Fremdkosten und der effektive Stundenlohn des Angebots zählen nur feste Positionen; der Hinweis zum Mindestverdienst erscheint weiterhin je Position, auch für optionale.
+
+## Nachfassen von Angeboten (2.0.0-dev23)
+
+- Das Nachfassen mit Frist, Anlass und Ergebnis gilt für versendete Angebote. Nachfassen nach Erstkontakt oder Rückrufen läuft weiter über Anrufprotokoll und Aufgaben.
+- Ältere Angebote (vor dev23) haben keine verknüpfte Nachfassaufgabe. Für sie gilt weiterhin die feste Wiedervorlage 7 Tage nach der letzten Änderung.
+- Eine Nachfassaufgabe, die in der allgemeinen Aufgabenliste einfach abgehakt wird, hat kein Ergebnis. Das Ergebnis lässt sich nur am Angebot festhalten.
+- „Zusage angekündigt“ und „Absage angekündigt“ ändern den Angebotsstatus nicht. Die Entscheidung dokumentierst du weiterhin bewusst am Angebot.
+- Längste Frist: 120 Tage. Längere Pausen gehören als Wiedervorlage an die Chance.

@@ -139,7 +139,9 @@ def apply(conn, pred_id, reason, proposal):
 
 def link(conn, pred_row, new_id, new_number, reason):
     conn.execute("UPDATE proposals SET superseded_by=?, updated_at=datetime('now') WHERE id=?", (new_id, pred_row['id']))
-    closed = conn.execute(r"""UPDATE tasks SET done=1, done_at=datetime('now') WHERE lead_id=? AND done=0
+    from .followups import close_for
+    linked = close_for(conn, pred_row['id'], 'ersetzt', f'ersetzt durch {new_number}')  # 2.0.0-dev23: verknüpfte Nachfassaufgaben
+    closed = linked + conn.execute(r"""UPDATE tasks SET done=1, done_at=datetime('now') WHERE lead_id=? AND done=0
                               AND (title LIKE ? OR title LIKE ?) AND (title LIKE '%nachfass%' OR title LIKE '%Rückfrage%' OR title LIKE '%prüfen und manuell versenden%')""",
                           (pred_row['lead_id'], f"%{_number(pred_row)}%", f"%(#{pred_row['id']})%")).rowcount
     conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',

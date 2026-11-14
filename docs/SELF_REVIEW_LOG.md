@@ -595,6 +595,21 @@ Zweiter Teil von M15. Statt eines eigenen Variantenmodells (Basis/Standard/Erwei
 
 **Selbstbewertung 4 von 5.** Abzug: kein Variantenvergleich nebeneinander (bewusst, dokumentiert); die Annahme einer einzelnen Option braucht den Umweg über eine Revision.
 
+## Arbeitspaket 22 – Nachfassen mit Anlass, Frist und Ergebnis (2.0.0-dev23)
+
+M16 auf versendete Angebote begrenzt: Dort hängt am meisten Umsatz, und dort fehlte der Bezug. Nachfassen nach Erstkontakt hat mit Anrufprotokoll und Wiederholversuchen schon einen eigenen Weg.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 638 Tests bestanden (6 neu in `tests/test_v2_followups.py`, 1 neu in `tests/test_release_modules.py`; ein bestehender Test auf den neuen Aufgabentitel angepasst, der Hinweis „zulässigen Weg prüfen“ bleibt im Titel) |
+| Browser-Tests | 19 von 19 (neu `test_followup_browser.py`): Frist und Anlass beim Versand, Ergebnis „nicht erreicht“ mit neuer Frist, dann „nicht weiter nachfassen“ |
+| Fund beim Testen | Eine ungültige Frist wurde erst nach dem Statuswechsel geprüft; ein zweiter Versuch in derselben Verbindung galt dann als „unverändert“. Prüfung vor jede Änderung gezogen. |
+| Doppelung in Heute | Nachfassaufgabe und gleichlautender nächster Schritt der Firma erschienen doppelt – jetzt nur einmal |
+| Migration | Schema 34 → 35, fünf Spalten an `tasks` mit Vorgabewerten |
+| Release-Paket | Erster Bau ohne das neue, noch nicht committete Modul. Ergänzt; neuer Test verlangt jedes Modul und jede Oberflächendatei im Paket; Paket entpackt und Datenbank daraus angelegt |
+
+**Selbstbewertung 4 von 5.** Abzug: In der allgemeinen Aufgabenliste abgehakte Nachfassaufgaben haben kein Ergebnis (dokumentiert).
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

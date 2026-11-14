@@ -763,3 +763,9 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 /* 2.0.0-dev22 – optionale Positionen (Review M15 Teil 2) */
 .qb-opt{display:inline-flex;gap:6px;align-items:center;font-size:12px}
 .qb-table tr.qb-optional td{color:var(--muted)}
+
+/* 2.0.0-dev23 (M16): Nachfassen mit Anlass, Frist und Ergebnis */
+.of-fu{border-left:3px solid var(--line);padding:.2rem 0 .2rem .6rem;margin:.4rem 0}
+.of-fu p{margin:.1rem 0 .3rem}
+.of-fu-done{margin:.4rem 0 0;padding-left:1.1rem;font-size:.92em}
+.of-fu-done small{display:block;color:var(--muted)}

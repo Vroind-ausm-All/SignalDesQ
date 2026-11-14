@@ -183,7 +183,7 @@ def set_status(conn, pid, data):
     """Status dokumentieren – nur vorwärts: Entwurf → versendet → angenommen/abgelehnt."""
     from .sales_workspace import QUOTE_STATUSES
     from .workday import after_proposal_sent, assert_contact_allowed, assert_need_confirmed, _advance, _lead
-    if not isinstance(data, dict) or 'status' not in data or set(data) - {'status', 'channel', 'date', 'person', 'note'} or data['status'] not in QUOTE_STATUSES:
+    if not isinstance(data, dict) or 'status' not in data or set(data) - {'status', 'channel', 'date', 'person', 'note', 'follow_up', 'follow_reason'} or data['status'] not in QUOTE_STATUSES:
         raise ValueError('Ungültiger Angebotsstatus.')
     row = _row(conn, pid)
     new, prev = data['status'], row['status']
@@ -210,17 +210,22 @@ def set_status(conn, pid, data):
         channel = data.get('channel') or 'email'
         if channel not in CHANNELS:
             raise ValueError('Versandweg: ' + ', '.join(CHANNELS))
+        # 2.0.0-dev23 (M16): Frist selbst gewählt (Vorgabe 7 Tage nach dem Versanddatum), Anlass, Bezug zu Angebot und Chance
+        from .followups import create as create_followup, due_date
+        follow = due_date(data.get('follow_up'), dt.date.fromisoformat(when))
+        reason = _text(data, 'follow_reason', 160)
         conn.execute("""UPDATE proposals SET status=?, sent_at=?, sent_channel=?, sent_sha=release_sha, updated_at=datetime('now') WHERE id=?""",
                      (new, when, channel, pid))
         conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
                      (row['lead_id'], 'angebot', f"Angebot {num} (Stand {row['release_sha'][:8]}) am {when} {CHANNELS[channel]} versendet – außerhalb von SignalDesk."))
-        follow = (dt.date.today() + dt.timedelta(days=7)).isoformat()
-        conn.execute('INSERT INTO tasks(lead_id,title,due_date) VALUES (?,?,?)', (row['lead_id'], f'Angebotsstatus und zulässige Rückfrage prüfen (#{pid})', follow))
-        after_proposal_sent(conn, row['lead_id'], num)
+        tid = create_followup(conn, row, num, follow, reason)
+        step = conn.execute('SELECT title FROM tasks WHERE id=?', (tid,)).fetchone()['title']
+        after_proposal_sent(conn, row['lead_id'], num, (follow - dt.date.today()).days, step)
         from .chances import advance
         advance(conn, row['opportunity_id'], 'angebot')  # 2.0.0-dev18: Phase der zugehörigen Chance
         conn.commit()
-        return {'saved': True, 'status': new, 'notice': 'Der Versand ist dokumentiert. SignalDesk hat nichts gesendet.'}
+        return {'saved': True, 'status': new, 'follow_up': follow.isoformat(),
+                'notice': f"Der Versand ist dokumentiert. SignalDesk hat nichts gesendet. Nachfassen am {follow.strftime('%d.%m.%Y')}."}
     channel = data.get('channel') or ('email' if new == 'angenommen' else '')
     if channel and channel not in DECISION_CHANNELS:
         raise ValueError('Weg der Entscheidung: ' + ', '.join(DECISION_CHANNELS))
@@ -279,8 +284,8 @@ def start_plan(conn, pid):
             ex = conn.execute('SELECT done FROM tasks WHERE lead_id=? AND title=? ORDER BY id DESC LIMIT 1', (row['lead_id'], s['title'])).fetchone()
             sugg.append({**s, 'exists': bool(ex), 'done': bool(ex and ex['done'])})
     follow = [{'id': t['id'], 'title': t['title'], 'due_date': t['due_date']}
-              for t in conn.execute('SELECT id, title, due_date FROM tasks WHERE lead_id=? AND done=0 ORDER BY id', (row['lead_id'],))
-              if (num in t['title'] or f'#{pid})' in t['title']) and FOLLOWUP_RE.search(t['title'])]
+              for t in conn.execute('SELECT id, title, due_date, proposal_id FROM tasks WHERE lead_id=? AND done=0 ORDER BY id', (row['lead_id'],))
+              if t['proposal_id'] == pid or (not t['proposal_id'] and (num in t['title'] or f'#{pid})' in t['title']) and FOLLOWUP_RE.search(t['title']))]
     lead = conn.execute('SELECT next_step FROM leads WHERE id=?', (row['lead_id'],)).fetchone()
     return {'proposal_id': pid, 'number': num, 'status': row['status'], 'suggestions': sugg, 'followups': follow,
             'next_step': lead['next_step'] if lead else ''}
@@ -313,7 +318,7 @@ def start(conn, pid, data):
         created += 1
     closed = 0
     for tid in dict.fromkeys(data.get('close', [])):
-        closed += conn.execute("UPDATE tasks SET done=1, done_at=datetime('now') WHERE id=? AND done=0", (tid,)).rowcount
+        closed += conn.execute("UPDATE tasks SET done=1, done_at=datetime('now'), outcome=CASE WHEN proposal_id IS NULL THEN outcome ELSE 'entschieden' END WHERE id=? AND done=0", (tid,)).rowcount
     if created or closed:
         conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
                      (row['lead_id'], 'notiz', f"Angebot {plan['number']}: {created} Startaufgabe(n) angelegt, {closed} Nachfassaufgabe(n) bewusst beendet."))

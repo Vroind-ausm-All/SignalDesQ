@@ -310,9 +310,9 @@ def after_proposal(conn, lead_id, number):
     _advance(conn, lead, None, f'Angebot {number} prüfen und manuell versenden', 1)  # Entwurf: Phase bleibt, erst Versand → „Angebot“
 
 
-def after_proposal_sent(conn, lead_id, number):
+def after_proposal_sent(conn, lead_id, number, days=7, step=''):
     lead = _lead(conn, lead_id)
-    _advance(conn, lead, 'angebot', f'Angebot {number} nachfassen (zulässigen Weg prüfen)', 7)
+    _advance(conn, lead, 'angebot', step or f'Angebot {number} nachfassen (zulässigen Weg prüfen)', days)
 
 
 # ---------------------------------------------------------------- Belegabdeckung
