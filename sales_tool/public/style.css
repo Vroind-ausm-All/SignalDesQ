@@ -737,3 +737,35 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 .ch-body{padding:0 14px 12px;display:grid;gap:6px}
 .ch-mini{margin:0;padding-left:18px;font-size:13px}
 .ch-new{border:1px solid var(--line);border-radius:10px;padding:12px;margin:8px 0;background:var(--surface-2)}
+.ch-need{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.ch-need .sales-row{flex-basis:100%}
+.ch-confirm{flex-basis:100%;border:1px solid var(--line);border-radius:9px;padding:6px 12px;background:var(--surface-2)}
+.ch-confirm summary{cursor:pointer;font-weight:600;font-size:13px}
+.ch-need-for{display:block;margin:8px 0;max-width:420px}
+.pc-chance{border-left:3px solid var(--accent)}
+.pc-sub{display:block;font-size:11px;font-weight:400;color:var(--muted)}
+/* 2.0.0-dev20 – Briefing je Chance (Review M14) */
+.ch-brief{border:1px solid var(--line);border-radius:9px;padding:6px 12px}
+.ch-brief summary{cursor:pointer;font-weight:600;font-size:13px}
+.ch-brief summary small{font-weight:400;color:var(--muted);margin-left:6px}
+.ch-brief-body{display:grid;gap:8px;margin-top:8px}
+.ch-areas{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:13px}
+.ch-area{display:inline-flex;gap:4px;align-items:center}
+.ch-brief-area{border:1px solid var(--line);border-radius:9px;padding:8px 12px;display:grid;gap:8px}
+.ch-brief-area legend{font-size:12px;font-weight:600;padding:0 4px}
+.ch-q small{display:block}
+/* 2.0.0-dev21 – Angebotsrevisionen (Review M15) */
+.qb-revision{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:9px;padding:10px 12px;display:grid;gap:6px;background:var(--surface-2)}
+.of-revisions{display:grid;gap:6px;margin:8px 0}
+.of-history summary{cursor:pointer;font-weight:600;font-size:13px}
+.of-history ol{margin:6px 0;padding-left:18px;font-size:13px;display:grid;gap:4px}
+.of-history small{display:block;color:var(--muted)}
+/* 2.0.0-dev22 – optionale Positionen (Review M15 Teil 2) */
+.qb-opt{display:inline-flex;gap:6px;align-items:center;font-size:12px}
+.qb-table tr.qb-optional td{color:var(--muted)}
+
+/* 2.0.0-dev23 (M16): Nachfassen mit Anlass, Frist und Ergebnis */
+.of-fu{border-left:3px solid var(--line);padding:.2rem 0 .2rem .6rem;margin:.4rem 0}
+.of-fu p{margin:.1rem 0 .3rem}
+.of-fu-done{margin:.4rem 0 0;padding-left:1.1rem;font-size:.92em}
+.of-fu-done small{display:block;color:var(--muted)}

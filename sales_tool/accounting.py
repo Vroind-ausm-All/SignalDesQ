@@ -716,7 +716,7 @@ def invoice_from_proposal(conn, data):
     if mode == 'monat' or (mode == 'voll' and positions):
         # Sprint D: Positionen aus dem Baukasten einzeln übernehmen (einmalig bzw. Monatsleistungen)
         want = 'monatlich' if mode == 'monat' or monthly else 'einmalig'
-        for n, p in enumerate((p for p in positions if p['billing'] == want), 1):
+        for n, p in enumerate((p for p in positions if p['billing'] == want and not p.get('optional')), 1):  # dev22: Optionen nie berechnen
             lines.append({'description': f"{p['title']} – {p['scope']} (Angebot {ref}, Pos. {positions.index(p) + 1})"[:500],
                           'quantity': 1, 'unit': 'monat' if want == 'monatlich' else 'pauschal', 'unit_price_cents': cents(p['price_eur'], 'Positionspreis'),
                           'vat_rate': 19})

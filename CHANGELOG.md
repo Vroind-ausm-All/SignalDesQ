@@ -1,5 +1,66 @@
 # Changelog
 
+## 2.0.0-dev23 – Nachfassen mit Anlass, Frist und Ergebnis
+
+Etappe C, Produktreview M16. Damit ist Etappe C abgeschlossen.
+
+- **Versand mit Nachfassfrist:** Beim Dokumentieren des Versands wählst du, wann nachgefasst wird (Vorgabe: 7 Tage nach dem Versanddatum, nicht nach heute) und kannst einen Anlass nennen. Die Nachfassaufgabe ist mit Angebot und Chance verknüpft; der nächste Schritt der Firma folgt dieser Frist.
+- **Ergebnis festhalten** am Angebot (Schritt „Nachfassen“): erreicht/Entscheidung offen, Rückfragen oder Änderungswünsche, nicht erreicht, Zusage oder Absage angekündigt, nicht weiter nachfassen. Bleibt die Entscheidung offen, ist eine neue Frist Pflicht. Ohne offene Frist zeigt das Angebot „kein nächster Schritt“.
+- Alle Ergebnisse stehen im Verlauf der Firma. Rückfragen verweisen auf „Überarbeiten“; angekündigte Entscheidungen ändern den Status nicht von selbst.
+- **Heute:** zeigt die Nachfassaufgabe zur gewählten Frist statt pauschal nach 7 Tagen; derselbe Schritt erscheint nicht doppelt als nächster Schritt der Firma. Der Vorschlag „Follow-up bearbeiten“ entfällt für Angebote mit eigener Nachfassaufgabe.
+- Revisionen beenden verknüpfte Nachfassaufgaben des Vorgängers mit „ersetzt“, der Projektstart bzw. Abschluss mit „Entscheidung dokumentiert“.
+- Fehlerbehebung: Ein ungültiger Versandweg oder eine ungültige Frist hinterlässt keinen halb gespeicherten Versand mehr in der laufenden Verbindung.
+- **Schemawechsel 34 → 35** (Nachfassbezug an Aufgaben). 638 Tests (7 neu) unter Python 3.10 und 3.13, 19 Browser-Tests (1 neu). Neuer Test: jedes Modul gehört ins Release-Paket.
+
+## 2.0.0-dev22 – Optionale Positionen im Angebot
+
+Etappe C, Produktreview M15 Teil 2. Damit ist M15 abgeschlossen.
+
+- **Haken „optional (nicht im Festpreis)“** an jeder Position im Angebotsbaukasten. Die Vorschau markiert die Position als „optional“; die Summe bleibt unverändert.
+- **Kundendokument:** optionale Positionen stehen mit Preis in der Tabelle („(optional) … – nicht im Festpreis“) und zusätzlich im Abschnitt „Optionale Positionen“ mit dem Hinweis, dass sie nur auf ausdrücklichen Wunsch beauftragt werden.
+- **Keine Doppelkalkulation:** Festpreis, monatliche Summe, Laufzeit, Zahlungsplan, interne Stunden und Kosten sowie die Rechnung „voll“ zählen nur feste Positionen.
+- **Revisionen** zeigen „Neu (optional)“, „Jetzt optional“ und „Option fest übernommen“; ältere Angebote behalten das Merkmal bei der Überarbeitung.
+- Versandfreigabe nennt die Anzahl optionaler Positionen als Hinweis. Mindestens eine Position muss fest im Angebot stehen.
+- Kein Schemawechsel. 631 Tests (2 neu) unter Python 3.10 und 3.13, 18 Browser-Tests (1 neu). Varianten zur Wahl nebeneinander gibt es bewusst nicht (siehe Einschränkungen).
+
+## 2.0.0-dev21 – Angebotsrevisionen mit Vorgänger und Änderungen
+
+Etappe C, Produktreview M15 Teil 1 (Abnahmefall T11). Optionale Positionen und Varianten folgen als Teil 2.
+
+- **„Überarbeiten (neue Fassung)“** am gespeicherten Angebot lädt Firma, Chance, Positionen, Titel, Ziel und Voraussetzungen in den Baukasten. Mit einem Grund gespeichert, entsteht die neue Fassung mit Stammnummer und Zähler (z. B. AN-2026-0003-R2) für dieselbe Firma und Chance.
+- **Vorgänger und Änderungen sichtbar:** Das Kundendokument nennt „Überarbeitete Fassung 2 – ersetzt Angebot …“ und listet die wesentlichen Änderungen (neue, geänderte und entfallene Positionen mit Preisen, Summen, Zeitraum, Zahlungsplan) samt Anlass. Intern zeigt „Fassungen“ die ganze Kette.
+- **Der Vorgänger bleibt unverändert gespeichert**, gilt aber als ersetzt: keine Freigabe, kein Versand, keine Zusage mehr; seine offenen Nachfassaufgaben werden beendet, Erinnerungen und Angebotssummen zählen nur die aktuelle Fassung.
+- **Angenommener Stand bleibt:** Angenommene oder abgelehnte Angebote lassen sich nicht überarbeiten (Änderungen nach einer Zusage sind ein Zusatzauftrag, M18).
+- Neue Angebote speichern intern ihren Bauplan; ältere werden für eine Überarbeitung aus dem Kundendokument rekonstruiert.
+- **Schemawechsel 33 → 34.** 629 Tests (4 neu) unter Python 3.10 und 3.13, 17 Browser-Tests (1 neu).
+
+## 2.0.0-dev20 – Briefing je Chance und Leistungsbereich
+
+Etappe C, Produktreview M14 („Briefings für Medien und Software“).
+
+- **Briefing an jeder Chance** (Firmenakte → Bedarf & Angebot → Chance → „Briefing“): Die Fragen richten sich nach den Leistungsbereichen der Chance – erkannt aus bestätigten Leistungen, gewählter Vorlage und Angeboten, auf Wunsch selbst gewählt.
+  - Mediengestaltung: Anwendung, Markenrahmen, Inhalte, Gestaltung, Produktion, Nutzung und Übergabe, Entscheidung.
+  - Software: Kernprozess, Nutzer und Rollen, Daten, Schnittstellen, funktionaler Umfang, Betrieb, Prüfung.
+  - Analyse: Hauptziel, Zielgruppe, wichtigste Aufgaben, Erfolgskriterium.
+  - Sichtbarkeit: Suchanlässe, Ausgangsmessung, Budget und Kanäle.
+  Zu jeder Frage steht, was zunächst angefordert wird.
+- **Jede Frage bewusst beantwortet:** „geklärt“ (mit der Angabe des Kunden), „offen“ (was fehlt, wer liefert, bis wann) oder „entfällt“. Unbeantwortetes bleibt sichtbar; die Zusammenfassung steht an der Chance.
+- **Angebote führen ihre Annahmen auf das Briefing zurück:** „Angebot aus bestätigtem Bedarf“ übernimmt geklärte Angaben als Grundlage und offene Punkte als „Offene Voraussetzungen, vor Projektstart zu klären“. Im Angebotsformular übernimmt „Voraussetzungen aus dem Briefing der Chance“ dasselbe. Neue Angebote speichern intern, welche Angaben beim Erstellen galten.
+- **Hinweise bei der Versandfreigabe:** unbeantwortete Briefingfragen und offene Voraussetzungen, die noch nicht im Angebot stehen.
+- **Schemawechsel 32 → 33** (Briefing-Antworten je Chance). 625 Tests (9 neu) unter Python 3.10 und 3.13, 16 Browser-Tests (1 neu). Das Aufräumen der Testdatenbanken wartet jetzt auch unter Linux auf Nachzügler-Dateien (CI-Fehler in `test_ui_workday.py`).
+
+## 2.0.0-dev19 – Bedarf und Freigabe je Chance, Chancen in Pipeline und Heute
+
+Etappe C, Produktreview M13 Teil 2 – damit ist M13 abgeschlossen.
+
+- **Bedarfsanalyse je Chance:** Über der Bedarfsanalyse wählst du, zu welcher Chance sie gehört. Die erste Chance nutzt wie bisher die Bedarfsanalyse der Firma; jede weitere Chance hat ihre eigene (Problem, Auswirkung, bisherige Lösung, Ergebnis, Zeitrahmen, Entscheidungsweg, Budget). Der Wechsel lädt die passenden Angaben und gilt nicht als ungespeicherte Eingabe.
+- **Freigabe je Chance:** „Bedarf dieser Chance bestätigen“ steht direkt an der Chance (Weg, was bestätigt wurde, Leistung aus dem Katalog). Die Freigabe einer Chance gilt nicht für eine andere. „Bedarf wieder öffnen“ ebenso je Chance.
+- **Angebot aus dem Bedarf einer Chance:** übernimmt deren bestätigte Leistungen und ordnet das Angebot der Chance zu. Versandfreigabe, Versand und Zusage prüfen den Bedarf der Chance des Angebots – nicht mehr den der Firma.
+- **Pipeline je Chance:** Offene Chancen erscheinen als eigene Karten mit Firmenname und Chancentitel in ihrer Spalte; ihre Phase lässt sich dort ändern („verloren“ mit Grund). Eine Firma mit offenen Chancen erscheint über diese Karten, Kunden bleiben zusätzlich in „Gewonnen“ sichtbar.
+- **Heute:** Fällige nächste Schritte offener Chancen stehen in der Wiedervorlage und damit in der Fokusliste – ohne den Schritt der Firma doppelt zu zeigen.
+- **Behoben vor dem Release:** Eine zweite Deklaration in `formguard.js` hätte das Skript und damit den Eingabeschutz stillgelegt; der Browser-Test hat es gefunden, ein Strukturtest verhindert die Wiederholung.
+- **Schemawechsel 31 → 32** (Bedarfsfelder an der Chance). 616 Tests (6 neu) unter Python 3.10 und 3.13, 15 Browser-Tests (1 neu).
+
 ## 2.0.0-dev18 – Mehrere Verkaufschancen je Firma (Teil 1)
 
 Etappe C, Produktreview M13 Teil 1. Eine Firma kann jetzt mehrere mögliche Projekte haben, ohne dass sie doppelt angelegt werden muss.

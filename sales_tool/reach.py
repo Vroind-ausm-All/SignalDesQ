@@ -311,7 +311,7 @@ def capacity(conn, profile=None, av=None, today=None):
             accepted += _hours(r['internal_json'])
             untracked += 1
     open_rows = conn.execute("""SELECT p.internal_json FROM proposals p JOIN leads l ON l.id=p.lead_id
-                                WHERE p.status IN ('entwurf','gesendet_manuell') AND l.stage NOT IN ('verloren','gesperrt')""").fetchall()
+                                WHERE p.superseded_by IS NULL AND p.status IN ('entwurf','gesendet_manuell') AND l.stage NOT IN ('verloren','gesperrt')""").fetchall()
     offered = sum(_hours(r['internal_json']) for r in open_rows)
     per_week = round(profile['weekly_hours'] * av['delivery_share_pct'] / 100, 1)
     weeks_accepted = round(accepted / per_week, 1) if per_week else None

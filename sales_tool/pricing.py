@@ -117,9 +117,12 @@ def price_position(p, settings, ov):
     """Berechnet eine Position. Gibt (kunde, intern) zurück."""
     if not isinstance(p, dict) or p.get('service') not in SERVICES:
         raise ValueError('Unbekannte Leistung.')
-    allowed = {'service', 'size', 'qty', 'title', 'note', 'km', 'minutes', 'trips', 'days'}
+    allowed = {'service', 'size', 'qty', 'title', 'note', 'km', 'minutes', 'trips', 'days', 'optional'}
     if set(p) - allowed:
         raise ValueError('Ungültige Felder in einer Position.')
+    if not isinstance(p.get('optional', False), bool):
+        raise ValueError('optional: ja oder nein.')
+    optional = p.get('optional', False)  # 2.0.0-dev22 (M15): optionale Position – nie im Festpreis, nie in einer Rechnung
     key, svc = p['service'], SERVICES[p['service']]
     rate, buf, step = settings['hourly_rate'], settings['buffer_pct'] / 100, settings['round_to']
     title = str(p.get('title') or svc['title']).strip()[:140]
@@ -192,12 +195,12 @@ def price_position(p, settings, ov):
     customer = {'service': key, 'title': title, 'scope': scope, 'note': note, 'quantity': qty, 'unit': unit, 'billing': svc['billing'],
                 'price_eur': round(price, 2), 'description': svc['description'], 'included': svc['included'], 'deliverables': svc['deliverables'],
                 'excluded': svc['excluded'], 'acceptance': svc['acceptance'], 'third_party': svc['third_party'],
-                'weeks': (svc['sizes'].get(p.get('size'), {}).get('weeks') if svc['kind'] == 'paket' else '') or svc['weeks'],
+                'weeks': (svc['sizes'].get(p.get('size'), {}).get('weeks') if svc['kind'] == 'paket' else '') or svc['weeks'], 'optional': optional,
                 'revisions': revisions, 'revisions_text': rev}
     internal = {'service': key, 'title': title, 'hours': round(hours, 2), 'rate': rate, 'labor_eur': round(labor, 2), 'buffer_eur': round(buffer, 2),
                 'external_eur': round(external, 2), 'calculated_eur': round(calc, 2), 'price_eur': round(price, 2),
                 'fixed': fixed is not None and svc['kind'] != 'tag', 'formula': formula, 'effective_hourly': round(earning, 2) if earning is not None else None,
-                'areas': svc['areas'], 'revisions_open': svc['korrekturen'] and revisions is None}
+                'areas': svc['areas'], 'revisions_open': svc['korrekturen'] and revisions is None, 'optional': optional}
     return customer, internal
 
 
@@ -218,8 +221,14 @@ def build_quote(conn, data):
         c, i = price_position(p, settings, ov)
         cust.append(c)
         intern.append(i)
-    once = round(sum(c['price_eur'] for c in cust if c['billing'] == 'einmalig'), 2)
-    monthly = round(sum(c['price_eur'] for c in cust if c['billing'] == 'monatlich'), 2)
+    # 2.0.0-dev22 (M15 Teil 2): optionale Positionen stehen im Angebot, zählen aber weder im Festpreis noch in Summen
+    every = cust
+    opts = [(n, c) for n, c in enumerate(cust, 1) if c['optional']]
+    cust_core = [c for c in cust if not c['optional']]
+    if not cust_core:
+        raise ValueError('Mindestens eine Position muss fest im Angebot stehen – optionale Positionen ergänzen nur.')
+    once = round(sum(c['price_eur'] for c in cust_core if c['billing'] == 'einmalig'), 2)
+    monthly = round(sum(c['price_eur'] for c in cust_core if c['billing'] == 'monatlich'), 2)
     billing = 'monatlich' if monthly and not once else ('gemischt' if monthly else 'einmalig')
     base = once if once else monthly
     if mode == 'regel_19':
@@ -228,20 +237,23 @@ def build_quote(conn, data):
         vat, tax_note = 0.0, 'Keine Umsatzsteuer ausgewiesen (Anwendung § 19 UStG vor Verwendung prüfen)'
     else:
         vat, tax_note = 0.0, 'Umsatzsteuerstatus offen – Angebot vor Versand steuerlich vervollständigen'
-    uniq = lambda key: list(dict.fromkeys(x for c in cust for x in c[key]))
-    weeks = [c['weeks'] for c in cust if c['weeks']]
-    present = {c['service'] for c in cust}
+    uniq = lambda key: list(dict.fromkeys(x for c in cust_core for x in c[key]))
+    weeks = [c['weeks'] for c in cust_core if c['weeks']]
+    present = {c['service'] for c in cust_core}
     tpl = VORLAGEN.get(data.get('template'))
     titles = list(dict.fromkeys(c['title'] for c in cust if c['service'] not in ('anreise', 'tagessatz', 'aufwand'))) or [cust[0]['title']]
     label = text('project_label', 140) or (tpl['title'] if tpl else ' & '.join(titles[:2]) + (' u. a.' if len(titles) > 2 else ''))[:140]
     goal = text('customer_goal', 500) or (tpl['outcome'] if tpl else cust[0]['description'])
     # 2.0.0-dev16: Korrekturschleifen je Position zusammengeführt (K01); fehlende Angaben nur intern als offener Punkt
-    revisions = [{'position': n, 'title': c['title'], 'text': c['revisions_text']} for n, c in enumerate(cust, 1) if c['revisions_text']]
+    revisions = [{'position': n, 'title': c['title'], 'text': c['revisions_text']} for n, c in enumerate(cust, 1) if c['revisions_text'] and not c['optional']]
     deposit = settings['deposit_pct']
     once_plan = ('Zahlung nach Abnahme' if not deposit else f'{deposit:g} % bei Beauftragung, {100 - deposit:g} % nach Abnahme')
     customer = {
         'mode': 'baukasten', 'project_label': label, 'package': data.get('template') or 'baukasten', 'package_title': 'Individuelles Angebot', 'goal': goal,
-        'positions': cust, 'included': [f"{c['title']} – {c['scope']}" for c in cust], 'deliverables': uniq('deliverables'),
+        'positions': every, 'included': [f"{c['title']} – {c['scope']}" for c in cust_core], 'deliverables': uniq('deliverables'),
+        'options': [{'position': n, 'title': c['title'], 'scope': c['scope'], 'price_eur': c['price_eur'], 'billing': c['billing']} for n, c in opts],
+        'options_note': ('Optionale Positionen sind nicht im Festpreis enthalten. Gewünschte Optionen nehmen wir vor der Beauftragung '
+                         'in eine überarbeitete Fassung auf – so wird nichts doppelt berechnet.') if opts else '',
         'excluded': [x for x in uniq('excluded') if not (x in SEPARATE and all(k in present for k in SEPARATE[x]))],
         'acceptance_criteria': uniq('acceptance'), 'third_party_costs': uniq('third_party'),
         'assumptions': text('assumptions', 1000), 'weeks': weeks[0] if len(set(weeks)) == 1 else ('nach Absprache' if not weeks else ' / '.join(dict.fromkeys(weeks))),
@@ -256,9 +268,10 @@ def build_quote(conn, data):
         'change_requests': 'Zusätzliche Leistungen nur nach gesondertem, transparentem Angebot und Freigabe.',
         'guarantee': 'Keine Umsatz-, Ranking- oder Lead-Garantie; Abnahme nach den vereinbarten Liefergegenständen.',
     }
-    hours = round(sum(i['hours'] for i in intern), 2)
-    ext = round(sum(i['external_eur'] for i in intern), 2)
-    total_price = round(sum(i['price_eur'] for i in intern), 2)
+    core = [i for i in intern if not i['optional']]
+    hours = round(sum(i['hours'] for i in core), 2)
+    ext = round(sum(i['external_eur'] for i in core), 2)
+    total_price = round(sum(i['price_eur'] for i in core), 2)
     earning = round((total_price - ext) / hours, 2) if hours else None
     de = lambda v: f"{v:.2f}".replace('.', ',')
     warn = [f"{i['title']}: {de(i['effective_hourly'])} €/h liegt unter deinem Mindestverdienst von {settings['min_hourly_earning']:g} €/h"

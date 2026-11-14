@@ -71,13 +71,13 @@ class ChancesBrowserTests(unittest.TestCase):
 
                         # verloren nur mit Grund; die erste Chance bleibt offen
                         second.locator('[name=stage]').select_option('verloren')
-                        second.locator('button[type=submit]').click()
+                        second.locator('.ch-edit button[type=submit]').click()  # dev19: Karte hat zusätzlich das Freigabe-Formular
                         page.wait_for_function('() => document.querySelector("#toast").textContent.includes("Verlustgrund")')
                         second.locator('[name=lost_reason]').select_option('kein_budget')
-                        second.locator('button[type=submit]').click()
+                        second.locator('.ch-edit button[type=submit]').click()  # dev19: Karte hat zusätzlich das Freigabe-Formular
                         page.locator(f'#chList [data-ch="{ids["Kundenportal"]}"] summary .pill.bad').wait_for()
                         first = page.locator(f'#chList [data-ch="{ids["Markenauftritt"]}"]')
-                        self.assertIn('Bedarf klären', first.locator('summary').inner_text())
+                        self.assertIn('Bedarf klären', first.locator(':scope > summary').inner_text())  # dev20: Karte enthält zusätzlich das Briefing
                         if SHOTS:
                             page.locator('.ch-panel').screenshot(path=str(Path(SHOTS) / 'chancen.png'))
                         page.locator('#closeModal').click()

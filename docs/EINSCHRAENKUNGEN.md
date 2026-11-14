@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev18)
+# Bekannte Einschränkungen (Stand 2.0.0-dev23)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -118,9 +118,47 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 
 ## Verkaufschancen je Firma, Teil 1 (2.0.0-dev18)
 
-- Die ausführliche Bedarfsanalyse und die Freigabe „Bedarf bestätigt“ gelten noch für die ganze Firma. Die erste Chance zeigt sie an; weitere Chancen haben ein kurzes eigenes Anliegen. Die Versandfreigabe eines Angebots prüft deshalb noch den Bedarf der Firma, nicht den der Chance (Teil 2).
-- Pipeline, Heute, Fokusliste und Firmenliste zeigen weiterhin Firmen mit ihrer Firmenphase; offene Chancen einzeln dort zu sehen, folgt in Teil 2.
+- (bis dev18) Bedarfsanalyse und Freigabe galten für die ganze Firma – seit dev19 je Chance.
+- (bis dev18) Pipeline und Heute zeigten nur Firmen – seit dev19 auch einzelne Chancen; die Firmenliste zeigt weiterhin Firmen.
 - Paketempfehlungen, Website-Bewertung und Firmen-Bericht beziehen sich auf die Firma, nicht auf eine Chance.
 - Eine automatisch mit dem ersten Angebot entstandene Chance hebt die Firmenphase mindestens auf „Rückmeldung“.
 - Firmentermine ohne Chance bleiben möglich, solange keine Chance offen ist. Bei mehreren offenen Chancen muss ein Termin oder Angebot einer Chance zugeordnet werden.
 - Aufgaben sind noch keiner Chance zugeordnet; die Startaufgaben nach einer Zusage tragen die Angebotsnummer im Titel.
+
+## Bedarf und Freigabe je Chance, Pipeline und Heute (2.0.0-dev19)
+
+- Die erste Chance einer Firma nutzt weiterhin die Bedarfsanalyse der Firma; ihre Freigabe steht im Überblick der Akte, die Freigabe weiterer Chancen direkt an der Chance.
+- Die Freigabe an der Chance nimmt eine Leistung auf; weitere Leistungen ergänzt du im Angebot.
+- Paketabgleich („Pakete abgleichen“), Website-Bewertung und Firmen-Bericht beziehen sich weiterhin auf die Firma.
+- In der Pipeline lassen sich Chancen-Karten über die Phasenauswahl verschieben, nicht per Ziehen.
+- Die Firmenliste und ihre Arbeitsansicht „Heute fällig“ zählen die nächsten Schritte der Firma, nicht die einzelner Chancen; in „Heute“ und der Fokusliste stehen beide.
+- Aufgaben sind weiterhin keiner Chance zugeordnet.
+
+## Briefing je Chance (2.0.0-dev20)
+
+- Die Fragen sind feste Vorschläge aus dem Onboarding-Leitfaden und dem Bewertungsmodell; eigene Fragen lassen sich noch nicht ergänzen.
+- Unbeantwortete Fragen blockieren die Versandfreigabe nicht, sie erscheinen als Hinweis. Ob ein Angebot ohne vollständiges Briefing verschickt wird, entscheidest du.
+- Die Voraussetzungen im Angebot sind auf 1.000 Zeichen begrenzt; lange Briefings werden gekürzt übernommen.
+- Antworten sind Arbeitsnotizen. Was davon im Angebot steht, sieht der Kunde – vor dem Übernehmen prüfen, ob eine Angabe dort hingehört.
+- Materialien und Zugänge werden nur als Text erfasst (keine Dateiablage, keine Passwortfelder); die Material- und Entscheidungsliste ist M39.
+
+## Angebotsrevisionen (2.0.0-dev21)
+
+- Eine Revision wird immer aus der neuesten Fassung erstellt; Verzweigungen (zwei Revisionen desselben Vorgängers) gibt es bewusst nicht.
+- Bei älteren Angeboten (vor dev21) wird der Bauplan aus dem Kundendokument rekonstruiert. Frei geänderte Positionstitel, Anreise-Kilometer und Minuten werden dabei nicht vollständig übernommen – vor dem Speichern prüfen.
+- Die Änderungsliste vergleicht Positionen nach Leistung und Titel. Wird eine Position umbenannt, erscheint sie als „entfällt“ und „neu“.
+
+## Optionale Positionen (2.0.0-dev22)
+
+- Eine optionale Position steht mit Preis im Angebot, zählt aber weder zum Festpreis noch zu Laufzeit, Zahlungsplan, Abschlagsrechnung oder Rechnung „voll“. Wählt der Kunde sie, wird das Angebot als Revision mit fest übernommener Position neu gefasst.
+- Varianten zur Wahl (Basis/Standard/Erweitert nebeneinander mit eigener Gesamtsumme) gibt es nicht. Abbilden lässt sich das über optionale Positionen oder getrennte Fassungen.
+- Mindestens eine Position muss fest im Angebot stehen.
+- Interne Stunden, Fremdkosten und der effektive Stundenlohn des Angebots zählen nur feste Positionen; der Hinweis zum Mindestverdienst erscheint weiterhin je Position, auch für optionale.
+
+## Nachfassen von Angeboten (2.0.0-dev23)
+
+- Das Nachfassen mit Frist, Anlass und Ergebnis gilt für versendete Angebote. Nachfassen nach Erstkontakt oder Rückrufen läuft weiter über Anrufprotokoll und Aufgaben.
+- Ältere Angebote (vor dev23) haben keine verknüpfte Nachfassaufgabe. Für sie gilt weiterhin die feste Wiedervorlage 7 Tage nach der letzten Änderung.
+- Eine Nachfassaufgabe, die in der allgemeinen Aufgabenliste einfach abgehakt wird, hat kein Ergebnis. Das Ergebnis lässt sich nur am Angebot festhalten.
+- „Zusage angekündigt“ und „Absage angekündigt“ ändern den Angebotsstatus nicht. Die Entscheidung dokumentierst du weiterhin bewusst am Angebot.
+- Längste Frist: 120 Tage. Längere Pausen gehören als Wiedervorlage an die Chance.
