@@ -760,3 +760,6 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 .of-history summary{cursor:pointer;font-weight:600;font-size:13px}
 .of-history ol{margin:6px 0;padding-left:18px;font-size:13px;display:grid;gap:4px}
 .of-history small{display:block;color:var(--muted)}
+/* 2.0.0-dev22 – optionale Positionen (Review M15 Teil 2) */
+.qb-opt{display:inline-flex;gap:6px;align-items:center;font-size:12px}
+.qb-table tr.qb-optional td{color:var(--muted)}

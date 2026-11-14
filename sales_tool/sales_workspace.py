@@ -271,7 +271,8 @@ def customer_markdown(customer,release=None):
         money=lambda v: f"{v:,.2f} €".replace(',','X').replace('.',',').replace('X','.')
         lines+=['','## Leistungen und Festpreise','','| Pos. | Leistung | Umfang | Festpreis netto |','|---|---|---|---|']
         for n,pos in enumerate(customer['positions'],1):
-            lines.append(f"| {n} | {safe(pos['title'])} | {safe(pos['scope'])}{' · '+safe(pos['note']) if pos.get('note') else ''} | {money(pos['price_eur'])}{' / Monat' if pos['billing']=='monatlich' else ''} |")
+            opt=pos.get('optional')  # 2.0.0-dev22: optionale Positionen klar außerhalb des Festpreises
+            lines.append(f"| {n} | {safe(pos['title'])}{' (optional)' if opt else ''} | {safe(pos['scope'])}{' · '+safe(pos['note']) if pos.get('note') else ''} | {'optional: ' if opt else ''}{money(pos['price_eur'])}{' / Monat' if pos['billing']=='monatlich' else ''}{' – nicht im Festpreis' if opt else ''} |")
         if customer.get('once_net_eur'): lines.append(f"| | **Summe einmalig** | | **{money(customer['once_net_eur'])}** |")
         if customer.get('monthly_net_eur'): lines.append(f"| | **Summe monatlich** | | **{money(customer['monthly_net_eur'])} / Monat** |")
         lines+=['','## Was enthalten ist']
@@ -281,6 +282,8 @@ def customer_markdown(customer,release=None):
     else:
         lines+=['','## Enthaltene Leistungen']
         lines += ['- '+safe(x) for x in customer['included']]
+    if customer.get('options'):
+        lines += ['','## Optionale Positionen']+[f"- Pos. {o['position']} {safe(o['title'])}: {safe(o['scope'])}" for o in customer['options']]+[safe(customer.get('options_note',''))]
     if customer.get('deliverables'): lines += ['','## Liefergegenstände']+['- '+safe(x) for x in customer['deliverables']]
     lines += ['','## Nicht enthalten']+['- '+safe(x) for x in customer['excluded']]
     if customer.get('assumptions'): lines+=['','## Voraussetzungen',safe(customer['assumptions'])]

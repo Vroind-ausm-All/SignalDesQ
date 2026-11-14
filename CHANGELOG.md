@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0-dev22 – Optionale Positionen im Angebot
+
+Etappe C, Produktreview M15 Teil 2. Damit ist M15 abgeschlossen.
+
+- **Haken „optional (nicht im Festpreis)“** an jeder Position im Angebotsbaukasten. Die Vorschau markiert die Position als „optional“; die Summe bleibt unverändert.
+- **Kundendokument:** optionale Positionen stehen mit Preis in der Tabelle („(optional) … – nicht im Festpreis“) und zusätzlich im Abschnitt „Optionale Positionen“ mit dem Hinweis, dass sie nur auf ausdrücklichen Wunsch beauftragt werden.
+- **Keine Doppelkalkulation:** Festpreis, monatliche Summe, Laufzeit, Zahlungsplan, interne Stunden und Kosten sowie die Rechnung „voll“ zählen nur feste Positionen.
+- **Revisionen** zeigen „Neu (optional)“, „Jetzt optional“ und „Option fest übernommen“; ältere Angebote behalten das Merkmal bei der Überarbeitung.
+- Versandfreigabe nennt die Anzahl optionaler Positionen als Hinweis. Mindestens eine Position muss fest im Angebot stehen.
+- Kein Schemawechsel. 631 Tests (2 neu) unter Python 3.10 und 3.13, 18 Browser-Tests (1 neu). Varianten zur Wahl nebeneinander gibt es bewusst nicht (siehe Einschränkungen).
+
 ## 2.0.0-dev21 – Angebotsrevisionen mit Vorgänger und Änderungen
 
 Etappe C, Produktreview M15 Teil 1 (Abnahmefall T11). Optionale Positionen und Varianten folgen als Teil 2.

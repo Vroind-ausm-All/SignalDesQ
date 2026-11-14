@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev21)
+# Bekannte Einschränkungen (Stand 2.0.0-dev22)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -147,4 +147,10 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Eine Revision wird immer aus der neuesten Fassung erstellt; Verzweigungen (zwei Revisionen desselben Vorgängers) gibt es bewusst nicht.
 - Bei älteren Angeboten (vor dev21) wird der Bauplan aus dem Kundendokument rekonstruiert. Frei geänderte Positionstitel, Anreise-Kilometer und Minuten werden dabei nicht vollständig übernommen – vor dem Speichern prüfen.
 - Die Änderungsliste vergleicht Positionen nach Leistung und Titel. Wird eine Position umbenannt, erscheint sie als „entfällt“ und „neu“.
-- Optionale Positionen und Varianten (Basis/Standard/Erweitert zur Wahl) folgen mit M15 Teil 2.
+
+## Optionale Positionen (2.0.0-dev22)
+
+- Eine optionale Position steht mit Preis im Angebot, zählt aber weder zum Festpreis noch zu Laufzeit, Zahlungsplan, Abschlagsrechnung oder Rechnung „voll“. Wählt der Kunde sie, wird das Angebot als Revision mit fest übernommener Position neu gefasst.
+- Varianten zur Wahl (Basis/Standard/Erweitert nebeneinander mit eigener Gesamtsumme) gibt es nicht. Abbilden lässt sich das über optionale Positionen oder getrennte Fassungen.
+- Mindestens eine Position muss fest im Angebot stehen.
+- Interne Stunden, Fremdkosten und der effektive Stundenlohn des Angebots zählen nur feste Positionen; der Hinweis zum Mindestverdienst erscheint weiterhin je Position, auch für optionale.

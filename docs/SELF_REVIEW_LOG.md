@@ -582,6 +582,19 @@ Auftrag: weiterarbeiten bis zum Nutzungslimit, vorher jeweils einen nachvollzieh
 
 **Selbstbewertung 4 von 5.** Abzug: Optionen und Varianten fehlen noch (Teil 2); bei rekonstruierten Altangeboten können Feinheiten fehlen (dokumentiert).
 
+## Arbeitspaket 21 – Optionale Positionen (2.0.0-dev22)
+
+Zweiter Teil von M15. Statt eines eigenen Variantenmodells (Basis/Standard/Erweitert nebeneinander) gibt es optionale Positionen: Das deckt den häufigen Fall „das könnten wir zusätzlich machen“ ab, ohne eine zweite Kalkulationslogik. Eine gewählte Option wird über eine Revision fest übernommen.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 631 Tests bestanden (2 neu in `tests/test_v2_options.py`) |
+| Browser-Tests | 18 von 18 (neu `test_options_browser.py`): Haken „optional“, Vorschau zeigt „nicht im Festpreis“, Summe entspricht den festen Positionen |
+| Doppelkalkulation | Festpreis, monatlich, Laufzeit, Zahlungsplan, interne Kosten und Rechnung „voll“ ohne Optionen (Unit-Test) |
+| Migration | keine |
+
+**Selbstbewertung 4 von 5.** Abzug: kein Variantenvergleich nebeneinander (bewusst, dokumentiert); die Annahme einer einzelnen Option braucht den Umweg über eine Revision.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

@@ -92,6 +92,8 @@ def checks(conn, row):
     hints = [x for x in json.loads(row['internal_json'] or '{}').get('open_points', []) if 'Zahlungsplan' not in x] if row['internal_json'] else []
     if cust.get('payment_plan'):
         hints.append(f"Zahlungsplan „{cust['payment_plan']}“ mit dem Kunden ausdrücklich vereinbaren.")
+    if cust.get('options'):  # 2.0.0-dev22 (M15): Optionen sind nie Teil der Zusage
+        hints.append(f"{len(cust['options'])} optionale Position(en) sind nicht im Festpreis und nicht Teil einer Zusage – gewünschte Optionen vorher per „Überarbeiten“ fest aufnehmen.")
     if row['opportunity_id']:  # 2.0.0-dev20 (M14): Briefing der Chance
         from .briefing import get as briefing
         s = briefing(conn, row['opportunity_id'])['summary']

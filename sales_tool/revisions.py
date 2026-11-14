@@ -56,6 +56,8 @@ def payload_of(row):
                 pos['qty'] = c.get('quantity') or 1
             if c.get('title'):
                 pos['title'] = c['title']
+            if c.get('optional'):
+                pos['optional'] = True
             positions.append(pos)
         p = {'positions': positions}
         if not positions and cust.get('package'):
@@ -98,9 +100,11 @@ def changes(old, new):
     after = {key(p): p for p in new.get('positions') or []}
     for k, p in after.items():
         if k not in before:
-            out.append(f"Neu: {p['title']} – {p['scope']} ({_money(p['price_eur'])})")
+            out.append(f"Neu{' (optional)' if p.get('optional') else ''}: {p['title']} – {p['scope']} ({_money(p['price_eur'])})")
         else:
             o = before[k]
+            if bool(o.get('optional')) != bool(p.get('optional')):
+                out.append(f"{'Jetzt optional' if p.get('optional') else 'Option fest übernommen'}: {p['title']} ({_money(p['price_eur'])})")
             if o.get('scope') != p.get('scope') or o.get('price_eur') != p.get('price_eur'):
                 out.append(f"Geändert: {p['title']} – {o.get('scope')} → {p.get('scope')} ({_money(o.get('price_eur', 0))} → {_money(p['price_eur'])})")
     for k, o in before.items():
