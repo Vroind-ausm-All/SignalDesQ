@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev20)
+# Bekannte Einschränkungen (Stand 2.0.0-dev21)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -141,3 +141,10 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Die Voraussetzungen im Angebot sind auf 1.000 Zeichen begrenzt; lange Briefings werden gekürzt übernommen.
 - Antworten sind Arbeitsnotizen. Was davon im Angebot steht, sieht der Kunde – vor dem Übernehmen prüfen, ob eine Angabe dort hingehört.
 - Materialien und Zugänge werden nur als Text erfasst (keine Dateiablage, keine Passwortfelder); die Material- und Entscheidungsliste ist M39.
+
+## Angebotsrevisionen (2.0.0-dev21)
+
+- Eine Revision wird immer aus der neuesten Fassung erstellt; Verzweigungen (zwei Revisionen desselben Vorgängers) gibt es bewusst nicht.
+- Bei älteren Angeboten (vor dev21) wird der Bauplan aus dem Kundendokument rekonstruiert. Frei geänderte Positionstitel, Anreise-Kilometer und Minuten werden dabei nicht vollständig übernommen – vor dem Speichern prüfen.
+- Die Änderungsliste vergleicht Positionen nach Leistung und Titel. Wird eine Position umbenannt, erscheint sie als „entfällt“ und „neu“.
+- Optionale Positionen und Varianten (Basis/Standard/Erweitert zur Wahl) folgen mit M15 Teil 2.

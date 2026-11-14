@@ -114,7 +114,17 @@ def state(conn, pid):
             'sent_stand': row['sent_sha'][:8], 'decided_at': row['decided_at'], 'decision_channel': row['decision_channel'],
             'decision_person': row['decision_person'], 'decision_note': row['decision_note'],
             'filename': f"Angebot_{safe_num}_Stand-{sha[:8]}.md" if released else f"ENTWURF_Angebot_{safe_num}.md",
+            'revision_no': row['revision_no'] or 1, 'superseded_by': row['superseded_by'],
+            'superseded_number': (conn.execute('SELECT number FROM proposals WHERE id=?', (row['superseded_by'],)).fetchone() or {'number': ''})['number'] if row['superseded_by'] else '',
+            'revisable': row['status'] in ('entwurf', 'gesendet_manuell') and not row['superseded_by'],
             **checks(conn, row), 'confirmations': CONFIRMATIONS, 'channels': CHANNELS, 'decision_channels': DECISION_CHANNELS}
+
+
+def _not_superseded(conn, row):
+    """2.0.0-dev21 (M15): Ein durch eine Revision ersetztes Angebot wird weder freigegeben noch versendet noch angenommen."""
+    if row['superseded_by']:
+        nxt = conn.execute('SELECT number FROM proposals WHERE id=?', (row['superseded_by'],)).fetchone()
+        raise ValueError(f"Dieses Angebot ist durch {nxt['number'] if nxt else 'eine Revision'} ersetzt – bitte die neue Fassung verwenden.")
 
 
 def release_info(row):
@@ -130,6 +140,7 @@ def release(conn, pid, data):
     row = _row(conn, pid)
     if row['released_at']:
         return state(conn, pid)  # bereits freigegeben – nichts ändert sich
+    _not_superseded(conn, row)
     if row['status'] == 'abgelehnt':
         raise ValueError('Ein abgelehntes Angebot wird nicht mehr freigegeben.')
     c = checks(conn, row)
@@ -174,6 +185,8 @@ def set_status(conn, pid, data):
         raise ValueError('Ungültiger Angebotsstatus.')
     row = _row(conn, pid)
     new, prev = data['status'], row['status']
+    if new != prev:
+        _not_superseded(conn, row)
     if new == prev:
         return {'saved': True, 'status': new, 'unchanged': True, 'notice': 'Status war bereits so dokumentiert – nichts geändert.'}
     if prev in ('angenommen', 'abgelehnt') or new == 'entwurf':

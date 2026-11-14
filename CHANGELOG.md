@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0-dev21 – Angebotsrevisionen mit Vorgänger und Änderungen
+
+Etappe C, Produktreview M15 Teil 1 (Abnahmefall T11). Optionale Positionen und Varianten folgen als Teil 2.
+
+- **„Überarbeiten (neue Fassung)“** am gespeicherten Angebot lädt Firma, Chance, Positionen, Titel, Ziel und Voraussetzungen in den Baukasten. Mit einem Grund gespeichert, entsteht die neue Fassung mit Stammnummer und Zähler (z. B. AN-2026-0003-R2) für dieselbe Firma und Chance.
+- **Vorgänger und Änderungen sichtbar:** Das Kundendokument nennt „Überarbeitete Fassung 2 – ersetzt Angebot …“ und listet die wesentlichen Änderungen (neue, geänderte und entfallene Positionen mit Preisen, Summen, Zeitraum, Zahlungsplan) samt Anlass. Intern zeigt „Fassungen“ die ganze Kette.
+- **Der Vorgänger bleibt unverändert gespeichert**, gilt aber als ersetzt: keine Freigabe, kein Versand, keine Zusage mehr; seine offenen Nachfassaufgaben werden beendet, Erinnerungen und Angebotssummen zählen nur die aktuelle Fassung.
+- **Angenommener Stand bleibt:** Angenommene oder abgelehnte Angebote lassen sich nicht überarbeiten (Änderungen nach einer Zusage sind ein Zusatzauftrag, M18).
+- Neue Angebote speichern intern ihren Bauplan; ältere werden für eine Überarbeitung aus dem Kundendokument rekonstruiert.
+- **Schemawechsel 33 → 34.** 629 Tests (4 neu) unter Python 3.10 und 3.13, 17 Browser-Tests (1 neu).
+
 ## 2.0.0-dev20 – Briefing je Chance und Leistungsbereich
 
 Etappe C, Produktreview M14 („Briefings für Medien und Software“).

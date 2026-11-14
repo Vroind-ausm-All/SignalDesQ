@@ -77,8 +77,18 @@
     const cp = box.querySelector('[data-quote-copy]');
     if (cp) cp.textContent = s.released && !s.stand_changed ? 'Versandfassung kopieren' : 'Entwurf kopieren';
     box.querySelector('#ofPanel')?.remove();
+    box.querySelector('#ofRevisions')?.remove();
     const head = box.querySelector('h3');
-    (head || box).insertAdjacentHTML(head ? 'afterend' : 'afterbegin', `<ol class="of-panel" id="ofPanel" data-of-id="${id}">${stepRelease(s)}${stepSend(s)}${stepDecision(s)}${stepStart(p, s)}</ol>`);
+    // 2.0.0-dev21 (M15): ersetzte Fassungen sind nur noch Nachweis; aktuelle Fassungen lassen sich überarbeiten
+    const steps = s.superseded_by ? `<li class="of-step done"><b>Ersetzt</b><span>Diese Fassung ist durch ${esc(s.superseded_number)} ersetzt. Freigabe, Versand und Zusage gehen nur noch dort.</span>
+        <button type="button" class="btn btn-ghost" data-quote-open="${s.superseded_by}">${esc(s.superseded_number)} öffnen</button></li>`
+      : `${stepRelease(s)}${stepSend(s)}${stepDecision(s)}${stepStart(p, s)}`;
+    (head || box).insertAdjacentHTML(head ? 'afterend' : 'afterbegin', `<ol class="of-panel" id="ofPanel" data-of-id="${id}">${steps}</ol>
+      <div class="of-revisions" id="ofRevisions">${s.revisable ? `<button type="button" class="btn btn-ghost" data-of-revise="${id}">Überarbeiten (neue Fassung)</button>` : ''}<div data-of-history></div></div>`);
+    try {
+      const h = await api(`/workspace/proposals/${id}/fassungen`);
+      if (h.versions.length > 1) box.querySelector('[data-of-history]').innerHTML = `<details class="of-history"><summary>Fassungen (${h.versions.length})</summary><ol>${h.versions.map(v => `<li><b>${esc(v.number)}</b> · ${esc(v.offer_date ? fmtDate(v.offer_date) : '')} · ${v.net_eur != null ? esc(euros(v.net_eur)) + ' netto' : ''} · ${v.superseded ? 'ersetzt' : esc(v.status.replaceAll('_', ' '))}${v.reason ? `<small>Grund: ${esc(v.reason)}</small>` : ''}${v.changes.length ? `<ul>${v.changes.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}</li>`).join('')}</ol></details>`;
+    } catch { /* Fassungen sind eine Zusatzinfo */ }
   }
 
   async function after(msg) {
@@ -101,6 +111,8 @@
         catch (err) { toast(err.message, true); }
         return;
       }
+      const rv = e.target.closest('[data-of-revise]');
+      if (rv) { e.stopImmediatePropagation(); return window.quoteStartRevision?.(Number(rv.dataset.ofRevise)); }
       const panel = e.target.closest('#ofPanel');
       if (!panel || !current) return;
       const id = current.id;

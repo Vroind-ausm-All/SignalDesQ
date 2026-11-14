@@ -754,3 +754,9 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 .ch-brief-area{border:1px solid var(--line);border-radius:9px;padding:8px 12px;display:grid;gap:8px}
 .ch-brief-area legend{font-size:12px;font-weight:600;padding:0 4px}
 .ch-q small{display:block}
+/* 2.0.0-dev21 – Angebotsrevisionen (Review M15) */
+.qb-revision{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:9px;padding:10px 12px;display:grid;gap:6px;background:var(--surface-2)}
+.of-revisions{display:grid;gap:6px;margin:8px 0}
+.of-history summary{cursor:pointer;font-weight:600;font-size:13px}
+.of-history ol{margin:6px 0;padding-left:18px;font-size:13px;display:grid;gap:4px}
+.of-history small{display:block;color:var(--muted)}

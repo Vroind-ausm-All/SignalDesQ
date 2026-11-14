@@ -35,7 +35,7 @@ RELEASE_ADDITIONS = ('sales_tool/research/service_profile.py', 'docs/MASTERPLAN_
                      'sales_tool/catalog.py', 'docs/LEISTUNGSKATALOG.md',
                      'sales_tool/offer_flow.py', 'sales_tool/public/offerflow.js',
                      'sales_tool/chances.py', 'sales_tool/public/chances.js',
-                     'sales_tool/briefing.py')
+                     'sales_tool/briefing.py', 'sales_tool/revisions.py')
 FORBIDDEN = re.compile(r'(\.sqlite3(-wal|-shm)?|\.sdenc|\.db|\.env|\.pem|\.key|id_rsa)$', re.I)
 SECRET = re.compile(rb'(-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|sk-ant-[A-Za-z0-9]{10}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30})')
 EXECUTABLE = ('.sh', '.command')

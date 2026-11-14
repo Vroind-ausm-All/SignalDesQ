@@ -503,7 +503,7 @@ def day_summary(conn, day=None, db_path=None):
     meetings_tomorrow = [dict(r) for r in conn.execute("""SELECT m.id, m.title, m.starts_at, l.company, m.lead_id FROM meetings m JOIN leads l ON l.id=m.lead_id
                                                           WHERE date(m.starts_at)=? AND m.status IN ('geplant','bestaetigt') ORDER BY m.starts_at""", (tomorrow,))]
     drafts = [dict(r) for r in conn.execute("""SELECT p.id, p.number, l.company, p.lead_id FROM proposals p JOIN leads l ON l.id=p.lead_id
-                                               WHERE p.status='entwurf' ORDER BY p.id DESC LIMIT 20""")]
+                                               WHERE p.status='entwurf' AND p.superseded_by IS NULL ORDER BY p.id DESC LIMIT 20""")]
     backup = None
     if db_path:
         from .accounting_api import list_backups

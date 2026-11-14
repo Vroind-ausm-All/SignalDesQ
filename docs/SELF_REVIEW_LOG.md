@@ -569,6 +569,19 @@ Fehlerschleifen: (1) Gewählte Bereiche erschienen in Klickreihenfolge statt in 
 
 **Entscheid:** Weiter mit M15 (Angebotsrevisionen und Varianten).
 
+## Arbeitspaket 20 – Angebotsrevisionen (2.0.0-dev21)
+
+Auftrag: weiterarbeiten bis zum Nutzungslimit, vorher jeweils einen nachvollziehbaren, abgeschlossenen Schritt sichern. M15 ist deshalb in zwei eigenständig abnehmbare Teile geteilt (Revisionen, dann Optionen/Varianten).
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 629 Tests bestanden (4 neu in `tests/test_v2_revisions.py`) |
+| Browser-Tests | 17 von 17 (neu `test_revision_browser.py`: Überarbeiten lädt den Vorgänger, Position entfernen, Grund, Fassung -R2 mit Änderungsliste, alte Fassung „Ersetzt“) |
+| Abnahme T11 | Revision zeigt Vorgänger und wesentliche Änderungen; Vorgänger unverändert und ersetzt; angenommener Stand bleibt |
+| Migration | Schema 33 → 34, vier Spalten mit Vorgabewerten |
+
+**Selbstbewertung 4 von 5.** Abzug: Optionen und Varianten fehlen noch (Teil 2); bei rekonstruierten Altangeboten können Feinheiten fehlen (dokumentiert).
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

@@ -125,6 +125,32 @@
     } catch { /* still */ }
   };
 
+  // 2.0.0-dev21 (M15): Vorgänger in den Baukasten laden und als neue Fassung speichern
+  window.quoteStartRevision = async function (pid) {
+    try {
+      const r = await api(`/workspace/proposals/${pid}/revision`);
+      const f = $('#quoteForm');
+      f.elements.lead_id.value = String(r.lead_id);
+      f.elements.lead_id.dispatchEvent(new Event('change', {bubbles: true}));
+      await new Promise(res => setTimeout(res, 150));  // Firmenwechsel leert zuerst die Positionen
+      const p = r.payload;
+      if (p.positions) window.quoteApplyTemplate(p.template || '', p.positions); else if (p.package) window.quoteApplyTemplate(p.package);
+      for (const k of ['project_label', 'customer_goal', 'assumptions', 'tax_mode']) if (p[k] != null && f.elements[k]) f.elements[k].value = p[k];
+      f.dataset.revisionOf = String(r.revision_of);
+      $('#qbRevisionOf').textContent = `${r.number} (wird Fassung ${r.next_no})`;
+      $('#qbRevision').classList.remove('hidden');
+      $('#qbRevisionReason').value = '';
+      $('#qbRevisionReason').focus();
+      f.scrollIntoView({behavior: 'smooth', block: 'start'});
+      changed();
+      toast(`${r.number} geladen – ändern, Grund eintragen, als neue Fassung speichern`);
+    } catch (e) { toast(e.message, true); }
+  };
+  window.quoteEndRevision = function () {
+    delete $('#quoteForm').dataset.revisionOf;
+    $('#qbRevision').classList.add('hidden');
+  };
+
   window.quoteApplyTemplate = function (pkg, list) {
     const tpl = list && list.length ? list : (cat?.templates || {})[pkg];
     if (!tpl) return;
@@ -196,6 +222,7 @@
       positions.push(newPosition(key, {size: $('#qbSize').value, qty: q, days: q}));
       changed();
     });
+    $('#qbRevisionCancel').addEventListener('click', () => { window.quoteEndRevision(); toast('Überarbeitung abgebrochen – der Vorgänger bleibt unverändert'); });
     $('#qbTemplate').addEventListener('click', () => { const v = $('#quotePackage').value; if (!v) return toast('Bitte eine Vorlage wählen', true); window.quoteApplyTemplate(v); });
     document.addEventListener('click', e => {
       const q = e.target.closest('[data-qb-quick]');
@@ -237,7 +264,9 @@
       if (!positions.length) return toast('Bitte mindestens eine Position hinzufügen', true);
       try {
         const ch = $('#quoteForm [name=opportunity_id]')?.value;  // 2.0.0-dev18: Chance des Angebots
-        const saved = await api('/workspace/proposals', 'POST', {lead_id: leadId, ...payload(), ...(ch ? {opportunity_id: ch} : {})});
+        const rev = $('#quoteForm').dataset.revisionOf;  // 2.0.0-dev21: Revision eines Vorgängers
+        const saved = await api('/workspace/proposals', 'POST', {lead_id: leadId, ...payload(), ...(rev ? {revision_of: Number(rev), revision_reason: $('#qbRevisionReason').value.trim()} : ch ? {opportunity_id: ch} : {})});
+        if (rev) window.quoteEndRevision();
         toast('Angebotsentwurf gespeichert – noch nicht versendet');
         await window.refreshSalesQuotes();
         await window.wsOpenProposal(saved.id);

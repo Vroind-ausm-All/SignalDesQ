@@ -359,7 +359,7 @@ def suggest_actions(conn, lead_id):
         from .catalog import VORLAGEN as PACKAGES
         add(f"angebot:{rec['package']}", 'angebot_kalkulieren', f"Angebot kalkulieren: {PACKAGES[rec['package']]['title']}",
             'Bedarfsklärung ist dokumentiert und passt zu diesem Paket.')
-    for p in conn.execute("""SELECT id FROM proposals WHERE lead_id=? AND status='gesendet_manuell' AND updated_at <= datetime('now','-7 day')""", (lead_id,)):
+    for p in conn.execute("""SELECT id FROM proposals WHERE lead_id=? AND status='gesendet_manuell' AND superseded_by IS NULL AND updated_at <= datetime('now','-7 day')""", (lead_id,)):
         add(f"followup:{p['id']}", 'followup', f'Vereinbarten Follow-up zu Angebot #{p["id"]} bearbeiten',
             'Angebot liegt seit über einer Woche beim Kunden – nur im vereinbarten Rahmen nachfassen.', requires=True,
             channel='email' if lead['permission'] == 'opt_in' else 'telefon')

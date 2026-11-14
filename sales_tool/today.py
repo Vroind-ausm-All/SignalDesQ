@@ -92,7 +92,7 @@ def wiedervorlage(conn, today=None):
         add('rueckruf', 'Vereinbarten Rückruf wahrnehmen', r['company'], r['lead_id'], r['callback_date'], 'Anruf dokumentieren', 'workspace',
             r['id'], (r['notes'] or '')[:140], 'contact')
     for r in conn.execute("""SELECT p.*, l.company FROM proposals p JOIN leads l ON l.id=p.lead_id
-                             WHERE p.status IN ('entwurf','gesendet_manuell') AND l.stage NOT IN ('gesperrt','verloren') ORDER BY p.updated_at"""):
+                             WHERE p.superseded_by IS NULL AND p.status IN ('entwurf','gesendet_manuell') AND l.stage NOT IN ('gesperrt','verloren') ORDER BY p.updated_at"""):
         age = _days_since(r['updated_at'], today)
         expires = r['valid_until'] or ''
         if r['status'] == 'gesendet_manuell' and age >= 7:
@@ -207,7 +207,7 @@ def potential(conn, today=None):
     today = (today or dt.date.today()).isoformat()
     offers, accepted = [], []
     for r in conn.execute("""SELECT p.*, l.company, l.stage FROM proposals p JOIN leads l ON l.id=p.lead_id
-                             WHERE l.stage NOT IN ('gesperrt','verloren') ORDER BY p.id DESC"""):
+                             WHERE l.stage NOT IN ('gesperrt','verloren') AND p.superseded_by IS NULL ORDER BY p.id DESC"""):
         invoiced = conn.execute("SELECT 1 FROM invoices WHERE proposal_id=? AND kind<>'storno' AND status<>'storniert' LIMIT 1", (r['id'],)).fetchone()
         entry = {'proposal_id': r['id'], 'lead_id': r['lead_id'], 'company': r['company'], 'number': r['number'] or f"#{r['id']}",
                  'status': r['status'], 'net_eur': round(_net(r), 2), 'project_label': _label(r), 'valid_until': r['valid_until'] or '',

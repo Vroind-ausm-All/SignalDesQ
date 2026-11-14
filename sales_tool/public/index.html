@@ -152,6 +152,9 @@
   <div class="sales-cols quote-grid">
    <section class="panel sales-section"><span class="eyebrow">01 / ANGEBOT ZUSAMMENSTELLEN</span><h2>Positionen</h2>
      <form id="quoteForm" class="sales-form">
+       <div id="qbRevision" class="qb-revision hidden" role="status"><b>Überarbeitung von <span id="qbRevisionOf"></span></b>
+         <label>Grund der Überarbeitung (steht im Angebot)<input id="qbRevisionReason" maxlength="300" placeholder="z. B. Umfang auf Wunsch reduziert"></label>
+         <button type="button" class="text-button" id="qbRevisionCancel">Überarbeitung abbrechen</button></div>
        <label>Interessent / Unternehmen<select name="lead_id" class="sales-lead-select" required></select></label>
        <label>Chance<select name="opportunity_id" data-ch-select="angebot"><option value="">neue Chance (aus dem Projekttitel)</option></select></label>
        <div class="sales-row"><label>Vorlage (optional)<select id="quotePackage" name="package"></select></label><button type="button" class="btn btn-ghost qb-tpl" id="qbTemplate">Vorlage laden</button></div>
