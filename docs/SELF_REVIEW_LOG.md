@@ -558,12 +558,12 @@ Auftrag: direkt am nächsten Schritt weiterarbeiten – laut Roadmap M14. Fragen
 
 | Prüfung | Ergebnis |
 |---|---|
-| Regression unter Python 3.13 und 3.10 | je 623 Tests bestanden (7 neu in `tests/test_v2_briefing.py`) |
+| Regression unter Python 3.13 und 3.10 | je 625 Tests bestanden (7 neu in `tests/test_v2_briefing.py`, 2 in `tests/test_tmpclean.py`) |
 | Browser-Tests | 16 von 16 (neu `test_briefing_browser.py`: Briefing an der Chance, Antworten speichern, Übernahme ins Angebot; `test_chances_browser.py` wählt die Kopfzeile der Karte eindeutig, `test_akte_tabs_browser.py` wartet jetzt den Start ab – im Gesamtlauf klickte er vorher zu früh, allein lief er grün) |
 | Abnahme M14 | Fragen je Leistungsbereich; jede Angebotsannahme stammt aus einer geklärten Angabe oder einer ausdrücklich offenen Voraussetzung; Schnappschuss intern am Angebot |
 | Migration | Schema 32 → 33, neue Tabelle und Spalte mit Vorgabewert |
 
-Fehlerschleife: Gewählte Bereiche erschienen in Klickreihenfolge statt in fester Reihenfolge – jetzt immer wie im Katalog.
+Fehlerschleifen: (1) Gewählte Bereiche erschienen in Klickreihenfolge statt in fester Reihenfolge – jetzt immer wie im Katalog. (2) Die CI-Prüfung `e2e` scheiterte beim Aufräumen von `test_ui_workday.py` („Directory not empty“): Ein Hintergrund- oder Anfrage-Thread legte während des Löschens SQLite-Begleitdateien neu an. Der Test nutzt jetzt die gemeinsame Aufräumhilfe (erst Worker beenden), und die Hilfe wiederholt auch bei diesem Linux-Fehler; ein Test zeigt, dass die alte Hilfe hier scheiterte.
 
 **Selbstbewertung 4 von 5.** Abzug: feste Fragen ohne eigene Ergänzungen; das Briefing blockiert die Freigabe bewusst nicht.
 

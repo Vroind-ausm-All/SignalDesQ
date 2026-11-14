@@ -79,7 +79,8 @@ class UiWorkdayTest(unittest.TestCase):
         for p in reversed(self.patches):
             p.stop()
         tb.gm._STATE['rows'] = None
-        self.tmp.cleanup()
+        from tmpclean import cleanup_tmp  # erst Worker beenden, dann löschen; Nachzügler-Dateien abwarten (CI dev20)
+        cleanup_tmp(self.tmp)
 
     def test_example_day_in_browser(self):
         exe = os.environ.get('PLAYWRIGHT_CHROMIUM_EXECUTABLE') or None

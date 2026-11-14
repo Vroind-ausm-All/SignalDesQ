@@ -13,7 +13,7 @@ Etappe C, Produktreview M14 („Briefings für Medien und Software“).
 - **Jede Frage bewusst beantwortet:** „geklärt“ (mit der Angabe des Kunden), „offen“ (was fehlt, wer liefert, bis wann) oder „entfällt“. Unbeantwortetes bleibt sichtbar; die Zusammenfassung steht an der Chance.
 - **Angebote führen ihre Annahmen auf das Briefing zurück:** „Angebot aus bestätigtem Bedarf“ übernimmt geklärte Angaben als Grundlage und offene Punkte als „Offene Voraussetzungen, vor Projektstart zu klären“. Im Angebotsformular übernimmt „Voraussetzungen aus dem Briefing der Chance“ dasselbe. Neue Angebote speichern intern, welche Angaben beim Erstellen galten.
 - **Hinweise bei der Versandfreigabe:** unbeantwortete Briefingfragen und offene Voraussetzungen, die noch nicht im Angebot stehen.
-- **Schemawechsel 32 → 33** (Briefing-Antworten je Chance). 623 Tests (7 neu) unter Python 3.10 und 3.13, 16 Browser-Tests (1 neu).
+- **Schemawechsel 32 → 33** (Briefing-Antworten je Chance). 625 Tests (9 neu) unter Python 3.10 und 3.13, 16 Browser-Tests (1 neu). Das Aufräumen der Testdatenbanken wartet jetzt auch unter Linux auf Nachzügler-Dateien (CI-Fehler in `test_ui_workday.py`).
 
 ## 2.0.0-dev19 – Bedarf und Freigabe je Chance, Chancen in Pipeline und Heute
 
