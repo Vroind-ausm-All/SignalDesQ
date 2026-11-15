@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev43)
+# Bekannte Einschränkungen (Stand 2.0.0-dev44)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -266,3 +266,10 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Der Entwurf ist reiner Text (keine Signatur mit Bild, kein Anhang); das Angebot als PDF im Mailprogramm anhängen.
 - Als Empfänger wird nur die geschäftliche E-Mail-Adresse der Firma vorausgefüllt; eine Person als Empfänger trägst du im Mailprogramm ein.
 - Ein Entwurf kann mehrfach abgelegt werden (z. B. nach dem Löschen im Mailprogramm); SignalDesk prüft nicht, ob er im Postfach noch liegt.
+
+## Firmensuche mit OpenStreetMap-Auszug (2.0.0-dev44)
+
+- Betriebe ohne Rechtsform im Namen (z. B. „Elektro Müller“) werden nur übernommen, wenn „auch Betriebe ohne Rechtsform“ angehakt ist. Bei Handwerk ist das der größte Teil. Die Ergebniszeile nennt jetzt, wie viele aus welchem Grund ausgefiltert wurden.
+- Die Website-Suche läuft nur für übernommene neue Treffer (höchstens 100 je Suche). Ausgefilterte und schon bekannte Betriebe werden nicht gesucht.
+- Die Website-Suche rät Domains aus Name und Ort und prüft das Impressum. Betriebe mit ganz anderem Domainnamen (Abkürzung, Inhabername) findet sie nicht – dort hilft nur „Website eintragen“.
+- Wie viele Betriebe im Auszug eine Website eingetragen haben, hängt von OpenStreetMap ab; im Handwerk ist das oft nur ein kleiner Teil. Das ist noch nicht an deinem Auszug gemessen (M21).

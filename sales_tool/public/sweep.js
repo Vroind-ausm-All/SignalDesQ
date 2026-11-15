@@ -1,4 +1,15 @@
 'use strict';
+// 2.0.0-dev44: Gründe für „ausgefiltert“ je Quelle und Hinweis, wenn Betriebe ohne Rechtsform den Großteil ausmachen.
+const SW_WHY = {ohne_rechtsform: 'ohne Rechtsform', branche: 'andere Branche', plz: 'andere/unbekannte PLZ', entfernung: 'außerhalb des Umkreises',
+  organisationsart: 'Organisationsart', nicht_operativ: 'Verwaltung/Holding'};
+function whyText(why) {
+  const parts = Object.entries(why || {}).filter(([, n]) => n).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${n} ${SW_WHY[k] || k}`);
+  return parts.length ? ` (${escapeHTML(parts.join(', '))})` : '';
+}
+function soleHint(p) {
+  const n = (p.filtered_why || {}).ohne_rechtsform || 0;
+  return n && n >= (p.filtered || 0) / 2 ? `<div class="sales-banner sales-warning sw-sole-hint" data-sw-sole-hint>${n} Betriebe wurden ausgelassen, weil im Namen keine Rechtsform steht (z. B. „Elektro Müller“). Das betrifft vor allem Handwerk. Wenn du sie sehen willst: oben „auch Betriebe ohne Rechtsform“ anhaken und erneut suchen. Hinter solchen Namen kann eine Einzelperson stehen – nur geschäftlich nutzen.</div>` : '';
+}
 // Sprint B: „Arbeitstag starten“ – Sammelsuche über alle offenen Quellen, großer Import, Sichtung zum Durchklicken,
 // Website-Suche mit Nachweis. Nichts wird kontaktiert; übernommene Firmen starten mit Rechtsstatus „unbekannt“.
 (function () {
@@ -46,7 +57,7 @@
     const done = !['queued', 'running'].includes(sw.status);
     const rows = Object.entries(sw.progress).filter(([k]) => !k.startsWith('_')).map(([k, p]) => `<div class="sw-src ${esc(p.status)}">
       <b>${esc(p.label || SRC[k] || k)}</b><span class="sw-st ${p.status === 'wartet' && p.detail ? 'retry' : ''}">${esc(p.status === 'wartet' && p.detail ? 'neuer Versuch …' : p.status || 'wartet')}</span>
-      <small>${p.error ? `<span class="${p.status === 'fehler' ? 'late' : 'muted'}">${esc(p.error)}</span>` : `${p.new ?? 0} neu · ${p.merged ?? 0} zusammengeführt${p.possible ? ` · ${p.possible} mögliche Dublette(n)` : ''}${p.budget ? ` · <b>${p.budget} wegen Budget nicht übernommen</b>` : ''} · ${p.known ?? 0} schon bekannt · ${p.filtered ?? 0} ausgefiltert${p.detail ? ' · ' + esc(p.detail) : ''}`}</small></div>`).join('');
+      <small>${p.error ? `<span class="${p.status === 'fehler' ? 'late' : 'muted'}">${esc(p.error)}</span>` : `${p.new ?? 0} neu · ${p.merged ?? 0} zusammengeführt${p.possible ? ` · ${p.possible} mögliche Dublette(n)` : ''}${p.budget ? ` · <b>${p.budget} wegen Budget nicht übernommen</b>` : ''} · ${p.known ?? 0} schon bekannt · ${p.filtered ?? 0} ausgefiltert${whyText(p.filtered_why)}${p.detail ? ' · ' + esc(p.detail) : ''}`}</small>${soleHint(p)}</div>`).join('');
     box.innerHTML = `<div class="sw-prog-head"><b>${esc(sw.label)}</b> <span class="muted">${area ? `Mittelpunkt ${esc(area.center)} · ${area.places} Orte im Umkreis (${esc(area.via)})` : 'Suchgebiet wird bestimmt …'}</span>
       <span class="sw-st ${esc(sw.status)}">${esc({queued: 'wartet', running: 'läuft', fertig: 'fertig', fehler: 'Fehler', abgebrochen: 'abgebrochen'}[sw.status] || sw.status)}</span></div>
       ${bud ? `<div class="sw-budget-line"><b>Budget</b> <span>${bud.companies ?? 0} / ${bud.max_companies} neue Firmen</span> · <span>höchstens ${bud.max_websites} Website-Suchen</span> · <span>${bud.minutes ?? 0} / ${bud.max_minutes} Min.</span> · <span class="muted">KI-Analysen nur auf Klick · keine externen Kosten</span></div>` : ''}${rows}

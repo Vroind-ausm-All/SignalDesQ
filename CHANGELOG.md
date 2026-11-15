@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev44 – Firmensuche: Gründe sichtbar, mehr Websites
+
+Befund des Eigentümers mit dem Stuttgart-Auszug: „sehr viele Betriebe im Bestand, aber nur 5 neue Treffer, viel ausgefiltert, kaum Websites“.
+
+- **Warum ausgefiltert:** Die Ergebniszeile je Quelle nennt jetzt die Gründe (z. B. „412 ohne Rechtsform, 30 andere Branche“) statt nur einer Summe.
+- **Hinweis bei Handwerk:** Fällt mindestens die Hälfte wegen fehlender Rechtsform heraus, erklärt ein Hinweis den Haken „auch Betriebe ohne Rechtsform“ – mit dem Datenschutz-Hinweis, dass dahinter eine Einzelperson stehen kann. Die Voreinstellung bleibt deine Entscheidung.
+- **Website-Suche mit Ort:** Domain-Vorschläge enthalten jetzt auch Name und Ort (z. B. `elektro-mueller-stuttgart.de`); vorher fiel der Ort ganz heraus.
+- **Firmenname im Impressum:** gleiche Wörter in anderer Reihenfolge („Malerbetrieb Huber“ / „Huber Malerbetrieb e.K.“) und Inhaberangaben („Inh. …“) verhindern den Vorschlag nicht mehr. Es bleibt ein Vorschlag zum Bestätigen; andere PLZ oder andere Namen passen weiterhin nicht.
+- Kein Schemawechsel.
+
 ## 2.0.0-dev43 – Entwürfe ins Postfach (IMAP)
 
 Produktreview M24 Stufe 3 – damit ist M24 umgesetzt.

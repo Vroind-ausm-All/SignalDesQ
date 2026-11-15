@@ -51,13 +51,16 @@ class FormGuardBrowserTests(unittest.TestCase):
                         errors, outside = [], []
                         page.on('pageerror', lambda exc: errors.append(str(exc)))
                         page.on('request', lambda r: outside.append(r.url) if '127.0.0.1' not in r.url else None)
-                        page.goto(base)
-                        page.locator('.sidebar [data-view="leads"]').click()
+                        page.goto(base + '/#/firmen')  # direkte Adresse: ein Klick vor dem Fertigladen der Seite ginge ins Leere
+                        page.wait_for_load_state('networkidle')
                         row = page.locator('#leadRows tr', has_text='Beispiel Malerbetrieb')
                         row.wait_for()
 
                         def open_lead():
+                            # die Liste kann sich nach dem Laden noch einmal neu aufbauen und die fokussierte Zeile ersetzen
+                            page.wait_for_load_state('networkidle')
                             row.focus()
+                            page.wait_for_function('() => document.activeElement?.closest?.("#leadRows tr")?.textContent.includes("Beispiel Malerbetrieb")')
                             page.keyboard.press('Enter')
                             page.locator('#leadTabs').wait_for(state='visible')
                             page.wait_for_function('() => document.activeElement && document.activeElement.dataset.lfTab === "ueberblick"')

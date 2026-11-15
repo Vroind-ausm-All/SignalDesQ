@@ -888,3 +888,22 @@ M24 nach Empfehlung, Stufe 3 von 3. Bisher galt „keine Verbindung zu Maildiens
 **Selbstbewertung 4 von 5.** Abzug: an keinem echten Anbieter gemessen; nur SSL auf Port 993, kein STARTTLS (in `docs/EINSCHRAENKUNGEN.md` beschrieben).
 
 **Nachtrag (CI Windows, Python 3.13 auf dev40):** `test_malformed_requests_never_500` brach mit WinError 10048 ab – der Test öffnet je Anfrage eine neue Verbindung (Routen × 4 Methoden × 7 Inhalte), und Windows hält geschlossene Client-Ports eine Weile belegt. Mit jeder neuen Route wurde das knapper. Der Test-Helfer wartet jetzt kurz und versucht es erneut, nur bei genau diesem Fehler; andere Fehler gehen unverändert durch (lokal nachgewiesen). Die Prüfung selbst ist unverändert, Anwendung unverändert.
+
+## Arbeitspaket 43 – Befund Stuttgart-Auszug (2.0.0-dev44)
+
+Der Eigentümer hat den Stuttgart-Auszug (222 MB) eingelesen: viele Betriebe im Bestand, aber nur 5 neue Treffer, „viel ausgefiltert“, die Website-Suche fand nichts. Gesucht wurde in ganz Stuttgart mit Branchen und **ohne** „auch Betriebe ohne Rechtsform“.
+
+Ursachen (aus dem Code nachvollzogen, ohne den echten Auszug – der ist nicht in dieser Umgebung):
+1. Ohne den Haken fallen alle Betriebe ohne Rechtsform im Namen heraus – im Handwerk die meisten (schon im Praxistest 70191: 3 von 4).
+2. Die Website-Suche läuft nur für die übernommenen neuen Treffer – hier also für 5.
+3. Die Domain-Vorschläge ließen den Ort weg, und der Namensvergleich mit dem Impressum scheiterte schon an anderer Wortreihenfolge.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Neue Tests | `tests/test_v2_osm_findings.py` (4): Gründe gezählt und Summe stimmt, Domains mit Ort, Wortreihenfolge passt, fremde Namen und andere PLZ passen weiterhin nicht |
+| Browser | neu `test_osm_filter_reasons_browser.py`: Gründe in der Ergebniszeile, Hinweis zum Haken |
+| Regression | je 695 Tests unter Python 3.13 und 3.10, 35 von 35 Browser-Tests |
+| Wackeliger Test behoben | `test_formguard_browser.py` scheiterte etwa jedes dritte Mal: Der Klick auf „Firmen“ kam manchmal vor dem Fertigladen an, und die fokussierte Zeile konnte durch einen zweiten Listenaufbau ersetzt werden. Der Test öffnet die Liste jetzt über ihre Adresse und wartet auf den Fokus – danach 10 von 10 Läufen grün (Anwendung unverändert) |
+| Offen | Wirkung am echten Auszug noch nicht gemessen; die Messung ist M21 |
+
+**Selbstbewertung 3 von 5.** Die Ursachen sind belegt und behoben bzw. sichtbar, aber nicht an deinen Daten gemessen.
