@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev34. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev35. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -61,7 +61,7 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 | M20 | Zeiten je Leistung und Lernvorschläge | P2 | erledigt | dev5, dev27 | Ist-Zeiten je Angebotsposition; Soll/Ist je Position; Aussage je Leistung erst ab drei abgeschlossenen Aufträgen, mit Spanne und Vorschlag (Unit- und Browser-Test) | Katalogwerte werden nie automatisch geändert; Wirkung nach Methode bleibt M34 |
 | M21 | Lokaler Recherchepilot | P0 | offen | – | 50–100 Firmen gegen Referenzliste; Messgrößen aus dem Review | **Eigentümer:** echter OSM-Auszug und Referenzliste auf dem eigenen Rechner |
 | M22 | Quellenstatus und Datenqualität | P1 | teilweise | dev6–dev9 | „Keine Website gefunden“ ≠ „hat keine Website“ | Ergebnisse aus M21 |
-| M23 | Gemeinsame Hintergrundaufträge vervollständigen | P1 | teilweise | Masterplan 2.0 | Alle Module mit gleichem Lebenszyklus nach Neustart | fünf Module laufen noch als Thread |
+| M23 | Gemeinsame Hintergrundaufträge vervollständigen | P1 | teilweise | Masterplan 2.0, dev35 | Alle Module mit gleichem Lebenszyklus nach Neustart | dev35: Website-Bewertung und Karriereseiten-Scan im gemeinsamen Auftragssystem (Fortsetzen nach Neustart, Übernahme älterer Einträge, gezieltes Wiederholen). Offen: KI-Analyse, Schnellprüfung, öffentliche Ansprechpartner, Impressum-Sammelprüfung, Wiederholung der Sammelsuche |
 | M24 | Kalender und dokumentierte Exporte | P2 | offen | Etappe D | Aktualität und Konflikte geprüft | Anbieterwahl |
 | M25 | Kundenfähiger Kurzbericht | P2 | erledigt | dev30 | Auswahl nur aus bestätigten bzw. freigegebenen Befunden (serverseitig geprüft); Bericht ohne Punktwerte, Prioritäten, Angebotsideen, Hypothesen; gesperrte Firma ohne Bericht; gezeigte Befunde gespeichert (Unit- und Browser-Test) | Nur Markdown, kein gestaltetes PDF |
 | M26 | Aktuellen Status in einer Quelle pflegen | P1 | erledigt | dev13 | Diese Tabelle; Launch-Audit als historisch gekennzeichnet | bei jeder Stufe nachführen |
@@ -138,7 +138,7 @@ Eigentümer; in die App kommen nur die Abläufe.
 | T10 | Softwareangebot | **bestanden** (dev32: Prüfpunkte Betrieb, Zugänge, Testdaten, Übergabe; Betrieb als laufende Leistung; Testzugang ohne Passwörter) |
 | T11 | Revision eines Angebots | **bestanden** (dev21: Vorgänger, Grund, Änderungsliste; Unit- und Browser-Test) |
 | T13 | Zeitüberschreitung | **bestanden** (dev32: Ist über Kalkulation → Hinweis „Umfang prüfen“, Rest 0; Mehrarbeit als Zusatzauftrag, Auftrag unverändert) |
-| T14 | Recherche während eines Fehlers wieder aufnehmen | Kernabläufe seit Masterplan 2.0; vollständig mit M23 |
+| T14 | Recherche während eines Fehlers wieder aufnehmen | **bestanden** für Firmen-Bericht, Sammelsuche, Website-Bewertung und Karriereseiten-Scan (dev35: Neustart mitten im Schritt setzt fort, Abruffehler gezielt wiederholbar); für die übrigen Module mit M23 Teil 2 |
 | T15 | Sicherung in getrennte Testinstallation zurückspielen | **bestanden** (dev31, Szenario mit allen Daten aus Etappe C und D: vollständig wiederhergestellt, Abläufe laufen weiter, Ausgangsinstallation unverändert; ältere Sicherung wird migriert) |
 
 ## Danach – Buchhaltung

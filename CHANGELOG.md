@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev35 – Website-Bewertung und Karriereseiten-Scan setzen nach Neustart fort
+
+Produktreview M23 Teil 1, Abnahmefall T14.
+
+- **Website-Bewertung und Karriereseiten-Scan laufen über das gemeinsame Auftragssystem** statt über eigene Threads – mit demselben Lebenszyklus wie Firmen-Bericht und Sammelsuche: sichtbar unter den Aufträgen, je Website-Domain höchstens ein Abruf gleichzeitig, Pausieren, Abbrechen, erneut ausführen.
+- **Neustart mitten im Lauf:** Unterbrochene Bewertungen und Scans werden wieder eingereiht und fortgesetzt. Bisher wurden sie als „durch Neustart unterbrochen“ verworfen und mussten neu gestartet werden.
+- **Ältere Einträge** (wartend oder laufend, aus der Zeit vor dev35) werden beim Start als Auftragsschritte übernommen, ohne Doppelung.
+- **Nach einem Abruffehler** (z. B. Zeitüberschreitung) lässt sich genau dieser Schritt erneut ausführen; erfolgreiche Schritte bleiben unberührt.
+- Kein Schemawechsel. 670 Tests (4 neu) unter Python 3.10 und 3.13, 29 Browser-Tests.
+
 ## 2.0.0-dev34 – Globale Suche mit Strg+K
 
 Produktreview M10.

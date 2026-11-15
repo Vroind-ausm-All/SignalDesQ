@@ -22,7 +22,6 @@ import hashlib
 import io
 import json
 import re
-import threading
 from urllib.parse import urljoin, urlsplit
 
 from .company_data import check_suppressed, find_duplicate, normalize_name, normalize_register, _audit
@@ -82,7 +81,30 @@ def init_buying_signals(conn):
 
 
 def recover_scans(conn):
-    conn.execute("UPDATE signal_scans SET status='failed', error='Durch Neustart unterbrochen.', finished_at=datetime('now') WHERE status IN ('queued','running')")
+    """2.0.0-dev35 (M23): Neustart – unterbrochene Karriereseiten-Scans wieder einreihen statt verwerfen."""
+    conn.execute("UPDATE signal_scans SET status='queued', error='' WHERE status='running'")
+    adopt_queued_scans(conn)
+
+
+def adopt_queued_scans(conn, db_path=None, start=False):
+    rows = [r['id'] for r in conn.execute("""SELECT s.id FROM signal_scans s WHERE s.status='queued' AND NOT EXISTS (
+        SELECT 1 FROM research_tasks t WHERE t.kind='career_scan' AND t.task_key='scan:' || s.id AND t.status IN ('queued','running'))""")]
+    for i in range(0, len(rows), 20):
+        _scan_job(conn, rows[i:i + 20], db_path, start)
+    return len(rows)
+
+
+def _scan_job(conn, ids, db_path, start):
+    from .company_data import normalize_domain
+    from .research import jobs
+    rows = conn.execute(f"""SELECT s.id, l.company, l.website FROM signal_scans s JOIN leads l ON l.id=s.lead_id
+                            WHERE s.id IN ({','.join('?' * len(ids))})""", ids).fetchall()
+    tasks = [{'key': f"scan:{r['id']}", 'kind': 'career_scan', 'label': r['company'][:120], 'domain': normalize_domain(r['website'] or '') or '',
+              'payload': {'scan_id': r['id']}, 'max_attempts': 2} for r in rows]
+    job, _ = jobs.submit(conn, 'career_scan', f'Karriereseiten ({len(tasks)} Firma/Firmen)' if len(tasks) != 1 else f"Karriereseite: {rows[0]['company']}"[:200],
+                         tasks, db_path=db_path, start=start, priority=6)
+    _SCAN_WORKER['db'] = db_path or _SCAN_WORKER.get('db')
+    return job
 
 
 # ---------------------------------------------------------------- Hilfen
@@ -564,8 +586,7 @@ def scan_career(website, company=''):
     return unique, log
 
 
-SCAN_LOCK = threading.Lock()
-_SCAN_WORKER = {'thread': None}
+_SCAN_WORKER = {'db': None}  # 2.0.0-dev35: Datenbank des letzten Auftrags (für wait_scans)
 
 
 def enqueue_scans(conn, lead_ids, db_path):
@@ -582,46 +603,83 @@ def enqueue_scans(conn, lead_ids, db_path):
             queued.append(conn.execute('INSERT INTO signal_scans(lead_id) VALUES (?)', (lid,)).lastrowid)
     conn.commit()
     if queued:
-        with SCAN_LOCK:
-            t = _SCAN_WORKER['thread']
-            if not (t and t.is_alive()):
-                t = threading.Thread(target=_scan_worker, args=(db_path,), daemon=True, name='career-scan')
-                _SCAN_WORKER['thread'] = t
-                t.start()
+        _scan_job(conn, queued, db_path, True)  # 2.0.0-dev35 (M23): gemeinsames Auftragssystem statt eigenem Thread
     return {'queued': queued, 'skipped': skipped}
 
 
 def wait_scans(timeout=60):
-    t = _SCAN_WORKER['thread']
-    if t:
-        t.join(timeout)
+    """Kompatibel zu früher: warten, bis alle Scans abgearbeitet sind."""
+    from .research import jobs
+    if _SCAN_WORKER.get('db'):
+        jobs.wait_idle(_SCAN_WORKER['db'], timeout, kinds=('career_scan',))
 
 
 def _scan_worker(db_path):
+    """Kompatibel zu früher: wartende Scans synchron abarbeiten – jetzt über die Auftragsverwaltung."""
+    from .model import connect
+    from .research import jobs
+    with connect(db_path) as conn:
+        adopt_queued_scans(conn, db_path, start=False)
+    jobs.run_until_idle(db_path, kinds=('career_scan',))
+
+
+def _job_scan(db_path, payload, ctx):
+    from .model import connect
+    from .research import jobs as rjobs
+    with connect(db_path) as conn:
+        row = conn.execute("""SELECT s.id, s.lead_id, s.status, l.website, l.company FROM signal_scans s JOIN leads l ON l.id=s.lead_id
+                              WHERE s.id=?""", (payload['scan_id'],)).fetchone()
+        if not row or row['status'] not in ('queued', 'running'):
+            raise rjobs.Skip('Scan ist nicht mehr offen.')
+        conn.execute("UPDATE signal_scans SET status='running' WHERE id=?", (row['id'],))
+        conn.commit()
+    status, error = _run_scan(db_path, row)
+    if status != 'done':
+        return {'status': status, '_status': 'failed', '_error': error or 'Scan fehlgeschlagen'}
+    return {'status': 'done'}
+
+
+def _job_scan_retry(conn, job_id):
+    for t in conn.execute("SELECT payload_json FROM research_tasks WHERE job_id=? AND status='queued'", (job_id,)).fetchall():
+        conn.execute("UPDATE signal_scans SET status='queued', error='', finished_at='' WHERE id=? AND status='failed'",
+                     (json.loads(t['payload_json'])['scan_id'],))
+
+
+def _job_scan_cancel(conn, payload):
+    conn.execute("UPDATE signal_scans SET status='failed', error='Abgebrochen.', finished_at=datetime('now') WHERE id=? AND status='queued'",
+                 (payload['scan_id'],))
+
+
+def _register_scan_handlers():
+    from .research import jobs as rjobs
+    rjobs.handler('career_scan')(_job_scan)
+    rjobs.handler('career_scan:retry')(_job_scan_retry)
+    rjobs.handler('career_scan:cancel')(_job_scan_cancel)
+
+
+def _run_scan(db_path, row):
+    """Karriereseite lesen und Treffer speichern. Gibt (status, fehler) zurück."""
     from .model import connect
     from .website_analyzer import CrawlError
-    while True:
-        with connect(db_path) as conn:
-            row = conn.execute("SELECT s.id, s.lead_id, l.website, l.company FROM signal_scans s JOIN leads l ON l.id=s.lead_id WHERE s.status='queued' ORDER BY s.id LIMIT 1").fetchone()
-            if not row:
-                return
-            conn.execute("UPDATE signal_scans SET status='running' WHERE id=?", (row['id'],))
-            conn.commit()
-        try:
-            jobs, log = scan_career(row['website'], row['company'])
-            status, error = 'done', ''
-        except CrawlError as exc:
-            jobs, log, status, error = [], [], 'failed', str(exc)
-        except Exception as exc:
-            jobs, log, status, error = [], [], 'failed', f'Unerwarteter Fehler: {exc.__class__.__name__}'
-        with connect(db_path) as conn:
-            found = 0
-            for j in jobs:
-                res = store_job(conn, j, row['lead_id'])
-                found += bool(res and not res['duplicate'] and res.get('classified'))
-            conn.execute("UPDATE signal_scans SET status=?, error=?, found=?, log_json=?, finished_at=datetime('now') WHERE id=?",
-                         (status, error[:500], found, json.dumps(log, ensure_ascii=False), row['id']))
-            conn.commit()
+    try:
+        found_jobs, log = scan_career(row['website'], row['company'])
+        status, error = 'done', ''
+    except CrawlError as exc:
+        found_jobs, log, status, error = [], [], 'failed', str(exc)
+    except Exception as exc:  # noqa: BLE001 – ein Scan darf den Auftrag nie stoppen
+        found_jobs, log, status, error = [], [], 'failed', f'Unerwarteter Fehler: {exc.__class__.__name__}'
+    with connect(db_path) as conn:
+        found = 0
+        for j in found_jobs:
+            res = store_job(conn, j, row['lead_id'])
+            found += bool(res and not res['duplicate'] and res.get('classified'))
+        conn.execute("UPDATE signal_scans SET status=?, error=?, found=?, log_json=?, finished_at=datetime('now') WHERE id=?",
+                     (status, error[:500], found, json.dumps(log, ensure_ascii=False), row['id']))
+        conn.commit()
+    return status, error
+
+
+_register_scan_handlers()
 
 
 # ---------------------------------------------------------------- Signale speichern & zusammenführen

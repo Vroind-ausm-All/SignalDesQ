@@ -22,7 +22,6 @@ import json
 import os
 import re
 import socket
-import threading
 import time
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -765,15 +764,39 @@ def active_version(conn):
 
 
 def recover_audits(conn):
-    conn.execute("UPDATE website_audits SET status='failed', error='Durch Neustart unterbrochen – bitte erneut starten.', finished_at=datetime('now') WHERE status IN ('queued','running')")
+    """2.0.0-dev35 (M23): Neustart – unterbrochene Bewertungen wieder einreihen statt verwerfen; Bewertungen ohne
+    Auftragsschritt (ältere Versionen) übernehmen. Das gemeinsame Auftragssystem setzt sie fort."""
+    conn.execute("UPDATE website_audits SET status='queued', started_at='', error='' WHERE status='running'")
+    adopt_queued_audits(conn)
+
+
+def adopt_queued_audits(conn, db_path=None, start=False):
+    from .research import jobs
+    rows = [r['id'] for r in conn.execute("""SELECT a.id FROM website_audits a WHERE a.status='queued' AND NOT EXISTS (
+        SELECT 1 FROM research_tasks t WHERE t.kind='website_audit' AND t.task_key='audit:' || a.id AND t.status IN ('queued','running'))""")]
+    for i in range(0, len(rows), 20):
+        _audit_job(conn, rows[i:i + 20], db_path, start)
+    return len(rows)
+
+
+def _audit_job(conn, ids, db_path, start):
+    from .company_data import normalize_domain
+    from .research import jobs
+    rows = conn.execute(f"""SELECT a.id, a.url, l.company FROM website_audits a JOIN leads l ON l.id=a.lead_id
+                            WHERE a.id IN ({','.join('?' * len(ids))})""", ids).fetchall()
+    tasks = [{'key': f"audit:{r['id']}", 'kind': 'website_audit', 'label': r['company'][:120], 'domain': normalize_domain(r['url']) or '',
+              'payload': {'audit_id': r['id']}, 'max_attempts': 2} for r in rows]
+    job, _ = jobs.submit(conn, 'website_audit', f'Website-Bewertung ({len(tasks)} Firma/Firmen)' if len(tasks) != 1 else f"Website-Bewertung: {rows[0]['company']}"[:200],
+                         tasks, db_path=db_path, start=start, priority=5)
+    _WORKER['db'] = db_path or _WORKER.get('db')
+    return job
 
 
 def screenshot_dir(db_path):
     return Path(db_path).resolve().parent / 'screenshots'
 
 
-_QUEUE_LOCK = threading.Lock()
-_WORKER = {'thread': None}
+_WORKER = {'db': None}  # 2.0.0-dev35: Datenbank des letzten Auftrags (für wait_idle)
 
 
 def enqueue(conn, lead_ids, db_path):
@@ -795,36 +818,64 @@ def enqueue(conn, lead_ids, db_path):
             created.append(cur.lastrowid)
     conn.commit()
     if created:
-        _ensure_worker(db_path)
+        _audit_job(conn, created, db_path, True)  # 2.0.0-dev35 (M23): gemeinsames Auftragssystem statt eigenem Thread
     return {'queued': created, 'skipped': skipped}
 
 
-def _ensure_worker(db_path):
-    with _QUEUE_LOCK:
-        t = _WORKER['thread']
-        if t and t.is_alive():
-            return
-        t = threading.Thread(target=_worker, args=(db_path,), daemon=True, name='website-scorer')
-        _WORKER['thread'] = t
-        t.start()
-
-
 def wait_idle(timeout=60):
-    t = _WORKER['thread']
-    if t:
-        t.join(timeout)
+    """Kompatibel zu früher: warten, bis alle Bewertungen abgearbeitet sind."""
+    from .research import jobs
+    if _WORKER.get('db'):
+        jobs.wait_idle(_WORKER['db'], timeout, kinds=('website_audit',))
 
 
 def _worker(db_path):
+    """Kompatibel zu früher: wartende Bewertungen synchron abarbeiten – jetzt über die Auftragsverwaltung."""
     from .model import connect
-    while True:
-        with connect(db_path) as conn:
-            row = conn.execute("SELECT id FROM website_audits WHERE status='queued' ORDER BY id LIMIT 1").fetchone()
-            if not row:
-                return
-            conn.execute("UPDATE website_audits SET status='running', started_at=datetime('now') WHERE id=?", (row['id'],))
-            conn.commit()
-        run_audit(db_path, row['id'])
+    from .research import jobs
+    with connect(db_path) as conn:
+        adopt_queued_audits(conn, db_path, start=False)
+    jobs.run_until_idle(db_path, kinds=('website_audit',))
+
+
+def _job_audit(db_path, payload, ctx):
+    from .model import connect
+    from .research import jobs
+    aid = payload['audit_id']
+    with connect(db_path) as conn:
+        row = conn.execute('SELECT status FROM website_audits WHERE id=?', (aid,)).fetchone()
+        if not row or row['status'] not in ('queued', 'running'):
+            raise jobs.Skip('Bewertung ist nicht mehr offen.')
+        conn.execute("UPDATE website_audits SET status='running', started_at=datetime('now') WHERE id=?", (aid,))
+        conn.commit()
+    run_audit(db_path, aid)
+    with connect(db_path) as conn:
+        r = conn.execute('SELECT status, error FROM website_audits WHERE id=?', (aid,)).fetchone()
+    if r['status'] != 'done':
+        return {'status': r['status'], '_status': 'failed', '_error': r['error'] or 'Bewertung nicht abgeschlossen'}
+    return {'status': 'done'}
+
+
+def _job_audit_retry(conn, job_id):
+    """Erneut ausführen: fehlgeschlagene Bewertungen des Auftrags wieder auf „wartet“ setzen."""
+    for t in conn.execute("SELECT payload_json FROM research_tasks WHERE job_id=? AND status='queued'", (job_id,)).fetchall():
+        conn.execute("UPDATE website_audits SET status='queued', error='', finished_at='' WHERE id=? AND status='failed'",
+                     (json.loads(t['payload_json'])['audit_id'],))
+
+
+def _job_audit_cancel(conn, payload):
+    conn.execute("UPDATE website_audits SET status='failed', error='Abgebrochen.', finished_at=datetime('now') WHERE id=? AND status='queued'",
+                 (payload['audit_id'],))
+
+
+def _register_handlers():
+    from .research import jobs
+    jobs.handler('website_audit')(_job_audit)
+    jobs.handler('website_audit:retry')(_job_audit_retry)
+    jobs.handler('website_audit:cancel')(_job_audit_cancel)
+
+
+_register_handlers()
 
 
 def run_audit(db_path, audit_id):

@@ -766,6 +766,19 @@ Bewusst Hinweis statt Sperre: Ein Angebot ohne Beleg kann richtig sein (z. B. au
 
 **Selbstbewertung 4 von 5.** Abzug: keine Tippfehler-Toleranz; Rechnungstreffer öffnen nur die Liste.
 
+## Arbeitspaket 34 – Gemeinsame Hintergrundaufträge, Teil 1 (2.0.0-dev35)
+
+Die Website-Bewertung ist der Schritt mit den meisten Abrufen und damit den meisten Abbrüchen; der Karriereseiten-Scan hatte dasselbe Muster. Beide folgen jetzt dem Vorbild des Firmen-Berichts (Schritt je Firma, Übernahme älterer Einträge, Wiederholen-Haken). Die Aufrufe `enqueue`/`wait_idle` bzw. `enqueue_scans`/`wait_scans` bleiben gleich, damit Oberfläche und bestehende Tests unverändert funktionieren.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 670 Tests bestanden (4 neu in `tests/test_scenario_t14_resume.py`; bestehende Bewertungs-, Signal- und Auftragstests unverändert grün) |
+| Browser-Tests | 29 von 29 |
+| T14 | bestanden für die vier Module im Auftragssystem: Neustart im laufenden Schritt, Übernahme älterer Einträge ohne Doppelung, Wiederholen nur des fehlgeschlagenen Schritts |
+| Rest | KI-Analyse, Schnellprüfung, öffentliche Ansprechpartner, Impressum-Sammelprüfung, Sammelsuche-Wiederholung – Teil 2 |
+
+**Selbstbewertung 4 von 5.** Abzug: M23 erst zur Hälfte; Fortsetzen heißt „Schritt von vorn“, nicht „an der Stelle weiter“.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

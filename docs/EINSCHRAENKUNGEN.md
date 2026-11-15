@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev34)
+# Bekannte Einschränkungen (Stand 2.0.0-dev35)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -224,3 +224,8 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Durchsucht werden Firmenname, Firmierung, Website, Titel von Chancen, Angebotsnummer und Projekttitel sowie Rechnungsnummern. Personen, Notizen und Gesprächsprotokolle bewusst nicht.
 - Die Suche ist eine einfache Teilwort-Suche ohne Tippfehler-Toleranz; je Gruppe höchstens acht Treffer.
 - Ein Rechnungstreffer wechselt in die Rechnungsliste; die Rechnung selbst öffnest du dort.
+
+## Hintergrundaufträge (2.0.0-dev35)
+
+- Website-Bewertung und Karriereseiten-Scan setzen nach einem Neustart fort. KI-Analyse, Schnellprüfung und die Suche nach öffentlichen Ansprechpartnern laufen noch als eigener Thread: Ein Neustart bricht sie ab (Status „durch Neustart unterbrochen“), sie müssen neu gestartet werden. Die Impressum-Sammelprüfung pausiert nach einem Neustart und wird von Hand fortgesetzt.
+- Ein fortgesetzter Schritt beginnt von vorn (die Seite wird erneut gelesen); halbfertige Zwischenergebnisse werden nicht übernommen.
