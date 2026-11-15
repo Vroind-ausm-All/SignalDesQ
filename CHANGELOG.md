@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev34 – Globale Suche mit Strg+K
+
+Produktreview M10.
+
+- **„⌕ Suchen“ oben rechts bzw. Strg+K (⌘K):** ein Suchfeld für Firmen (Name, Firmierung, Website), Chancen, Angebote (Nummer, Projekttitel) und Rechnungsnummern, nach Gruppen sortiert; Treffer am Namensanfang zuerst. Gesperrte Firmen sind gekennzeichnet.
+- **Tastatur:** Pfeiltasten wählen, Enter öffnet (Firma bzw. Chance in der Firmenakte, Angebot im Angebotsbereich), Escape schließt und gibt den Fokus an die vorherige Stelle zurück.
+- Personen und Notizen werden nicht durchsucht. % und _ im Suchbegriff wirken nicht als Platzhalter. Nur lesend, kein Schemawechsel.
+- Auf schmalen Bildschirmen zeigt der Knopf nur das Lupensymbol, damit die Kopfzeile nicht seitlich scrollt.
+- 666 Tests (2 neu) unter Python 3.10 und 3.13, 29 Browser-Tests (1 neu).
+
 ## 2.0.0-dev33 – Befund mit Angebot verbinden
 
 Produktreview M32.

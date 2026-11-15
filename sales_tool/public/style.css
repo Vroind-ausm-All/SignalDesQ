@@ -805,3 +805,16 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 /* 2.0.0-dev29 (M37): Nachrichtenvorlagen */
 .msg-missing{background:var(--danger-bg);color:var(--danger-fg);border-radius:3px;padding:0 .15rem;font-weight:600}
 .msg-edit{margin:.6rem 0}
+
+/* 2.0.0-dev34 (M10): globale Suche */
+.gs-open kbd{font:11px/1 inherit;border:1px solid var(--line-2);border-radius:4px;padding:2px 4px;margin-left:4px;color:var(--muted)}
+.gs-backdrop{position:fixed;inset:0;background:var(--backdrop);display:flex;align-items:flex-start;justify-content:center;padding-top:12vh;z-index:60}
+.gs-backdrop.hidden{display:none}
+.gs-dialog{background:var(--surface);color:var(--ink);border-radius:12px;box-shadow:var(--modal-shadow);width:min(640px,92vw);padding:12px}
+.gs-dialog input{width:100%;font-size:16px;padding:10px 12px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface);color:var(--ink)}
+.gs-results{list-style:none;margin:8px 0 0;padding:0;max-height:55vh;overflow:auto}
+.gs-results .gs-group{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:8px 8px 2px}
+.gs-results [role=option]{padding:7px 8px;border-radius:7px;cursor:pointer}
+.gs-results [role=option] small{display:block;color:var(--muted)}
+.gs-results [role=option][aria-selected=true]{background:var(--accent-soft);color:var(--accent-ink)}
+@media (max-width:760px){.gs-open .gs-label,.gs-open kbd{display:none}.gs-open{padding-left:8px;padding-right:8px;min-width:0}.top-actions{gap:8px}}

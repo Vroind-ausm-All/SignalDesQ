@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev33)
+# Bekannte Einschränkungen (Stand 2.0.0-dev34)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -218,3 +218,9 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Ein Befund belegt eine Position, wenn sein Paketvorschlag diese Leistung enthält (Zuordnung über die Vorlagen des Katalogs). Befunde ohne Paketvorschlag zählen nicht.
 - Positionen ohne Grundlage blockieren den Versand nicht; sie erscheinen als Hinweis. Ob du sie begründest, streichst oder bewusst anbietest, entscheidest du.
 - Die Grundlage wird beim Öffnen neu berechnet, nicht beim Erstellen gespeichert. Wird ein Befund später verworfen, ändert sich die Anzeige.
+
+## Globale Suche (2.0.0-dev34)
+
+- Durchsucht werden Firmenname, Firmierung, Website, Titel von Chancen, Angebotsnummer und Projekttitel sowie Rechnungsnummern. Personen, Notizen und Gesprächsprotokolle bewusst nicht.
+- Die Suche ist eine einfache Teilwort-Suche ohne Tippfehler-Toleranz; je Gruppe höchstens acht Treffer.
+- Ein Rechnungstreffer wechselt in die Rechnungsliste; die Rechnung selbst öffnest du dort.

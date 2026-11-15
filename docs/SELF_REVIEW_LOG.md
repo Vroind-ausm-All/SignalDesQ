@@ -755,6 +755,17 @@ Bewusst Hinweis statt Sperre: Ein Angebot ohne Beleg kann richtig sein (z. B. au
 
 **Selbstbewertung 4 von 5.** Abzug: Zuordnung Befund → Leistung nur über die Paketvorlagen.
 
+## Arbeitspaket 33 – Globale Suche (2.0.0-dev34)
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 666 Tests bestanden (2 neu in `tests/test_v2_global_search.py`) |
+| Browser-Tests | 29 von 29 (neu `test_search_browser.py`): Strg+K, Escape mit Fokus-Rückgabe, Treffer nach Gruppen, Pfeiltasten mit Umlauf, Enter öffnet das Angebot |
+| Leitplanken | Personen nicht durchsuchbar (Test); nur lesend |
+| Fund beim Testen | Eigener Fehler: Die neue Testdatei hieß zunächst wie eine bestehende (`test_v2_search.py`, Praxistest-Suche) und hätte sie überschrieben; beim Abgleich der Testzahl bemerkt, Original wiederhergestellt, neue Tests in `test_v2_global_search.py`. Zwei Testerwartungen falsch: Präfix-Treffer stehen bewusst vorn; ein Angebot legt seine Chance an, die mit gefunden wird. Ein langer Befehl wurde von der Sicherheitsprüfung der Umgebung nicht ausgeführt (nicht eindeutig lesbar) – Dateien stattdessen einzeln geschrieben, nichts gelöscht. Der Suchknopf machte die Kopfzeile auf dem Handy (390 px) 2–3 px zu breit; die bestehenden Browser-Tests zur Handyansicht schlugen an – auf schmalen Bildschirmen nur Lupensymbol, engerer Abstand |
+
+**Selbstbewertung 4 von 5.** Abzug: keine Tippfehler-Toleranz; Rechnungstreffer öffnen nur die Liste.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

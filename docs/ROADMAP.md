@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev33. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev34. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -48,7 +48,7 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 | M07 | Sechs Hauptbereiche mit direkter Navigation | P1 | teilweise | dev14 | Sechs Bereiche, Reiter, Adressen für Ansicht, Firma, Abschnitt und Listenfilter; T05 bestanden | Adressen für Filter weiterer Listen und für Firmen-Berichte; Entscheidung Akte als eigene Seite |
 | M08 | Heute auf nächste Aktionen ausrichten (V7) | P1 | erledigt | dev13, dev15 | Drei nächste Schritte mit Grund und Frist; überfällige Zusagen vor Terminen vor Nachfassen vor Akquise; Rückrufzusage vor Passungsnote (Test); Tagesplan und Tagesabschluss eingeklappt | Prioritätsregeln am Pilot prüfen |
 | M09 | Filterchips und gespeicherte Arbeitsansichten (V5) | P1 | erledigt | dev15 | Arbeitsansichten mit Trefferzahl, aktive Filter sichtbar, eigene Ansicht speichern und wieder öffnen, Ansicht in der Adresse; Spalten nächster Schritt, Phase, Passung, letzter Kontakt | Stapelaktionen (Review U09) noch offen |
-| M10 | Globale Suche und Strg+K (V8) | P2 | offen | später | Firma, Chance, Angebotsnummer über ein Suchfeld | M07 |
+| M10 | Globale Suche und Strg+K (V8) | P2 | erledigt | dev34 | Firma (Name, Firmierung, Website), Chance, Angebot (Nummer, Projekt), Rechnungsnummer über ein Suchfeld; Strg+K/⌘K, Pfeiltasten, Enter, Escape mit Fokus-Rückgabe; Personen nicht durchsucht (Unit- und Browser-Test) | Rechnungstreffer öffnen die Rechnungsliste, nicht die einzelne Rechnung |
 | M11 | Geführter Einstieg und Leerzustände (V9) | P1 | erledigt | dev15 | „Erste Schritte“ mit echter Prüfung (Preise, Zielkunden, Zeiten, erste Firma oder Anfrage), ohne Recherchelauf; Leerzustände mit Knopf zum nächsten Schritt | Beispieldaten gibt es bewusst nicht |
 | M12 | Zentraler Leistungskatalog | P1 | erledigt | dev16 | Eine Kennung je Leistung; 5/6/26 (+5 Zusatzleistungen) nachvollziehbar zusammengeführt ([`LEISTUNGSKATALOG.md`](LEISTUNGSKATALOG.md)); geänderte Leistung wirkt gleich auf Vorlage, Empfehlung, Angebot und Oberfläche; gespeicherte Angebote unverändert (Unit- und Browser-Test); Korrekturschleifen je Leistung ohne Widerspruch (K01) | Eigene Leistungen anlegen/ausblenden; frühere Paketpreise weichen von den Baukastenpreisen ab – vom Eigentümer zu prüfen |
 | M13 | Mehrere Verkaufschancen je Firma | P1 | erledigt | dev18, dev19 | T08: zwei Chancen mit getrennten Phasen, Bedarfsanalysen, Freigaben und Terminen; Verlust einer Chance beendet keine andere, keine Rechnung ändert sich; Angebote prüfen den Bedarf ihrer Chance; Pipeline und Heute je Chance; Bestand mit genau einer ersten Chance (Migration an Kopie geprüft) | Aufgaben je Chance; Paketabgleich je Chance |
