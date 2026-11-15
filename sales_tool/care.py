@@ -169,6 +169,7 @@ def update(conn, pid, data):
 def overview(conn, today=None):
     """Bestandskunden: Firmen mit mindestens einem angenommenen Auftrag – Betreuung, Projekte und neue Chancen getrennt."""
     from .handover import summary
+    from .kickoff import summary as kickoff_summary
     firms = {}
     for r in conn.execute("""SELECT p.*, l.company FROM proposals p JOIN leads l ON l.id=p.lead_id
                              WHERE p.status='angenommen' AND p.superseded_by IS NULL ORDER BY l.company, p.id"""):
@@ -180,7 +181,7 @@ def overview(conn, today=None):
         if once or (not cust.get('positions') and cust.get('billing') != 'monatlich'):
             f['projects'].append({'proposal_id': r['id'], 'number': r['number'] or f"#{r['id']}", 'project_label': cust.get('project_label', ''),
                                   'net_eur': cust.get('once_net_eur') or cust.get('net_eur') or 0, 'addendum_no': r['addendum_no'] or 0,
-                                  'handover': summary(conn, r['id'])})
+                                  'handover': summary(conn, r['id']), 'kickoff': kickoff_summary(conn, r['id'])})
     from .chances import OPEN
     for lid, f in firms.items():
         f['chances'] = [{'id': c['id'], 'title': c['title'], 'stage': c['stage']} for c in conn.execute(

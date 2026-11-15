@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev27)
+# Bekannte Einschränkungen (Stand 2.0.0-dev28)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -192,3 +192,10 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Die Aussage je Leistung beruht nur auf abgeschlossenen Aufträgen mit zugeordneten Zeiten. Unter drei Stichproben gibt es keine Aussage; auch drei Aufträge sind eine kleine Stichprobe – die Spanne steht deshalb immer dabei.
 - SignalDesk ändert Zeitansätze im Katalog nie selbst. Der Vorschlag verweist auf „Einstellungen → Leistungen & Preise“.
 - Ältere Zeiteinträge (vor dev27) haben keine Position.
+
+## Projektkompass (2.0.0-dev28)
+
+- Die Voraussetzungen werden beim ersten Öffnen aus dem Angebot und den offenen Briefing-Punkten der Chance übernommen. Spätere Briefing-Änderungen kommen nicht automatisch nach; bitte selbst ergänzen.
+- Materialien werden nur als Text erfasst, nicht als Datei. Es gibt keine Dateiablage.
+- Die Erkennung von Zugangsdaten ist eine Schutzregel für typische Eingaben („Passwort:“, „Login =“, Token-Muster), keine Garantie. Bitte grundsätzlich keine Zugangsdaten eintragen.
+- Der Startstatus „gestartet“ lässt sich nicht zurücknehmen; offene Punkte bleiben danach sichtbar.

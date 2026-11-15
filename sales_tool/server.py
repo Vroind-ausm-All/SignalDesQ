@@ -473,6 +473,9 @@ def make_handler(db_path, allowed_hosts=None):
                 from .care import route_care
                 if route_care(self, conn, method, route):  # 2.0.0-dev26: Bestandskunden und Betreuung
                     return
+                from .kickoff import route_kickoff
+                if route_kickoff(self, conn, method, route):  # 2.0.0-dev28: Projektkompass
+                    return
                 proposal_match=re.fullmatch(r'/api/workspace/proposals/(\d+)(/customer)?',route)
                 if proposal_match:
                     ident=int(proposal_match.group(1))
@@ -933,7 +936,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 39  # 2.0.0-dev27 – bei Schemaänderungen erhöhen (Zeiten je Position)
+SCHEMA_VERSION = 40  # 2.0.0-dev28 – bei Schemaänderungen erhöhen (Projektkompass)
 
 
 def backup_before_migration(db):

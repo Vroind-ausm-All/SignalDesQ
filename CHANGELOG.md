@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.0-dev28 – Projektkompass mit Material- und Entscheidungsliste
+
+Etappe D, Produktreview M38 und M39.
+
+- **Projektkompass** am angenommenen Auftrag, je Auftrag unabhängig (mehrere Projekte einer Firma laufen getrennt).
+  - Vorbelegt mit dem Startgespräch, den offenen Briefing-Punkten der Chance und typischen Voraussetzungen je Leistungsbereich. Für Mediengestaltung sind das Material und Freigabeperson, für Software Testzugang und priorisierte Anforderungen, für Sichtbarkeit Kontozugang.
+- **Je Punkt:** Art (Material, Zugang, Entscheidung, Termin, Sonstiges), wer liefert (ich, Kunde, Dritte, optional mit Namen), bis wann, was ohne den Punkt nicht geht, Stand. „Entfällt“ nur mit Begründung; eigene Punkte lassen sich ergänzen.
+- **Startstatus:** „Vorbereitung“, „wartet auf …“ (mit Name, Punkt und Frist), „bereit zum Start“ oder „gestartet am …“. Start trotz offener Punkte geht nur bewusst und steht im Verlauf.
+- **Heute** zeigt fällige Startvoraussetzungen mit Verantwortlichem und Auswirkung. In der Bestandsübersicht steht der Startstatus je Projekt.
+- **Keine Passwörter:** Es gibt kein Passwortfeld. Eingaben wie „Passwort: …“, „Login = …“ oder Token-Muster werden abgelehnt, mit Hinweis auf sichere Übergabewege.
+- **Schemawechsel 39 → 40** (Projektkompass). 651 Tests (3 neu) unter Python 3.10 und 3.13, 24 Browser-Tests (1 neu).
+
 ## 2.0.0-dev27 – Zeiten je Leistung und Lernhinweise
 
 Etappe D, Produktreview M20.

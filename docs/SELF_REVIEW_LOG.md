@@ -665,6 +665,20 @@ Seit dev16 hat jede Position eine Leistungskennung; es fehlte nur die Zuordnung 
 
 **Selbstbewertung 4 von 5.** Abzug: Zuordnung freiwillig, daher anfangs wenig Daten; Wirkung nach Methode (M34) bleibt offen.
 
+## Arbeitspaket 27 – Projektkompass (2.0.0-dev28)
+
+M38 und M39 zusammen, weil der Startstatus genau aus der Material- und Entscheidungsliste folgt. Getrennt wären es zwei Listen für dieselbe Frage: Was fehlt noch, und wer ist dran? Der Status wird berechnet, nicht von Hand gepflegt; nur „gestartet“ setzt du bewusst.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 651 Tests bestanden (3 neu in `tests/test_v2_kickoff.py`) |
+| Browser-Tests | 24 von 24 (neu `test_kickoff_browser.py`): „wartet auf Kunde“, Name setzen, Passwort abgelehnt, Punkte erledigen bis „bereit“, Start |
+| Abnahme M38/M39 | Vorbelegung, Status, Unabhängigkeit mehrerer Projekte, Verantwortliche/Frist/Auswirkung, keine Zugangsdaten |
+| Fund beim Testen | Testaufbau: vor dem ersten Angebot gibt es noch keine Chance; Briefing-Antworten sind eine Liste – Test korrigiert, Code unverändert |
+| Migration | Schema 39 → 40, zwei neue Tabellen |
+
+**Selbstbewertung 4 von 5.** Abzug: Briefing-Änderungen nach dem ersten Öffnen kommen nicht nach; Zugangsdaten-Erkennung ist eine Schutzregel, keine Garantie.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

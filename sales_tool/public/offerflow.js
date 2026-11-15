@@ -81,6 +81,31 @@
       <button type="button" class="btn btn-primary" data-of-start>${s.status === 'angenommen' ? 'Projektstart übernehmen' : 'Ausgewählte Aufgaben beenden'}</button></li>`;
   }
 
+  // 2.0.0-dev28 (M38/M39): Projektkompass – Startvoraussetzungen mit Verantwortlichen, Frist und Auswirkung
+  function stepKickoff(k) {
+    if (!k) return '';
+    const started = k.status === 'gestartet';
+    const row = i => `<li class="ho-${esc(i.state)}" data-ko-row="${i.id}"><span><b>${esc(i.kind_label)}</b> ${esc(i.label)}
+        <small>${esc(i.owner_name || i.owner_label)}${i.due_date ? ` · bis ${esc(fmtDate(i.due_date))}` : ''}${i.overdue ? ' <span class="pill bad">überfällig</span>' : ''}${i.impact ? ` · ohne: ${esc(i.impact)}` : ''}</small></span>
+      <select data-ko-state="${i.id}" aria-label="Stand: ${esc(i.label)}">${k.states.map(s => `<option value="${s}" ${s === i.state ? 'selected' : ''}>${esc(ST_LABEL[s])}</option>`).join('')}</select>
+      <select data-ko-owner="${i.id}" aria-label="Wer liefert">${opt(k.owners, i.owner)}</select>
+      <input data-ko-name="${i.id}" maxlength="120" value="${esc(i.owner_name)}" placeholder="Name (optional)" aria-label="Name">
+      <input type="date" data-ko-due="${i.id}" value="${esc(i.due_date)}" aria-label="Bis wann">
+      <input data-ko-note="${i.id}" maxlength="300" value="${esc(i.note)}" placeholder="Notiz / Begründung" aria-label="Notiz"></li>`;
+    return `<li class="of-step ${started ? 'done' : ''}" id="ofKickoff"><b>Projektkompass</b> <span class="pill ${started || k.status === 'bereit' ? 'ok' : k.status === 'wartet' ? 'bad' : ''}" data-ko-status>${esc(k.status_label)}</span>
+      ${k.waiting.length && !started ? `<p class="qb-check warn">! Wartet auf: ${k.waiting.map(w => `${esc(w.owner)} – ${esc(w.label)}${w.due_date ? ' (bis ' + esc(fmtDate(w.due_date)) + ')' : ''}`).join('; ')}</p>` : ''}
+      <ul class="ho-items ko-items">${k.items.map(row).join('')}</ul>
+      <p class="muted">${esc(k.secret_hint)}</p>
+      <div class="sales-row ho-add"><select data-ko-addkind aria-label="Art">${opt(k.kinds, 'material')}</select><select data-ko-addowner aria-label="Wer liefert">${opt(k.owners, 'kunde')}</select>
+        <input data-ko-addlabel maxlength="300" placeholder="Weitere Voraussetzung, z. B. Bildrechte klären" aria-label="Weitere Voraussetzung">
+        <input type="date" data-ko-adddue aria-label="Bis wann"><input data-ko-addimpact maxlength="300" placeholder="Was geht ohne nicht?" aria-label="Auswirkung">
+        <button type="button" class="btn btn-ghost" data-ko-add>Ergänzen</button></div>
+      ${started ? `<p>Gestartet am ${esc(fmtDate(k.started_at))}${k.start_note ? ' · ' + esc(k.start_note) : ''}</p>` : `<div class="sales-row"><label>Gestartet am<input type="date" data-ko-date value="${today()}" max="${today()}"></label>
+        <label>Notiz<input data-ko-snote maxlength="300" placeholder="z. B. Kick-off per Video"></label>
+        ${k.open ? '<label class="quote-addon"><input type="checkbox" data-ko-force><span>trotz offener Punkte starten</span></label>' : ''}
+        <button type="button" class="btn btn-primary" data-ko-start>Projektstart dokumentieren</button></div>`}</li>`;
+  }
+
   // 2.0.0-dev24 (M17, T12): Übergabe und Abnahme des angenommenen Auftrags
   const ST_LABEL = {offen: 'offen', erledigt: 'erledigt', entfaellt: 'entfällt'};
   function stepHandover(h) {
@@ -126,12 +151,13 @@
   async function render(id) {
     const box = $('#quoteSaved');
     if (!box) return;
-    let s, p = null, f = null, ho = null;
+    let s, p = null, f = null, ho = null, ko = null;
     try {
       s = await api('/workspace/proposals/' + id + '/versand');
       if (['angenommen', 'abgelehnt'].includes(s.status)) p = await api('/workspace/proposals/' + id + '/start');
       if (s.status !== 'entwurf') f = await api('/workspace/proposals/' + id + '/nachfassen');
       if (s.status === 'angenommen' && !s.superseded_by) ho = await api('/workspace/proposals/' + id + '/abnahme');
+      if (s.status === 'angenommen' && !s.superseded_by) ko = await api('/workspace/proposals/' + id + '/kompass');
     } catch (e) { toast(e.message, true); return; }
     current = {id, s, p};
     box.querySelector('[data-quote-status]')?.closest('label')?.remove();
@@ -145,7 +171,7 @@
     // 2.0.0-dev21 (M15): ersetzte Fassungen sind nur noch Nachweis; aktuelle Fassungen lassen sich überarbeiten
     const steps = s.superseded_by ? `<li class="of-step done"><b>Ersetzt</b><span>Diese Fassung ist durch ${esc(s.superseded_number)} ersetzt. Freigabe, Versand und Zusage gehen nur noch dort.</span>
         <button type="button" class="btn btn-ghost" data-quote-open="${s.superseded_by}">${esc(s.superseded_number)} öffnen</button></li>`
-      : `${stepRelease(s)}${stepSend(s)}${stepFollow(s, f)}${stepDecision(s)}${stepStart(p, s)}${stepHandover(ho)}`;
+      : `${stepRelease(s)}${stepSend(s)}${stepFollow(s, f)}${stepDecision(s)}${stepStart(p, s)}${stepKickoff(ko)}${stepHandover(ho)}`;
     (head || box).insertAdjacentHTML(head ? 'afterend' : 'afterbegin', `<ol class="of-panel" id="ofPanel" data-of-id="${id}">${steps}</ol>
       <div class="of-revisions" id="ofRevisions">${s.revisable ? `<button type="button" class="btn btn-ghost" data-of-revise="${id}">Überarbeiten (neue Fassung)</button>` : ''}${s.addable ? `<button type="button" class="btn btn-ghost" data-of-addendum="${id}">Zusatzauftrag erstellen</button>` : ''}<div data-of-scope></div><div data-of-history></div></div>`);
     // 2.0.0-dev25 (M18): Auftragsumfang – ursprünglicher Auftrag und Zusatzaufträge
@@ -207,6 +233,18 @@
         }
         const hoUrl = `/workspace/proposals/${id}/abnahme`;
         const val = sel => panel.querySelector(sel)?.value ?? '';
+        const koUrl = `/workspace/proposals/${id}/kompass`;
+        if (e.target.closest('[data-ko-add]')) {
+          await api(koUrl, 'POST', {action: 'add', kind: val('[data-ko-addkind]'), owner: val('[data-ko-addowner]'), label: val('[data-ko-addlabel]'),
+            due_date: val('[data-ko-adddue]'), impact: val('[data-ko-addimpact]')});
+          return after('Voraussetzung ergänzt');
+        }
+        if (e.target.closest('[data-ko-start]')) {
+          const r = await api(koUrl, 'POST', {action: 'start', date: val('[data-ko-date]'), note: val('[data-ko-snote]'), ...(panel.querySelector('[data-ko-force]')?.checked ? {trotz_offener_punkte: true} : {})});
+          await after(r.notice);
+          $('#ofKickoff')?.scrollIntoView({block: 'center'});
+          return;
+        }
         if (e.target.closest('[data-ho-protocol]')) {
           const d = await api(hoUrl + '/protokoll');
           wsDownload(d.filename, d.markdown, 'text/markdown;charset=utf-8');
@@ -262,6 +300,15 @@
       const fd = sd && $('#ofPanel [data-of-followdate]');
       if (fd && !fd.dataset.touched && sd.value) fd.value = [plusDays(sd.value, 7), today()].sort().pop();
       if (e.target.matches?.('#ofPanel [data-of-followdate]')) e.target.dataset.touched = '1';
+      const ke = e.target.closest('#ofPanel [data-ko-state],#ofPanel [data-ko-owner],#ofPanel [data-ko-name],#ofPanel [data-ko-due],#ofPanel [data-ko-note]');
+      if (ke && current) {
+        const rowEl = ke.closest('[data-ko-row]'), iid = Number(rowEl.dataset.koRow);
+        const v = sel => rowEl.querySelector(sel).value;
+        api(`/workspace/proposals/${current.id}/kompass`, 'POST', {action: 'item', item_id: iid, state: v('[data-ko-state]'), owner: v('[data-ko-owner]'),
+          owner_name: v('[data-ko-name]'), due_date: v('[data-ko-due]'), note: v('[data-ko-note]')})
+          .then(r => after(r.notice || 'Gespeichert')).catch(err => { toast(err.message, true); window.wsOpenProposal(current.id); });
+        return;
+      }
       const it = e.target.closest('#ofPanel [data-ho-item]');
       if (it && current) {
         const note = it.closest('[data-ho-row]').querySelector('[data-ho-note]').value;

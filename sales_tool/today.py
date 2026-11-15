@@ -126,7 +126,12 @@ def wiedervorlage(conn, today=None):
     for k in due_items(conn, today):
         add('betreuung', f"Monatsrechnung {', '.join(k['due_labels'][:3])}{' …' if len(k['due_labels']) > 3 else ''} – Betreuung {k['number']}", k['company'], k['lead_id'],
             '', 'Rechnung erstellen', 'quotes', k['proposal_id'], f"{len(k['due_months'])} Monat(e) offen · {k['monthly_net_eur']:,.0f} € netto je Monat".replace(',', '.'))
-    order = {'termin': 0, 'rueckruf': 1, 'aufgabe': 2, 'naechster_schritt': 3, 'nachfassen': 4, 'angebot_frist': 5, 'betreuung': 6, 'bedarfsanalyse': 7, 'angebot_entwurf': 8}
+    from .kickoff import due_items as kickoff_due  # 2.0.0-dev28 (M38/M39): fällige Startvoraussetzungen
+    for r in kickoff_due(conn, today):
+        who = r['owner_name'] or {'ich': 'ich', 'kunde': 'Kunde', 'dritte': 'Dritte'}.get(r['owner'], r['owner'])
+        add('start', f"Startvoraussetzung {r['number']}: {r['label'][:120]}", r['company'], r['lead_id'], r['due_date'], 'Angebot öffnen', 'quotes',
+            r['proposal_id'], f"liefert: {who}" + (f" · ohne: {r['impact']}" if r['impact'] else '') + (' – beim Kunden nachfragen' if r['owner'] != 'ich' else ''))
+    order = {'termin': 0, 'rueckruf': 1, 'aufgabe': 2, 'naechster_schritt': 3, 'nachfassen': 4, 'start': 5, 'angebot_frist': 6, 'betreuung': 7, 'bedarfsanalyse': 8, 'angebot_entwurf': 9}
     items.sort(key=lambda i: (i['kind'] != 'termin', not i['overdue'], order.get(i['kind'], 9), i['due'] or '9999'))
     return items
 

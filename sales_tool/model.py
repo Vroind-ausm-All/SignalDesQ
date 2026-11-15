@@ -259,6 +259,8 @@ def init_db(conn: sqlite3.Connection):
     init_addenda(conn)  # 2.0.0-dev25: Zusatzaufträge zu angenommenen Aufträgen
     from .care import init_care
     init_care(conn)  # 2.0.0-dev26: Betreuung mit Laufzeit
+    from .kickoff import init_kickoff
+    init_kickoff(conn)  # 2.0.0-dev28: Projektkompass und Startvoraussetzungen
     conn.commit()
 
 
