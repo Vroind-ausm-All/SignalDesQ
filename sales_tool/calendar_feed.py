@@ -18,7 +18,7 @@ import re
 import secrets
 
 SETTING = 'calendar_feed'
-STATUS = {'geplant': 'TENTATIVE', 'bestaetigt': 'CONFIRMED', 'abgesagt': 'CANCELLED'}
+STATUS = {'geplant': 'TENTATIVE', 'bestaetigt': 'CONFIRMED', 'erledigt': 'CONFIRMED', 'abgesagt': 'CANCELLED'}
 
 
 def _settings(conn):
@@ -78,26 +78,46 @@ def _local(ts):
     return dt.datetime.strptime(ts[:16], '%Y-%m-%dT%H:%M')
 
 
+HEAD = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//SignalDesk//Termine//DE', 'CALSCALE:GREGORIAN']
+
+
+def _vevent(m, stamp):
+    """Ein Termin als VEVENT – nur Titel, Firma, Zeit, Ort, Status (gemeinsam für Abo und CalDAV)."""
+    try:
+        start = _local(m['starts_at'])
+    except ValueError:
+        return None
+    end = start + dt.timedelta(minutes=m['duration_min'] or 30)
+    lines = ['BEGIN:VEVENT', f"UID:meeting-{m['id']}@signaldesk.local", f'DTSTAMP:{stamp}',
+             f"DTSTART;TZID=Europe/Berlin:{start:%Y%m%dT%H%M%S}", f"DTEND;TZID=Europe/Berlin:{end:%Y%m%dT%H%M%S}",
+             f"SUMMARY:{_esc(m['title'])} – {_esc(m['company'])}", f"STATUS:{STATUS.get(m['status'], 'TENTATIVE')}"]
+    if m['location']:
+        lines.append(f"LOCATION:{_esc(m['location'])}")
+    return lines + ['DESCRIPTION:Termin aus SignalDesk. Notizen und Ansprechpartner stehen in SignalDesk.', 'END:VEVENT']
+
+
+def _out(lines):
+    return ('\r\n'.join(_fold(x) for x in lines) + '\r\n').encode('utf-8')
+
+
+def build_event(m):
+    """Einzelnes Kalenderobjekt für CalDAV. DTSTAMP fest aus dem Termin, damit unveränderte Termine nicht neu übertragen werden."""
+    stamp = re.sub(r'[^0-9T]', '', (m['created_at'] or '2000-01-01 00:00:00').replace(' ', 'T'))[:15] + 'Z'
+    ev = _vevent(m, stamp)
+    return _out(HEAD + ev + ['END:VCALENDAR']) if ev else None
+
+
 def build(conn, days_back=30):
     since = (dt.datetime.now() - dt.timedelta(days=days_back)).strftime('%Y-%m-%dT%H:%M')
     stamp = dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
-    lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//SignalDesk//Termine//DE', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
-             'X-WR-CALNAME:SignalDesk Termine', 'X-WR-TIMEZONE:Europe/Berlin']
+    lines = HEAD + ['METHOD:PUBLISH', 'X-WR-CALNAME:SignalDesk Termine', 'X-WR-TIMEZONE:Europe/Berlin']
     for m in conn.execute("""SELECT m.*, l.company FROM meetings m JOIN leads l ON l.id=m.lead_id
                              WHERE m.status IN ('geplant','bestaetigt','abgesagt') AND m.starts_at>=? ORDER BY m.starts_at""", (since,)):
-        try:
-            start = _local(m['starts_at'])
-        except ValueError:
-            continue
-        end = start + dt.timedelta(minutes=m['duration_min'] or 30)
-        lines += ['BEGIN:VEVENT', f"UID:meeting-{m['id']}@signaldesk.local", f'DTSTAMP:{stamp}',
-                  f"DTSTART;TZID=Europe/Berlin:{start:%Y%m%dT%H%M%S}", f"DTEND;TZID=Europe/Berlin:{end:%Y%m%dT%H%M%S}",
-                  f"SUMMARY:{_esc(m['title'])} – {_esc(m['company'])}", f"STATUS:{STATUS.get(m['status'], 'TENTATIVE')}"]
-        if m['location']:
-            lines.append(f"LOCATION:{_esc(m['location'])}")
-        lines += ['DESCRIPTION:Termin aus SignalDesk. Notizen und Ansprechpartner stehen in SignalDesk.', 'END:VEVENT']
+        ev = _vevent(m, stamp)
+        if ev:
+            lines += ev
     lines.append('END:VCALENDAR')
-    return ('\r\n'.join(_fold(x) for x in lines) + '\r\n').encode('utf-8')
+    return _out(lines)
 
 
 def route_calendar(h, conn, method, route):

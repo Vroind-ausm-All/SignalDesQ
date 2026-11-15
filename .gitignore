@@ -9,3 +9,6 @@ __pycache__/
 
 .venv/
 *.katalog-uploads/
+
+# 2.0.0-dev42: gemerkte Zugangsdaten (Kalender/Postfach) nie einchecken
+zugangsdaten.json

@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0-dev42 – Kalender-Abgleich über CalDAV
+
+Produktreview M24 Stufe 2 (offener Standard statt Anbieter-APIs – eine Umsetzung für Google, iCloud, mailbox.org, IONOS, Nextcloud und andere).
+
+- **SignalDesk → Kalender:** geplante, bestätigte, erledigte und abgesagte Termine werden angelegt bzw. aktualisiert (nur Titel, Firma, Zeit, Ort, Status – keine Notizen). Unveränderte Termine werden nicht erneut übertragen, in SignalDesk gelöschte entfernt. Fremde Kalendereinträge fasst SignalDesk nie an.
+- **Kalender → SignalDesk:** nur „belegt von … bis …“ der nächsten 60 Tage, ohne Titel oder Teilnehmer. Abgesagte und als „frei“ markierte Einträge zählen nicht.
+- **Konfliktwarnung** beim Anlegen eines Termins (belegte Kalenderzeit oder anderer SignalDesk-Termin); **freie Terminvorschläge** sparen belegte Zeiten aus.
+- **Aktualität sichtbar:** letzter Abgleich mit Ergebnis, Hinweis bei mehr als 24 Stunden.
+- **Zugangsdaten nie in der Datenbank:** Passwort nur im Arbeitsspeicher, auf Wunsch „auf diesem Rechner merken“ in einer eigenen Datei (Rechte 600). Die Oberfläche bekommt es nie zurück. App-Passwort empfohlen. Nur HTTPS; im Offline-Modus kein Abgleich.
+- Schema 44 (zwei neue Tabellen). 686 Tests (6 neu) unter Python 3.10 und 3.13, 33 Browser-Tests (1 neu).
+
 ## 2.0.0-dev41 – Kalender-Abo und Termin-Export
 
 Produktreview M24 Stufe 1 (Entscheidung des Eigentümers: offene Standards statt Anbieter-APIs).

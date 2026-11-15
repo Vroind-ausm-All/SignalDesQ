@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev41)
+# Bekannte Einschränkungen (Stand 2.0.0-dev42)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -246,3 +246,14 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Die Abo-Adresse zeigt auf diesen Rechner (127.0.0.1). Kalenderprogramme auf demselben Rechner können sie abonnieren; Web-Kalender im Internet (z. B. Google im Browser) können sie nicht abrufen – dort die .ics-Datei importieren oder später CalDAV nutzen.
 - Das Abo ist nur lesend; Änderungen im Kalender kommen nicht zurück.
 - Wer die Abo-Adresse kennt, sieht Titel, Firma, Zeit und Ort deiner Termine. Bei Verdacht einen neuen Schlüssel erzeugen.
+
+## Kalender-Abgleich über CalDAV (2.0.0-dev42)
+
+- Geprüft nur gegen einen nachgebauten CalDAV-Server in den Tests, **noch nicht an einem echten Anbieter** (Google, iCloud, mailbox.org, IONOS, Nextcloud …). Abweichungen einzelner Server sind möglich; die Meldungen nennen dann den Status.
+- Gebraucht wird die Adresse **eines einzelnen Kalenders**; eine automatische Suche nach Kalendern des Kontos gibt es nicht.
+- Nur Anmeldung mit Benutzername und (App-)Passwort. Anbieter, die nur OAuth erlauben, gehen nicht.
+- Der Abgleich läuft nur auf Knopfdruck („Jetzt abgleichen“), nicht automatisch. Ist er älter als 24 Stunden, erscheint ein Hinweis.
+- Aus dem Kalender werden nur belegte Zeiten der nächsten 60 Tage gelesen. Wiederkehrende Termine (RRULE) zählen nur mit ihrem Eintrag, den der Server liefert – Server, die Wiederholungen nicht auflösen, melden nur das erste Vorkommen.
+- Zeitzonen: Angaben mit Zeitzone werden als Ortszeit dieses Rechners verstanden (passend für Termine in Deutschland), UTC-Angaben werden umgerechnet.
+- Termine, die im Kalender verschoben werden, kommen nicht in SignalDesk zurück; beim nächsten Abgleich gilt wieder der Stand aus SignalDesk.
+- „Auf diesem Rechner merken“ legt das Passwort unverschlüsselt in `zugangsdaten.json` neben der Datenbank ab (nur für dein Benutzerkonto lesbar, unter Windows über das Benutzerprofil geschützt). Ohne „merken“ ist es nach einem Neustart weg.

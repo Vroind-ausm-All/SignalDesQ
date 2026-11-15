@@ -414,6 +414,9 @@ def make_handler(db_path, allowed_hosts=None):
                 from .calendar_feed import route_calendar
                 if route_calendar(self, conn, method, route):  # 2.0.0-dev41: Kalender-Abo und Export
                     return
+                from .caldav import route_caldav
+                if route_caldav(self, conn, method, route, db_path):  # 2.0.0-dev42: Kalender-Abgleich (CalDAV)
+                    return
                 from .search import route_search
                 if route_search(self, conn, method, route, query):  # 2.0.0-dev34: globale Suche
                     return
@@ -958,7 +961,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 43  # 2.0.0-dev39 – bei Schemaänderungen erhöhen (Grund einer Pause der Sammelprüfung)
+SCHEMA_VERSION = 44  # 2.0.0-dev42 – bei Schemaänderungen erhöhen (Kalender-Abgleich)
 
 
 def backup_before_migration(db):

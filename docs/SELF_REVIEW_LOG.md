@@ -858,3 +858,17 @@ M24 nach Empfehlung, Stufe 1 von 3. Ein Abo braucht keine Zugangsdaten und funkt
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.
+
+## Arbeitspaket 41 – Kalender-Abgleich über CalDAV (2.0.0-dev42)
+
+M24 nach Empfehlung, Stufe 2 von 3. Bewusst sparsam in Gegenrichtung: aus dem Kalender kommen nur belegte Zeiten, keine Inhalte – das genügt für Konfliktwarnung und freie Vorschläge und hält fremde Daten aus SignalDesk heraus.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 686 Tests bestanden (6 neu in `tests/test_v2_caldav.py`, gegen einen nachgebauten CalDAV-Server auf 127.0.0.1) |
+| Browser-Tests | 33 von 33 (neu `test_caldav_browser.py`): Zugang eintragen, Verbindung prüfen, abgleichen, Konfliktwarnung |
+| Abgleich | Termin geschrieben, zweiter Lauf überträgt nichts, Änderung wird übertragen, Löschung entfernt nur den eigenen Eintrag; fremder Eintrag unverändert (Test) |
+| Datenschutz | keine Notizen im Kalender; Titel fremder Einträge nicht in SignalDesk; Passwort weder in Datenbank noch WAL noch Antwort an die Oberfläche (Test) |
+| Grenzen | HTTPS-Pflicht außer auf diesem Rechner, Offline-Modus sendet nichts, falsches Passwort mit klarer Meldung (Test) |
+
+**Selbstbewertung 4 von 5.** Abzug: an keinem echten Anbieter gemessen, Abgleich nur auf Knopfdruck, keine automatische Kalendersuche im Konto (in `docs/EINSCHRAENKUNGEN.md` beschrieben).
