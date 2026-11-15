@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0-dev39 – Impressum-Sammelprüfung setzt nach Neustart fort
+
+Produktreview M23 – damit abgeschlossen.
+
+- **Automatisch fortsetzen:** Lief eine Impressum-Sammelprüfung beim Neustart, setzt SignalDesk sie beim Start fort. Bisher wartete sie auf einen Klick.
+- **Deine Pause gilt:** Hast du einen Lauf selbst pausiert, bleibt er pausiert. SignalDesk merkt sich dafür den Grund der Pause.
+- **Offline wartet:** Im Offline-Modus wird nichts fortgesetzt; der Lauf steht in „Heute“ als „wartet auf Fortsetzen (offline)“.
+- „Heute“ zeigt laufende Sammelprüfungen mit offenen Einträgen; von dort geht es zum Pausieren.
+- Tests: Das Aufräumen temporärer Testdatenbanken wiederholt jetzt auch bei „NotADirectoryError“ – so meldet Python 3.10 unter Windows eine noch gesperrte Datei (CI-Fehler in `test_sprintB_sweep`).
+- **Schemawechsel 42 → 43** (Grund einer Pause). 678 Tests (3 neu) unter Python 3.10 und 3.13, 30 Browser-Tests.
+
 ## 2.0.0-dev38 – Angebot mit eigener Adresse
 
 Produktreview M07 (Teil).

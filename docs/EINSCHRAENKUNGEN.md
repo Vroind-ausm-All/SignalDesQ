@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev37)
+# Bekannte Einschränkungen (Stand 2.0.0-dev39)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -227,7 +227,7 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 
 ## Hintergrundaufträge (2.0.0-dev35)
 
-- Website-Bewertung, Karriereseiten-Scan (dev35), KI-Analyse, Schnellprüfung und Suche nach öffentlichen Ansprechpartnern (dev36) setzen nach einem Neustart fort. Läufe, die vor dem Update begonnen wurden, werden einmalig als „durch Neustart unterbrochen“ gekennzeichnet. Die Impressum-Sammelprüfung pausiert nach einem Neustart und wird von Hand fortgesetzt.
+- Website-Bewertung, Karriereseiten-Scan (dev35), KI-Analyse, Schnellprüfung und Suche nach öffentlichen Ansprechpartnern (dev36) setzen nach einem Neustart fort. Läufe, die vor dem Update begonnen wurden, werden einmalig als „durch Neustart unterbrochen“ gekennzeichnet. Die Impressum-Sammelprüfung setzt seit dev39 nach einem Neustart automatisch fort – außer du hattest sie pausiert oder SignalDesk ist offline.
 - Ein fortgesetzter Schritt beginnt von vorn (die Seite wird erneut gelesen); halbfertige Zwischenergebnisse werden nicht übernommen.
 
 ## Hinweise statt Urteile in der Website-Bewertung (2.0.0-dev37)

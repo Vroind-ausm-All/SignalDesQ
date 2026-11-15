@@ -46,12 +46,39 @@ def init_imprint_batch(conn):
       );
       CREATE INDEX IF NOT EXISTS idx_batch_items_run ON batch_items(run_id, status);
     ''')
+    # 2.0.0-dev39 (M23): Grund einer Pause – „nutzer“ (bleibt pausiert) oder „neustart“ (wird automatisch fortgesetzt)
+    if 'paused_reason' not in {r[1] for r in conn.execute('PRAGMA table_info(batch_runs)')}:
+        conn.execute("ALTER TABLE batch_runs ADD COLUMN paused_reason TEXT NOT NULL DEFAULT ''")
 
 
 def recover_batches(conn):
-    """Nach Neustart: laufende Einträge zurücksetzen, Läufe pausieren (Fortsetzen per Klick)."""
+    """Nach Neustart: laufende Einträge zurücksetzen; Läufe als „durch Neustart pausiert“ kennzeichnen. Beim Start der App
+    werden sie automatisch fortgesetzt (resume_after_restart) – außer im Offline-Modus. Von dir pausierte Läufe bleiben pausiert."""
     conn.execute("UPDATE batch_items SET status='pending', started_at='' WHERE status='running'")
-    conn.execute("UPDATE batch_runs SET status='paused' WHERE status='running'")
+    conn.execute("UPDATE batch_runs SET status='paused', paused_reason='neustart' WHERE status='running'")
+
+
+def resume_after_restart(db_path):
+    """2.0.0-dev39 (M23): durch Neustart pausierte Sammelprüfungen fortsetzen. Gibt die Zahl der fortgesetzten Läufe zurück."""
+    from . import netpolicy
+    with connect(db_path) as conn:
+        netpolicy.load(conn)
+        if netpolicy.offline():
+            return 0  # offline: warten, bis du wieder online gehst (Fortsetzen dann per Klick oder beim nächsten Start)
+        ids = [r['id'] for r in conn.execute("SELECT id FROM batch_runs WHERE status='paused' AND paused_reason='neustart'")]
+        for rid in ids:
+            conn.execute("UPDATE batch_runs SET status='running', paused_reason='' WHERE id=?", (rid,))
+        conn.commit()
+    for rid in ids:
+        start_runner(db_path, rid)
+    return len(ids)
+
+
+def open_runs(conn):
+    """Für „Heute“: laufende und durch Neustart pausierte Sammelprüfungen mit offenen Einträgen."""
+    return conn.execute("""SELECT r.id, r.label, r.status, r.paused_reason,
+                                  (SELECT COUNT(*) FROM batch_items i WHERE i.run_id=r.id AND i.status IN ('pending','running')) AS open,
+                                  r.total FROM batch_runs r WHERE r.status='running' OR (r.status='paused' AND r.paused_reason='neustart')""").fetchall()
 
 
 # ---------------------------------------------------------------- Eingabe
@@ -230,11 +257,11 @@ def control_run(conn, run_id, action, db_path):
     if action == 'pause':
         if run['status'] != 'running':
             raise ValueError('Nur laufende Aufträge können pausiert werden.')
-        conn.execute("UPDATE batch_runs SET status='paused' WHERE id=?", (run_id,))
+        conn.execute("UPDATE batch_runs SET status='paused', paused_reason='nutzer' WHERE id=?", (run_id,))
     elif action == 'resume':
         if run['status'] != 'paused':
             raise ValueError('Nur pausierte Aufträge können fortgesetzt werden.')
-        conn.execute("UPDATE batch_runs SET status='running' WHERE id=?", (run_id,))
+        conn.execute("UPDATE batch_runs SET status='running', paused_reason='' WHERE id=?", (run_id,))
         conn.commit()
         start_runner(db_path, run_id)
     elif action == 'cancel':

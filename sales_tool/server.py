@@ -948,7 +948,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 42  # 2.0.0-dev30 – bei Schemaänderungen erhöhen (Kurzberichte)
+SCHEMA_VERSION = 43  # 2.0.0-dev39 – bei Schemaänderungen erhöhen (Grund einer Pause der Sammelprüfung)
 
 
 def backup_before_migration(db):
@@ -1104,6 +1104,9 @@ def main():
         if research_jobs.pending(conn)[0]:
             research_jobs.ensure_workers(db)  # nach Neustart offene Recherche-Aufträge fortsetzen
             print("Offene Recherche-Aufträge werden fortgesetzt.")
+    from .imprint_batch import resume_after_restart
+    if resume_after_restart(db):  # 2.0.0-dev39 (M23): durch Neustart pausierte Impressum-Sammelprüfungen
+        print("Unterbrochene Impressum-Sammelprüfung wird fortgesetzt.")
     url = f"http://127.0.0.1:{port}"
     if port != args.port:
         print(f"Port {args.port} ist belegt – weiche auf {port} aus.")

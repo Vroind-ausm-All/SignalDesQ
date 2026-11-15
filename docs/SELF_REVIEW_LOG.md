@@ -817,6 +817,19 @@ Kleiner Schritt aus M07: Seit der globalen Suche (dev34) springt man oft direkt 
 
 **Selbstbewertung 4 von 5.** Abzug: Filteradressen weiterer Listen stehen noch aus.
 
+## Arbeitspaket 38 – Sammelprüfung nach Neustart (2.0.0-dev39)
+
+Auf Wunsch des Eigentümers nach Empfehlung umgesetzt: automatisch fortsetzen, aber nur, was beim Neustart wirklich lief; nie im Offline-Modus; sichtbar in „Heute“. Kein Umbau auf das gemeinsame Auftragssystem – die Sammelprüfung hatte schon einen gespeicherten Zustand mit Pause, Fortsetzen und Abbruch.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 678 Tests bestanden (2 neu in `tests/test_v2_batch_resume.py`, 1 neu in `tests/test_tmpclean.py`) |
+| Browser-Tests | 30 von 30 |
+| CI-Fehler | `unit (windows-latest, Python 3.10)`: Aufräumen scheiterte mit NotADirectoryError (WinError 267) bei gesperrter Datei – Test zeigt, dass der alte Helfer scheiterte |
+| Fund beim Testen | Eigener Fehler: Die neue Testklasse erbte zunächst von einer bestehenden; deren Tests liefen dadurch doppelt – jetzt eigener Aufbau |
+
+**Selbstbewertung 5 von 5** für dieses Paket.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.
