@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev41 – Kalender-Abo und Termin-Export
+
+Produktreview M24 Stufe 1 (Entscheidung des Eigentümers: offene Standards statt Anbieter-APIs).
+
+- **Neuer Abschnitt „Einstellungen → Kalender & Postfach“.**
+- **Kalender-Abo:** Eine Abo-Adresse mit zufälligem Schlüssel liefert alle geplanten, bestätigten und abgesagten Termine im iCalendar-Format, für Kalenderprogramme auf diesem Rechner. Das Abo lässt sich abschalten; ein neuer Schlüssel macht die alte Adresse sofort ungültig. Ohne gültigen Schlüssel gibt es nichts. Mit eingeschaltetem Login bleibt das Abo über den Schlüssel erreichbar, die Verwaltung nicht.
+- **Export** aller Termine als .ics-Datei – für jeden Kalender, auch Web-Kalender.
+- **Inhalt nur das Nötige:** Titel, Firma, Zeit, Ort, Status. Gesprächsnotizen und Personen bleiben in SignalDesk.
+- Kein Schemawechsel. 680 Tests (2 neu) unter Python 3.10 und 3.13, 32 Browser-Tests (1 neu).
+
 ## 2.0.0-dev40 – Firmenakte als eigene Seite
 
 Produktreview M07, Variante B (Entscheidung des Eigentümers) – damit abgeschlossen.

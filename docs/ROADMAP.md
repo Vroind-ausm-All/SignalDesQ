@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev40. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev41. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -62,7 +62,7 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 | M21 | Lokaler Recherchepilot | P0 | offen | – | 50–100 Firmen gegen Referenzliste; Messgrößen aus dem Review | **Eigentümer:** echter OSM-Auszug und Referenzliste auf dem eigenen Rechner |
 | M22 | Quellenstatus und Datenqualität | P1 | teilweise | dev6–dev9 | „Keine Website gefunden“ ≠ „hat keine Website“ | Ergebnisse aus M21 |
 | M23 | Gemeinsame Hintergrundaufträge vervollständigen | P1 | erledigt | Masterplan 2.0, dev35, dev36, dev39 | Alle Module mit gleichem Lebenszyklus nach Neustart | dev35: Website-Bewertung und Karriereseiten-Scan; dev36: KI-Analyse, Schnellprüfung, öffentliche Ansprechpartner – jeweils im gemeinsamen Auftragssystem, nach Neustart fortgesetzt. dev39: Impressum-Sammelprüfung setzt nach Neustart automatisch fort (von dir pausierte Läufe bleiben pausiert; offline wartet sie sichtbar). Die Einzelquellen-Wiederholung der Sammelsuche nutzt das Auftragssystem; ein Thread nur noch für Suchen aus Versionen davor |
-| M24 | Kalender und dokumentierte Exporte | P2 | offen | Etappe D | Aktualität und Konflikte geprüft | Anbieterwahl |
+| M24 | Kalender und dokumentierte Exporte | P2 | teilweise | dev41 | Stufe 1: Kalender-Abo (iCalendar, geheimer Schlüssel, abschaltbar) und .ics-Export (Unit- und Browser-Test) | Stufe 2 CalDAV mit Konfliktprüfung (dev42), Stufe 3 IMAP-Entwürfe (dev43); Entscheidung des Eigentümers: Standards statt Anbieter-APIs |
 | M25 | Kundenfähiger Kurzbericht | P2 | erledigt | dev30 | Auswahl nur aus bestätigten bzw. freigegebenen Befunden (serverseitig geprüft); Bericht ohne Punktwerte, Prioritäten, Angebotsideen, Hypothesen; gesperrte Firma ohne Bericht; gezeigte Befunde gespeichert (Unit- und Browser-Test) | Nur Markdown, kein gestaltetes PDF |
 | M26 | Aktuellen Status in einer Quelle pflegen | P1 | erledigt | dev13 | Diese Tabelle; Launch-Audit als historisch gekennzeichnet | bei jeder Stufe nachführen |
 

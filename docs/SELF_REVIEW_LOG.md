@@ -842,6 +842,19 @@ Variante B auf Entscheidung des Eigentümers. Umsetzung bewusst schmal: dasselbe
 
 **Selbstbewertung 4 von 5.** Abzug: keine zwei Akten nebeneinander.
 
+## Arbeitspaket 40 – Kalender-Abo (2.0.0-dev41)
+
+M24 nach Empfehlung, Stufe 1 von 3. Ein Abo braucht keine Zugangsdaten und funktioniert mit jedem Kalenderprogramm; die Grenze (nicht aus dem Internet erreichbar) ist im Abschnitt selbst erklärt.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 680 Tests bestanden (2 neu in `tests/test_v2_calendar_feed.py`) |
+| Browser-Tests | 32 von 32 (neu `test_calendar_browser.py`): Abo einschalten, Adresse liefert Termine, Ausschalten macht sie ungültig |
+| Wackeliger Test behoben | `test_kickoff_browser.py` füllte unter Last ein Eingabefeld, das sich gerade neu aufbaute, und wartete auf eine Meldung, die schnell überschrieben wurde – Eintragen und Klick jetzt in einem Schritt, Meldungen werden mitgeschrieben (Anwendung unverändert) |
+| Datenschutz | Notizen nicht im Kalender (Test); Zugriff nur mit Schlüssel, Verwaltung nur mit Login (Test) |
+
+**Selbstbewertung 4 von 5.** Abzug: nur lesend – der Abgleich folgt mit CalDAV.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

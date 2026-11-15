@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev40)
+# Bekannte Einschränkungen (Stand 2.0.0-dev41)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -240,3 +240,9 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Die Akte ersetzt beim Öffnen die aktuelle Ansicht; zwei Akten nebeneinander gibt es nicht.
 - Lesezeichen mit der alten Form `?firma=ID` funktionieren weiter und öffnen die Akte als Seite.
 - Escape schließt die Akte weiterhin (mit Rückfrage bei ungespeicherten Änderungen).
+
+## Kalender-Abo (2.0.0-dev41)
+
+- Die Abo-Adresse zeigt auf diesen Rechner (127.0.0.1). Kalenderprogramme auf demselben Rechner können sie abonnieren; Web-Kalender im Internet (z. B. Google im Browser) können sie nicht abrufen – dort die .ics-Datei importieren oder später CalDAV nutzen.
+- Das Abo ist nur lesend; Änderungen im Kalender kommen nicht zurück.
+- Wer die Abo-Adresse kennt, sieht Titel, Firma, Zeit und Ort deiner Termine. Bei Verdacht einen neuen Schlüssel erzeugen.
