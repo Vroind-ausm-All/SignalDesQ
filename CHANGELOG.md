@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev48 – Fehlerbehebung: Budget wieder fair auf alle Quellen verteilt
+
+Befund des Eigentümers (Bildschirmfoto, Stuttgart 50 km): GLEIF meldete 300 von 300 neuen Firmen, Wikidata, OpenStreetMap und TED
+„übersprungen – Budget von 300 neuen Firmen erreicht“ – obwohl der lokale OpenStreetMap-Bestand 165.548 Betriebe (77.060 mit Website) hat.
+
+- **Ursache:** Seit der Umstellung auf den gemeinsamen Auftragsdienst (v1.16) läuft jede Quelle als eigener Schritt. Die faire Aufteilung des Budgets rechnete dann nur mit der gerade laufenden Quelle – die erste bekam alles. Die vorhandene Prüfung rief die Suche ohne Auftragsdienst auf und sah das nicht.
+- **Behoben:** Geteilt wird durch alle Quellen der Suche, die noch ausstehen. Bei 4 Quellen und 300 Firmen bekommt jede zunächst 75; was eine nicht braucht, geht an die nächste.
+- **Neuer Test** über den echten Auftragsweg; er scheiterte vorher mit genau der Meldung aus dem Bildschirmfoto.
+- Kein Schemawechsel. Bereits gelaufene Suchen bleiben, wie sie sind – für OpenStreetMap-Treffer die Suche neu starten.
+
 ## 2.0.0-dev47 – Erlebnisstudien und „Was du lernst“
 
 Produktreview M30 und M34 (Entscheidung des Eigentümers: beides).

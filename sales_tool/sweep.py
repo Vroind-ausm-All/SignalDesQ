@@ -544,10 +544,14 @@ def run_sweep(db_path, sid, only=None, finalize=True):
         ctx['_deadline'] = started + budget['max_minutes'] * 60
         _progress(conn, sid, '_budget', started=started, **budget, companies=used)
         total_left = ctx['_budget_left']
+        settled = {k for k, v in prog.items() if not k.startswith('_') and v.get('status') in ('fertig', 'übersprungen', 'fehler')}
         for pos, source in enumerate(sources):
             # 2.0.0-dev6: Budget fair verteilen – sonst verbraucht die erste Quelle alles und die nächste läuft nie
             # (Praxistest: GLEIF 300 von 300, OpenStreetMap übersprungen). Ungenutztes geht an die folgenden Quellen.
-            share = -(-total_left // (len(sources) - pos)) if total_left > 0 else 0
+            # 2.0.0-dev48: Über den Auftragsdienst läuft jede Quelle einzeln (only=[quelle]) – geteilt wird daher durch alle Quellen
+            # der Suche, die ab hier noch ausstehen, nicht nur durch die gerade laufende (Befund Stuttgart 50 km: GLEIF 300 von 300).
+            ahead = [s for s in p['sources'][p['sources'].index(source):] if s == source or s not in settled]
+            share = -(-total_left // max(1, len(ahead))) if total_left > 0 else 0
             ctx['_budget_left'] = share
             if time.time() > ctx['_deadline']:
                 _progress(conn, sid, source, status='übersprungen', error='', detail=f"Zeitbudget von {budget['max_minutes']} Min. erreicht")
