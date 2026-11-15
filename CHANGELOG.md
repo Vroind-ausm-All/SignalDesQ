@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0-dev40 – Firmenakte als eigene Seite
+
+Produktreview M07, Variante B (Entscheidung des Eigentümers) – damit abgeschlossen.
+
+- **Die Firmenakte ist eine eigene Seite** in voller Breite statt eines Fensters über der Liste. Die Ansicht dahinter ist ausgeblendet, die Seite scrollt normal, die Kopfzeile zeigt „Firmenakte“.
+- **Adresse `#/firmen/akte/ID`**, mit den Filtern der Firmenliste (z. B. `?suche=Kanzlei`). Neuladen öffnet die Akte wieder; „← Zurück“ bzw. Browser-Zurück führt dorthin, wo du herkamst – mit denselben Filtern. Ältere Adressen mit `?firma=ID` gelten weiter.
+- Reiter, Schutz ungespeicherter Eingaben und alle Funktionen der Akte sind unverändert.
+- Der Navigationstest prüft jetzt die neue Adresse statt `?firma=`. Kein Schemawechsel. 678 Tests unter Python 3.10 und 3.13, 31 Browser-Tests (1 neu).
+
 ## 2.0.0-dev39 – Impressum-Sammelprüfung setzt nach Neustart fort
 
 Produktreview M23 – damit abgeschlossen.

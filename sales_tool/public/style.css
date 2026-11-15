@@ -820,3 +820,10 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 @media (max-width:760px){.gs-open .gs-label,.gs-open kbd{display:none}.gs-open{padding-left:8px;padding-right:8px;min-width:0}.top-actions{gap:8px}}
 /* 2.0.0-dev37 (M28): Faustregeln als Hinweis statt Urteil */
 .sc-res.hinweis{background:var(--info-bg);color:var(--info-fg)}
+
+/* 2.0.0-dev40 (M07 B): Firmenakte als eigene Seite im Inhaltsbereich */
+.akte-page .main > .content{display:none!important}
+.akte-page #modal.modal-backdrop{position:static;inset:auto;z-index:auto;background:none;padding:0;display:block}
+.akte-page #modal .modal{width:auto;max-width:1450px;margin:0 auto;max-height:none;overflow:visible;box-shadow:none;border:0;border-radius:0;background:transparent}
+.akte-page #modal .modal header{top:0}
+.akte-back{width:auto!important;padding:0 12px;font-weight:700;white-space:nowrap}

@@ -830,6 +830,18 @@ Auf Wunsch des Eigentümers nach Empfehlung umgesetzt: automatisch fortsetzen, a
 
 **Selbstbewertung 5 von 5** für dieses Paket.
 
+## Arbeitspaket 39 – Firmenakte als eigene Seite (2.0.0-dev40)
+
+Variante B auf Entscheidung des Eigentümers. Umsetzung bewusst schmal: dasselbe Element mit Reitern und Eingabeschutz, nur an anderer Stelle und anders dargestellt. So bleiben alle Funktionen und die bestehenden Tests gültig; geändert hat sich nur die Adresse.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 678 Tests bestanden |
+| Browser-Tests | 31 von 31 (neu `test_akte_page_browser.py`): Seite statt Fenster, Zurück-Knopf, Browser-Zurück aus einer anderen Ansicht, Handyansicht ohne seitliches Scrollen; `test_navigation_browser.py` auf die neue Adresse angepasst |
+| Fund beim Arbeiten | Ohne die Listenfilter in der Akten-Adresse ging beim Neuladen die gefilterte Liste verloren – Filter wandern jetzt mit |
+
+**Selbstbewertung 4 von 5.** Abzug: keine zwei Akten nebeneinander.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

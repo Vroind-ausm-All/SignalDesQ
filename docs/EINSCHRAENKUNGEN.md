@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev39)
+# Bekannte Einschränkungen (Stand 2.0.0-dev40)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -234,3 +234,9 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 
 - Vier Faustregeln (Überschriftenzählung, Zahl der Schriftfamilien, Jahreszahl im Fußbereich, Zahl der Navigationslinks) liefern nur noch Hinweise. Die übrigen Rubriken beruhen auf Messungen (z. B. Ladezeit, defekte Links, Darstellung auf dem Smartphone) und bleiben „auffällig“, wenn die Schwelle überschritten ist – ihre Schwellen sind weiterhin Vorgaben, keine fachlich geprüften Grenzwerte.
 - Bewertungen vor dev37 (Version 2.0) und danach (2.1) werden nicht miteinander verglichen; nach einer neuen Bewertung steht der Vergleich wieder zur Verfügung.
+
+## Firmenakte als eigene Seite (2.0.0-dev40)
+
+- Die Akte ersetzt beim Öffnen die aktuelle Ansicht; zwei Akten nebeneinander gibt es nicht.
+- Lesezeichen mit der alten Form `?firma=ID` funktionieren weiter und öffnen die Akte als Seite.
+- Escape schließt die Akte weiterhin (mit Rückfrage bei ungespeicherten Änderungen).

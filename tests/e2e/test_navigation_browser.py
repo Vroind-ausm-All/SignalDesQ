@@ -1,7 +1,8 @@
 """Browserprüfung 2.0.0-dev14 (Produktreview M06/M07, U01–U03, Abnahmefall T05):
 - Sechs Bereiche in der Seitenleiste; jeder Bereich öffnet seine Standardansicht, die übrigen Ansichten stehen als Reiter oben.
 - Jede Ansicht hat eine Adresse; Neuladen bleibt in der Ansicht; Zurück und Vor wechseln zwischen den Ansichten.
-- Eine Firma hat eine Adresse (?firma=ID): Neuladen öffnet sie wieder, Zurück schließt sie und zeigt die gefilterte Liste.
+- Eine Firma hat eine Adresse (seit dev40 als eigene Seite #/firmen/akte/ID, mit den Filtern der Liste): Neuladen öffnet sie wieder,
+  Zurück schließt sie und zeigt die gefilterte Liste.
 - Die Filter der Firmenliste stehen in der Adresse und überstehen das Neuladen.
 - Einstellungen sind ein eigener Bereich; „Leistungen & Preise“ ist aus den Angeboten erreichbar.
 Fiktive Firmen, keine Abrufe nach außen."""
@@ -100,7 +101,8 @@ class NavigationBrowserTests(unittest.TestCase):
                         page.wait_for_function('() => location.hash.includes("suche=Kanzlei")')
                         page.locator('#leadRows tr', has_text='Muster Steuerkanzlei').click()
                         page.locator('#leadTabs').wait_for(state='visible')
-                        self.assertIn(f"firma={lead['id']}", page.url)
+                        self.assertIn(f"#/firmen/akte/{lead['id']}?suche=Kanzlei", page.url)  # dev40 (M07 B): Akte als eigene Seite
+                        self.assertTrue(page.locator('#viewLeads').is_hidden(), 'Liste dahinter ausgeblendet')
                         page.reload()  # Firma per Adresse wieder öffnen
                         page.locator('#leadTabs').wait_for(state='visible', timeout=15000)
                         self.assertEqual(page.text_content('#modalTitle'), 'Muster Steuerkanzlei')
