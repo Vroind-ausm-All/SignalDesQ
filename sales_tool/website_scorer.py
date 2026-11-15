@@ -181,7 +181,7 @@ def validate_config(cfg):
     return out
 
 
-SCORE_ENGINE_VERSION = '2.0-no-portal-inference'
+SCORE_ENGINE_VERSION = '2.1-heuristics-as-hints'  # 2.0.0-dev37 (M28): pauschale Faustregeln liefern Hinweise statt Urteile
 
 
 def config_hash(cfg):
@@ -451,6 +451,23 @@ def _r(result, evidence, url=None, shot=None, method='messung', certainty='gemes
 
 
 UNKNOWN_RENDER = 'Nur mit gerenderter Seite bewertbar – Renderer nicht verfügbar oder Seite nicht darstellbar.'
+# 2.0.0-dev37 (Produktreview M28): Diese Rubriken beruhen auf pauschalen Faustregeln (Anzahl Schriftfamilien, Jahreszahl im Fuß,
+# Überschriftenzählung, Zahl der Navigationslinks). Ein Treffer ist ein „hinweis“ zum Prüfen, kein Urteil: Er zählt als geprüft
+# (Belegabdeckung), aber nicht als Mangel in der Priorität, belegt keine Angebotsposition und erscheint nicht im Kurzbericht.
+HINT_RUBRICS = ('A3_heading_hierarchy', 'A6_font_consistency', 'A7_freshness', 'B7_navigation')
+HINT_NOTE = {
+    'A3_heading_hierarchy': 'Hinweis, kein Urteil: Viele gute Seiten setzen Überschriften anders (z. B. Logo als H1, Abschnitte als H3) – Lesbarkeit im Browser prüfen.',
+    'A6_font_consistency': 'Hinweis, kein Urteil: Gezählt werden auch Symbol-, Formular- und Fallback-Schriften – prüfen, ob der Auftritt tatsächlich uneinheitlich wirkt.',
+    'A7_freshness': 'Hinweis, kein Urteil: Eine alte Jahreszahl im Fuß sagt nichts über die Aktualität der Inhalte – Inhalte stichprobenartig prüfen.',
+    'B7_navigation': 'Hinweis, kein Urteil: Mega-Menüs und Seiten mit Menü-Knopf können viele bzw. keine sichtbaren Links haben – Bedienung selbst ausprobieren.',
+}
+
+
+def _hint(rid, flagged, evidence, *args, **kw):
+    """Faustregel: statt „auffällig“ ein Hinweis mit Erklärung, warum die Regel irren kann."""
+    if flagged:
+        return _r('hinweis', f'{evidence} {HINT_NOTE[rid]}', *args, **kw)
+    return _r('ok', evidence, *args, **kw)
 
 
 def rubric_results(cap, cfg):
@@ -480,8 +497,8 @@ def rubric_results(cap, cfg):
         res['A5_tap_targets'] = _r('auffaellig' if m['smallTapTargets'] >= th['small_tap_targets'] else 'ok',
                                    f'{m["smallTapTargets"]} Links/Buttons kleiner als 32 × 32 px (Schwelle {th["small_tap_targets"]}).', url, 'mobile')
         fams = d.get('fontFamilies') or []
-        res['A6_font_consistency'] = _r('auffaellig' if len(fams) > th['font_families_max'] else 'ok',
-                                        f'{len(fams)} Schriftfamilien im Einsatz: {", ".join(fams[:6])}.', url, 'desktop', 'messung', 'beobachtet')
+        res['A6_font_consistency'] = _hint('A6_font_consistency', len(fams) > th['font_families_max'],
+                                           f'{len(fams)} Schriftfamilien im Einsatz: {", ".join(fams[:6])}.', url, 'desktop', 'messung', 'beobachtet')
         if d.get('images'):
             pct = round(100 * d['imagesNoAlt'] / d['images'])
             res['A4_alt_texts'] = _r('auffaellig' if pct > th['images_no_alt_pct'] else 'ok', f'{d["imagesNoAlt"]} von {d["images"]} sichtbaren Bildern ohne Alt-Text ({pct} %).', url, 'desktop')
@@ -491,12 +508,12 @@ def rubric_results(cap, cfg):
         for rid in ('A1_mobile_overflow', 'A2_small_text', 'A4_alt_texts', 'A5_tap_targets', 'A6_font_consistency'):
             res[rid] = _r('unbekannt', UNKNOWN_RENDER)
     hierarchy_ok = d.get('h1') == 1 and (d.get('h2') or 0) >= 1
-    res['A3_heading_hierarchy'] = _r('ok' if hierarchy_ok else 'auffaellig',
-                                     f'{d.get("h1")} H1-Überschrift(en), {d.get("h2")} H2-Überschrift(en) auf der Startseite.', url, 'desktop' if rendered else None, 'dom', 'beobachtet')
+    res['A3_heading_hierarchy'] = _hint('A3_heading_hierarchy', not hierarchy_ok,
+                                        f'{d.get("h1")} H1-Überschrift(en), {d.get("h2")} H2-Überschrift(en) auf der Startseite.', url, 'desktop' if rendered else None, 'dom', 'beobachtet')
     year = d.get('copyrightYear')
     now_year = dt.date.today().year
-    res['A7_freshness'] = _r('unbekannt', 'Keine Copyright-/Stand-Jahreszahl gefunden.', method='dom') if not year else _r(
-        'auffaellig' if now_year - year > th['copyright_years_old'] else 'ok', f'Jüngste Jahresangabe im Fußbereich: {year}.', url, None, 'dom', 'beobachtet')
+    res['A7_freshness'] = _r('unbekannt', 'Keine Copyright-/Stand-Jahreszahl gefunden.', method='dom') if not year else _hint(
+        'A7_freshness', now_year - year > th['copyright_years_old'], f'Jüngste Jahresangabe im Fußbereich: {year}.', url, None, 'dom', 'beobachtet')
     # B – Web & Conversion
     timing = d.get('timing')
     if timing and timing.get('load'):
@@ -532,8 +549,8 @@ def rubric_results(cap, cfg):
     else:
         res['B6_broken_links'] = _r('unbekannt', 'Keine internen Links prüfbar.')
     nav = d.get('navLinks')
-    res['B7_navigation'] = _r('unbekannt', UNKNOWN_RENDER) if nav is None else _r(
-        'auffaellig' if nav == 0 or nav > th['nav_items_max'] else 'ok',
+    res['B7_navigation'] = _r('unbekannt', UNKNOWN_RENDER) if nav is None else _hint(
+        'B7_navigation', nav == 0 or nav > th['nav_items_max'],
         'Keine erkennbare Navigation im Kopfbereich.' if nav == 0 else f'{nav} sichtbare Links in der Hauptnavigation (Schwelle {th["nav_items_max"]}).', url, 'desktop', 'dom', 'beobachtet')
     service = [l for l in (d.get('links') or []) if re.search(r'leistung|produkt|service|lösung|loesung|solution|angebot|portfolio|branchen|products', l['text'] + ' ' + l['href'], re.I)]
     res['B8_service_pages'] = _r('ok' if service else 'auffaellig', (f'{len(service)} Links zu Leistungs-/Produktseiten, z. B. „{service[0]["text"] or service[0]["href"]}“.' if service else 'Keine Links zu Leistungs- oder Produktseiten auf der Startseite erkannt.'), url, None, 'dom', 'beobachtet')

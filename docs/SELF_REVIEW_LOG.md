@@ -792,6 +792,19 @@ Die drei Läufe hatten dasselbe Muster (`run_job` plus Thread). Ein kleiner geme
 
 **Selbstbewertung 4 von 5.** Abzug: Impressum-Sammelprüfung und Einzelquellen-Wiederholung der Sammelsuche laufen noch eigenständig.
 
+## Arbeitspaket 36 – Faustregeln als Hinweis (2.0.0-dev37)
+
+Bewusste Verhaltensänderung nach Review M28: Die vier Regeln zählen etwas (Schriftfamilien, Jahreszahl, Überschriften, Links), das nur lose mit Qualität zusammenhängt. Als Urteil hätten sie die Priorität verzerrt und – über M32 – sogar Angebotspositionen „belegt“. Jetzt sind sie Prüfhinweise. Messbasierte Rubriken bleiben unverändert.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 675 Tests bestanden (2 neu in `tests/test_v2_rubric_hints.py`) |
+| Rendering-Tests mit echtem Browser | 14 von 14 (`test_phase2_scoring` mit Chromium, sonst übersprungen) |
+| Angepasste Tests | `test_weak_site_flags_measured_issues` und `test_weak_site_is_flagged_from_real_rendering`: die vier Regeln jetzt als Hinweis; der Bereichswert wird gegen die Rechnung geprüft statt gegen eine feste Schwelle |
+| Browser-Tests | 29 von 29 |
+
+**Selbstbewertung 4 von 5.** Abzug: Die Schwellen der übrigen Rubriken sind weiterhin Vorgaben ohne Fachreview (M29/M33).
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

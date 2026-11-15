@@ -818,3 +818,5 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 .gs-results [role=option] small{display:block;color:var(--muted)}
 .gs-results [role=option][aria-selected=true]{background:var(--accent-soft);color:var(--accent-ink)}
 @media (max-width:760px){.gs-open .gs-label,.gs-open kbd{display:none}.gs-open{padding-left:8px;padding-right:8px;min-width:0}.top-actions{gap:8px}}
+/* 2.0.0-dev37 (M28): Faustregeln als Hinweis statt Urteil */
+.sc-res.hinweis{background:var(--info-bg);color:var(--info-fg)}

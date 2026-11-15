@@ -72,13 +72,20 @@ class RubricAndScoreTests(unittest.TestCase):
         m = facts(overflowX=True, smallText=40, smallTapTargets=12)
         r = self.run_score(capture(d, m, broken=['https://firma.example/alt']))
         flagged = {f['rubric'] for f in r['findings'] if f['result'] == 'auffaellig'}
-        for rid in ('A1_mobile_overflow', 'A2_small_text', 'A3_heading_hierarchy', 'A4_alt_texts', 'A5_tap_targets', 'A6_font_consistency',
-                    'A7_freshness', 'B1_load_time', 'B2_page_weight', 'B3_cta_above_fold', 'B4_contact_options', 'B6_broken_links',
+        for rid in ('A1_mobile_overflow', 'A2_small_text', 'A4_alt_texts', 'A5_tap_targets',
+                    'B1_load_time', 'B2_page_weight', 'B3_cta_above_fold', 'B4_contact_options', 'B6_broken_links',
                     'B9_technical', 'C1_pdf_workflows', 'C2_manual_requests'):
             self.assertIn(rid, flagged, rid)
+        # 2.0.0-dev37 (Produktreview M28): pauschale Faustregeln liefern Hinweise statt Urteile
+        hints = {f['rubric'] for f in r['findings'] if f['result'] == 'hinweis'}
+        self.assertEqual(hints, {'A3_heading_hierarchy', 'A6_font_consistency', 'A7_freshness'})
         no_portal = next(f for f in r['findings'] if f['rubric'] == 'C3_self_service')
         self.assertEqual(no_portal['result'], 'unbekannt')
-        self.assertGreaterEqual(r['area_scores']['design']['score'], 90)
+        design = [f for f in r['findings'] if f['area'] == 'design' and f['result'] != 'unbekannt']
+        flagged_w = sum(f['weight'] for f in design if f['result'] == 'auffaellig')
+        self.assertEqual(r['area_scores']['design']['score'], round(100 * flagged_w / sum(f['weight'] for f in design)),
+                         'Hinweise zählen als geprüft, aber nicht als auffällig')
+        self.assertGreaterEqual(r['area_scores']['design']['score'], 60)
         self.assertGreater(r['potential'], 70)
         c1 = next(f for f in r['findings'] if f['rubric'] == 'C1_pdf_workflows')
         self.assertEqual(c1['certainty'], 'hypothese')
@@ -260,9 +267,10 @@ class RealBrowserTests(unittest.TestCase):
         self.assertGreater(m['smallText'], 0)
         r = ws.score(cap, LEAD, ws.DEFAULT_CONFIG, set(PACKAGES))
         flagged = {f['rubric'] for f in r['findings'] if f['result'] == 'auffaellig'}
-        for rid in ('A1_mobile_overflow', 'A3_heading_hierarchy', 'A6_font_consistency', 'A7_freshness', 'B3_cta_above_fold',
-                    'B6_broken_links', 'B9_technical', 'C1_pdf_workflows', 'C2_manual_requests'):
+        for rid in ('A1_mobile_overflow', 'B3_cta_above_fold', 'B6_broken_links', 'B9_technical', 'C1_pdf_workflows', 'C2_manual_requests'):
             self.assertIn(rid, flagged, rid)
+        hints = {f['rubric'] for f in r['findings'] if f['result'] == 'hinweis'}  # dev37 (M28): Faustregeln als Hinweis
+        self.assertTrue({'A3_heading_hierarchy', 'A6_font_consistency', 'A7_freshness'} <= hints, hints)
         good = ws.score(self.caps['gut'], LEAD, ws.DEFAULT_CONFIG, set(PACKAGES))
         self.assertGreater(r['potential'], good['potential'] + 40)
         self.assertTrue(any('gibt-es-nicht' in b['url'] for b in cap['link_check']['broken']))

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0-dev37 – Faustregeln der Website-Bewertung als Hinweis statt Urteil
+
+Produktreview M28.
+
+- **Vier pauschale Regeln liefern „Hinweis (prüfen)“ statt „auffällig“:** Überschriften-Hierarchie (A3), Schriftfamilien (A6), Jahresangabe im Fußbereich (A7) und Hauptnavigation (B7). Jeder Hinweis nennt den Messwert und warum die Regel irren kann (z. B. „Gezählt werden auch Symbol- und Fallback-Schriften“).
+- **Hinweise sind keine Mängel:** Sie zählen als geprüft (Belegabdeckung), aber nicht in den Anteil „auffällig“ und damit nicht in die Priorität. Sie belegen keine Angebotsposition (M32) und werden nicht als Kaufsignal-Beleg genutzt.
+- **Bewertungsversion 2.1:** Ältere Bewertungen gelten als „andere Bewertungsversion“ und werden nicht still verglichen.
+- Zwei bestehende Tests erwarteten für diese vier Regeln „auffällig“; ihre Erwartung folgt jetzt der Vorgabe aus dem Review. Kein Schemawechsel. 675 Tests (2 neu) unter Python 3.10 und 3.13, 29 Browser-Tests.
+
 ## 2.0.0-dev36 – KI-Analyse, Schnellprüfung und Ansprechpartner-Suche setzen nach Neustart fort
 
 Produktreview M23 Teil 2, Abnahmefall T14 bestanden.
