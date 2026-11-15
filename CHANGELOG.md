@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0-dev29 – Eigene Nachrichtenvorlagen mit Platzhaltern
+
+Produktreview M37.
+
+- **Vorlagen im Mail-Assistenten** (Heute → Kontakt & Termine): Vorlage, Angebot und Person wählen, Vorschau ansehen, als Entwurf speichern. Mitgeliefert sind vier neutrale Startvorlagen (nach dem Gespräch, Angebot versenden, vereinbartes Nachfassen, Terminbestätigung). Sie lassen sich ändern; eigene kommen dazu.
+- **Platzhalter nur aus bestätigten Daten:** Firma, gewählte Person, Angebot mit Nummer, Projekt, Festpreis, Bindefrist und freigegebenem Stand, nächster Termin, nächste Nachfassfrist, eigene Stammdaten. Unbekannte Platzhalter werden beim Speichern abgelehnt.
+- **Fehlende Werte sichtbar:** [FEHLT: …] im Text und als Liste; „Endfassung kopieren“ erst ohne Lücken. Der Angebotsstand fehlt, solange das Angebot nicht freigegeben ist.
+- **Anrede:** neutral („Guten Tag Vorname Nachname,“ bzw. „Guten Tag,“). „Sehr geehrte Frau …/Sehr geehrter Herr …“ nur, wenn die Anrede an der Person ausdrücklich hinterlegt ist. Dafür gibt es ein neues Feld an der Person; nie aus dem Vornamen abgeleitet.
+- **Kontaktregeln:** Vorschau und Entwurf scheitern bei gesperrter Firma und bei Personen mit „keine E-Mails“, „nur Post“ oder Widerspruch. Ein Entwurf braucht weiterhin den dokumentierten Anlass. Nichts wird versendet.
+- **Schemawechsel 40 → 41** (Vorlagen, Anrede an der Person, Bezug der Entwürfe). 654 Tests (3 neu) unter Python 3.10 und 3.13, 25 Browser-Tests (1 neu).
+
 ## 2.0.0-dev28 – Projektkompass mit Material- und Entscheidungsliste
 
 Etappe D, Produktreview M38 und M39.

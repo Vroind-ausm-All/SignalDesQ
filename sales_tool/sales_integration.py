@@ -235,7 +235,7 @@ def decision_map(conn, lead_id):
 
 def update_contact_roles(conn, contact_id, data):
     allowed = {'role_fachlich', 'role_budget', 'role_entscheidung', 'contact_restrictions', 'restriction_note',
-               'business_channel', 'business_channel_kind', 'business_channel_source'}
+               'business_channel', 'business_channel_kind', 'business_channel_source', 'salutation'}
     if not isinstance(data, dict) or set(data) - allowed:
         raise ValueError('Ungültige Felder.')
     c = conn.execute('''SELECT d.*, l.business_phone AS lead_phone, l.business_email AS lead_email, l.stage, l.permission
@@ -253,6 +253,11 @@ def update_contact_roles(conn, contact_id, data):
         raise ValueError('„Bestätigt“ nur mit geprüfter Quelle (Prüfstatus „Quelle geprüft“ oder „Rolle bestätigt“).')
     if out.get('role_entscheidung') == 'bestaetigt' and c['verification_status'] != 'rolle_bestaetigt':
         raise ValueError('Finale Entscheidungsbefugnis nur nach bestätigter Rolle (z. B. im Gespräch) kennzeichnen.')
+    if 'salutation' in data:  # 2.0.0-dev29 (M37): Anrede nur, wenn ausdrücklich hinterlegt – nie aus dem Vornamen geraten
+        from .messages import SALUTATIONS
+        if data['salutation'] not in SALUTATIONS:
+            raise ValueError('Anrede: leer, neutral, frau oder herr.')
+        out['salutation'] = data['salutation']
     if 'contact_restrictions' in data:
         r = data['contact_restrictions']
         if not isinstance(r, list) or any(x not in RESTRICTIONS for x in r):

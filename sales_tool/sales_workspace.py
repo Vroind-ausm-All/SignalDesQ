@@ -338,9 +338,19 @@ def customer_markdown(customer,release=None):
 
 
 def create_mail_draft(conn,data):
-    if not isinstance(data,dict) or set(data)-{'lead_id','draft_type','contact_basis'}:
+    if not isinstance(data,dict) or set(data)-{'lead_id','draft_type','contact_basis','template_id','proposal_id','contact_id'}:
         raise ValueError('Ungültige Entwurfsdaten.')
     lead=_lead(conn,data.get('lead_id'))
+    if data.get('template_id') not in (None,''):  # 2.0.0-dev29 (M37): eigene Vorlage mit Platzhaltern aus bestätigten Daten
+        from .messages import render
+        basis=_optional_text(data,'contact_basis',500)
+        if not basis: raise ValueError('Dokumentiere zuerst den vereinbarten Anlass bzw. Kontaktstatus.')
+        r=render(conn,int(data['template_id']),{k:data.get(k) for k in ('lead_id','proposal_id','contact_id')})  # prüft Sperre und Person
+        cur=conn.execute('INSERT INTO mail_drafts(lead_id,draft_type,subject,body,contact_basis,template_id,missing_json,proposal_id,contact_id) VALUES (?,?,?,?,?,?,?,?,?)',(
+            lead['id'],'vorlage',r['subject'],r['body'],basis,r['template_id'],json.dumps(r['missing'],ensure_ascii=False),data.get('proposal_id') or None,data.get('contact_id') or None))
+        conn.commit()
+        return {'id':cur.lastrowid,'subject':r['subject'],'body':r['body'],'contact_basis':basis,'missing':r['missing'],'complete':r['complete'],
+                'notice':'Entwurf, nicht versendet.'+(' Fehlende Angaben sind markiert.' if r['missing'] else ' Vor jeder werblichen E-Mail Berechtigung prüfen.')}
     kind=data.get('draft_type')
     if kind not in DRAFT_TYPES: raise ValueError('Ungültige Vorlage.')
     from .workday import assert_contact_allowed

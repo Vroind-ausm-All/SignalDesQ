@@ -139,7 +139,21 @@
       <label>Notizen / konkrete Vereinbarung<textarea name="notes" rows="3" maxlength="2000" placeholder="Wörtliche Aussage, Ergebnis, Absprachen"></textarea></label>
       <label>Kontakt-Rechtsprüfung / Dokumentation<input name="legal_note" maxlength="1000" placeholder="Grundlage für den erfolgten Anruf (falls zutreffend)"></label>
       <label>Vereinbarter Rückruf am<input type="date" name="callback_date"></label><button class="btn btn-primary" type="submit">Gespräch dokumentieren</button></form></section>
-    <section class="panel sales-section"><span class="eyebrow">MAIL · VORBEREITEN, NICHT SENDEN</span><h2>Mail-Assistent</h2><p class="muted">Entwürfe für bereits vereinbarte Kommunikation. Ohne Mail-Anbieter gibt es keinen Versand; Werbeeinwilligung separat prüfen.</p><form class="sales-form" id="wsMailForm"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><label>Anlass<select name="draft_type"><option value="nach_gespraech">Nach einem Gespräch</option><option value="terminbestaetigung">Terminbestätigung</option><option value="angebot_begleiten">Angebot begleiten</option><option value="rueckfrage">Vereinbarte Rückfrage</option></select></label><label>Dokumentierte Gesprächsvereinbarung / Kontaktanlass<textarea name="contact_basis" rows="2" required maxlength="500" placeholder="z. B. am 17.10. um schriftliche Zusammenfassung gebeten"></textarea></label><button type="submit" class="btn btn-primary">Entwurf erstellen</button></form><div id="wsMailPreview" class="sales-mail-preview"></div><div class="sales-subhead">Letzte gespeicherte Entwürfe</div><div id="wsMailHistory" class="sales-list"></div></section>
+    <section class="panel sales-section"><span class="eyebrow">MAIL · VORBEREITEN, NICHT SENDEN</span><h2>Mail-Assistent</h2><p class="muted">Entwürfe für bereits vereinbarte Kommunikation. Ohne Mail-Anbieter gibt es keinen Versand; Werbeeinwilligung separat prüfen.</p><form class="sales-form" id="wsMailForm"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><label>Anlass<select name="draft_type"><option value="nach_gespraech">Nach einem Gespräch</option><option value="terminbestaetigung">Terminbestätigung</option><option value="angebot_begleiten">Angebot begleiten</option><option value="rueckfrage">Vereinbarte Rückfrage</option></select></label><label>Dokumentierte Gesprächsvereinbarung / Kontaktanlass<textarea name="contact_basis" rows="2" required maxlength="500" placeholder="z. B. am 17.10. um schriftliche Zusammenfassung gebeten"></textarea></label><button type="submit" class="btn btn-primary">Entwurf erstellen</button></form><div id="wsMailPreview" class="sales-mail-preview"></div>
+     <div class="sales-subhead">Eigene Vorlage mit Platzhaltern</div>
+     <form class="sales-form" id="msgForm"><div class="sales-row"><label>Vorlage<select name="template_id" id="msgTemplate"></select></label>
+       <label>Angebot (optional)<select name="proposal_id" id="msgProposal"><option value="">– kein Angebot –</option></select></label>
+       <label>Person (optional)<select name="contact_id" id="msgContact"><option value="">– keine Person (neutrale Anrede) –</option></select></label></div>
+       <p class="muted">Firma wie oben gewählt. Werte kommen nur aus bestätigten Daten; Fehlendes wird als [FEHLT: …] markiert.</p>
+       <div class="sales-row"><button type="button" class="btn btn-ghost" id="msgPreviewBtn">Vorschau</button><button type="button" class="btn btn-primary" id="msgSaveBtn">Als Entwurf speichern</button></div></form>
+     <div id="msgPreview" class="sales-mail-preview"></div>
+     <details class="msg-edit"><summary>Vorlagen bearbeiten</summary><form class="sales-form" id="msgEditForm">
+       <label>Vorlage<select id="msgEditPick"><option value="">Neue Vorlage</option></select></label>
+       <label>Name<input name="title" maxlength="80" required></label><label>Betreff<input name="subject" maxlength="200" required></label>
+       <label>Text<textarea name="body" rows="8" maxlength="5000" required></textarea></label>
+       <p class="muted" id="msgPlaceholders"></p>
+       <div class="sales-row"><button type="submit" class="btn btn-ghost">Vorlage speichern</button><button type="button" class="text-button" id="msgDelete">Vorlage löschen</button></div></form></details>
+     <div class="sales-subhead">Letzte gespeicherte Entwürfe</div><div id="wsMailHistory" class="sales-list"></div></section>
   </div>
   <div class="sales-cols">
     <section class="panel sales-section" id="meeting"><span class="eyebrow">TERMINE</span><h2>Discovery & Projektgespräche</h2><form id="wsMeetingForm" class="sales-form"><label>Firma<select name="lead_id" class="sales-lead-select" required></select></label><label>Chance<select name="opportunity_id" data-ch-select="termin"><option value="">ohne Chance (Firmentermin)</option></select></label><label>Termintitel<input name="title" required maxlength="180" placeholder="Bedarfsgespräch"></label><div class="sales-row"><label>Datum & Uhrzeit<input name="starts_at" type="datetime-local" required></label><label>Dauer<select name="duration_min"><option value="30">30 Min</option><option value="45">45 Min</option><option value="60">60 Min</option><option value="90">90 Min</option></select></label></div><label>Ort / Link<input name="location" maxlength="300" placeholder="Telefon, Online, Büro"></label><label>Agenda<input name="notes" maxlength="2000" placeholder="Welche Fragen klären wir?"></label><button type="submit" class="btn btn-primary">Termin speichern</button></form><div id="wsMeetings" class="sales-list"></div></section>
@@ -758,6 +772,7 @@
 <script src="/reach.js" defer></script>
 <script src="/postcalc.js" defer></script>
 <script src="/care.js" defer></script>
+<script src="/messages.js" defer></script>
 <script src="/osmlocal.js" defer></script>
 <script src="/akte.js" defer></script>
 <script src="/formguard.js" defer></script>

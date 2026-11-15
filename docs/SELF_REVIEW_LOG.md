@@ -679,6 +679,30 @@ M38 und M39 zusammen, weil der Startstatus genau aus der Material- und Entscheid
 
 **Selbstbewertung 4 von 5.** Abzug: Briefing-Änderungen nach dem ersten Öffnen kommen nicht nach; Zugangsdaten-Erkennung ist eine Schutzregel, keine Garantie.
 
+## Arbeitspaket 28 – Nachrichtenvorlagen (2.0.0-dev29)
+
+Geprüft mit der Prüfliste `privacy-and-contact-guardrails`:
+
+| Punkt | Ergebnis |
+|---|---|
+| 1 Sperre | eingehalten – `messages.render` ruft `assert_contact_allowed`; Entwurf läuft über `render` (Test mit gesperrter Firma: keine Vorschau, kein Entwurf) |
+| 2 Reimport | nicht betroffen |
+| 3 Keine Erlaubnis aus Daten | eingehalten – Vorlagen setzen keine `permission`; Hinweis auf eigene Prüfung werblicher Mails |
+| 4 Kein Versand | eingehalten – nur Vorschau, Kopie, Entwurf |
+| 5 Personen | eingehalten – keine Person wird angelegt; Anrede nur von Hand, nie aus dem Vornamen |
+| 6 Datensparsamkeit | eingehalten – neues Feld `salutation` mit Zweck „Anrede in Nachrichten“; wird mit der Person gelöscht |
+| 7 Lesende Auswertungen | nicht betroffen |
+| 8 Test | `test_blocked_firm_and_restricted_person` scheitert ohne Sperrprüfung bzw. ohne Prüfung der Personen-Einschränkung |
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 654 Tests bestanden (3 neu in `tests/test_v2_messages.py`) |
+| Browser-Tests | 25 von 25 (neu `test_messages_browser.py`): Lücken markiert, Endfassung gesperrt, mit Angebot und Person vollständig, neutrale Anrede, Entwurf gespeichert |
+| Fund beim Testen | Hervorhebung fehlender Werte nutzte eine feste Farbe; der Theme-Test (Hell/Dunkel) schlug an – auf die Theme-Variablen umgestellt |
+| Migration | Schema 40 → 41, eine Tabelle, fünf Spalten |
+
+**Selbstbewertung 4 von 5.** Abzug: keine Titel in der Anrede; keine bedingten Textbausteine.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

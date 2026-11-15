@@ -261,6 +261,8 @@ def init_db(conn: sqlite3.Connection):
     init_care(conn)  # 2.0.0-dev26: Betreuung mit Laufzeit
     from .kickoff import init_kickoff
     init_kickoff(conn)  # 2.0.0-dev28: Projektkompass und Startvoraussetzungen
+    from .messages import init_messages
+    init_messages(conn)  # 2.0.0-dev29: eigene Nachrichtenvorlagen
     conn.commit()
 
 

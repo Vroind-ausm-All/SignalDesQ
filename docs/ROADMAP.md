@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev28. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev29. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -88,7 +88,7 @@ Eigentümer; in die App kommen nur die Abläufe.
 |---|---|---|---|---|---|---|
 | M35 | Versandfassung und Dokumentstand | P0 | erledigt | dev17 | Freigabe mit automatischen Prüfungen und vier Prüfpunkten; Export ohne Entwurfshinweis mit Stand-Kennung im Dokument und Dateinamen; Versand und Zusage nur für freigegebenen Stand, mit Zeitpunkt, Weg und Stand (Unit- und Browser-Test) | Gestaltetes PDF bleibt außerhalb; Revisionen M15 |
 | M36 | Übergang nach Annahme | P0 | erledigt | dev17 | Startaufgaben je Leistungsbereich vorgeschlagen, nur Bestätigtes angelegt; offene Nachfassaufgaben zum Angebot bewusst beendet (auch nach Absage); zweiter Klick ohne Duplikate (Unit- und Browser-Test) | Projektstatus und Projektkompass (M38) |
-| M37 | Eigene Nachrichtenvorlagen mit Platzhaltern | P1 | offen | – | Anrede und Felder nur aus bestätigten Daten; fehlende Werte sichtbar; Endfassung vor Versand prüfbar | M35 |
+| M37 | Eigene Nachrichtenvorlagen mit Platzhaltern | P1 | erledigt | dev29 | Eigene Vorlagen mit festen Platzhaltern; Werte nur aus Firma, Person, Angebot (freigegebener Stand), Termin, Nachfassfrist, Stammdaten; Anrede nur wenn an der Person hinterlegt; [FEHLT: …] sichtbar, Endfassung erst ohne Lücken; Sperre und Personen-Einschränkungen gelten (Unit- und Browser-Test) | Kein Versand; keine Serienbriefe |
 | M38 | Projektkompass und Startstatus je Auftrag | P1 | erledigt | dev28 | Aus Angebot und offenen Briefing-Punkten vorbelegt; „Vorbereitung“, „wartet auf …“ (mit Name), „bereit“, „gestartet“ (auch bewusst trotz offener Punkte) je Auftrag; mehrere Projekte einer Firma unabhängig (Unit- und Browser-Test) | – |
 | M39 | Material- und Entscheidungsliste | P2 | erledigt | dev28 | Material, Zugang, Entscheidung, Termin je Punkt mit Verantwortlichem, Frist, Auswirkung; überfällige Punkte in „Heute“; kein Passwortfeld, Zugangsdaten-Eingaben abgelehnt (Unit- und Browser-Test) | Keine Dateiablage |
 
@@ -100,7 +100,7 @@ Eigentümer; in die App kommen nur die Abläufe.
 | B – klare Navigation und Arbeitslisten | dev14 = M06 Einstellungen + M07 Teil 1; dev15 = M08, M09, M11 | **erledigt**; offen aus M07: Adressen für weitere Listen und Berichte |
 | C – mehrere Projekte je Firma | M12 Katalog (dev16), P0-Paket M27/M35/M36 (dev17), M13 Chancen (dev18/dev19) – **erledigt**; M14 Briefings (dev20, **erledigt**); M15 Revisionen und optionale Positionen (dev21/dev22, **erledigt**); M16 Nachfassen (dev23, **erledigt**); Etappe D begonnen | **erledigt**; Migrationen an einer Kopie vorhandener Daten geprüft |
 | C′ – Bewertung fundieren | M28, M29 nach Pilot außerhalb der App; M32 nach M13 | M27 erledigt (dev17); Pilot außerhalb der App liegt beim Eigentümer |
-| D – Auftrag, Lernen, Anbindung | M17 Übergabe und Abnahme (dev24), M18 Zusatzaufträge (dev25), M19 Bestand und Betreuung (dev26), M20 Zeiten je Leistung (dev27), M38/M39 Projektkompass (dev28) – **erledigt**; als Nächstes M37 Nachrichtenvorlagen, dann M25 Kundenbericht; M24/M25, M37–M39 nach Pilotbedarf; M30, M33, M34 nach ersten Reviews; M22/M23 parallel nach Fehlerbild; M10 bei wachsendem Bestand | später |
+| D – Auftrag, Lernen, Anbindung | M17 Übergabe und Abnahme (dev24), M18 Zusatzaufträge (dev25), M19 Bestand und Betreuung (dev26), M20 Zeiten je Leistung (dev27), M38/M39 Projektkompass (dev28), M37 Nachrichtenvorlagen (dev29) – **erledigt**; als Nächstes M25 Kundenbericht; M24/M25, M37–M39 nach Pilotbedarf; M30, M33, M34 nach ersten Reviews; M22/M23 parallel nach Fehlerbild; M10 bei wachsendem Bestand | später |
 
 ## Zuordnung der bisherigen Menüziele (M07, Stand dev14)
 

@@ -801,3 +801,7 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 /* 2.0.0-dev28 (M38/M39): Projektkompass */
 .ko-items input[data-ko-name],.ko-items input[data-ko-note]{flex:0 1 10rem}
 .ko-items li>span b{font-weight:600;margin-right:.2rem}
+
+/* 2.0.0-dev29 (M37): Nachrichtenvorlagen */
+.msg-missing{background:var(--danger-bg);color:var(--danger-fg);border-radius:3px;padding:0 .15rem;font-weight:600}
+.msg-edit{margin:.6rem 0}

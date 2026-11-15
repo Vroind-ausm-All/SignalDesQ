@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev28)
+# Bekannte Einschränkungen (Stand 2.0.0-dev29)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -199,3 +199,10 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Materialien werden nur als Text erfasst, nicht als Datei. Es gibt keine Dateiablage.
 - Die Erkennung von Zugangsdaten ist eine Schutzregel für typische Eingaben („Passwort:“, „Login =“, Token-Muster), keine Garantie. Bitte grundsätzlich keine Zugangsdaten eintragen.
 - Der Startstatus „gestartet“ lässt sich nicht zurücknehmen; offene Punkte bleiben danach sichtbar.
+
+## Nachrichtenvorlagen (2.0.0-dev29)
+
+- Nur die festen Platzhalter sind erlaubt; Bedingungen, Schleifen oder Serienbriefe an mehrere Firmen gibt es nicht.
+- Die Anrede „Frau/Herr“ erscheint nur, wenn sie an der Person hinterlegt ist. Titel (Dr., Prof.) werden nicht abgebildet; bei Bedarf den Text der Vorlage anpassen.
+- Die Vorschau prüft Sperren der Firma und die Einschränkungen „keine E-Mails“, „nur Post“ und „Widerspruch“ der gewählten Person. Ob eine Nachricht werblich ist und eine Einwilligung braucht, prüfst du weiterhin selbst.
+- SignalDesk versendet nichts. Die Endfassung wird kopiert und außerhalb verschickt; der Versand eines Angebots wird wie bisher am Angebot dokumentiert.
