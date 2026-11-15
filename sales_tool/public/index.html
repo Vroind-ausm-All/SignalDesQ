@@ -342,6 +342,11 @@
  <section class="panel sales-section"><span class="eyebrow">03 / PRIORISIERUNG</span><h2>Bewertete Firmen</h2><p class="muted">Auffällig = Anteil der geprüften Rubriken mit Hinweis (höher = mehr belegte Hinweise, keine Qualitätsnote). Priorität ordnet deine Recherche und erscheint nur bei ausreichender Belegabdeckung; „unbekannt“ zählt nie als schlecht.</p>
   <div class="table-wrap"><table class="sc-rank"><thead><tr><th>FIRMA</th><th>PRIORITÄT</th><th>AUFFÄLLIG DESIGN</th><th>AUFFÄLLIG WEB</th><th>AUFFÄLLIG PROZESS</th><th>PROFILNÄHE</th><th>ANLASS</th><th>BELEGE</th><th>VERSION</th><th></th></tr></thead><tbody id="scRanking"></tbody></table></div></section>
  <section class="panel sales-section hidden" id="scDetailPanel"><div class="studio-section-head"><div><span class="eyebrow">ERGEBNIS</span><h2 id="scDetailTitle">Bewertung</h2></div><button type="button" class="text-button" id="scDetailClose">Schließen ✕</button></div><div id="scDetail"></div></section>
+ <section class="panel sales-section" id="kurzbericht"><span class="eyebrow">04 / FÜR DEN KUNDEN</span><h2>Kurzbericht</h2>
+  <p class="muted">Wähle einzelne <b>geprüfte</b> Befunde (Prüfstatus „bestätigt“ bzw. „freigegeben“). Punktwerte, Prioritäten, Angebotsideen und Hypothesen bleiben intern. Nichts wird versendet.</p>
+  <form class="sales-form" id="krForm"><label>Firma<select id="krLead"></select></label><div id="krItems"></div>
+   <label>Einleitung (optional)<textarea name="intro" rows="2" maxlength="800" placeholder="z. B. Wie im Gespräch angekündigt …"></textarea></label>
+   <button type="submit" class="btn btn-primary">Kurzbericht erstellen</button></form><div id="krPreview" class="sales-mail-preview"></div></section>
  <section class="panel sales-section"><details id="scConfigBox"><summary><b>Bewertungsraster & Gewichtung anpassen</b> <small class="muted">– jede Änderung erzeugt eine neue Bewertungsversion</small></summary><form id="scConfigForm" class="sales-form"></form></details></section>
 </div>
 <div class="content hidden" id="viewSignals">
@@ -773,6 +778,7 @@
 <script src="/postcalc.js" defer></script>
 <script src="/care.js" defer></script>
 <script src="/messages.js" defer></script>
+<script src="/kurzbericht.js" defer></script>
 <script src="/osmlocal.js" defer></script>
 <script src="/akte.js" defer></script>
 <script src="/formguard.js" defer></script>

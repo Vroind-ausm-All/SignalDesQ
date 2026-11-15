@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev30 – Kundenfähiger Kurzbericht
+
+Produktreview M25.
+
+- **„04 / Kurzbericht“** in der Website-Bewertung: Firma wählen, einzelne Befunde ankreuzen, optional eine Einleitung, Vorschau und Download (.md).
+- **Nur geprüfte Befunde wählbar:** Website-Befunde mit Prüfstatus „bestätigt“ und Recherche-Beobachtungen mit Status „freigegeben“. Der Server lehnt alles andere ab; die Zahl nicht wählbarer Befunde wird genannt.
+- **Keine internen Angaben:** Der Bericht enthält Bezeichnung, Beobachtung, Fundstelle mit Stand und die Frage an den Kunden. Punktwerte, Prioritäten, Profilnähe, Angebotsideen, Hypothesen, Kaufsignale, Personen und Kalkulationen bleiben draußen.
+- Abschließende Einordnung: Momentaufnahme, keine vollständige Prüfung, keine Rechtsberatung. Gesperrte Firmen bekommen keinen Bericht. Jeder Bericht wird mit den gezeigten Befunden gespeichert und im Verlauf vermerkt (nicht versendet).
+- **Schemawechsel 41 → 42** (gespeicherte Kurzberichte). 656 Tests (2 neu) unter Python 3.10 und 3.13, 26 Browser-Tests (1 neu).
+
 ## 2.0.0-dev29 – Eigene Nachrichtenvorlagen mit Platzhaltern
 
 Produktreview M37.

@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev29. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev30. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -63,7 +63,7 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 | M22 | Quellenstatus und Datenqualität | P1 | teilweise | dev6–dev9 | „Keine Website gefunden“ ≠ „hat keine Website“ | Ergebnisse aus M21 |
 | M23 | Gemeinsame Hintergrundaufträge vervollständigen | P1 | teilweise | Masterplan 2.0 | Alle Module mit gleichem Lebenszyklus nach Neustart | fünf Module laufen noch als Thread |
 | M24 | Kalender und dokumentierte Exporte | P2 | offen | Etappe D | Aktualität und Konflikte geprüft | Anbieterwahl |
-| M25 | Kundenfähiger Kurzbericht | P2 | offen | Etappe D | Nur ausgewählte, geprüfte Befunde; keine internen Kalkulationen | Auswahl- und Vorschaukonzept |
+| M25 | Kundenfähiger Kurzbericht | P2 | erledigt | dev30 | Auswahl nur aus bestätigten bzw. freigegebenen Befunden (serverseitig geprüft); Bericht ohne Punktwerte, Prioritäten, Angebotsideen, Hypothesen; gesperrte Firma ohne Bericht; gezeigte Befunde gespeichert (Unit- und Browser-Test) | Nur Markdown, kein gestaltetes PDF |
 | M26 | Aktuellen Status in einer Quelle pflegen | P1 | erledigt | dev13 | Diese Tabelle; Launch-Audit als historisch gekennzeichnet | bei jeder Stufe nachführen |
 
 **Ergänzung aus dem Bewertungsmodell (M27–M34).** Die Kriterien (48), Diagnosefragen und Stufen 0–4 sind dort ausdrücklich ein
@@ -100,7 +100,7 @@ Eigentümer; in die App kommen nur die Abläufe.
 | B – klare Navigation und Arbeitslisten | dev14 = M06 Einstellungen + M07 Teil 1; dev15 = M08, M09, M11 | **erledigt**; offen aus M07: Adressen für weitere Listen und Berichte |
 | C – mehrere Projekte je Firma | M12 Katalog (dev16), P0-Paket M27/M35/M36 (dev17), M13 Chancen (dev18/dev19) – **erledigt**; M14 Briefings (dev20, **erledigt**); M15 Revisionen und optionale Positionen (dev21/dev22, **erledigt**); M16 Nachfassen (dev23, **erledigt**); Etappe D begonnen | **erledigt**; Migrationen an einer Kopie vorhandener Daten geprüft |
 | C′ – Bewertung fundieren | M28, M29 nach Pilot außerhalb der App; M32 nach M13 | M27 erledigt (dev17); Pilot außerhalb der App liegt beim Eigentümer |
-| D – Auftrag, Lernen, Anbindung | M17 Übergabe und Abnahme (dev24), M18 Zusatzaufträge (dev25), M19 Bestand und Betreuung (dev26), M20 Zeiten je Leistung (dev27), M38/M39 Projektkompass (dev28), M37 Nachrichtenvorlagen (dev29) – **erledigt**; als Nächstes M25 Kundenbericht; M24/M25, M37–M39 nach Pilotbedarf; M30, M33, M34 nach ersten Reviews; M22/M23 parallel nach Fehlerbild; M10 bei wachsendem Bestand | später |
+| D – Auftrag, Lernen, Anbindung | M17 Übergabe und Abnahme (dev24), M18 Zusatzaufträge (dev25), M19 Bestand und Betreuung (dev26), M20 Zeiten je Leistung (dev27), M38/M39 Projektkompass (dev28), M37 Nachrichtenvorlagen (dev29), M25 Kurzbericht (dev30) – **erledigt**; offen in D: M24 Kalender (Anbieterwahl), M30/M33/M34 nach ersten Reviews; M24/M25, M37–M39 nach Pilotbedarf; M30, M33, M34 nach ersten Reviews; M22/M23 parallel nach Fehlerbild; M10 bei wachsendem Bestand | später |
 
 ## Zuordnung der bisherigen Menüziele (M07, Stand dev14)
 

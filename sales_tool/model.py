@@ -263,6 +263,8 @@ def init_db(conn: sqlite3.Connection):
     init_kickoff(conn)  # 2.0.0-dev28: Projektkompass und Startvoraussetzungen
     from .messages import init_messages
     init_messages(conn)  # 2.0.0-dev29: eigene Nachrichtenvorlagen
+    from .customer_report import init_customer_report
+    init_customer_report(conn)  # 2.0.0-dev30: Kurzbericht für den Kunden
     conn.commit()
 
 

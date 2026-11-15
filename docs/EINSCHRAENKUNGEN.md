@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev29)
+# Bekannte Einschränkungen (Stand 2.0.0-dev30)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -206,3 +206,9 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Die Anrede „Frau/Herr“ erscheint nur, wenn sie an der Person hinterlegt ist. Titel (Dr., Prof.) werden nicht abgebildet; bei Bedarf den Text der Vorlage anpassen.
 - Die Vorschau prüft Sperren der Firma und die Einschränkungen „keine E-Mails“, „nur Post“ und „Widerspruch“ der gewählten Person. Ob eine Nachricht werblich ist und eine Einwilligung braucht, prüfst du weiterhin selbst.
 - SignalDesk versendet nichts. Die Endfassung wird kopiert und außerhalb verschickt; der Versand eines Angebots wird wie bisher am Angebot dokumentiert.
+
+## Kurzbericht für den Kunden (2.0.0-dev30)
+
+- Der Bericht übernimmt Beobachtung, Fundstelle und Frage so, wie sie beim Befund stehen. Formulierungen bitte vor der Weitergabe selbst lesen; SignalDesk glättet keine Texte.
+- Screenshots werden nicht eingebunden (nur Markdown, kein gestaltetes PDF).
+- Höchstens zwölf Befunde je Bericht. Die Einordnung am Ende ist ein Textvorschlag, keine Rechtsberatung.

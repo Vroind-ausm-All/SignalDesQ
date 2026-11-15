@@ -205,7 +205,7 @@ def validate(fields: dict, partial=False):
 
 STATIC_FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
     "/style.css": ("style.css", "text/css"), "/theme.js": ("theme.js", "text/javascript"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/care.js": ("care.js", "text/javascript"), "/messages.js": ("messages.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/offerflow.js": ("offerflow.js", "text/javascript"), "/chances.js": ("chances.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/nav.js": ("nav.js", "text/javascript"), "/leadlist.js": ("leadlist.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/care.js": ("care.js", "text/javascript"), "/messages.js": ("messages.js", "text/javascript"), "/kurzbericht.js": ("kurzbericht.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/offerflow.js": ("offerflow.js", "text/javascript"), "/chances.js": ("chances.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/nav.js": ("nav.js", "text/javascript"), "/leadlist.js": ("leadlist.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
 
 LOOPBACK_HOSTS = frozenset({'127.0.0.1', 'localhost', '::1'})
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
@@ -478,6 +478,9 @@ def make_handler(db_path, allowed_hosts=None):
                     return
                 from .messages import route_messages
                 if route_messages(self, conn, method, route):  # 2.0.0-dev29: Nachrichtenvorlagen
+                    return
+                from .customer_report import route_customer_report
+                if route_customer_report(self, conn, method, route):  # 2.0.0-dev30: Kurzbericht für den Kunden
                     return
                 proposal_match=re.fullmatch(r'/api/workspace/proposals/(\d+)(/customer)?',route)
                 if proposal_match:
@@ -939,7 +942,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 41  # 2.0.0-dev29 – bei Schemaänderungen erhöhen (Nachrichtenvorlagen)
+SCHEMA_VERSION = 42  # 2.0.0-dev30 – bei Schemaänderungen erhöhen (Kurzberichte)
 
 
 def backup_before_migration(db):

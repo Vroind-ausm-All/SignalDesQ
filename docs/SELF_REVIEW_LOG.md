@@ -703,6 +703,20 @@ Geprüft mit der Prüfliste `privacy-and-contact-guardrails`:
 
 **Selbstbewertung 4 von 5.** Abzug: keine Titel in der Anrede; keine bedingten Textbausteine.
 
+## Arbeitspaket 29 – Kundenfähiger Kurzbericht (2.0.0-dev30)
+
+Auswahl statt Export: Der Bericht entsteht aus einzeln angekreuzten, bereits geprüften Befunden. Was intern bleibt, steht als Liste im Modul und ist im Test als „darf nicht vorkommen“ geprüft.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 656 Tests bestanden (2 neu in `tests/test_v2_customer_report.py`) |
+| Browser-Tests | 26 von 26 (neu `test_kurzbericht_browser.py`): nur geprüfter Befund wählbar, Vorschau ohne interne Werte, Download |
+| Leitplanken | Sperre geprüft (Test mit gesperrter Firma), keine Personen, kein Versand |
+| Fund beim Testen | Im eigenen Testaufbau waren Lauf- und Firmen-ID vertauscht (fiel nur wegen gleicher IDs nicht auf) – korrigiert; die Firmenauswahl der Bewertungsansicht wurde nicht befüllt – Modul füllt sie selbst |
+| Migration | Schema 41 → 42, eine neue Tabelle |
+
+**Selbstbewertung 4 von 5.** Abzug: keine Screenshots, kein gestaltetes Dokument.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.
