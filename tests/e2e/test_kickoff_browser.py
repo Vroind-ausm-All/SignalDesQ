@@ -70,9 +70,16 @@ class KickoffBrowserTests(unittest.TestCase):
                         mat.locator('[data-ko-name]').fill('Frau Beispiel')
                         mat.locator('[data-ko-name]').dispatch_event('change')
                         page.locator('#ofKickoff [data-ko-status]', has_text='Frau Beispiel').wait_for()
-                        page.fill('#ofKickoff [data-ko-addlabel]', 'Passwort: geheim123')
-                        page.locator('#ofKickoff [data-ko-add]').click()
-                        page.locator('.toast, #toast', has_text='keine Passwörter').first.wait_for()
+                        page.wait_for_load_state('networkidle')
+                        rows_before = page.locator('#ofKickoff [data-ko-row]').count()
+                        # alle Meldungen mitschreiben: eine spätere Meldung kann die Fehlermeldung unter Last schnell überschreiben
+                        page.evaluate("() => { window.__toasts = []; new MutationObserver(() => window.__toasts.push(document.getElementById('toast').textContent)).observe(document.getElementById('toast'), {childList: true, characterData: true, subtree: true}); }")
+                        # Eintragen und Klick in einem Schritt: der Abschnitt kann sich nach dem vorigen Speichern noch einmal neu aufbauen
+                        page.evaluate("() => { document.querySelector('#ofKickoff [data-ko-addlabel]').value = 'Passwort: geheim123'; document.querySelector('#ofKickoff [data-ko-add]').click(); }")
+                        page.wait_for_function('() => (window.__toasts || []).some(t => t.includes("keine Passwörter"))')
+                        page.wait_for_load_state('networkidle')
+                        self.assertEqual(page.locator('#ofKickoff [data-ko-row]').count(), rows_before, 'Zugangsdaten nicht angelegt')
+                        self.assertNotIn('geheim123', page.locator('#ofKickoff').inner_text())
                         n = page.locator('#ofKickoff [data-ko-row]').count()
                         for _ in range(n):
                             page.locator('#ofKickoff select[data-ko-state]:has(option[value="offen"]:checked)').first.select_option('erledigt')

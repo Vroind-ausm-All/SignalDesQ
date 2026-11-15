@@ -2,7 +2,7 @@
 // v1.4 Website-Scoring: Bewertung anstoßen, Ergebnisse mit Belegen anzeigen, Raster konfigurieren.
 (function () {
   const esc = v => escapeHTML(String(v ?? ''));
-  const RESULT = {auffaellig: 'auffällig', ok: 'ok', unbekannt: 'unbekannt'};
+  const RESULT = {auffaellig: 'auffällig', hinweis: 'Hinweis (prüfen)', ok: 'ok', unbekannt: 'unbekannt'};  // dev37 (M28): Faustregeln als Hinweis
   const CERT = {gemessen: 'gemessen', beobachtet: 'beobachtet', hypothese: 'Hypothese'};
   const AREA = {design: 'Design & UX', web: 'Web & Conversion', process: 'Prozess & App'};
   const SHOT = {desktop: 'Desktop', mobile: 'Smartphone', unterseite: 'Unterseite'};

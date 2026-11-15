@@ -792,6 +792,99 @@ Die drei Läufe hatten dasselbe Muster (`run_job` plus Thread). Ein kleiner geme
 
 **Selbstbewertung 4 von 5.** Abzug: Impressum-Sammelprüfung und Einzelquellen-Wiederholung der Sammelsuche laufen noch eigenständig.
 
+## Arbeitspaket 36 – Faustregeln als Hinweis (2.0.0-dev37)
+
+Bewusste Verhaltensänderung nach Review M28: Die vier Regeln zählen etwas (Schriftfamilien, Jahreszahl, Überschriften, Links), das nur lose mit Qualität zusammenhängt. Als Urteil hätten sie die Priorität verzerrt und – über M32 – sogar Angebotspositionen „belegt“. Jetzt sind sie Prüfhinweise. Messbasierte Rubriken bleiben unverändert.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 675 Tests bestanden (2 neu in `tests/test_v2_rubric_hints.py`) |
+| Rendering-Tests mit echtem Browser | 14 von 14 (`test_phase2_scoring` mit Chromium, sonst übersprungen) |
+| Angepasste Tests | `test_weak_site_flags_measured_issues` und `test_weak_site_is_flagged_from_real_rendering`: die vier Regeln jetzt als Hinweis; der Bereichswert wird gegen die Rechnung geprüft statt gegen eine feste Schwelle |
+| Browser-Tests | 29 von 29 |
+
+**Selbstbewertung 4 von 5.** Abzug: Die Schwellen der übrigen Rubriken sind weiterhin Vorgaben ohne Fachreview (M29/M33).
+
+## Arbeitspaket 37 – Angebot mit eigener Adresse (2.0.0-dev38)
+
+Kleiner Schritt aus M07: Seit der globalen Suche (dev34) springt man oft direkt in ein Angebot – ohne Adresse ging dieser Stand beim Neuladen verloren. Die Entscheidung, ob die Firmenakte eine eigene Seite statt eines Dialogs wird, bleibt beim Eigentümer.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 675 Tests bestanden |
+| Browser-Tests | 30 von 30 (neu `test_offer_address_browser.py`: Adresse nach dem Öffnen, Neuladen, eingegebene Adresse, Zurück) |
+| Fund beim Testen | Während eine eingegebene Adresse noch nachlud, verschluckte ein schneller Klick auf ein anderes Angebot den Verlaufseintrag – die Ausnahme gilt jetzt nur für das gerade wiederhergestellte Angebot. Der Test drückte „Zurück“ anfangs, bevor das Angebot fertig aufgebaut war; er wartet jetzt auf die Adresse |
+
+**Selbstbewertung 4 von 5.** Abzug: Filteradressen weiterer Listen stehen noch aus.
+
+## Arbeitspaket 38 – Sammelprüfung nach Neustart (2.0.0-dev39)
+
+Auf Wunsch des Eigentümers nach Empfehlung umgesetzt: automatisch fortsetzen, aber nur, was beim Neustart wirklich lief; nie im Offline-Modus; sichtbar in „Heute“. Kein Umbau auf das gemeinsame Auftragssystem – die Sammelprüfung hatte schon einen gespeicherten Zustand mit Pause, Fortsetzen und Abbruch.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 678 Tests bestanden (2 neu in `tests/test_v2_batch_resume.py`, 1 neu in `tests/test_tmpclean.py`) |
+| Browser-Tests | 30 von 30 |
+| CI-Fehler | `unit (windows-latest, Python 3.10)`: Aufräumen scheiterte mit NotADirectoryError (WinError 267) bei gesperrter Datei – Test zeigt, dass der alte Helfer scheiterte |
+| Fund beim Testen | Eigener Fehler: Die neue Testklasse erbte zunächst von einer bestehenden; deren Tests liefen dadurch doppelt – jetzt eigener Aufbau |
+
+**Selbstbewertung 5 von 5** für dieses Paket.
+
+## Arbeitspaket 39 – Firmenakte als eigene Seite (2.0.0-dev40)
+
+Variante B auf Entscheidung des Eigentümers. Umsetzung bewusst schmal: dasselbe Element mit Reitern und Eingabeschutz, nur an anderer Stelle und anders dargestellt. So bleiben alle Funktionen und die bestehenden Tests gültig; geändert hat sich nur die Adresse.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 678 Tests bestanden |
+| Browser-Tests | 31 von 31 (neu `test_akte_page_browser.py`): Seite statt Fenster, Zurück-Knopf, Browser-Zurück aus einer anderen Ansicht, Handyansicht ohne seitliches Scrollen; `test_navigation_browser.py` auf die neue Adresse angepasst |
+| Fund beim Arbeiten | Ohne die Listenfilter in der Akten-Adresse ging beim Neuladen die gefilterte Liste verloren – Filter wandern jetzt mit |
+
+**Selbstbewertung 4 von 5.** Abzug: keine zwei Akten nebeneinander.
+
+## Arbeitspaket 40 – Kalender-Abo (2.0.0-dev41)
+
+M24 nach Empfehlung, Stufe 1 von 3. Ein Abo braucht keine Zugangsdaten und funktioniert mit jedem Kalenderprogramm; die Grenze (nicht aus dem Internet erreichbar) ist im Abschnitt selbst erklärt.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 680 Tests bestanden (2 neu in `tests/test_v2_calendar_feed.py`) |
+| Browser-Tests | 32 von 32 (neu `test_calendar_browser.py`): Abo einschalten, Adresse liefert Termine, Ausschalten macht sie ungültig |
+| Wackeliger Test behoben | `test_kickoff_browser.py` füllte unter Last ein Eingabefeld, das sich gerade neu aufbaute, und wartete auf eine Meldung, die schnell überschrieben wurde – Eintragen und Klick jetzt in einem Schritt, Meldungen werden mitgeschrieben (Anwendung unverändert) |
+| Datenschutz | Notizen nicht im Kalender (Test); Zugriff nur mit Schlüssel, Verwaltung nur mit Login (Test) |
+
+**Selbstbewertung 4 von 5.** Abzug: nur lesend – der Abgleich folgt mit CalDAV.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.
+
+## Arbeitspaket 41 – Kalender-Abgleich über CalDAV (2.0.0-dev42)
+
+M24 nach Empfehlung, Stufe 2 von 3. Bewusst sparsam in Gegenrichtung: aus dem Kalender kommen nur belegte Zeiten, keine Inhalte – das genügt für Konfliktwarnung und freie Vorschläge und hält fremde Daten aus SignalDesk heraus.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 686 Tests bestanden (6 neu in `tests/test_v2_caldav.py`, gegen einen nachgebauten CalDAV-Server auf 127.0.0.1) |
+| Browser-Tests | 33 von 33 (neu `test_caldav_browser.py`): Zugang eintragen, Verbindung prüfen, abgleichen, Konfliktwarnung |
+| Abgleich | Termin geschrieben, zweiter Lauf überträgt nichts, Änderung wird übertragen, Löschung entfernt nur den eigenen Eintrag; fremder Eintrag unverändert (Test) |
+| Datenschutz | keine Notizen im Kalender; Titel fremder Einträge nicht in SignalDesk; Passwort weder in Datenbank noch WAL noch Antwort an die Oberfläche (Test) |
+| Grenzen | HTTPS-Pflicht außer auf diesem Rechner, Offline-Modus sendet nichts, falsches Passwort mit klarer Meldung (Test) |
+
+**Selbstbewertung 4 von 5.** Abzug: an keinem echten Anbieter gemessen, Abgleich nur auf Knopfdruck, keine automatische Kalendersuche im Konto (in `docs/EINSCHRAENKUNGEN.md` beschrieben).
+
+## Arbeitspaket 42 – Entwürfe ins Postfach über IMAP (2.0.0-dev43)
+
+M24 nach Empfehlung, Stufe 3 von 3. Bisher galt „keine Verbindung zu Maildiensten“; der Eigentümer hat das Ablegen von Entwürfen freigegeben. Die Leitplanke (`.claude/skills/privacy-and-contact-guardrails`) nennt jetzt diese eine Ausnahme, und ein Test hält sie eng: kein SMTP, IMAP nur in `imap_drafts.py`, dort nur Ordnerliste und APPEND.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 691 Tests bestanden (5 neu in `tests/test_v2_imap_drafts.py`, gegen einen nachgebauten IMAP-Server auf 127.0.0.1) |
+| Browser-Tests | 34 von 34 (neu `test_imap_browser.py`): Postfach eintragen, Ordner finden, Entwurf ablegen |
+| Kein Versand | kein `smtplib` im Programm; nur CAPABILITY, LOGIN, LIST, APPEND, LOGOUT am Server (Test) |
+| Sperren | gesperrte Firma und Person mit „keine E-Mail“: keine Verbindung, nichts abgelegt (Test) |
+| Datenschutz | Passwort weder in Datenbank noch Antwort an die Oberfläche; Empfänger nur geschäftliche Firmenadresse (Test) |
+
+**Selbstbewertung 4 von 5.** Abzug: an keinem echten Anbieter gemessen; nur SSL auf Port 993, kein STARTTLS (in `docs/EINSCHRAENKUNGEN.md` beschrieben).
+
+**Nachtrag (CI Windows, Python 3.13 auf dev40):** `test_malformed_requests_never_500` brach mit WinError 10048 ab – der Test öffnet je Anfrage eine neue Verbindung (Routen × 4 Methoden × 7 Inhalte), und Windows hält geschlossene Client-Ports eine Weile belegt. Mit jeder neuen Route wurde das knapper. Der Test-Helfer wartet jetzt kurz und versucht es erneut, nur bei genau diesem Fehler; andere Fehler gehen unverändert durch (lokal nachgewiesen). Die Prüfung selbst ist unverändert, Anwendung unverändert.

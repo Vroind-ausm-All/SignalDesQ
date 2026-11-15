@@ -138,6 +138,16 @@ def meeting_slots(conn, av=None, count=3, now=None, horizon_days=21):
         except ValueError:
             continue
         busy.append((s - gap, s + dt.timedelta(minutes=m['duration_min']) + gap))
+    # 2.0.0-dev42 (M24): belegte Zeiten aus dem abgeglichenen Kalender (CalDAV) zählen mit
+    cal_busy = None
+    if conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='caldav_busy'").fetchone():
+        from .quality import get_setting
+        cal_busy = True if get_setting(conn, 'caldav', {}).get('last_sync') else None
+        for b in conn.execute('SELECT starts_at, ends_at FROM caldav_busy WHERE ends_at>=?', (now.strftime(FMT),)):
+            try:
+                busy.append((dt.datetime.strptime(b['starts_at'], FMT) - gap, dt.datetime.strptime(b['ends_at'], FMT) + gap))
+            except ValueError:
+                continue
     cb = (_t(av['callback_from']), _t(av['callback_to']))
     out, day, i = [], now.date() + dt.timedelta(days=1), 0
     while len(out) < count and i < horizon_days:
@@ -161,7 +171,9 @@ def meeting_slots(conn, av=None, count=3, now=None, horizon_days=21):
     text = ''
     if slots:
         text = 'Für unser Gespräch (' + str(av['meeting_minutes']) + ' Minuten) kann ich Ihnen anbieten:\n' + '\n'.join('– ' + s['label'] for s in slots) + '\nPasst einer der Termine?'
-    return {'slots': slots, 'text': text, 'notice': 'Vorschläge aus deinen Zeiten und den eingetragenen Terminen. SignalDesk kennt deinen Kalender außerhalb des Programms nicht.'}
+    synced = cal_busy is not None
+    return {'slots': slots, 'text': text, 'notice': 'Vorschläge aus deinen Zeiten, den eingetragenen Terminen'
+            + (' und den belegten Zeiten aus deinem Kalender (letzter Abgleich).' if synced else '. SignalDesk kennt deinen Kalender außerhalb des Programms nicht (Abgleich: Einstellungen → Kalender & Postfach).')}
 
 
 def templates(av):

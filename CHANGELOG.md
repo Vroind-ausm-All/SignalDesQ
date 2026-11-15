@@ -1,5 +1,73 @@
 # Changelog
 
+## 2.0.0-dev43 – Entwürfe ins Postfach (IMAP)
+
+Produktreview M24 Stufe 3 – damit ist M24 umgesetzt.
+
+- **Neu in „Einstellungen → Kalender & Postfach“:** Postfach-Server, Benutzername, Absender und Passwort. „Verbindung prüfen“ findet den Entwürfe-Ordner (Markierung „Drafts“ oder übliche Namen wie „Entwürfe“).
+- **„In Entwürfe legen“** an jedem gespeicherten Entwurf: Der Entwurf erscheint im Entwürfe-Ordner deines Mailprogramms. Du prüfst Empfänger und Inhalt und versendest selbst. Die Liste zeigt, welche Entwürfe im Postfach liegen.
+- **Nie Versand:** kein SMTP im ganzen Programm; die einzige schreibende Aktion ist das Ablegen als Entwurf. Nachrichten werden weder gelesen noch verschoben oder gelöscht (Test).
+- **Sperren beim Ablegen erneut geprüft:** Kontaktsperre der Firma, Sperrliste und Einschränkungen der Person (z. B. „keine E-Mail“).
+- Empfänger nur die geschäftliche Adresse der Firma. Passwort wie beim Kalender nie in der Datenbank. Im Offline-Modus keine Verbindung.
+- Schema 45 (zwei neue Spalten an den Entwürfen). 691 Tests (5 neu) unter Python 3.10 und 3.13, 34 Browser-Tests (1 neu).
+
+## 2.0.0-dev42 – Kalender-Abgleich über CalDAV
+
+Produktreview M24 Stufe 2 (offener Standard statt Anbieter-APIs – eine Umsetzung für Google, iCloud, mailbox.org, IONOS, Nextcloud und andere).
+
+- **SignalDesk → Kalender:** geplante, bestätigte, erledigte und abgesagte Termine werden angelegt bzw. aktualisiert (nur Titel, Firma, Zeit, Ort, Status – keine Notizen). Unveränderte Termine werden nicht erneut übertragen, in SignalDesk gelöschte entfernt. Fremde Kalendereinträge fasst SignalDesk nie an.
+- **Kalender → SignalDesk:** nur „belegt von … bis …“ der nächsten 60 Tage, ohne Titel oder Teilnehmer. Abgesagte und als „frei“ markierte Einträge zählen nicht.
+- **Konfliktwarnung** beim Anlegen eines Termins (belegte Kalenderzeit oder anderer SignalDesk-Termin); **freie Terminvorschläge** sparen belegte Zeiten aus.
+- **Aktualität sichtbar:** letzter Abgleich mit Ergebnis, Hinweis bei mehr als 24 Stunden.
+- **Zugangsdaten nie in der Datenbank:** Passwort nur im Arbeitsspeicher, auf Wunsch „auf diesem Rechner merken“ in einer eigenen Datei (Rechte 600). Die Oberfläche bekommt es nie zurück. App-Passwort empfohlen. Nur HTTPS; im Offline-Modus kein Abgleich.
+- Schema 44 (zwei neue Tabellen). 686 Tests (6 neu) unter Python 3.10 und 3.13, 33 Browser-Tests (1 neu).
+
+## 2.0.0-dev41 – Kalender-Abo und Termin-Export
+
+Produktreview M24 Stufe 1 (Entscheidung des Eigentümers: offene Standards statt Anbieter-APIs).
+
+- **Neuer Abschnitt „Einstellungen → Kalender & Postfach“.**
+- **Kalender-Abo:** Eine Abo-Adresse mit zufälligem Schlüssel liefert alle geplanten, bestätigten und abgesagten Termine im iCalendar-Format, für Kalenderprogramme auf diesem Rechner. Das Abo lässt sich abschalten; ein neuer Schlüssel macht die alte Adresse sofort ungültig. Ohne gültigen Schlüssel gibt es nichts. Mit eingeschaltetem Login bleibt das Abo über den Schlüssel erreichbar, die Verwaltung nicht.
+- **Export** aller Termine als .ics-Datei – für jeden Kalender, auch Web-Kalender.
+- **Inhalt nur das Nötige:** Titel, Firma, Zeit, Ort, Status. Gesprächsnotizen und Personen bleiben in SignalDesk.
+- Kein Schemawechsel. 680 Tests (2 neu) unter Python 3.10 und 3.13, 32 Browser-Tests (1 neu).
+
+## 2.0.0-dev40 – Firmenakte als eigene Seite
+
+Produktreview M07, Variante B (Entscheidung des Eigentümers) – damit abgeschlossen.
+
+- **Die Firmenakte ist eine eigene Seite** in voller Breite statt eines Fensters über der Liste. Die Ansicht dahinter ist ausgeblendet, die Seite scrollt normal, die Kopfzeile zeigt „Firmenakte“.
+- **Adresse `#/firmen/akte/ID`**, mit den Filtern der Firmenliste (z. B. `?suche=Kanzlei`). Neuladen öffnet die Akte wieder; „← Zurück“ bzw. Browser-Zurück führt dorthin, wo du herkamst – mit denselben Filtern. Ältere Adressen mit `?firma=ID` gelten weiter.
+- Reiter, Schutz ungespeicherter Eingaben und alle Funktionen der Akte sind unverändert.
+- Der Navigationstest prüft jetzt die neue Adresse statt `?firma=`. Kein Schemawechsel. 678 Tests unter Python 3.10 und 3.13, 31 Browser-Tests (1 neu).
+
+## 2.0.0-dev39 – Impressum-Sammelprüfung setzt nach Neustart fort
+
+Produktreview M23 – damit abgeschlossen.
+
+- **Automatisch fortsetzen:** Lief eine Impressum-Sammelprüfung beim Neustart, setzt SignalDesk sie beim Start fort. Bisher wartete sie auf einen Klick.
+- **Deine Pause gilt:** Hast du einen Lauf selbst pausiert, bleibt er pausiert. SignalDesk merkt sich dafür den Grund der Pause.
+- **Offline wartet:** Im Offline-Modus wird nichts fortgesetzt; der Lauf steht in „Heute“ als „wartet auf Fortsetzen (offline)“.
+- „Heute“ zeigt laufende Sammelprüfungen mit offenen Einträgen; von dort geht es zum Pausieren.
+- Tests: Das Aufräumen temporärer Testdatenbanken wiederholt jetzt auch bei „NotADirectoryError“ – so meldet Python 3.10 unter Windows eine noch gesperrte Datei (CI-Fehler in `test_sprintB_sweep`).
+- **Schemawechsel 42 → 43** (Grund einer Pause). 678 Tests (3 neu) unter Python 3.10 und 3.13, 30 Browser-Tests.
+
+## 2.0.0-dev38 – Angebot mit eigener Adresse
+
+Produktreview M07 (Teil).
+
+- **Ein geöffnetes Angebot hat eine eigene Adresse** (`#/angebote?angebot=ID`). Neuladen, Lesezeichen und eine eingegebene Adresse öffnen dasselbe Angebot; „Zurück“ führt zum vorher geöffneten Angebot.
+- Nur Oberfläche, kein Schemawechsel. 675 Tests unter Python 3.10 und 3.13, 30 Browser-Tests (1 neu).
+
+## 2.0.0-dev37 – Faustregeln der Website-Bewertung als Hinweis statt Urteil
+
+Produktreview M28.
+
+- **Vier pauschale Regeln liefern „Hinweis (prüfen)“ statt „auffällig“:** Überschriften-Hierarchie (A3), Schriftfamilien (A6), Jahresangabe im Fußbereich (A7) und Hauptnavigation (B7). Jeder Hinweis nennt den Messwert und warum die Regel irren kann (z. B. „Gezählt werden auch Symbol- und Fallback-Schriften“).
+- **Hinweise sind keine Mängel:** Sie zählen als geprüft (Belegabdeckung), aber nicht in den Anteil „auffällig“ und damit nicht in die Priorität. Sie belegen keine Angebotsposition (M32) und werden nicht als Kaufsignal-Beleg genutzt.
+- **Bewertungsversion 2.1:** Ältere Bewertungen gelten als „andere Bewertungsversion“ und werden nicht still verglichen.
+- Zwei bestehende Tests erwarteten für diese vier Regeln „auffällig“; ihre Erwartung folgt jetzt der Vorgabe aus dem Review. Kein Schemawechsel. 675 Tests (2 neu) unter Python 3.10 und 3.13, 29 Browser-Tests.
+
 ## 2.0.0-dev36 – KI-Analyse, Schnellprüfung und Ansprechpartner-Suche setzen nach Neustart fort
 
 Produktreview M23 Teil 2, Abnahmefall T14 bestanden.

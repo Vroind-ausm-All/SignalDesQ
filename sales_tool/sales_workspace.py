@@ -158,7 +158,10 @@ def create_meeting(conn,data):
     after_meeting_created(conn,lead['id'],when)
     advance(conn,chance,'termin')
     conn.commit()
-    return {'id':cur.lastrowid,'saved':True,'opportunity_id':chance}
+    from .caldav import conflicts  # 2.0.0-dev42 (M24): Überschneidungen mit belegten Kalenderzeiten und anderen Terminen
+    clash=conflicts(conn,data.get('starts_at',''),data.get('duration_min') or 30,cur.lastrowid)
+    return {'id':cur.lastrowid,'saved':True,'opportunity_id':chance,'conflicts':clash,
+            'warning':(f"Achtung: überschneidet sich mit {len(clash)} belegten Zeit(en) – bitte prüfen." if clash else '')}
 
 
 def daily_view(conn):

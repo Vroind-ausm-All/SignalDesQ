@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev36)
+# Bekannte Einschränkungen (Stand 2.0.0-dev43)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -227,5 +227,42 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 
 ## Hintergrundaufträge (2.0.0-dev35)
 
-- Website-Bewertung, Karriereseiten-Scan (dev35), KI-Analyse, Schnellprüfung und Suche nach öffentlichen Ansprechpartnern (dev36) setzen nach einem Neustart fort. Läufe, die vor dem Update begonnen wurden, werden einmalig als „durch Neustart unterbrochen“ gekennzeichnet. Die Impressum-Sammelprüfung pausiert nach einem Neustart und wird von Hand fortgesetzt.
+- Website-Bewertung, Karriereseiten-Scan (dev35), KI-Analyse, Schnellprüfung und Suche nach öffentlichen Ansprechpartnern (dev36) setzen nach einem Neustart fort. Läufe, die vor dem Update begonnen wurden, werden einmalig als „durch Neustart unterbrochen“ gekennzeichnet. Die Impressum-Sammelprüfung setzt seit dev39 nach einem Neustart automatisch fort – außer du hattest sie pausiert oder SignalDesk ist offline.
 - Ein fortgesetzter Schritt beginnt von vorn (die Seite wird erneut gelesen); halbfertige Zwischenergebnisse werden nicht übernommen.
+
+## Hinweise statt Urteile in der Website-Bewertung (2.0.0-dev37)
+
+- Vier Faustregeln (Überschriftenzählung, Zahl der Schriftfamilien, Jahreszahl im Fußbereich, Zahl der Navigationslinks) liefern nur noch Hinweise. Die übrigen Rubriken beruhen auf Messungen (z. B. Ladezeit, defekte Links, Darstellung auf dem Smartphone) und bleiben „auffällig“, wenn die Schwelle überschritten ist – ihre Schwellen sind weiterhin Vorgaben, keine fachlich geprüften Grenzwerte.
+- Bewertungen vor dev37 (Version 2.0) und danach (2.1) werden nicht miteinander verglichen; nach einer neuen Bewertung steht der Vergleich wieder zur Verfügung.
+
+## Firmenakte als eigene Seite (2.0.0-dev40)
+
+- Die Akte ersetzt beim Öffnen die aktuelle Ansicht; zwei Akten nebeneinander gibt es nicht.
+- Lesezeichen mit der alten Form `?firma=ID` funktionieren weiter und öffnen die Akte als Seite.
+- Escape schließt die Akte weiterhin (mit Rückfrage bei ungespeicherten Änderungen).
+
+## Kalender-Abo (2.0.0-dev41)
+
+- Die Abo-Adresse zeigt auf diesen Rechner (127.0.0.1). Kalenderprogramme auf demselben Rechner können sie abonnieren; Web-Kalender im Internet (z. B. Google im Browser) können sie nicht abrufen – dort die .ics-Datei importieren oder später CalDAV nutzen.
+- Das Abo ist nur lesend; Änderungen im Kalender kommen nicht zurück.
+- Wer die Abo-Adresse kennt, sieht Titel, Firma, Zeit und Ort deiner Termine. Bei Verdacht einen neuen Schlüssel erzeugen.
+
+## Kalender-Abgleich über CalDAV (2.0.0-dev42)
+
+- Geprüft nur gegen einen nachgebauten CalDAV-Server in den Tests, **noch nicht an einem echten Anbieter** (Google, iCloud, mailbox.org, IONOS, Nextcloud …). Abweichungen einzelner Server sind möglich; die Meldungen nennen dann den Status.
+- Gebraucht wird die Adresse **eines einzelnen Kalenders**; eine automatische Suche nach Kalendern des Kontos gibt es nicht.
+- Nur Anmeldung mit Benutzername und (App-)Passwort. Anbieter, die nur OAuth erlauben, gehen nicht.
+- Der Abgleich läuft nur auf Knopfdruck („Jetzt abgleichen“), nicht automatisch. Ist er älter als 24 Stunden, erscheint ein Hinweis.
+- Aus dem Kalender werden nur belegte Zeiten der nächsten 60 Tage gelesen. Wiederkehrende Termine (RRULE) zählen nur mit ihrem Eintrag, den der Server liefert – Server, die Wiederholungen nicht auflösen, melden nur das erste Vorkommen.
+- Zeitzonen: Angaben mit Zeitzone werden als Ortszeit dieses Rechners verstanden (passend für Termine in Deutschland), UTC-Angaben werden umgerechnet.
+- Termine, die im Kalender verschoben werden, kommen nicht in SignalDesk zurück; beim nächsten Abgleich gilt wieder der Stand aus SignalDesk.
+- „Auf diesem Rechner merken“ legt das Passwort unverschlüsselt in `zugangsdaten.json` neben der Datenbank ab (nur für dein Benutzerkonto lesbar, unter Windows über das Benutzerprofil geschützt). Ohne „merken“ ist es nach einem Neustart weg.
+
+## Entwürfe ins Postfach über IMAP (2.0.0-dev43)
+
+- Geprüft nur gegen einen nachgebauten IMAP-Server in den Tests, **noch nicht an einem echten Anbieter**.
+- Nur Anmeldung mit Benutzername und (App-)Passwort über SSL (Port 993). STARTTLS (Port 143) und OAuth-only-Anbieter gehen nicht.
+- Der Entwürfe-Ordner wird über die Markierung „Drafts“ oder übliche Namen gefunden. Fehlt beides, muss im Mailprogramm einmal ein Entwurf gespeichert werden.
+- Der Entwurf ist reiner Text (keine Signatur mit Bild, kein Anhang); das Angebot als PDF im Mailprogramm anhängen.
+- Als Empfänger wird nur die geschäftliche E-Mail-Adresse der Firma vorausgefüllt; eine Person als Empfänger trägst du im Mailprogramm ein.
+- Ein Entwurf kann mehrfach abgelegt werden (z. B. nach dem Löschen im Mailprogramm); SignalDesk prüft nicht, ob er im Postfach noch liegt.

@@ -16,7 +16,7 @@ Zweck: verhindern, dass eine Änderung unbemerkt eine Schutzregel aufweicht. Dur
 1. **Sperre:** Jeder neue Weg, der Gespräch, Termin, Entwurf, Angebot oder Kontaktvorschlag anlegt, ruft `assert_contact_allowed` auf. Ein Widerspruch lässt sich immer dokumentieren.
 2. **Reimport:** Kein Import, keine Zusammenführung und keine automatische Übertragung hebt `nicht_kontaktieren`, die Phase `gesperrt` oder einen Eintrag der Sperrliste auf.
 3. **Keine Erlaubnis aus Daten:** Ein gefundener Kontaktweg, eine gute Bewertung oder ein Kaufsignal setzt nie `permission`. Texte in der Oberfläche nennen „belegt“ und „erlaubt“ getrennt.
-4. **Kein Versand:** Kein Code öffnet eine Verbindung zu Mail-, Telefon- oder Nachrichtendiensten. Entwürfe bleiben Entwürfe.
+4. **Kein Versand:** Kein Code versendet etwas (kein SMTP, keine Telefon- oder Nachrichtendienste). Einzige Ausnahme mit Freigabe des Eigentümers (M24, 2.0.0-dev43): `imap_drafts.py` legt einen Entwurf per IMAP-APPEND in den Entwürfe-Ordner – kein Lesen, Verschieben oder Löschen von Nachrichten; geprüft in `tests/test_v2_imap_drafts.py`. Entwürfe bleiben Entwürfe.
 5. **Personen:** Personen werden nie automatisch angelegt. Telefonnummern und E-Mail-Adressen werden nie aus Mustern erzeugt; jeder Wert braucht eine Fundstelle.
 6. **Datensparsamkeit:** Neue Felder zu Personen brauchen einen Zweck und fallen unter die Löschfristen in `quality.py`.
 7. **Lesende Auswertungen** (Bewertung, Statistik) ändern keine Firmendaten und legen keine Aufgaben an.

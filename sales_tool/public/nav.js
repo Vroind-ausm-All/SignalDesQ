@@ -22,7 +22,7 @@
   const BY_SLUG = Object.fromEntries(Object.entries(SLUG).map(([v, s]) => [s, v]));
   const AREA_OF = Object.fromEntries(AREAS.flatMap(a => a.views.map(v => [v, a.key])));
   const scrollOf = {};
-  let fromHistory = false, pushedLead = false, ignorePop = 0;
+  let fromHistory = false, pushedLead = false, ignorePop = 0, restoringOffer = null;
 
   const areaOf = view => AREA_OF[view] || 'heute';
   const modalOpen = () => !!document.getElementById('modal') && !document.getElementById('modal').classList.contains('hidden');
@@ -30,8 +30,14 @@
   function parse(hash) {
     const h = String(hash || '').replace(/^#\/?/, '');
     const [path, query = ''] = h.split('?');
-    return {view: BY_SLUG[path.replace(/\/+$/, '')] || null, params: new URLSearchParams(query)};
+    const params = new URLSearchParams(query);
+    // 2.0.0-dev40 (M07 B): Firmenakte als eigene Seite – #/firmen/akte/ID (ältere Adressen mit ?firma=ID gelten weiter)
+    const akte = path.replace(/\/+$/, '').match(/^firmen\/akte\/(\d+)$/);
+    if (akte) { params.set('firma', akte[1]); return {view: 'leads', params, akte: true}; }
+    return {view: BY_SLUG[path.replace(/\/+$/, '')] || null, params};
   }
+  // Filter der Firmenliste wandern mit, damit Neuladen und „← Zurück“ wieder die gefilterte Liste zeigen
+  const akteHash = id => { const q = (typeof currentView !== 'undefined' && currentView === 'leads') ? listParams().toString() : ''; return '#/firmen/akte/' + id + (q ? '?' + q : ''); };
   function build(view, params) {
     const q = params ? params.toString() : '';
     return '#/' + (SLUG[view] || 'heute') + (q ? '?' + q : '');
@@ -44,7 +50,7 @@
     if (window.leadList && window.leadList.preset !== 'alle') p.set('ansicht', window.leadList.preset);  // 2.0.0-dev15
     return p;
   }
-  const viewParams = view => (view === 'leads' ? listParams() : new URLSearchParams());
+  const viewParams = view => (view === 'leads' ? listParams() : new URLSearchParams());  // Angebot: siehe wrapOffer
 
   // ---- Darstellung des aktiven Bereichs
   function markArea(view) {
@@ -85,10 +91,9 @@
   window.showModal = async function (id = null, offer = null) {
     const r = await plainShow(id, offer);
     if (id && modalOpen() && !fromHistory) {
-      const {view, params} = parse(location.hash);
+      const {params} = parse(location.hash);
       if (params.get('firma') !== String(id)) {
-        params.set('firma', String(id));
-        history.pushState(null, '', build(view || currentView, params));
+        history.pushState(null, '', akteHash(id));  // 2.0.0-dev40: eigene Adresse der Akte
         pushedLead = true;
       }
     }
@@ -103,7 +108,7 @@
       const {view, params} = parse(location.hash);
       if (!params.has('firma') || modalOpen()) { if (!params.has('firma')) pushedLead = false; return; }
       if (pushedLead) { pushedLead = false; ignorePop++; history.back(); }
-      else { params.delete('firma'); history.replaceState(null, '', build(view || currentView, params)); }
+      else { params.delete('firma'); history.replaceState(null, '', build(view || currentView, params)); }  // direkt geöffnete Akte → Liste
     }, 0);
     return r;
   };
@@ -121,8 +126,10 @@
         if (window.leadList) window.leadList.setPreset(route.params.get('ansicht') || 'alle', false);
         else if (typeof renderLeads === 'function') renderLeads();
       }
-      if (view !== currentView || document.getElementById('view' + view[0].toUpperCase() + view.slice(1)).classList.contains('hidden')) window.switchView(view);
-      else markArea(view);
+      // Akte direkt aufgerufen (Adresse, Neuladen): die Ansicht dahinter nicht wechseln, wenn schon eine sichtbar ist
+      const keep = route.akte && typeof currentView !== 'undefined' && currentView && currentView !== 'dashboard';
+      if (!keep && (view !== currentView || document.getElementById('view' + view[0].toUpperCase() + view.slice(1)).classList.contains('hidden'))) window.switchView(view);
+      else markArea(route.akte ? 'leads' : view);
       const firma = Number(route.params.get('firma')) || null;
       if (firma && (!modalOpen() || currentLeadId !== firma)) {
         if (leads.some(l => l.id === firma)) await window.showModal(firma);
@@ -130,10 +137,15 @@
       } else if (!firma && modalOpen()) {
         if (window.leadGuard) window.leadGuard.requestClose(); else closeModal();
         if (modalOpen()) {  // Rückfrage offen: Adresse wieder auf die Firma stellen
-          const p = new URLSearchParams(route.params); p.set('firma', String(currentLeadId));
-          history.pushState(null, '', build(view, p));
+          history.pushState(null, '', akteHash(currentLeadId));
           pushedLead = true;
         }
+      }
+      // 2.0.0-dev38 (M07): geöffnetes Angebot als Adresse (#/angebote?angebot=ID)
+      const offer = Number(route.params.get('angebot')) || null;
+      if (view === 'quotes' && offer && window.wsOpenProposal) {
+        restoringOffer = offer;  // nur dieses Öffnen schreibt keinen neuen Verlaufseintrag
+        try { await window.wsOpenProposal(offer); } finally { restoringOffer = null; }
       }
       const section = route.params.get('abschnitt');
       if (view === 'settings' && section) setTimeout(() => document.getElementById(section)?.scrollIntoView({behavior: 'smooth', block: 'start'}), 60);
@@ -176,7 +188,27 @@
     }
   }
 
+  // ---- 2.0.0-dev38 (M07): geöffnetes Angebot in die Adresse schreiben (ohne neuen Verlaufseintrag beim Neuladen)
+  function wrapOffer() {
+    const plainOpen = window.wsOpenProposal;
+    if (typeof plainOpen !== 'function' || plainOpen.__nav) return;
+    const wrapped = async function (id) {
+      const r = await plainOpen(id);
+      if (id && id !== restoringOffer && currentView === 'quotes') {
+        const {params} = parse(location.hash);
+        if (params.get('angebot') !== String(id)) {
+          params.set('angebot', String(id));
+          history.pushState(null, '', build('quotes', params));
+        }
+      }
+      return r;
+    };
+    wrapped.__nav = true;
+    window.wsOpenProposal = wrapped;
+  }
+
   function start() {
+    wrapOffer();
     const bar = document.getElementById('areaBar');
     if (bar) new MutationObserver(dots).observe(bar, {subtree: true, childList: true, characterData: true});
     dots();

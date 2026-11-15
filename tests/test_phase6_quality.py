@@ -5,6 +5,7 @@ Alle Daten sind fiktiv; keine Netzwerkzugriffe (wiederkehrende Aufträge laufen 
 """
 import datetime as dt
 import contextlib
+import errno
 import hashlib
 import json
 import re
@@ -360,7 +361,16 @@ class HttpBase(QBase):
         data = raw_body if raw_body is not None else (json.dumps(body).encode() if body is not None else None)
         if data is not None and 'Content-Type' not in h:
             h['Content-Type'] = 'application/json'
-        c.request(method, path, body=data, headers=h)
+        for attempt in range(40):  # Windows: bei vielen kurzen Verbindungen sind Client-Ports zeitweise belegt (WinError 10048)
+            try:
+                c.request(method, path, body=data, headers=h)
+                break
+            except OSError as e:
+                if getattr(e, 'winerror', None) != 10048 and e.errno not in (errno.EADDRINUSE, errno.EADDRNOTAVAIL) or attempt == 39:
+                    raise
+                c.close()
+                time.sleep(0.25)
+                c = HTTPConnection('127.0.0.1', self.port, timeout=20)
         r = c.getresponse()
         content = r.read()
         c.close()

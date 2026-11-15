@@ -205,7 +205,7 @@ def validate(fields: dict, partial=False):
 
 STATIC_FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
     "/style.css": ("style.css", "text/css"), "/theme.js": ("theme.js", "text/javascript"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/care.js": ("care.js", "text/javascript"), "/messages.js": ("messages.js", "text/javascript"), "/kurzbericht.js": ("kurzbericht.js", "text/javascript"), "/search.js": ("search.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/offerflow.js": ("offerflow.js", "text/javascript"), "/chances.js": ("chances.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/nav.js": ("nav.js", "text/javascript"), "/leadlist.js": ("leadlist.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/care.js": ("care.js", "text/javascript"), "/messages.js": ("messages.js", "text/javascript"), "/kurzbericht.js": ("kurzbericht.js", "text/javascript"), "/search.js": ("search.js", "text/javascript"), "/aktepage.js": ("aktepage.js", "text/javascript"), "/calendar.js": ("calendar.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/offerflow.js": ("offerflow.js", "text/javascript"), "/chances.js": ("chances.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/nav.js": ("nav.js", "text/javascript"), "/leadlist.js": ("leadlist.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
 
 LOOPBACK_HOSTS = frozenset({'127.0.0.1', 'localhost', '::1'})
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
@@ -339,6 +339,8 @@ def make_handler(db_path, allowed_hosts=None):
                 required = auth.auth_required(conn)
             if not required or static or (method, route) in auth.PUBLIC_API:
                 return True
+            if method == "GET" and route.startswith("/kalender/"):  # 2.0.0-dev41 (M24): Kalender-Abo – Zugriff nur über den geheimen Schlüssel
+                return True
             if not self.user:
                 self._send(401, {"error": "Bitte anmelden.", "auth_required": True})
                 return False
@@ -367,6 +369,11 @@ def make_handler(db_path, allowed_hosts=None):
                 with self._conn() as conn:
                     return self._send(200, security_status(conn, hosts, self.headers.get("Host", "")))
             if not route.startswith("/api/"):
+                if method == "GET" and route.startswith("/kalender/"):
+                    from .calendar_feed import route_calendar
+                    with self._conn() as conn:
+                        if route_calendar(self, conn, method, route):
+                            return
                 if method == "GET" and route_print(self, route, db_path, connect):
                     return
                 return self._static(route, method)
@@ -403,6 +410,15 @@ def make_handler(db_path, allowed_hosts=None):
                 if route_duplicates(self, conn, method, route, query):
                     return
                 if route_catalog(self, conn, method, route, query, db_path):
+                    return
+                from .calendar_feed import route_calendar
+                if route_calendar(self, conn, method, route):  # 2.0.0-dev41: Kalender-Abo und Export
+                    return
+                from .caldav import route_caldav
+                if route_caldav(self, conn, method, route, db_path):  # 2.0.0-dev42: Kalender-Abgleich (CalDAV)
+                    return
+                from .imap_drafts import route_imap
+                if route_imap(self, conn, method, route, db_path):  # 2.0.0-dev43: Entwürfe ins Postfach (IMAP, nie Versand)
                     return
                 from .search import route_search
                 if route_search(self, conn, method, route, query):  # 2.0.0-dev34: globale Suche
@@ -948,7 +964,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 42  # 2.0.0-dev30 – bei Schemaänderungen erhöhen (Kurzberichte)
+SCHEMA_VERSION = 45  # 2.0.0-dev43 – bei Schemaänderungen erhöhen (Entwürfe im Postfach)
 
 
 def backup_before_migration(db):
@@ -1104,6 +1120,9 @@ def main():
         if research_jobs.pending(conn)[0]:
             research_jobs.ensure_workers(db)  # nach Neustart offene Recherche-Aufträge fortsetzen
             print("Offene Recherche-Aufträge werden fortgesetzt.")
+    from .imprint_batch import resume_after_restart
+    if resume_after_restart(db):  # 2.0.0-dev39 (M23): durch Neustart pausierte Impressum-Sammelprüfungen
+        print("Unterbrochene Impressum-Sammelprüfung wird fortgesetzt.")
     url = f"http://127.0.0.1:{port}"
     if port != args.port:
         print(f"Port {args.port} ist belegt – weiche auf {port} aus.")
