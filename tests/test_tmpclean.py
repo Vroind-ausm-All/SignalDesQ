@@ -24,6 +24,12 @@ class CleanupTests(unittest.TestCase):
         cleanup_tmp(tmp, attempts=5, pause=0)
         self.assertEqual(tmp.calls, 3)
 
+    def test_retries_windows_locked_file_reported_as_not_a_directory(self):
+        # Python 3.10/Windows: gesperrte Datei → tempfile meldet NotADirectoryError (WinError 267)
+        tmp = Flaky([NotADirectoryError(errno.ENOTDIR, 'Der Verzeichnisname ist ungültig')])
+        cleanup_tmp(tmp, attempts=5, pause=0)
+        self.assertEqual(tmp.calls, 2)
+
     def test_other_errors_are_not_hidden(self):
         with self.assertRaises(OSError):
             cleanup_tmp(Flaky([OSError(errno.EIO, 'E/A-Fehler')]), attempts=5, pause=0)

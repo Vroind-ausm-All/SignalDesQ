@@ -11,7 +11,9 @@ während gelöscht wird, und legt dabei die SQLite-Begleitdateien (-wal/-shm) ne
 import errno
 import time
 
-RETRY_ERRNOS = {errno.ENOTEMPTY, errno.EEXIST}
+# ENOTDIR: Python 3.10 unter Windows – ist die Datei noch gesperrt, versucht tempfile sie wie einen Ordner zu löschen und
+# meldet „NotADirectoryError: [WinError 267]“ statt PermissionError (gesehen im CI-Lauf von 2.0.0-dev38, test_sprintB_sweep).
+RETRY_ERRNOS = {errno.ENOTEMPTY, errno.EEXIST, errno.ENOTDIR}
 
 
 def cleanup_tmp(tmp, attempts=40, pause=0.25):
