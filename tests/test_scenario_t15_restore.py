@@ -101,14 +101,14 @@ class RestoreScenarioTest(unittest.TestCase):
         before = counts(self.prod)
         self.assertTrue(all(before[t] > 0 for t in TABLES), before)
         backup = create_backup(self.prod)['path']
-        self.assertTrue(Path(backup).is_relative_to(self.prod.parent), 'Sicherung liegt bei der Ausgangsinstallation')
+        self.assertTrue(Path(backup).resolve().is_relative_to(self.prod.parent.resolve()), 'Sicherung liegt bei der Ausgangsinstallation')  # resolve: Windows-Kurznamen (RUNNER~1)
         # getrennte Testinstallation: eigener Ordner, eigene (leere) Datenbank
         prepare_database(self.test)
         r = restore(self.test, backup, confirm=True)
         self.assertEqual(r['schema'], SCHEMA_VERSION)
         self.assertEqual(counts(self.test), before, 'alle Daten aus Etappe C und D wiederhergestellt')
         self.assertEqual(counts(self.prod), before, 'Ausgangsinstallation unverändert')
-        self.assertTrue(r['safety_backup'] and Path(r['safety_backup']).is_relative_to(self.test.parent),
+        self.assertTrue(r['safety_backup'] and Path(r['safety_backup']).resolve().is_relative_to(self.test.parent.resolve()),
                         'Sicherheitskopie vor dem Zurückspielen liegt in der Testinstallation')
         # Abläufe in der Testinstallation
         t = connect(str(self.test))
