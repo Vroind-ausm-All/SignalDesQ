@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev42)
+# Bekannte Einschränkungen (Stand 2.0.0-dev43)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -257,3 +257,12 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Zeitzonen: Angaben mit Zeitzone werden als Ortszeit dieses Rechners verstanden (passend für Termine in Deutschland), UTC-Angaben werden umgerechnet.
 - Termine, die im Kalender verschoben werden, kommen nicht in SignalDesk zurück; beim nächsten Abgleich gilt wieder der Stand aus SignalDesk.
 - „Auf diesem Rechner merken“ legt das Passwort unverschlüsselt in `zugangsdaten.json` neben der Datenbank ab (nur für dein Benutzerkonto lesbar, unter Windows über das Benutzerprofil geschützt). Ohne „merken“ ist es nach einem Neustart weg.
+
+## Entwürfe ins Postfach über IMAP (2.0.0-dev43)
+
+- Geprüft nur gegen einen nachgebauten IMAP-Server in den Tests, **noch nicht an einem echten Anbieter**.
+- Nur Anmeldung mit Benutzername und (App-)Passwort über SSL (Port 993). STARTTLS (Port 143) und OAuth-only-Anbieter gehen nicht.
+- Der Entwürfe-Ordner wird über die Markierung „Drafts“ oder übliche Namen gefunden. Fehlt beides, muss im Mailprogramm einmal ein Entwurf gespeichert werden.
+- Der Entwurf ist reiner Text (keine Signatur mit Bild, kein Anhang); das Angebot als PDF im Mailprogramm anhängen.
+- Als Empfänger wird nur die geschäftliche E-Mail-Adresse der Firma vorausgefüllt; eine Person als Empfänger trägst du im Mailprogramm ein.
+- Ein Entwurf kann mehrfach abgelegt werden (z. B. nach dem Löschen im Mailprogramm); SignalDesk prüft nicht, ob er im Postfach noch liegt.

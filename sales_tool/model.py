@@ -267,6 +267,8 @@ def init_db(conn: sqlite3.Connection):
     init_customer_report(conn)  # 2.0.0-dev30: Kurzbericht für den Kunden
     from .caldav import init_caldav
     init_caldav(conn)  # 2.0.0-dev42: Kalender-Abgleich (CalDAV)
+    from .imap_drafts import init_imap
+    init_imap(conn)  # 2.0.0-dev43: Entwürfe ins Postfach (IMAP)
     conn.commit()
 
 

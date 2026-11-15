@@ -417,6 +417,9 @@ def make_handler(db_path, allowed_hosts=None):
                 from .caldav import route_caldav
                 if route_caldav(self, conn, method, route, db_path):  # 2.0.0-dev42: Kalender-Abgleich (CalDAV)
                     return
+                from .imap_drafts import route_imap
+                if route_imap(self, conn, method, route, db_path):  # 2.0.0-dev43: Entwürfe ins Postfach (IMAP, nie Versand)
+                    return
                 from .search import route_search
                 if route_search(self, conn, method, route, query):  # 2.0.0-dev34: globale Suche
                     return
@@ -961,7 +964,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 44  # 2.0.0-dev42 – bei Schemaänderungen erhöhen (Kalender-Abgleich)
+SCHEMA_VERSION = 45  # 2.0.0-dev43 – bei Schemaänderungen erhöhen (Entwürfe im Postfach)
 
 
 def backup_before_migration(db):

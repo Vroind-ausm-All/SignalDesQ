@@ -2,6 +2,7 @@
 // 2.0.0-dev41 (Roadmap M24 Stufe 1): Kalender-Abo (iCalendar) und Termin-Export in „Einstellungen → Kalender & Postfach“.
 // 2.0.0-dev42 (Roadmap M24 Stufe 2): Kalender-Abgleich über CalDAV – Adresse, Benutzername, Passwort (nie in der Datenbank),
 // Verbindung prüfen, jetzt abgleichen, letzter Abgleich mit Hinweis bei veralteten Daten.
+// 2.0.0-dev43 (Roadmap M24 Stufe 3): Postfach über IMAP – nur Entwürfe in den Entwürfe-Ordner, nie Versand.
 (function () {
   const abs = path => (path ? location.origin + path : '');
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
@@ -60,9 +61,43 @@
     });
   }
 
+  function renderImap(v) {
+    const pw = v.password.stored ? (v.password.remembered ? 'hinterlegt (auf diesem Rechner gemerkt)' : 'hinterlegt (bis zum Neustart)') : 'nicht hinterlegt';
+    $('#calImap').innerHTML = `
+      <div class="sales-subhead">3 · Postfach (IMAP, nur Entwürfe)</div>
+      <p class="muted">SignalDesk legt einen fertigen Entwurf in den Entwürfe-Ordner deines Postfachs. Du prüfst ihn im Mailprogramm und versendest selbst. SignalDesk versendet nie und liest keine Nachrichten.</p>
+      <form id="imForm" class="sales-form" autocomplete="off">
+        <label>Postfach-Server (IMAP)<input name="host" id="imHost" placeholder="imap.anbieter.de" value="${esc(v.host)}"></label>
+        <label>Port<input name="port" id="imPort" type="number" min="1" max="65535" value="${esc(v.port)}"></label>
+        <label>Benutzername<input name="username" id="imUser" value="${esc(v.username)}" autocomplete="off"></label>
+        <label>Absender (deine Adresse)<input name="sender" id="imSender" type="email" placeholder="hallo@deine-agentur.de" value="${esc(v.sender)}"></label>
+        <label>Passwort (am besten App-Passwort)<input name="password" id="imPass" type="password" autocomplete="new-password" placeholder="${v.password.stored ? '•••••• hinterlegt' : ''}"></label>
+        <label class="check"><input type="checkbox" id="imRemember" ${v.password.remembered ? 'checked' : ''}> auf diesem Rechner merken (eigene Datei, nicht in der Datenbank)</label>
+        <div class="sales-row"><button class="btn" type="submit">Speichern</button>
+          <button class="btn btn-ghost" type="button" id="imTest" ${v.configured ? '' : 'disabled'}>Verbindung prüfen</button>
+          ${v.password.stored ? '<button class="btn btn-ghost" type="button" id="imForget">Passwort vergessen</button>' : ''}</div>
+      </form>
+      <p class="muted" id="imStatus">Passwort: ${esc(pw)} · Entwürfe-Ordner: ${esc(v.folder_label || 'noch nicht gesucht')}${v.last_result ? ' · ' + esc(v.last_result) : ''}</p>
+      <p class="muted">${esc(v.notice)}</p>`;
+    $('#imForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const body = {host: $('#imHost').value.trim(), port: Number($('#imPort').value || 993), username: $('#imUser').value.trim(),
+                    sender: $('#imSender').value.trim(), remember: $('#imRemember').checked};
+      if ($('#imPass').value) body.password = $('#imPass').value;
+      try { renderImap(await api('/imap', 'POST', body)); toast('Postfach-Zugang gespeichert'); } catch (err) { toast(err.message, true); }
+    });
+    $('#imTest').addEventListener('click', async () => {
+      try { const r = await api('/imap/test', 'POST', {}); renderImap(r); toast(r.last_result); } catch (err) { toast(err.message, true); }
+    });
+    $('#imForget')?.addEventListener('click', async () => {
+      try { renderImap(await api('/imap', 'POST', {forget: true})); toast('Passwort vergessen'); } catch (err) { toast(err.message, true); }
+    });
+  }
+
   async function loadCaldav() {
     if (!$('#calCaldav')) return;
     try { renderCaldav(await api('/caldav')); } catch (e) { $('#calCaldav').textContent = e.message; }
+    if ($('#calImap')) { try { renderImap(await api('/imap')); } catch (e) { $('#calImap').textContent = e.message; } }
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -71,6 +106,14 @@
     $('#calRegen').addEventListener('click', () => save({regenerate: true}, 'Neuer Schlüssel – die alte Adresse gilt nicht mehr'));
     $('#calCopy').addEventListener('click', () => navigator.clipboard.writeText($('#calUrl').value).then(() => toast('Abo-Adresse kopiert')));
     document.addEventListener('signaldesk:view', e => { if (e.detail.view === 'settings') load(); });
+    // 2.0.0-dev43: Entwurf in den Entwürfe-Ordner legen (aus der Entwurfsliste)
+    document.addEventListener('click', async e => {
+      const b = e.target.closest('[data-ws-imap]');
+      if (!b) return;
+      b.disabled = true;
+      try { const r = await api(`/workspace/mail-drafts/${b.dataset.wsImap}/postfach`, 'POST', {}); toast(r.notice); await window.refreshSalesWorkspace?.(); }
+      catch (err) { toast(err.message, true); b.disabled = false; }
+    });
     load();
   });
   window.refreshCalendarSettings = load;

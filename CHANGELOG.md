@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0-dev43 – Entwürfe ins Postfach (IMAP)
+
+Produktreview M24 Stufe 3 – damit ist M24 umgesetzt.
+
+- **Neu in „Einstellungen → Kalender & Postfach“:** Postfach-Server, Benutzername, Absender und Passwort. „Verbindung prüfen“ findet den Entwürfe-Ordner (Markierung „Drafts“ oder übliche Namen wie „Entwürfe“).
+- **„In Entwürfe legen“** an jedem gespeicherten Entwurf: Der Entwurf erscheint im Entwürfe-Ordner deines Mailprogramms. Du prüfst Empfänger und Inhalt und versendest selbst. Die Liste zeigt, welche Entwürfe im Postfach liegen.
+- **Nie Versand:** kein SMTP im ganzen Programm; die einzige schreibende Aktion ist das Ablegen als Entwurf. Nachrichten werden weder gelesen noch verschoben oder gelöscht (Test).
+- **Sperren beim Ablegen erneut geprüft:** Kontaktsperre der Firma, Sperrliste und Einschränkungen der Person (z. B. „keine E-Mail“).
+- Empfänger nur die geschäftliche Adresse der Firma. Passwort wie beim Kalender nie in der Datenbank. Im Offline-Modus keine Verbindung.
+- Schema 45 (zwei neue Spalten an den Entwürfen). 691 Tests (5 neu) unter Python 3.10 und 3.13, 34 Browser-Tests (1 neu).
+
 ## 2.0.0-dev42 – Kalender-Abgleich über CalDAV
 
 Produktreview M24 Stufe 2 (offener Standard statt Anbieter-APIs – eine Umsetzung für Google, iCloud, mailbox.org, IONOS, Nextcloud und andere).

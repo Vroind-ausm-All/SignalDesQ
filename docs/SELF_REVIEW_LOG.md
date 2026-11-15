@@ -872,3 +872,17 @@ M24 nach Empfehlung, Stufe 2 von 3. Bewusst sparsam in Gegenrichtung: aus dem Ka
 | Grenzen | HTTPS-Pflicht außer auf diesem Rechner, Offline-Modus sendet nichts, falsches Passwort mit klarer Meldung (Test) |
 
 **Selbstbewertung 4 von 5.** Abzug: an keinem echten Anbieter gemessen, Abgleich nur auf Knopfdruck, keine automatische Kalendersuche im Konto (in `docs/EINSCHRAENKUNGEN.md` beschrieben).
+
+## Arbeitspaket 42 – Entwürfe ins Postfach über IMAP (2.0.0-dev43)
+
+M24 nach Empfehlung, Stufe 3 von 3. Bisher galt „keine Verbindung zu Maildiensten“; der Eigentümer hat das Ablegen von Entwürfen freigegeben. Die Leitplanke (`.claude/skills/privacy-and-contact-guardrails`) nennt jetzt diese eine Ausnahme, und ein Test hält sie eng: kein SMTP, IMAP nur in `imap_drafts.py`, dort nur Ordnerliste und APPEND.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 691 Tests bestanden (5 neu in `tests/test_v2_imap_drafts.py`, gegen einen nachgebauten IMAP-Server auf 127.0.0.1) |
+| Browser-Tests | 34 von 34 (neu `test_imap_browser.py`): Postfach eintragen, Ordner finden, Entwurf ablegen |
+| Kein Versand | kein `smtplib` im Programm; nur CAPABILITY, LOGIN, LIST, APPEND, LOGOUT am Server (Test) |
+| Sperren | gesperrte Firma und Person mit „keine E-Mail“: keine Verbindung, nichts abgelegt (Test) |
+| Datenschutz | Passwort weder in Datenbank noch Antwort an die Oberfläche; Empfänger nur geschäftliche Firmenadresse (Test) |
+
+**Selbstbewertung 4 von 5.** Abzug: an keinem echten Anbieter gemessen; nur SSL auf Port 993, kein STARTTLS (in `docs/EINSCHRAENKUNGEN.md` beschrieben).
