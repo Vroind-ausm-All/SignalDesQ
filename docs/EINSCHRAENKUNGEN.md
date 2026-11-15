@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev32)
+# Bekannte Einschränkungen (Stand 2.0.0-dev36)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -212,3 +212,20 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Der Bericht übernimmt Beobachtung, Fundstelle und Frage so, wie sie beim Befund stehen. Formulierungen bitte vor der Weitergabe selbst lesen; SignalDesk glättet keine Texte.
 - Screenshots werden nicht eingebunden (nur Markdown, kein gestaltetes PDF).
 - Höchstens zwölf Befunde je Bericht. Die Einordnung am Ende ist ein Textvorschlag, keine Rechtsberatung.
+
+## Grundlage je Position (2.0.0-dev33)
+
+- Ein Befund belegt eine Position, wenn sein Paketvorschlag diese Leistung enthält (Zuordnung über die Vorlagen des Katalogs). Befunde ohne Paketvorschlag zählen nicht.
+- Positionen ohne Grundlage blockieren den Versand nicht; sie erscheinen als Hinweis. Ob du sie begründest, streichst oder bewusst anbietest, entscheidest du.
+- Die Grundlage wird beim Öffnen neu berechnet, nicht beim Erstellen gespeichert. Wird ein Befund später verworfen, ändert sich die Anzeige.
+
+## Globale Suche (2.0.0-dev34)
+
+- Durchsucht werden Firmenname, Firmierung, Website, Titel von Chancen, Angebotsnummer und Projekttitel sowie Rechnungsnummern. Personen, Notizen und Gesprächsprotokolle bewusst nicht.
+- Die Suche ist eine einfache Teilwort-Suche ohne Tippfehler-Toleranz; je Gruppe höchstens acht Treffer.
+- Ein Rechnungstreffer wechselt in die Rechnungsliste; die Rechnung selbst öffnest du dort.
+
+## Hintergrundaufträge (2.0.0-dev35)
+
+- Website-Bewertung, Karriereseiten-Scan (dev35), KI-Analyse, Schnellprüfung und Suche nach öffentlichen Ansprechpartnern (dev36) setzen nach einem Neustart fort. Läufe, die vor dem Update begonnen wurden, werden einmalig als „durch Neustart unterbrochen“ gekennzeichnet. Die Impressum-Sammelprüfung pausiert nach einem Neustart und wird von Hand fortgesetzt.
+- Ein fortgesetzter Schritt beginnt von vorn (die Seite wird erneut gelesen); halbfertige Zwischenergebnisse werden nicht übernommen.

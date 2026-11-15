@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import json
 import re
-import threading
 from pathlib import Path
 from urllib.parse import urlsplit
 from .model import connect
@@ -144,8 +143,25 @@ def run_job(db_path: str | Path, run_id: int, lead_id: int, website: str, offer:
 
 
 def enqueue(db_path,run_id,lead_id,website,offer):
-    threading.Thread(target=run_job,args=(db_path,run_id,lead_id,website,offer),daemon=True,
-                     name=f'public-contact-research-{run_id}').start()
+    """2.0.0-dev36 (M23): als Auftrag im gemeinsamen System statt eigenem Thread – setzt nach einem Neustart fort."""
+    from . import bg_jobs
+    bg_jobs.submit(db_path, 'ansprechpartner', run_id, f'Öffentliche Ansprechpartner: {website}', website,
+                   {'lead_id': lead_id, 'website': website, 'offer': offer})
+
+
+def _job_contacts(db_path, payload, ctx):
+    from . import bg_jobs
+    bg_jobs.still_open(db_path, 'ansprechpartner', payload['run_id'])
+    run_job(db_path, payload['run_id'], payload['lead_id'], payload['website'], payload['offer'])
+    return bg_jobs.finished(db_path, 'ansprechpartner', payload['run_id'])
+
+
+def _register():
+    from .research import jobs
+    jobs.handler('ansprechpartner')(_job_contacts)
+
+
+_register()
 
 
 def list_runs(conn,lead_id):

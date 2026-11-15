@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev32. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev36. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -48,7 +48,7 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 | M07 | Sechs Hauptbereiche mit direkter Navigation | P1 | teilweise | dev14 | Sechs Bereiche, Reiter, Adressen für Ansicht, Firma, Abschnitt und Listenfilter; T05 bestanden | Adressen für Filter weiterer Listen und für Firmen-Berichte; Entscheidung Akte als eigene Seite |
 | M08 | Heute auf nächste Aktionen ausrichten (V7) | P1 | erledigt | dev13, dev15 | Drei nächste Schritte mit Grund und Frist; überfällige Zusagen vor Terminen vor Nachfassen vor Akquise; Rückrufzusage vor Passungsnote (Test); Tagesplan und Tagesabschluss eingeklappt | Prioritätsregeln am Pilot prüfen |
 | M09 | Filterchips und gespeicherte Arbeitsansichten (V5) | P1 | erledigt | dev15 | Arbeitsansichten mit Trefferzahl, aktive Filter sichtbar, eigene Ansicht speichern und wieder öffnen, Ansicht in der Adresse; Spalten nächster Schritt, Phase, Passung, letzter Kontakt | Stapelaktionen (Review U09) noch offen |
-| M10 | Globale Suche und Strg+K (V8) | P2 | offen | später | Firma, Chance, Angebotsnummer über ein Suchfeld | M07 |
+| M10 | Globale Suche und Strg+K (V8) | P2 | erledigt | dev34 | Firma (Name, Firmierung, Website), Chance, Angebot (Nummer, Projekt), Rechnungsnummer über ein Suchfeld; Strg+K/⌘K, Pfeiltasten, Enter, Escape mit Fokus-Rückgabe; Personen nicht durchsucht (Unit- und Browser-Test) | Rechnungstreffer öffnen die Rechnungsliste, nicht die einzelne Rechnung |
 | M11 | Geführter Einstieg und Leerzustände (V9) | P1 | erledigt | dev15 | „Erste Schritte“ mit echter Prüfung (Preise, Zielkunden, Zeiten, erste Firma oder Anfrage), ohne Recherchelauf; Leerzustände mit Knopf zum nächsten Schritt | Beispieldaten gibt es bewusst nicht |
 | M12 | Zentraler Leistungskatalog | P1 | erledigt | dev16 | Eine Kennung je Leistung; 5/6/26 (+5 Zusatzleistungen) nachvollziehbar zusammengeführt ([`LEISTUNGSKATALOG.md`](LEISTUNGSKATALOG.md)); geänderte Leistung wirkt gleich auf Vorlage, Empfehlung, Angebot und Oberfläche; gespeicherte Angebote unverändert (Unit- und Browser-Test); Korrekturschleifen je Leistung ohne Widerspruch (K01) | Eigene Leistungen anlegen/ausblenden; frühere Paketpreise weichen von den Baukastenpreisen ab – vom Eigentümer zu prüfen |
 | M13 | Mehrere Verkaufschancen je Firma | P1 | erledigt | dev18, dev19 | T08: zwei Chancen mit getrennten Phasen, Bedarfsanalysen, Freigaben und Terminen; Verlust einer Chance beendet keine andere, keine Rechnung ändert sich; Angebote prüfen den Bedarf ihrer Chance; Pipeline und Heute je Chance; Bestand mit genau einer ersten Chance (Migration an Kopie geprüft) | Aufgaben je Chance; Paketabgleich je Chance |
@@ -61,7 +61,7 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 | M20 | Zeiten je Leistung und Lernvorschläge | P2 | erledigt | dev5, dev27 | Ist-Zeiten je Angebotsposition; Soll/Ist je Position; Aussage je Leistung erst ab drei abgeschlossenen Aufträgen, mit Spanne und Vorschlag (Unit- und Browser-Test) | Katalogwerte werden nie automatisch geändert; Wirkung nach Methode bleibt M34 |
 | M21 | Lokaler Recherchepilot | P0 | offen | – | 50–100 Firmen gegen Referenzliste; Messgrößen aus dem Review | **Eigentümer:** echter OSM-Auszug und Referenzliste auf dem eigenen Rechner |
 | M22 | Quellenstatus und Datenqualität | P1 | teilweise | dev6–dev9 | „Keine Website gefunden“ ≠ „hat keine Website“ | Ergebnisse aus M21 |
-| M23 | Gemeinsame Hintergrundaufträge vervollständigen | P1 | teilweise | Masterplan 2.0 | Alle Module mit gleichem Lebenszyklus nach Neustart | fünf Module laufen noch als Thread |
+| M23 | Gemeinsame Hintergrundaufträge vervollständigen | P1 | teilweise | Masterplan 2.0, dev35 | Alle Module mit gleichem Lebenszyklus nach Neustart | dev35: Website-Bewertung und Karriereseiten-Scan; dev36: KI-Analyse, Schnellprüfung, öffentliche Ansprechpartner – jeweils im gemeinsamen Auftragssystem, nach Neustart fortgesetzt. Offen: Impressum-Sammelprüfung (pausiert nach Neustart, Fortsetzen von Hand), Wiederholung einzelner Quellen der Sammelsuche |
 | M24 | Kalender und dokumentierte Exporte | P2 | offen | Etappe D | Aktualität und Konflikte geprüft | Anbieterwahl |
 | M25 | Kundenfähiger Kurzbericht | P2 | erledigt | dev30 | Auswahl nur aus bestätigten bzw. freigegebenen Befunden (serverseitig geprüft); Bericht ohne Punktwerte, Prioritäten, Angebotsideen, Hypothesen; gesperrte Firma ohne Bericht; gezeigte Befunde gespeichert (Unit- und Browser-Test) | Nur Markdown, kein gestaltetes PDF |
 | M26 | Aktuellen Status in einer Quelle pflegen | P1 | erledigt | dev13 | Diese Tabelle; Launch-Audit als historisch gekennzeichnet | bei jeder Stufe nachführen |
@@ -77,7 +77,7 @@ bevor M27 erledigt und ein Pilot außerhalb der App gelaufen ist.
 | M29 | Fachreview erfassen | P1 | offen | – | Kriterienauswahl, Beleg, Stufe, Begründung, Prüfer und „offen“ speicherbar; kein Verlust beim Abbruch | Pilot außerhalb der App |
 | M30 | Erlebnisstudien ermöglichen | P2 | offen | – | Echte Antworten, Aufgabenergebnisse und Stichprobe getrennt; keine KI-Antworten als Nutzerdaten | zuerst mit externer Vorlage erproben |
 | M31 | Analyseangebote abgrenzen | P1 | teilweise | dev16 | Expertenprüfung und Nutzerstudie mit unterschiedlichem Umfang, Kosten und Abnahme; Korrekturrunden widerspruchsfrei | Nutzerstudie als Leistung nach M30 |
-| M32 | Befund mit Angebot verbinden | P1 | offen | – | Jede empfohlene Position hat einen freigegebenen Befund oder bestätigten Bedarf; offene Hypothesen sichtbar | Grundlage (Leistungskennungen) seit dev16; erweitert M25 |
+| M32 | Befund mit Angebot verbinden | P1 | erledigt | dev33 | Jede Position zeigt ihre Grundlage (bestätigter Bedarf, geprüfter Befund, begleitend, ohne); Lücken und ungeprüfte Hypothesen als Hinweis bei der Versandfreigabe; nie im Kundendokument (Unit- und Browser-Test) | Hinweis, keine Sperre – Entscheidung bleibt beim Nutzer |
 | M33 | Bewertung kalibrieren | P2 | offen | – | Unabhängige Urteile vergleichen, Regeln versionieren, keine automatische Gewichtsanpassung ohne Prüfung | erste vollständige Reviews |
 | M34 | Wirkung und Aufwand lernen | P2 | offen | – | Ergebnisse und Zeiten nach Methode und Projektart; Stichprobe und Grenzen sichtbar | M20, M30 |
 
@@ -138,7 +138,7 @@ Eigentümer; in die App kommen nur die Abläufe.
 | T10 | Softwareangebot | **bestanden** (dev32: Prüfpunkte Betrieb, Zugänge, Testdaten, Übergabe; Betrieb als laufende Leistung; Testzugang ohne Passwörter) |
 | T11 | Revision eines Angebots | **bestanden** (dev21: Vorgänger, Grund, Änderungsliste; Unit- und Browser-Test) |
 | T13 | Zeitüberschreitung | **bestanden** (dev32: Ist über Kalkulation → Hinweis „Umfang prüfen“, Rest 0; Mehrarbeit als Zusatzauftrag, Auftrag unverändert) |
-| T14 | Recherche während eines Fehlers wieder aufnehmen | Kernabläufe seit Masterplan 2.0; vollständig mit M23 |
+| T14 | Recherche während eines Fehlers wieder aufnehmen | **bestanden** (dev35/dev36: Firmen-Bericht, Sammelsuche, Website-Bewertung, Karriereseiten-Scan, KI-Analyse, Schnellprüfung, Ansprechpartner setzen nach Neustart fort; Abruffehler gezielt wiederholbar; Impressum-Sammelprüfung pausiert und wird von Hand fortgesetzt) |
 | T15 | Sicherung in getrennte Testinstallation zurückspielen | **bestanden** (dev31, Szenario mit allen Daten aus Etappe C und D: vollständig wiederhergestellt, Abläufe laufen weiter, Ausgangsinstallation unverändert; ältere Sicherung wird migriert) |
 
 ## Danach – Buchhaltung

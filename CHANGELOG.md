@@ -1,5 +1,48 @@
 # Changelog
 
+## 2.0.0-dev36 – KI-Analyse, Schnellprüfung und Ansprechpartner-Suche setzen nach Neustart fort
+
+Produktreview M23 Teil 2, Abnahmefall T14 bestanden.
+
+- **KI-Analyse, Schnellprüfung und Suche nach öffentlichen Ansprechpartnern** laufen über das gemeinsame Auftragssystem statt über eigene Threads: sichtbar unter den Aufträgen, je Domain höchstens ein Abruf gleichzeitig.
+- **Neustart mitten im Lauf:** Der Lauf wird fortgesetzt. Bisher wurden KI-Analyse und Schnellprüfung verworfen; die Ansprechpartner-Suche blieb sogar dauerhaft auf „läuft“ stehen.
+- **Ältere Läufe** ohne Auftragsschritt werden einmalig als „durch Neustart unterbrochen“ gekennzeichnet – nie mehr dauerhaft „läuft“.
+- Ein fehlgeschlagener Lauf ist ein fehlgeschlagener Auftragsschritt mit Grund (z. B. „Abruf durch robots.txt untersagt“).
+- Kein Schemawechsel. 673 Tests (3 neu) unter Python 3.10 und 3.13, 29 Browser-Tests.
+
+## 2.0.0-dev35 – Website-Bewertung und Karriereseiten-Scan setzen nach Neustart fort
+
+Produktreview M23 Teil 1, Abnahmefall T14.
+
+- **Website-Bewertung und Karriereseiten-Scan laufen über das gemeinsame Auftragssystem** statt über eigene Threads – mit demselben Lebenszyklus wie Firmen-Bericht und Sammelsuche: sichtbar unter den Aufträgen, je Website-Domain höchstens ein Abruf gleichzeitig, Pausieren, Abbrechen, erneut ausführen.
+- **Neustart mitten im Lauf:** Unterbrochene Bewertungen und Scans werden wieder eingereiht und fortgesetzt. Bisher wurden sie als „durch Neustart unterbrochen“ verworfen und mussten neu gestartet werden.
+- **Ältere Einträge** (wartend oder laufend, aus der Zeit vor dev35) werden beim Start als Auftragsschritte übernommen, ohne Doppelung.
+- **Nach einem Abruffehler** (z. B. Zeitüberschreitung) lässt sich genau dieser Schritt erneut ausführen; erfolgreiche Schritte bleiben unberührt.
+- Kein Schemawechsel. 670 Tests (4 neu) unter Python 3.10 und 3.13, 29 Browser-Tests.
+
+## 2.0.0-dev34 – Globale Suche mit Strg+K
+
+Produktreview M10.
+
+- **„⌕ Suchen“ oben rechts bzw. Strg+K (⌘K):** ein Suchfeld für Firmen (Name, Firmierung, Website), Chancen, Angebote (Nummer, Projekttitel) und Rechnungsnummern, nach Gruppen sortiert; Treffer am Namensanfang zuerst. Gesperrte Firmen sind gekennzeichnet.
+- **Tastatur:** Pfeiltasten wählen, Enter öffnet (Firma bzw. Chance in der Firmenakte, Angebot im Angebotsbereich), Escape schließt und gibt den Fokus an die vorherige Stelle zurück.
+- Personen und Notizen werden nicht durchsucht. % und _ im Suchbegriff wirken nicht als Platzhalter. Nur lesend, kein Schemawechsel.
+- Auf schmalen Bildschirmen zeigt der Knopf nur das Lupensymbol, damit die Kopfzeile nicht seitlich scrollt.
+- 666 Tests (2 neu) unter Python 3.10 und 3.13, 29 Browser-Tests (1 neu).
+
+## 2.0.0-dev33 – Befund mit Angebot verbinden
+
+Produktreview M32.
+
+- **„Grundlage je Position (nur intern)“** am gespeicherten Angebot. Jede Position zeigt eine von vier Grundlagen:
+  - **bestätigter Bedarf** der Chance bzw. Firma,
+  - **geprüfter Befund**: ein bestätigter Website-Befund oder eine freigegebene Recherche-Beobachtung, deren Paketvorschlag die Leistung enthält,
+  - **begleitend**: Anreise, Tagespauschale, Aufwand,
+  - **ohne Grundlage**.
+- **Ungeprüfte Hypothesen**, die auf eine Position zeigen, stehen ausdrücklich als „offen (ungeprüft)“ dabei und zählen nie als Grundlage. Verworfene Befunde zählen gar nicht.
+- **Versandfreigabe:** Hinweise für Positionen ohne Grundlage (optionale Positionen ausgenommen) und für Positionen mit offenen Hypothesen. Kein Sperrgrund – die Entscheidung bleibt bei dir.
+- Nichts davon erscheint im Kundendokument. Kein Schemawechsel. 664 Tests (2 neu) unter Python 3.10 und 3.13, 28 Browser-Tests (1 neu).
+
 ## 2.0.0-dev32 – Abnahmefälle T07, T09, T10, T13; Beträge im Festpreis-Abschnitt
 
 - **Fehlerbehebung im Kundendokument:** Der Abschnitt „Festpreis“ schrieb Beträge mit Punkt („264.00 EUR netto“), die Tabelle darüber mit Komma („264,00 €“). Jetzt einheitlich in deutscher Schreibweise („264,00 € netto“, „Gesamtbetrag: 314,16 €“). Gefunden beim Szenario T13.

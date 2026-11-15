@@ -742,6 +742,56 @@ Nach acht Schemawechseln in Etappe C und D war die wichtigste offene Frage, ob e
 
 **Selbstbewertung 5 von 5** für dieses Paket. Bestanden sind T01–T13 und T15; T14 bleibt offen bis M23.
 
+## Arbeitspaket 32 – Befund mit Angebot verbinden (2.0.0-dev33)
+
+Bewusst Hinweis statt Sperre: Ein Angebot ohne Beleg kann richtig sein (z. B. ausdrücklicher Kundenwunsch ohne dokumentierten Bedarf). Wichtig ist, dass die Lücke sichtbar ist und ungeprüfte Vermutungen nie still als Begründung dienen.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 664 Tests bestanden (2 neu in `tests/test_v2_offer_basis.py`) |
+| Browser-Tests | 28 von 28 (neu `test_offer_basis_browser.py`): Grundlage, Lücke, offene Hypothese, Hinweis bei der Freigabe |
+| Abnahme M32 | jede Position mit Grundlage; offene Hypothesen sichtbar; nichts im Kundendokument |
+| Fund beim Testen | Name der fiktiven Testfirma enthielt das geprüfte Wort „Grundlage“ – Testfirma umbenannt. Die neue Box nutzte die Klasse der Fassungen-Übersicht mit; der Revisions-Browsertest fand dadurch zwei Elemente – eigene Klasse vergeben |
+
+**Selbstbewertung 4 von 5.** Abzug: Zuordnung Befund → Leistung nur über die Paketvorlagen.
+
+## Arbeitspaket 33 – Globale Suche (2.0.0-dev34)
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 666 Tests bestanden (2 neu in `tests/test_v2_global_search.py`) |
+| Browser-Tests | 29 von 29 (neu `test_search_browser.py`): Strg+K, Escape mit Fokus-Rückgabe, Treffer nach Gruppen, Pfeiltasten mit Umlauf, Enter öffnet das Angebot |
+| Leitplanken | Personen nicht durchsuchbar (Test); nur lesend |
+| Fund beim Testen | Eigener Fehler: Die neue Testdatei hieß zunächst wie eine bestehende (`test_v2_search.py`, Praxistest-Suche) und hätte sie überschrieben; beim Abgleich der Testzahl bemerkt, Original wiederhergestellt, neue Tests in `test_v2_global_search.py`. Zwei Testerwartungen falsch: Präfix-Treffer stehen bewusst vorn; ein Angebot legt seine Chance an, die mit gefunden wird. Ein langer Befehl wurde von der Sicherheitsprüfung der Umgebung nicht ausgeführt (nicht eindeutig lesbar) – Dateien stattdessen einzeln geschrieben, nichts gelöscht. Der Suchknopf machte die Kopfzeile auf dem Handy (390 px) 2–3 px zu breit; die bestehenden Browser-Tests zur Handyansicht schlugen an – auf schmalen Bildschirmen nur Lupensymbol, engerer Abstand |
+
+**Selbstbewertung 4 von 5.** Abzug: keine Tippfehler-Toleranz; Rechnungstreffer öffnen nur die Liste.
+
+## Arbeitspaket 34 – Gemeinsame Hintergrundaufträge, Teil 1 (2.0.0-dev35)
+
+Die Website-Bewertung ist der Schritt mit den meisten Abrufen und damit den meisten Abbrüchen; der Karriereseiten-Scan hatte dasselbe Muster. Beide folgen jetzt dem Vorbild des Firmen-Berichts (Schritt je Firma, Übernahme älterer Einträge, Wiederholen-Haken). Die Aufrufe `enqueue`/`wait_idle` bzw. `enqueue_scans`/`wait_scans` bleiben gleich, damit Oberfläche und bestehende Tests unverändert funktionieren.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 670 Tests bestanden (4 neu in `tests/test_scenario_t14_resume.py`; bestehende Bewertungs-, Signal- und Auftragstests unverändert grün) |
+| Browser-Tests | 29 von 29 |
+| T14 | bestanden für die vier Module im Auftragssystem: Neustart im laufenden Schritt, Übernahme älterer Einträge ohne Doppelung, Wiederholen nur des fehlgeschlagenen Schritts |
+| Rest | KI-Analyse, Schnellprüfung, öffentliche Ansprechpartner, Impressum-Sammelprüfung, Sammelsuche-Wiederholung – Teil 2 |
+
+**Selbstbewertung 4 von 5.** Abzug: M23 erst zur Hälfte; Fortsetzen heißt „Schritt von vorn“, nicht „an der Stelle weiter“.
+
+## Arbeitspaket 35 – Gemeinsame Hintergrundaufträge, Teil 2 (2.0.0-dev36)
+
+Die drei Läufe hatten dasselbe Muster (`run_job` plus Thread). Ein kleiner gemeinsamer Baustein (`bg_jobs.py`) macht aus jedem Lauf einen Auftrag mit einem Schritt; `run_job` bleibt unverändert, damit die bestehenden Tests und Aufrufer gleich bleiben.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 673 Tests bestanden (3 neu in `tests/test_scenario_t14_runs.py`) |
+| Browser-Tests | 29 von 29 |
+| T14 | bestanden: alle Recherche-Läufe außer der Impressum-Sammelprüfung setzen nach Neustart fort; die Sammelprüfung pausiert sichtbar und wird von Hand fortgesetzt |
+| Fund beim Arbeiten | Die Ansprechpartner-Suche hatte keine Wiederaufnahme und blieb nach einem Absturz dauerhaft auf „läuft“ – behoben |
+
+**Selbstbewertung 4 von 5.** Abzug: Impressum-Sammelprüfung und Einzelquellen-Wiederholung der Sammelsuche laufen noch eigenständig.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

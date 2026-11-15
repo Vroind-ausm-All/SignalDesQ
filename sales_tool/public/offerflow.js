@@ -173,7 +173,17 @@
         <button type="button" class="btn btn-ghost" data-quote-open="${s.superseded_by}">${esc(s.superseded_number)} öffnen</button></li>`
       : `${stepRelease(s)}${stepSend(s)}${stepFollow(s, f)}${stepDecision(s)}${stepStart(p, s)}${stepKickoff(ko)}${stepHandover(ho)}`;
     (head || box).insertAdjacentHTML(head ? 'afterend' : 'afterbegin', `<ol class="of-panel" id="ofPanel" data-of-id="${id}">${steps}</ol>
-      <div class="of-revisions" id="ofRevisions">${s.revisable ? `<button type="button" class="btn btn-ghost" data-of-revise="${id}">Überarbeiten (neue Fassung)</button>` : ''}${s.addable ? `<button type="button" class="btn btn-ghost" data-of-addendum="${id}">Zusatzauftrag erstellen</button>` : ''}<div data-of-scope></div><div data-of-history></div></div>`);
+      <div class="of-revisions" id="ofRevisions">${s.revisable ? `<button type="button" class="btn btn-ghost" data-of-revise="${id}">Überarbeiten (neue Fassung)</button>` : ''}${s.addable ? `<button type="button" class="btn btn-ghost" data-of-addendum="${id}">Zusatzauftrag erstellen</button>` : ''}<div data-of-basis></div><div data-of-scope></div><div data-of-history></div></div>`);
+    // 2.0.0-dev33 (M32): Grundlage je Position – nur intern
+    try {
+      const g = await api(`/workspace/proposals/${id}/grundlage`);
+      const cls = {bedarf: 'ok', befund: 'ok', begleitend: '', ohne: 'bad'};
+      box.querySelector('[data-of-basis]').innerHTML = `<details class="of-basis" ${g.without.length || g.open_hypotheses ? 'open' : ''}><summary>Grundlage je Position (nur intern)${g.without.length ? ` · <span class="pill bad">${g.without.length} ohne Grundlage</span>` : ''}</summary>
+        <ol>${g.positions.map(i => `<li data-basis="${esc(i.basis)}"><b>${esc(i.title)}</b>${i.optional ? ' (optional)' : ''} <span class="pill ${cls[i.basis]}">${esc(i.label)}</span>
+          ${i.evidence.length ? `<small>Beleg: ${i.evidence.map(e => esc(e.label)).join('; ')}</small>` : ''}
+          ${i.hypotheses.length ? `<small class="rc-late">Offene Hypothese (ungeprüft): ${i.hypotheses.map(e => esc(e.label)).join('; ')}</small>` : ''}</li>`).join('')}</ol>
+        <p class="muted">${esc(g.notice)}</p></details>`;
+    } catch { /* Grundlage ist eine Zusatzinfo */ }
     // 2.0.0-dev25 (M18): Auftragsumfang – ursprünglicher Auftrag und Zusatzaufträge
     if (s.addendum_of || s.status === 'angenommen') {
       try {

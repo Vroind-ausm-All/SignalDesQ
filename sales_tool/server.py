@@ -205,7 +205,7 @@ def validate(fields: dict, partial=False):
 
 STATIC_FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
     "/style.css": ("style.css", "text/css"), "/theme.js": ("theme.js", "text/javascript"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/care.js": ("care.js", "text/javascript"), "/messages.js": ("messages.js", "text/javascript"), "/kurzbericht.js": ("kurzbericht.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/offerflow.js": ("offerflow.js", "text/javascript"), "/chances.js": ("chances.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/nav.js": ("nav.js", "text/javascript"), "/leadlist.js": ("leadlist.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/care.js": ("care.js", "text/javascript"), "/messages.js": ("messages.js", "text/javascript"), "/kurzbericht.js": ("kurzbericht.js", "text/javascript"), "/search.js": ("search.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/offerflow.js": ("offerflow.js", "text/javascript"), "/chances.js": ("chances.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/nav.js": ("nav.js", "text/javascript"), "/leadlist.js": ("leadlist.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
 
 LOOPBACK_HOSTS = frozenset({'127.0.0.1', 'localhost', '::1'})
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
@@ -404,6 +404,9 @@ def make_handler(db_path, allowed_hosts=None):
                     return
                 if route_catalog(self, conn, method, route, query, db_path):
                     return
+                from .search import route_search
+                if route_search(self, conn, method, route, query):  # 2.0.0-dev34: globale Suche
+                    return
                 if route_workday(self, conn, method, route, query, db_path):
                     return
                 if qualification.route(self, conn, method, route):  # 2.0.0-dev2: Zielkundenprofil, Bewertung, Erreichbarkeit
@@ -481,6 +484,9 @@ def make_handler(db_path, allowed_hosts=None):
                     return
                 from .customer_report import route_customer_report
                 if route_customer_report(self, conn, method, route):  # 2.0.0-dev30: Kurzbericht für den Kunden
+                    return
+                from .offer_basis import route_offer_basis
+                if route_offer_basis(self, conn, method, route):  # 2.0.0-dev33: Grundlage je Position
                     return
                 proposal_match=re.fullmatch(r'/api/workspace/proposals/(\d+)(/customer)?',route)
                 if proposal_match:
@@ -972,11 +978,10 @@ def prepare_database(db):
             from .chances import ensure_first_chances
             ensure_first_chances(conn)  # 2.0.0-dev18: eine erste Chance je Firma mit Verkaufsbezug, Angebote und Termine zugeordnet
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
-        conn.execute("""UPDATE analysis_runs SET status='failed',error='Analyse durch Neustart unterbrochen.',
-                        finished_at=datetime('now') WHERE status IN ('queued','running')""")
-        conn.execute("""UPDATE quick_scans SET status='failed',error='Recherche durch Neustart unterbrochen.',
-                        finished_at=datetime('now') WHERE status IN ('queued','running')""")
         research_jobs.recover(conn)  # v1.16: unterbrochene Auftragsschritte wieder einreihen (vor den fachlichen Wiederaufnahmen)
+        from . import analysis_jobs, public_contacts, quickscan  # noqa: F401 – Auftragsarten registrieren
+        from .bg_jobs import recover as recover_runs
+        recover_runs(conn)  # 2.0.0-dev36 (M23): KI-Analyse, Schnellprüfung, Ansprechpartner fortsetzen statt verwerfen
         recover_batches(conn)
         recover_audits(conn)
         recover_scans(conn)
