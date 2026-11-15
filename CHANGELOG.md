@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0-dev31 – Abnahmefälle T06 und T15 als Szenarien geprüft
+
+Keine Funktionsänderung, kein Schemawechsel.
+
+- **T15 – Sicherung in getrennte Testinstallation zurückspielen:** Eine Installation enthält alles, was Etappe C und D anlegen: Chance mit Briefing, Revision mit Option, Nachfassen mit Ergebnis, Übergabe und Abnahme mit Restpunkt, Zusatzauftrag, Betreuung mit Monatsrechnung, Zeit je Position, gestarteter Projektkompass, Entwurf aus eigener Vorlage und Kurzbericht. Ihre Sicherung wird in eine zweite Installation zurückgespielt. Dort sind alle 16 geprüften Tabellen vollständig, und die Abläufe laufen weiter. Der bereits abgerechnete Monat wird nicht doppelt abgerechnet, eine Revision des Zusatzauftrags ist möglich. Die Ausgangsinstallation bleibt unverändert. Eine Sicherung mit älterem Schemastand wird beim Zurückspielen auf den aktuellen Stand migriert.
+- **T06 – Rückruf nach erfolglosem Versuch planen** (Browser): „Nicht erreicht“ am Vormittag plant den nächsten Versuch zu einer anderen Tageszeit mit Frist. Nach drei Versuchen schlägt SignalDesk Kanalwechsel oder Parken vor, statt weiter anzurufen.
+- 658 Tests (2 neu) unter Python 3.10 und 3.13, 27 Browser-Tests (1 neu).
+
 ## 2.0.0-dev30 – Kundenfähiger Kurzbericht
 
 Produktreview M25.

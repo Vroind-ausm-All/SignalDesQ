@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev30. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev31. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -130,12 +130,12 @@ Eigentümer; in die App kommen nur die Abläufe.
 | T03 | Bestehende Firma öffnen | **bestanden** (dev13, Browser-Test) |
 | T04 | Notiz eingeben und Escape drücken | **bestanden** (dev13, Browser-Test) |
 | T05 | Aus gefilterter Liste in die Firma und zurück | **bestanden** (dev14, Browser-Test: Filter und Firma in der Adresse, Zurück schließt die Firma) |
-| T06 | Rückruf nach erfolglosem Versuch planen | Funktion seit dev3; als Szenario noch nicht geprüft |
+| T06 | Rückruf nach erfolglosem Versuch planen | **bestanden** (dev31, Browser-Szenario: neuer Versuch zu anderer Tageszeit mit Frist, nach drei Versuchen Kanalwechsel oder Parken) |
 | T08 | Zwei Chancen einer Firma mit getrennten Phasen, Bedarf, Terminen | **bestanden** (dev18: Phase, Anliegen, Termine; dev19: Bedarfsanalyse und Freigabe je Chance – Unit- und Browser-Tests) |
 | T12 | Übergabe und Abnahme eines Auftrags | **bestanden** (dev24: Liefergegenstände, Übergabe, Abnahme mit Restpunkt, Protokoll – Unit- und Browser-Test) |
 | T07, T09–T11, T13 | Projektanfrage, Medien-/Softwareangebot, Revision, Zeitüberschreitung | offen bzw. als Funktion vorhanden (T11 Revision seit dev21); für T09/T10 liefert dev16 Korrekturschleifen und Prüfpunkte je Leistungsbereich |
 | T14 | Recherche während eines Fehlers wieder aufnehmen | Kernabläufe seit Masterplan 2.0; vollständig mit M23 |
-| T15 | Sicherung in getrennte Testinstallation zurückspielen | Wiederherstellung vorhanden; als Szenario mit Etappe C prüfen |
+| T15 | Sicherung in getrennte Testinstallation zurückspielen | **bestanden** (dev31, Szenario mit allen Daten aus Etappe C und D: vollständig wiederhergestellt, Abläufe laufen weiter, Ausgangsinstallation unverändert; ältere Sicherung wird migriert) |
 
 ## Danach – Buchhaltung
 

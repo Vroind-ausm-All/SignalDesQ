@@ -717,6 +717,20 @@ Auswahl statt Export: Der Bericht entsteht aus einzeln angekreuzten, bereits gep
 
 **Selbstbewertung 4 von 5.** Abzug: keine Screenshots, kein gestaltetes Dokument.
 
+## Arbeitspaket 30 – Abnahmefälle T06 und T15 (2.0.0-dev31)
+
+Nach acht Schemawechseln in Etappe C und D war die wichtigste offene Frage, ob eine Sicherung mit allen neuen Daten vollständig zurückkommt. Beide Fälle sind als Szenario geprüft, ohne Codeänderung.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 658 Tests bestanden (2 neu in `tests/test_scenario_t15_restore.py`) |
+| Browser-Tests | 27 von 27 (neu `test_t06_retry_browser.py`) |
+| T15 | bestanden: 16 Tabellen vollständig, Abläufe in der Testinstallation funktionieren, Ausgangsinstallation unverändert, Sicherheitskopie in der Testinstallation, ältere Sicherung migriert |
+| T06 | bestanden: anderer Zeitpunkt, Frist, nach drei Versuchen Kanalwechsel/Parken |
+| Fund beim Testen | Browser-Test klickte den dritten Versuch, bevor die Ansicht nach dem zweiten neu geladen war – Test wartet jetzt auf den gespeicherten Versuch (kein Fehler der Anwendung) |
+
+**Selbstbewertung 5 von 5** für den Umfang dieses Pakets (reine Prüfung, beide Fälle bestanden).
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.
