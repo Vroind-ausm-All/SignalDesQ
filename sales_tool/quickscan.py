@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import json
 import re
-import threading
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -96,8 +95,24 @@ def run_job(db_path: str | Path, run_id: int, url: str, provider: str, model: st
 
 
 def enqueue(db_path, run_id, url, provider, model):
-    threading.Thread(target=run_job,args=(db_path,run_id,url,provider,model),daemon=True,
-                     name=f'signaldesk-research-{run_id}').start()
+    """2.0.0-dev36 (M23): als Auftrag im gemeinsamen System statt eigenem Thread – setzt nach einem Neustart fort."""
+    from . import bg_jobs
+    bg_jobs.submit(db_path, 'schnellpruefung', run_id, f'Schnellprüfung: {url}', url, {'url': url, 'provider': provider, 'model': model})
+
+
+def _job_quickscan(db_path, payload, ctx):
+    from . import bg_jobs
+    bg_jobs.still_open(db_path, 'schnellpruefung', payload['run_id'])
+    run_job(db_path, payload['run_id'], payload['url'], payload['provider'], payload['model'])
+    return bg_jobs.finished(db_path, 'schnellpruefung', payload['run_id'])
+
+
+def _register():
+    from .research import jobs
+    jobs.handler('schnellpruefung')(_job_quickscan)
+
+
+_register()
 
 
 def scan_row(row):

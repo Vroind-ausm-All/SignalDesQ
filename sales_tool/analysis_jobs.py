@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import threading
 from pathlib import Path
 
 from .ai_provider import analyze
@@ -42,9 +41,25 @@ def run_job(db_path: str | Path, run_id: int, lead_id: int, url: str, provider: 
 
 
 def enqueue(db_path, run_id, lead_id, url, provider, model):
-    worker = threading.Thread(target=run_job, args=(db_path, run_id, lead_id, url, provider, model),
-                              daemon=True, name=f"signaldesk-audit-{run_id}")
-    worker.start()
+    """2.0.0-dev36 (M23): als Auftrag im gemeinsamen System statt eigenem Thread – setzt nach einem Neustart fort."""
+    from . import bg_jobs
+    bg_jobs.submit(db_path, 'ki_analyse', run_id, f'KI-Analyse: {url}', url,
+                   {'lead_id': lead_id, 'url': url, 'provider': provider, 'model': model})
+
+
+def _job_analysis(db_path, payload, ctx):
+    from . import bg_jobs
+    bg_jobs.still_open(db_path, 'ki_analyse', payload['run_id'])
+    run_job(db_path, payload['run_id'], payload['lead_id'], payload['url'], payload['provider'], payload['model'])
+    return bg_jobs.finished(db_path, 'ki_analyse', payload['run_id'])
+
+
+def _register():
+    from .research import jobs
+    jobs.handler('ki_analyse')(_job_analysis)
+
+
+_register()
 
 
 def list_analyses(conn, lead_id):

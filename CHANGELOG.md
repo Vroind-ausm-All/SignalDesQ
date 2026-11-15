@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev36 – KI-Analyse, Schnellprüfung und Ansprechpartner-Suche setzen nach Neustart fort
+
+Produktreview M23 Teil 2, Abnahmefall T14 bestanden.
+
+- **KI-Analyse, Schnellprüfung und Suche nach öffentlichen Ansprechpartnern** laufen über das gemeinsame Auftragssystem statt über eigene Threads: sichtbar unter den Aufträgen, je Domain höchstens ein Abruf gleichzeitig.
+- **Neustart mitten im Lauf:** Der Lauf wird fortgesetzt. Bisher wurden KI-Analyse und Schnellprüfung verworfen; die Ansprechpartner-Suche blieb sogar dauerhaft auf „läuft“ stehen.
+- **Ältere Läufe** ohne Auftragsschritt werden einmalig als „durch Neustart unterbrochen“ gekennzeichnet – nie mehr dauerhaft „läuft“.
+- Ein fehlgeschlagener Lauf ist ein fehlgeschlagener Auftragsschritt mit Grund (z. B. „Abruf durch robots.txt untersagt“).
+- Kein Schemawechsel. 673 Tests (3 neu) unter Python 3.10 und 3.13, 29 Browser-Tests.
+
 ## 2.0.0-dev35 – Website-Bewertung und Karriereseiten-Scan setzen nach Neustart fort
 
 Produktreview M23 Teil 1, Abnahmefall T14.

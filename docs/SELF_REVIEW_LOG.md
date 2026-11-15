@@ -779,6 +779,19 @@ Die Website-Bewertung ist der Schritt mit den meisten Abrufen und damit den meis
 
 **Selbstbewertung 4 von 5.** Abzug: M23 erst zur Hälfte; Fortsetzen heißt „Schritt von vorn“, nicht „an der Stelle weiter“.
 
+## Arbeitspaket 35 – Gemeinsame Hintergrundaufträge, Teil 2 (2.0.0-dev36)
+
+Die drei Läufe hatten dasselbe Muster (`run_job` plus Thread). Ein kleiner gemeinsamer Baustein (`bg_jobs.py`) macht aus jedem Lauf einen Auftrag mit einem Schritt; `run_job` bleibt unverändert, damit die bestehenden Tests und Aufrufer gleich bleiben.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 673 Tests bestanden (3 neu in `tests/test_scenario_t14_runs.py`) |
+| Browser-Tests | 29 von 29 |
+| T14 | bestanden: alle Recherche-Läufe außer der Impressum-Sammelprüfung setzen nach Neustart fort; die Sammelprüfung pausiert sichtbar und wird von Hand fortgesetzt |
+| Fund beim Arbeiten | Die Ansprechpartner-Suche hatte keine Wiederaufnahme und blieb nach einem Absturz dauerhaft auf „läuft“ – behoben |
+
+**Selbstbewertung 4 von 5.** Abzug: Impressum-Sammelprüfung und Einzelquellen-Wiederholung der Sammelsuche laufen noch eigenständig.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

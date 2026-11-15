@@ -978,11 +978,10 @@ def prepare_database(db):
             from .chances import ensure_first_chances
             ensure_first_chances(conn)  # 2.0.0-dev18: eine erste Chance je Firma mit Verkaufsbezug, Angebote und Termine zugeordnet
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
-        conn.execute("""UPDATE analysis_runs SET status='failed',error='Analyse durch Neustart unterbrochen.',
-                        finished_at=datetime('now') WHERE status IN ('queued','running')""")
-        conn.execute("""UPDATE quick_scans SET status='failed',error='Recherche durch Neustart unterbrochen.',
-                        finished_at=datetime('now') WHERE status IN ('queued','running')""")
         research_jobs.recover(conn)  # v1.16: unterbrochene Auftragsschritte wieder einreihen (vor den fachlichen Wiederaufnahmen)
+        from . import analysis_jobs, public_contacts, quickscan  # noqa: F401 – Auftragsarten registrieren
+        from .bg_jobs import recover as recover_runs
+        recover_runs(conn)  # 2.0.0-dev36 (M23): KI-Analyse, Schnellprüfung, Ansprechpartner fortsetzen statt verwerfen
         recover_batches(conn)
         recover_audits(conn)
         recover_scans(conn)
