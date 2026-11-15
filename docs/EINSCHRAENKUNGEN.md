@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev25)
+# Bekannte Einschränkungen (Stand 2.0.0-dev26)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -177,3 +177,11 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Jeder angenommene Zusatzauftrag hat eigene Übergabe, Abnahme, Nachkalkulation und Rechnung. Eine gemeinsame Schlussrechnung über Auftrag und Zusatzaufträge gibt es nicht.
 - Zusatzaufträge zu Zusatzaufträgen gibt es nicht: Sie beziehen sich immer auf den ursprünglichen Auftrag.
 - Vor der Zusage wird ein Angebot überarbeitet, nicht ergänzt.
+
+## Bestandskunden und Betreuung (2.0.0-dev26)
+
+- Betreuung sind die monatlichen Positionen eines angenommenen Angebots. Beginn ist das Datum der Zusage; du kannst ihn anpassen, solange kein abgerechneter Monat herausfällt.
+- Abgerechnet wird je Kalendermonat, immer der volle Monatsbetrag. Anteilige Monate, Quartals- oder Jahresabrechnung und automatische Preisanpassungen gibt es nicht.
+- Eine Preisänderung der laufenden Betreuung ist ein neues Angebot (bzw. Zusatzauftrag). Die alte Betreuung bitte zum Stichtag beenden.
+- Monatsrechnungen aus der Zeit vor dev26 haben keinen Leistungszeitraum. Für die offenen Monate zählen sie deshalb nicht; bitte die Laufzeit so setzen, dass bereits abgerechnete Monate davor liegen.
+- Rechnungen entstehen weiterhin nur als Entwurf auf deinen Klick; „Heute“ erinnert an nicht abgerechnete Monate.

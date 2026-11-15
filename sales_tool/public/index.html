@@ -182,6 +182,9 @@
   <section class="panel sales-section"><span class="eyebrow">03 / NUR FÜR DICH</span><h2>So setzt sich der Preis zusammen</h2><div id="quoteInternal" class="quote-internal"><p class="muted">Erscheint nach der Berechnung: Aufwand × Stundensatz + Puffer + enthaltene Fremdkosten = Festpreis, dazu dein effektiver Stundenlohn.</p></div>
    <div class="legal-foot"><b>Grundsatz:</b> Keine versteckten Aufschläge. Laufende Kosten Dritter (Hosting, Lizenzen, Werbebudget, KI-/Telefonminuten) stehen im Angebot ausdrücklich als „nicht im Festpreis“. Stunden und Kalkulation erscheinen nie im Kundendokument.</div></section>
  <div class="panel sales-section settings-link"><span class="eyebrow">KALKULATIONSGRUNDLAGEN</span><p>Stundensatz, Mindestverdienst, Tagespauschale, Anreise und Katalogwerte pflegst du zentral unter <button type="button" class="text-button" data-settings-link="preise">Einstellungen → Leistungen &amp; Preise</button>.</p></div>
+ <section class="panel sales-section" id="bestand"><div class="studio-section-head"><div><span class="eyebrow">NACH DER ZUSAGE</span><h2>Bestandskunden &amp; Betreuung</h2></div><span class="muted" id="crCount"></span></div>
+  <p class="muted">Betreuung (monatlich, mit Laufzeit), Projekte und neue Chancen je Firma getrennt. Je Monat gibt es genau eine Monatsrechnung mit Leistungszeitraum.</p>
+  <div id="crList" class="cr-list-wrap"></div></section>
  <section class="panel sales-section" id="nachkalkulation"><div class="studio-section-head"><div><span class="eyebrow">NACH DEM AUFTRAG · NUR FÜR DICH</span><h2>Nachkalkulation</h2></div><span class="muted" id="pkCount"></span></div>
   <p class="muted">Trag ein, wie lange du wirklich gebraucht hast. So siehst du, ob sich ein Festpreis gelohnt hat, und die Auslastung auf „Heute“ rechnet mit dem, was noch offen ist.</p>
   <p id="pkLesson" class="pk-lesson"></p><div id="pkList" class="pk-list"></div><p class="muted td-note" id="pkNotice"></p></section>
@@ -754,6 +757,7 @@
 <script src="/assessment.js" defer></script>
 <script src="/reach.js" defer></script>
 <script src="/postcalc.js" defer></script>
+<script src="/care.js" defer></script>
 <script src="/osmlocal.js" defer></script>
 <script src="/akte.js" defer></script>
 <script src="/formguard.js" defer></script>

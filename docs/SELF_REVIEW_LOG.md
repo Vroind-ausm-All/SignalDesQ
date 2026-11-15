@@ -639,6 +639,19 @@ Leitfrage aus dem Review: Bleibt der Ursprungsumfang erkennbar? Deshalb ist ein 
 
 **Selbstbewertung 4 von 5.** Abzug: keine Minderung nach der Zusage; keine gemeinsame Schlussrechnung (dokumentiert).
 
+## Arbeitspaket 25 – Bestandskunden und Betreuung (2.0.0-dev26)
+
+Abnahmekriterium: Betreuung und neue Projekte getrennt. Die eigentliche Lücke war die Abrechnung: Monatsrechnungen hatten keinen Leistungszeitraum, ließen sich beliebig oft erzeugen und es war nicht sichtbar, welcher Monat fehlt. Darum ist die Betreuung über ihre Monate definiert, nicht über ein neues Vertragsmodell.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 646 Tests bestanden (3 neu in `tests/test_v2_care.py`; bestehende Monatsrechnungs-Tests unverändert grün) |
+| Browser-Tests | 22 von 22 (neu `test_care_browser.py`): Betreuung und Projekt getrennt, Monatsrechnung für den offenen Monat, Laufzeit beenden, neue Chance |
+| Fund beim Testen | Rechnungsentwurf entsteht erst nach dem Wechsel in „Abrechnen“ – Browser-Test wartete zu kurz; Test wartet jetzt auf den Entwurf |
+| Migration | Schema 37 → 38, eine neue Tabelle; bestehende Betreuungen beginnen mit dem Zusagedatum |
+
+**Selbstbewertung 4 von 5.** Abzug: ältere Monatsrechnungen ohne Leistungszeitraum werden nicht zugeordnet; keine anteiligen Monate (dokumentiert).
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

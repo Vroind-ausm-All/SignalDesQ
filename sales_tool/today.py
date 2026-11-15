@@ -122,7 +122,11 @@ def wiedervorlage(conn, today=None):
                              AND substr(m.starts_at,1,10) BETWEEN ? AND ? ORDER BY m.starts_at""", (t, tomorrow)):
         add('termin', m_title(r), r['company'], r['lead_id'], r['starts_at'][:10], 'Vorbereiten', 'lead', r['lead_id'],
             r['starts_at'].replace('T', ' ')[11:16] + ' Uhr' + (f" · {r['location']}" if r['location'] else ''))
-    order = {'termin': 0, 'rueckruf': 1, 'aufgabe': 2, 'naechster_schritt': 3, 'nachfassen': 4, 'angebot_frist': 5, 'bedarfsanalyse': 6, 'angebot_entwurf': 7}
+    from .care import due_items  # 2.0.0-dev26 (M19): nicht abgerechnete Betreuungsmonate
+    for k in due_items(conn, today):
+        add('betreuung', f"Monatsrechnung {', '.join(k['due_labels'][:3])}{' …' if len(k['due_labels']) > 3 else ''} – Betreuung {k['number']}", k['company'], k['lead_id'],
+            '', 'Rechnung erstellen', 'quotes', k['proposal_id'], f"{len(k['due_months'])} Monat(e) offen · {k['monthly_net_eur']:,.0f} € netto je Monat".replace(',', '.'))
+    order = {'termin': 0, 'rueckruf': 1, 'aufgabe': 2, 'naechster_schritt': 3, 'nachfassen': 4, 'angebot_frist': 5, 'betreuung': 6, 'bedarfsanalyse': 7, 'angebot_entwurf': 8}
     items.sort(key=lambda i: (i['kind'] != 'termin', not i['overdue'], order.get(i['kind'], 9), i['due'] or '9999'))
     return items
 

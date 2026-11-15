@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.0.0-dev26 – Bestandskunden und Betreuung
+
+Etappe D, Produktreview M19.
+
+- **Neuer Abschnitt „Bestandskunden & Betreuung“** in der Angebotsansicht. Je Firma mit angenommenem Auftrag stehen getrennt nebeneinander:
+  - Betreuung: monatliche Positionen mit Beginn, Ende und Abrechnungsstand,
+  - Projekte: einmalige Leistungen mit Abnahmestand, auch Zusatzaufträge,
+  - neue Projekte als eigene Chancen, direkt anlegbar.
+- **Je Monat genau eine Monatsrechnung** mit Leistungszeitraum (z. B. „Leistungszeitraum 11/2026“). Ohne Angabe nimmt der Entwurf den ältesten offenen Monat. Abgelehnt werden doppelte Monate, Monate vor Beginn oder nach Ende und Monate in der Zukunft. Stornierte Rechnungen zählen nicht.
+- **Laufzeit:** Beginn ist das Zusagedatum. Ein Ende (z. B. nach Kündigung) beendet die Abrechnung danach; das steht im Verlauf der Firma.
+- **Heute** zeigt nicht abgerechnete Betreuungsmonate mit Anzahl und Monatsbetrag.
+- **Schemawechsel 37 → 38** (Laufzeiten der Betreuung). 646 Tests (3 neu) unter Python 3.10 und 3.13, 22 Browser-Tests (1 neu).
+
 ## 2.0.0-dev25 – Zusatzaufträge mit erkennbarem Ursprungsumfang
 
 Etappe D, Produktreview M18.

@@ -257,6 +257,8 @@ def init_db(conn: sqlite3.Connection):
     init_handover(conn)  # 2.0.0-dev24: Übergabe und Abnahme je Auftrag
     from .addenda import init_addenda
     init_addenda(conn)  # 2.0.0-dev25: Zusatzaufträge zu angenommenen Aufträgen
+    from .care import init_care
+    init_care(conn)  # 2.0.0-dev26: Betreuung mit Laufzeit
     conn.commit()
 
 

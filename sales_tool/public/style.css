@@ -782,3 +782,12 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 /* 2.0.0-dev25 (M18): Auftragsumfang mit Zusatzaufträgen */
 .of-scope li.of-current{font-weight:600}
 .of-scope li small{display:block;color:var(--muted);font-weight:400}
+
+/* 2.0.0-dev26 (M19): Bestandskunden und Betreuung */
+.cr-firm{border:1px solid var(--line);border-radius:10px;padding:.7rem .9rem;margin:.6rem 0}
+.cr-firm h3{margin:0 0 .3rem}
+.cr-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:.8rem}
+.cr-list{list-style:none;margin:.2rem 0 .5rem;padding:0}
+.cr-list>li{padding:.3rem 0;border-bottom:1px solid var(--line)}
+.cr-list small{display:block;color:var(--muted)}
+.cr-term{margin-top:.3rem}
