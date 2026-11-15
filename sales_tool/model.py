@@ -269,6 +269,8 @@ def init_db(conn: sqlite3.Connection):
     init_caldav(conn)  # 2.0.0-dev42: Kalender-Abgleich (CalDAV)
     from .imap_drafts import init_imap
     init_imap(conn)  # 2.0.0-dev43: Entwürfe ins Postfach (IMAP)
+    from .pilot import init_pilot
+    init_pilot(conn)  # 2.0.0-dev45: Recherchepilot (Stichprobe von Hand prüfen)
     conn.commit()
 
 

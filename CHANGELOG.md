@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev45 – Recherchepilot: Stichprobe von Hand prüfen
+
+Produktreview M21 (Entscheidung des Eigentümers: Referenz durch Prüfung von Hand).
+
+- **Neu unter „Finden“: „Messung: Stichprobe von Hand prüfen“.** Zieht 20, 50, 75 oder 100 zufällige Firmen aus deinen Treffern, wahlweise nur aus einer Quelle (z. B. OpenStreetMap).
+- **Je Firma von Hand:** Zielbetrieb ja/nein, Website laut SignalDesk richtig/falsch/fehlt, hat die Firma eine Website, Branche richtig. „unklar“ ist immer erlaubt. Bei „kein Zielbetrieb“ entfallen die übrigen Fragen.
+- **Kennzahlen mit Anzahl:** Anteil Zielbetriebe, Trefferquote der Websites, Abdeckung der Websites, Anteil mit Website, Branche richtig. Hinweis bei kleiner Basis.
+- Der Stand beim Ziehen wird festgehalten, spätere Änderungen verfälschen die Messung nicht. Export als CSV. Nichts wird abgerufen.
+- Schema 46 (zwei neue Tabellen).
+
 ## 2.0.0-dev44 – Firmensuche: Gründe sichtbar, mehr Websites
 
 Befund des Eigentümers mit dem Stuttgart-Auszug: „sehr viele Betriebe im Bestand, aber nur 5 neue Treffer, viel ausgefiltert, kaum Websites“.

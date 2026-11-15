@@ -827,3 +827,16 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 .akte-page #modal .modal{width:auto;max-width:1450px;margin:0 auto;max-height:none;overflow:visible;box-shadow:none;border:0;border-radius:0;background:transparent}
 .akte-page #modal .modal header{top:0}
 .akte-back{width:auto!important;padding:0 12px;font-weight:700;white-space:nowrap}
+/* 2.0.0-dev45 (M21): Recherchepilot – Stichprobe prüfen */
+.pl-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0}
+.pl-metric{border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.pl-metric span{font-size:12px;color:var(--muted)}
+.pl-items{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.pl-item{border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;gap:8px}
+.pl-item small{display:block;overflow-wrap:anywhere}
+.pl-item.pl-done{background:var(--info-bg)}
+.pl-qs{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:flex-start}
+.pl-q{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:4px 10px}
+.pl-q legend{font-size:12px;color:var(--muted);padding:0;margin-bottom:2px;width:100%}
+.pl-url{display:flex;flex-direction:column;font-size:12px;min-width:0;flex:1 1 220px}
+.pl-url input{min-width:0}

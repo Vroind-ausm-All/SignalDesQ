@@ -907,3 +907,16 @@ Ursachen (aus dem Code nachvollzogen, ohne den echten Auszug – der ist nicht i
 | Offen | Wirkung am echten Auszug noch nicht gemessen; die Messung ist M21 |
 
 **Selbstbewertung 3 von 5.** Die Ursachen sind belegt und behoben bzw. sichtbar, aber nicht an deinen Daten gemessen.
+
+## Arbeitspaket 44 – Recherchepilot (2.0.0-dev45)
+
+M21 nach Entscheidung „von Hand prüfen“. Das Werkzeug misst Genauigkeit an echten Treffern; die eigentliche Messung macht der Eigentümer am Stuttgart-Auszug.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Neue Tests | `tests/test_v2_pilot.py` (3): Stichprobe ohne Dubletten und je Quelle, Stand beim Ziehen bleibt, Quoten nur aus eindeutigen Angaben (nachgerechnet), ungültige Angaben abgelehnt, CSV und Löschen |
+| Browser | neu `test_pilot_browser.py`: ziehen, bewerten, Quoten aktualisieren sich, „kein Zielbetrieb“ blendet Fragen aus, Smartphone-Breite ohne waagerechtes Scrollen; Bildschirmfoto selbst angesehen |
+| Regression | je 698 Tests unter Python 3.13 und 3.10, 36 von 36 Browser-Tests |
+| Grenze | misst nur übernommene Treffer, nicht die verpassten (beschrieben) |
+
+**Selbstbewertung 4 von 5.** Abzug: Die Messung selbst steht noch aus.

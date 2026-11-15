@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev44)
+# Bekannte Einschränkungen (Stand 2.0.0-dev45)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -273,3 +273,9 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Die Website-Suche läuft nur für übernommene neue Treffer (höchstens 100 je Suche). Ausgefilterte und schon bekannte Betriebe werden nicht gesucht.
 - Die Website-Suche rät Domains aus Name und Ort und prüft das Impressum. Betriebe mit ganz anderem Domainnamen (Abkürzung, Inhabername) findet sie nicht – dort hilft nur „Website eintragen“.
 - Wie viele Betriebe im Auszug eine Website eingetragen haben, hängt von OpenStreetMap ab; im Handwerk ist das oft nur ein kleiner Teil. Das ist noch nicht an deinem Auszug gemessen (M21).
+
+## Recherchepilot – Stichprobe von Hand prüfen (2.0.0-dev45)
+
+- Die Stichprobe kommt aus den **übernommenen** Treffern. Ausgefilterte Betriebe sind nicht darin – wie viele die Suche verpasst, misst sie nicht. Dafür die Gründe in der Ergebniszeile ansehen (dev44).
+- Die Quoten sind so gut wie deine Angaben. „unklar“ zählt nirgends mit; unter 30 Angaben je Quote gibt es einen Hinweis.
+- „Abdeckung Websites“ heißt: Unter den Zielbetrieben, die laut deiner Prüfung eine Website haben, zeigte SignalDesk die richtige an.
