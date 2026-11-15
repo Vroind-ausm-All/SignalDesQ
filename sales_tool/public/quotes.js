@@ -138,6 +138,7 @@
       const p = r.payload;
       if (p.positions) window.quoteApplyTemplate(p.template || '', p.positions); else if (p.package) window.quoteApplyTemplate(p.package);
       for (const k of ['project_label', 'customer_goal', 'assumptions', 'tax_mode']) if (p[k] != null && f.elements[k]) f.elements[k].value = p[k];
+      window.quoteEndAddendum();
       f.dataset.revisionOf = String(r.revision_of);
       $('#qbRevisionOf').textContent = `${r.number} (wird Fassung ${r.next_no})`;
       $('#qbRevision').classList.remove('hidden');
@@ -147,6 +148,33 @@
       changed();
       toast(`${r.number} geladen – ändern, Grund eintragen, als neue Fassung speichern`);
     } catch (e) { toast(e.message, true); }
+  };
+  // 2.0.0-dev25 (M18): Zusatzauftrag zu einem angenommenen Auftrag – leerer Baukasten, Firma und Chance fest
+  window.quoteStartAddendum = async function (pid) {
+    try {
+      const r = await api(`/workspace/proposals/${pid}/zusatzauftrag`);
+      window.quoteEndRevision();
+      const f = $('#quoteForm');
+      f.elements.lead_id.value = String(r.lead_id);
+      f.elements.lead_id.dispatchEvent(new Event('change', {bubbles: true}));
+      await new Promise(res => setTimeout(res, 150));
+      positions = [];
+      if (f.elements.project_label) f.elements.project_label.value = '';
+      if (f.elements.customer_goal) f.elements.customer_goal.value = '';
+      if (f.elements.tax_mode && r.tax_mode) f.elements.tax_mode.value = r.tax_mode;
+      f.dataset.addendumOf = String(r.addendum_of);
+      $('#qbAddendumOf').textContent = `${r.next_no} zu ${r.number}${r.project_label ? ' („' + r.project_label + '“)' : ''}`;
+      $('#qbAddendum').classList.remove('hidden');
+      $('#qbAddendumReason').value = '';
+      $('#qbAddendumReason').focus();
+      f.scrollIntoView({behavior: 'smooth', block: 'start'});
+      changed();
+      toast(`Zusatzauftrag zu ${r.number}: zusätzliche Leistungen hinzufügen, Anlass eintragen, speichern`);
+    } catch (e) { toast(e.message, true); }
+  };
+  window.quoteEndAddendum = function () {
+    delete $('#quoteForm').dataset.addendumOf;
+    $('#qbAddendum').classList.add('hidden');
   };
   window.quoteEndRevision = function () {
     delete $('#quoteForm').dataset.revisionOf;
@@ -225,6 +253,7 @@
       changed();
     });
     $('#qbRevisionCancel').addEventListener('click', () => { window.quoteEndRevision(); toast('Überarbeitung abgebrochen – der Vorgänger bleibt unverändert'); });
+    $('#qbAddendumCancel').addEventListener('click', () => { window.quoteEndAddendum(); toast('Zusatzauftrag abgebrochen – der Auftrag bleibt unverändert'); });
     $('#qbTemplate').addEventListener('click', () => { const v = $('#quotePackage').value; if (!v) return toast('Bitte eine Vorlage wählen', true); window.quoteApplyTemplate(v); });
     document.addEventListener('click', e => {
       const q = e.target.closest('[data-qb-quick]');
@@ -268,8 +297,12 @@
       try {
         const ch = $('#quoteForm [name=opportunity_id]')?.value;  // 2.0.0-dev18: Chance des Angebots
         const rev = $('#quoteForm').dataset.revisionOf;  // 2.0.0-dev21: Revision eines Vorgängers
-        const saved = await api('/workspace/proposals', 'POST', {lead_id: leadId, ...payload(), ...(rev ? {revision_of: Number(rev), revision_reason: $('#qbRevisionReason').value.trim()} : ch ? {opportunity_id: ch} : {})});
+        const addOf = $('#quoteForm').dataset.addendumOf;  // 2.0.0-dev25: Zusatzauftrag zu einem Auftrag
+        const link = rev ? {revision_of: Number(rev), revision_reason: $('#qbRevisionReason').value.trim()}
+          : addOf ? {addendum_of: Number(addOf), addendum_reason: $('#qbAddendumReason').value.trim()} : ch ? {opportunity_id: ch} : {};
+        const saved = await api('/workspace/proposals', 'POST', {lead_id: leadId, ...payload(), ...link});
         if (rev) window.quoteEndRevision();
+        if (addOf) window.quoteEndAddendum();
         toast('Angebotsentwurf gespeichert – noch nicht versendet');
         await window.refreshSalesQuotes();
         await window.wsOpenProposal(saved.id);

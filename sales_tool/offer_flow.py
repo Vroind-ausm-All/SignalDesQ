@@ -119,6 +119,8 @@ def state(conn, pid):
             'revision_no': row['revision_no'] or 1, 'superseded_by': row['superseded_by'],
             'superseded_number': (conn.execute('SELECT number FROM proposals WHERE id=?', (row['superseded_by'],)).fetchone() or {'number': ''})['number'] if row['superseded_by'] else '',
             'revisable': row['status'] in ('entwurf', 'gesendet_manuell') and not row['superseded_by'],
+            'addendum_of': row['addendum_of'], 'addendum_no': row['addendum_no'] or 0,  # 2.0.0-dev25 (M18)
+            'addable': row['status'] == 'angenommen' and not row['superseded_by'],
             **checks(conn, row), 'confirmations': CONFIRMATIONS, 'channels': CHANNELS, 'decision_channels': DECISION_CHANNELS}
 
 

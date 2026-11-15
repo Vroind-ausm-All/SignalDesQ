@@ -625,6 +625,20 @@ M16 auf versendete Angebote begrenzt: Dort hängt am meisten Umsatz, und dort fe
 
 **Selbstbewertung 4 von 5.** Abzug: Protokoll nur als Markdown; Restpunkte nach der Abnahme sind bewusst keine Zusatzaufträge (M18 offen).
 
+## Arbeitspaket 24 – Zusatzaufträge (2.0.0-dev25)
+
+Leitfrage aus dem Review: Bleibt der Ursprungsumfang erkennbar? Deshalb ist ein Zusatzauftrag kein geändertes Angebot, sondern ein neues mit festem Bezug. Der angenommene Stand wird nie angefasst. Wiederverwendet wird der ganze Angebotsablauf, damit Freigabe und Nachweise nicht doppelt gebaut werden.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 643 Tests bestanden (2 neu in `tests/test_v2_addenda.py`) |
+| Browser-Tests | 21 von 21 (neu `test_addendum_browser.py`): Zusatzauftrag aus dem Auftrag, Leistung, Anlass, -Z1, Auftragsumfang; Auftrag in der Datenbank unverändert |
+| Ursprungsumfang | Kundendokument und Auftrag unverändert (Unit- und Browser-Test); Summe zählt nur angenommene Zusatzaufträge, Revisionen nicht doppelt |
+| Fund beim Testen | Rückwärtsschrägstrich in einem f-String-Ausdruck hätte unter Python 3.10 nicht kompiliert – vor dem ersten Lauf umgestellt |
+| Migration | Schema 36 → 37, zwei Spalten mit Vorgabewerten |
+
+**Selbstbewertung 4 von 5.** Abzug: keine Minderung nach der Zusage; keine gemeinsame Schlussrechnung (dokumentiert).
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

@@ -467,6 +467,9 @@ def make_handler(db_path, allowed_hosts=None):
                 from .handover import route_handover
                 if route_handover(self, conn, method, route):  # 2.0.0-dev24: Übergabe und Abnahme
                     return
+                from .addenda import route_addenda
+                if route_addenda(self, conn, method, route):  # 2.0.0-dev25: Zusatzaufträge und Auftragsumfang
+                    return
                 proposal_match=re.fullmatch(r'/api/workspace/proposals/(\d+)(/customer)?',route)
                 if proposal_match:
                     ident=int(proposal_match.group(1))
@@ -927,7 +930,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 36  # 2.0.0-dev24 – bei Schemaänderungen erhöhen (Übergabe und Abnahme)
+SCHEMA_VERSION = 37  # 2.0.0-dev25 – bei Schemaänderungen erhöhen (Zusatzaufträge)
 
 
 def backup_before_migration(db):

@@ -255,6 +255,8 @@ def init_db(conn: sqlite3.Connection):
     init_followups(conn)  # 2.0.0-dev23: Nachfassen mit Anlass, Frist und Ergebnis
     from .handover import init_handover
     init_handover(conn)  # 2.0.0-dev24: Übergabe und Abnahme je Auftrag
+    from .addenda import init_addenda
+    init_addenda(conn)  # 2.0.0-dev25: Zusatzaufträge zu angenommenen Aufträgen
     conn.commit()
 
 

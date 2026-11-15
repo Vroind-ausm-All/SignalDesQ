@@ -147,7 +147,20 @@
         <button type="button" class="btn btn-ghost" data-quote-open="${s.superseded_by}">${esc(s.superseded_number)} öffnen</button></li>`
       : `${stepRelease(s)}${stepSend(s)}${stepFollow(s, f)}${stepDecision(s)}${stepStart(p, s)}${stepHandover(ho)}`;
     (head || box).insertAdjacentHTML(head ? 'afterend' : 'afterbegin', `<ol class="of-panel" id="ofPanel" data-of-id="${id}">${steps}</ol>
-      <div class="of-revisions" id="ofRevisions">${s.revisable ? `<button type="button" class="btn btn-ghost" data-of-revise="${id}">Überarbeiten (neue Fassung)</button>` : ''}<div data-of-history></div></div>`);
+      <div class="of-revisions" id="ofRevisions">${s.revisable ? `<button type="button" class="btn btn-ghost" data-of-revise="${id}">Überarbeiten (neue Fassung)</button>` : ''}${s.addable ? `<button type="button" class="btn btn-ghost" data-of-addendum="${id}">Zusatzauftrag erstellen</button>` : ''}<div data-of-scope></div><div data-of-history></div></div>`);
+    // 2.0.0-dev25 (M18): Auftragsumfang – ursprünglicher Auftrag und Zusatzaufträge
+    if (s.addendum_of || s.status === 'angenommen') {
+      try {
+        const u = await api(`/workspace/proposals/${id}/umfang`);
+        if (u.addenda.length || s.addendum_of) {
+          const row = (n, label, status, net, extra, pid) => `<li${pid === id ? ' class="of-current"' : ''}><button type="button" class="text-button" data-quote-open="${pid}">${esc(n)}</button> ${esc(label)} · ${esc(status.replaceAll('_', ' '))} · ${esc(euros(net))} netto${extra ? `<small>${esc(extra)}</small>` : ''}</li>`;
+          box.querySelector('[data-of-scope]').innerHTML = `<details class="of-history of-scope" open><summary>Auftragsumfang</summary><ol>
+            ${row(u.base.number, 'Auftrag' + (u.base.project_label ? ': ' + u.base.project_label : ''), u.base.status, u.base.net_eur, '', u.base.id)}
+            ${u.addenda.map(a => row(a.number, `Zusatzauftrag ${a.no}` + (a.project_label ? ': ' + a.project_label : ''), a.status, a.net_eur, a.reason ? 'Anlass: ' + a.reason : '', a.id)).join('')}</ol>
+            ${u.total_net_eur != null ? `<p><b>Beauftragt insgesamt: ${esc(euros(u.total_net_eur))} netto</b>${u.open_net_eur ? ` · offen angeboten: ${esc(euros(u.open_net_eur))}` : ''}</p>` : ''}</details>`;
+        }
+      } catch { /* Umfang ist eine Zusatzinfo */ }
+    }
     try {
       const h = await api(`/workspace/proposals/${id}/fassungen`);
       if (h.versions.length > 1) box.querySelector('[data-of-history]').innerHTML = `<details class="of-history"><summary>Fassungen (${h.versions.length})</summary><ol>${h.versions.map(v => `<li><b>${esc(v.number)}</b> · ${esc(v.offer_date ? fmtDate(v.offer_date) : '')} · ${v.net_eur != null ? esc(euros(v.net_eur)) + ' netto' : ''} · ${v.superseded ? 'ersetzt' : esc(v.status.replaceAll('_', ' '))}${v.reason ? `<small>Grund: ${esc(v.reason)}</small>` : ''}${v.changes.length ? `<ul>${v.changes.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}</li>`).join('')}</ol></details>`;
@@ -174,6 +187,8 @@
         catch (err) { toast(err.message, true); }
         return;
       }
+      const za = e.target.closest('[data-of-addendum]');
+      if (za) { e.stopImmediatePropagation(); return window.quoteStartAddendum?.(Number(za.dataset.ofAddendum)); }
       const rv = e.target.closest('[data-of-revise]');
       if (rv) { e.stopImmediatePropagation(); return window.quoteStartRevision?.(Number(rv.dataset.ofRevise)); }
       const panel = e.target.closest('#ofPanel');

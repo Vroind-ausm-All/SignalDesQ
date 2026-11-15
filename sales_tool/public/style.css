@@ -778,3 +778,7 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 .ho-items li.ho-erledigt>span{color:var(--muted)}
 .ho-items li.ho-entfaellt>span{color:var(--muted);text-decoration:line-through}
 .ho-items input[data-ho-note]{flex:0 1 14rem}
+
+/* 2.0.0-dev25 (M18): Auftragsumfang mit Zusatzaufträgen */
+.of-scope li.of-current{font-weight:600}
+.of-scope li small{display:block;color:var(--muted);font-weight:400}

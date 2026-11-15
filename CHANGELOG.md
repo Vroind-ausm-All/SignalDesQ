@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev25 – Zusatzaufträge mit erkennbarem Ursprungsumfang
+
+Etappe D, Produktreview M18.
+
+- **„Zusatzauftrag erstellen“** am angenommenen Auftrag öffnet den Angebotsbaukasten leer, mit fester Firma und Chance. Mit Anlass gespeichert, entsteht ein eigenes Angebot mit der Nummer des Auftrags und Zähler (z. B. AN-2026-0003-Z1).
+- **Der Auftrag bleibt unverändert.** Das Kundendokument des Zusatzauftrags heißt „Zusatzauftrag“. Es nennt den Auftrag, den Anlass und den bisher beauftragten Umfang und stellt klar, dass die neuen Leistungen gesondert beauftragt, abgenommen und abgerechnet werden.
+- **Auftragsumfang** am Auftrag und an jedem Zusatzauftrag: ursprünglicher Auftrag und alle Zusatzaufträge mit Stand und Betrag. Die Summe „beauftragt insgesamt“ zählt nur angenommene Zusatzaufträge; offene stehen getrennt daneben.
+- Freigabe, Versand, Nachfassen, Zusage, Übergabe und Abnahme laufen wie bei jedem Angebot. Vor der Zusage lässt sich ein Zusatzauftrag überarbeiten (-Z1-R2) und bleibt dabei Zusatzauftrag.
+- **Schemawechsel 36 → 37** (Bezug und Zähler am Angebot). 643 Tests (2 neu) unter Python 3.10 und 3.13, 21 Browser-Tests (1 neu).
+
 ## 2.0.0-dev24 – Auftragsübergabe und Abnahme
 
 Etappe D, Produktreview M17 (Abnahmefall T12).
