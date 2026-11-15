@@ -81,14 +81,83 @@
       <button type="button" class="btn btn-primary" data-of-start>${s.status === 'angenommen' ? 'Projektstart übernehmen' : 'Ausgewählte Aufgaben beenden'}</button></li>`;
   }
 
+  // 2.0.0-dev28 (M38/M39): Projektkompass – Startvoraussetzungen mit Verantwortlichen, Frist und Auswirkung
+  function stepKickoff(k) {
+    if (!k) return '';
+    const started = k.status === 'gestartet';
+    const row = i => `<li class="ho-${esc(i.state)}" data-ko-row="${i.id}"><span><b>${esc(i.kind_label)}</b> ${esc(i.label)}
+        <small>${esc(i.owner_name || i.owner_label)}${i.due_date ? ` · bis ${esc(fmtDate(i.due_date))}` : ''}${i.overdue ? ' <span class="pill bad">überfällig</span>' : ''}${i.impact ? ` · ohne: ${esc(i.impact)}` : ''}</small></span>
+      <select data-ko-state="${i.id}" aria-label="Stand: ${esc(i.label)}">${k.states.map(s => `<option value="${s}" ${s === i.state ? 'selected' : ''}>${esc(ST_LABEL[s])}</option>`).join('')}</select>
+      <select data-ko-owner="${i.id}" aria-label="Wer liefert">${opt(k.owners, i.owner)}</select>
+      <input data-ko-name="${i.id}" maxlength="120" value="${esc(i.owner_name)}" placeholder="Name (optional)" aria-label="Name">
+      <input type="date" data-ko-due="${i.id}" value="${esc(i.due_date)}" aria-label="Bis wann">
+      <input data-ko-note="${i.id}" maxlength="300" value="${esc(i.note)}" placeholder="Notiz / Begründung" aria-label="Notiz"></li>`;
+    return `<li class="of-step ${started ? 'done' : ''}" id="ofKickoff"><b>Projektkompass</b> <span class="pill ${started || k.status === 'bereit' ? 'ok' : k.status === 'wartet' ? 'bad' : ''}" data-ko-status>${esc(k.status_label)}</span>
+      ${k.waiting.length && !started ? `<p class="qb-check warn">! Wartet auf: ${k.waiting.map(w => `${esc(w.owner)} – ${esc(w.label)}${w.due_date ? ' (bis ' + esc(fmtDate(w.due_date)) + ')' : ''}`).join('; ')}</p>` : ''}
+      <ul class="ho-items ko-items">${k.items.map(row).join('')}</ul>
+      <p class="muted">${esc(k.secret_hint)}</p>
+      <div class="sales-row ho-add"><select data-ko-addkind aria-label="Art">${opt(k.kinds, 'material')}</select><select data-ko-addowner aria-label="Wer liefert">${opt(k.owners, 'kunde')}</select>
+        <input data-ko-addlabel maxlength="300" placeholder="Weitere Voraussetzung, z. B. Bildrechte klären" aria-label="Weitere Voraussetzung">
+        <input type="date" data-ko-adddue aria-label="Bis wann"><input data-ko-addimpact maxlength="300" placeholder="Was geht ohne nicht?" aria-label="Auswirkung">
+        <button type="button" class="btn btn-ghost" data-ko-add>Ergänzen</button></div>
+      ${started ? `<p>Gestartet am ${esc(fmtDate(k.started_at))}${k.start_note ? ' · ' + esc(k.start_note) : ''}</p>` : `<div class="sales-row"><label>Gestartet am<input type="date" data-ko-date value="${today()}" max="${today()}"></label>
+        <label>Notiz<input data-ko-snote maxlength="300" placeholder="z. B. Kick-off per Video"></label>
+        ${k.open ? '<label class="quote-addon"><input type="checkbox" data-ko-force><span>trotz offener Punkte starten</span></label>' : ''}
+        <button type="button" class="btn btn-primary" data-ko-start>Projektstart dokumentieren</button></div>`}</li>`;
+  }
+
+  // 2.0.0-dev24 (M17, T12): Übergabe und Abnahme des angenommenen Auftrags
+  const ST_LABEL = {offen: 'offen', erledigt: 'erledigt', entfaellt: 'entfällt'};
+  function stepHandover(h) {
+    if (!h) return '';
+    const finished = ['abgenommen', 'vorbehalt'].includes(h.status);
+    const editable = ['in_arbeit', 'nachbesserung'].includes(h.status);
+    const group = (kinds, title) => {
+      const its = h.items.filter(i => kinds.includes(i.kind));
+      if (!its.length) return '';
+      return `<div class="sales-subhead">${esc(title)}</div><ul class="ho-items">${its.map(i => {
+        const locked = finished && ['liefer', 'kriterium'].includes(i.kind);
+        return `<li class="ho-${esc(i.state)}" data-ho-row="${i.id}"><span>${esc(i.label)}${i.due_date ? ` <small>bis ${esc(fmtDate(i.due_date))}</small>` : ''}${i.note ? ` <small class="muted">${esc(i.note)}</small>` : ''}</span>
+          ${locked ? `<b>${esc(ST_LABEL[i.state])}</b>` : `<select data-ho-item="${i.id}" aria-label="Stand: ${esc(i.label)}">${h.states.map(s => `<option value="${s}" ${s === i.state ? 'selected' : ''}>${esc(ST_LABEL[s])}</option>`).join('')}</select>
+          <input data-ho-note maxlength="300" placeholder="Begründung bei „entfällt“" value="${esc(i.note)}" aria-label="Notiz">`}</li>`;
+      }).join('')}</ul>`;
+    };
+    const add = editable ? `<div class="sales-row ho-add"><select data-ho-addkind aria-label="Art"><option value="liefer">Liefergegenstand</option><option value="kriterium">Abnahmekriterium</option></select>
+      <input data-ho-addlabel maxlength="300" placeholder="Eigenen Punkt ergänzen" aria-label="Eigener Punkt"><button type="button" class="btn btn-ghost" data-ho-add>Ergänzen</button></div>` : '';
+    const hand = editable ? `<div class="sales-subhead">${h.round > 1 ? 'Erneut übergeben' : 'Übergabe dokumentieren'}</div>
+      ${h.blocking ? `<p class="qb-check warn">! Noch ${h.blocking} Liefergegenstand/Nachbesserung offen – erledigen oder begründet entfallen lassen.</p>` : ''}
+      <div class="sales-row"><label>Weg<select data-ho-channel>${opt(h.channels, 'email')}</select></label>
+      <label>Datum<input type="date" data-ho-date value="${today()}" max="${today()}"></label>
+      <label>Abnahme einholen bis<input type="date" data-ho-due value="${esc(h.default_due)}" min="${today()}"></label></div>
+      <div class="sales-row"><label>Notiz<input data-ho-hnote maxlength="500" placeholder="z. B. Zugänge übergeben, Einweisung erfolgt"></label>
+      <button type="button" class="btn btn-primary" data-ho-handover ${h.can_hand_over ? '' : 'disabled'}>Übergabe dokumentieren</button></div>` : '';
+    const acc = h.can_accept ? `<div class="sales-subhead">Abnahme dokumentieren</div>
+      <p class="muted">Übergeben am ${esc(fmtDate(h.handed_at))}. Restpunkte und Nachbesserungen bitte einzeln, je Zeile einer.</p>
+      <div class="sales-row"><label>Ergebnis<select data-ho-result>${opt(h.results, 'abgenommen')}</select></label>
+      <label>Weg<select data-ho-achannel>${opt(h.channels, 'email')}</select></label>
+      <label>Datum<input type="date" data-ho-adate value="${today()}" min="${esc(h.handed_at)}" max="${today()}"></label>
+      <label>Person<input data-ho-person maxlength="120" placeholder="Wer hat abgenommen?"></label></div>
+      <label>Restpunkte / Nachbesserungen<textarea data-ho-points rows="3" maxlength="3000" placeholder="leer lassen bei vollständiger Abnahme"></textarea></label>
+      <div class="sales-row"><label>Frist für die Punkte<input type="date" data-ho-pdue value="${esc(h.default_due)}" min="${today()}"></label>
+      <label>Notiz<input data-ho-anote maxlength="500"></label>
+      <button type="button" class="btn btn-primary" data-ho-accept>Abnahme dokumentieren</button></div>` : '';
+    const result = finished ? `<p><b>${esc(h.result_label)}</b> am ${esc(fmtDate(h.accepted_at))}${h.accepted_person ? ' durch ' + esc(h.accepted_person) : ''}${h.rest_open ? ` · <span class="pill bad">${h.rest_open} Restpunkt(e) offen</span>` : ''}</p>
+      ${h.final_invoice_due ? '<p class="qb-check warn">! Laut Zahlungsplan ist die Schlussrechnung fällig – unter „Abrechnen“ erstellen.</p>' : ''}` : '';
+    return `<li class="of-step ${h.status === 'abgenommen' ? 'done' : ''}" id="ofHandover"><b>5 · Übergabe & Abnahme</b> <span class="pill ${finished ? 'ok' : ''}" data-ho-status>${esc(h.status_label)}</span>
+      ${result}${group(['liefer'], 'Liefergegenstände')}${group(['kriterium'], 'Abnahmekriterien')}${group(['nachbesserung'], 'Nachbesserungen')}${group(['restpunkt'], 'Restpunkte')}
+      ${add}${hand}${acc}<div class="sales-row"><button type="button" class="btn btn-ghost" data-ho-protocol>${finished ? 'Abnahmeprotokoll herunterladen (.md)' : 'Protokoll-Entwurf zur Abnahme (.md)'}</button></div></li>`;
+  }
+
   async function render(id) {
     const box = $('#quoteSaved');
     if (!box) return;
-    let s, p = null, f = null;
+    let s, p = null, f = null, ho = null, ko = null;
     try {
       s = await api('/workspace/proposals/' + id + '/versand');
       if (['angenommen', 'abgelehnt'].includes(s.status)) p = await api('/workspace/proposals/' + id + '/start');
       if (s.status !== 'entwurf') f = await api('/workspace/proposals/' + id + '/nachfassen');
+      if (s.status === 'angenommen' && !s.superseded_by) ho = await api('/workspace/proposals/' + id + '/abnahme');
+      if (s.status === 'angenommen' && !s.superseded_by) ko = await api('/workspace/proposals/' + id + '/kompass');
     } catch (e) { toast(e.message, true); return; }
     current = {id, s, p};
     box.querySelector('[data-quote-status]')?.closest('label')?.remove();
@@ -102,9 +171,22 @@
     // 2.0.0-dev21 (M15): ersetzte Fassungen sind nur noch Nachweis; aktuelle Fassungen lassen sich überarbeiten
     const steps = s.superseded_by ? `<li class="of-step done"><b>Ersetzt</b><span>Diese Fassung ist durch ${esc(s.superseded_number)} ersetzt. Freigabe, Versand und Zusage gehen nur noch dort.</span>
         <button type="button" class="btn btn-ghost" data-quote-open="${s.superseded_by}">${esc(s.superseded_number)} öffnen</button></li>`
-      : `${stepRelease(s)}${stepSend(s)}${stepFollow(s, f)}${stepDecision(s)}${stepStart(p, s)}`;
+      : `${stepRelease(s)}${stepSend(s)}${stepFollow(s, f)}${stepDecision(s)}${stepStart(p, s)}${stepKickoff(ko)}${stepHandover(ho)}`;
     (head || box).insertAdjacentHTML(head ? 'afterend' : 'afterbegin', `<ol class="of-panel" id="ofPanel" data-of-id="${id}">${steps}</ol>
-      <div class="of-revisions" id="ofRevisions">${s.revisable ? `<button type="button" class="btn btn-ghost" data-of-revise="${id}">Überarbeiten (neue Fassung)</button>` : ''}<div data-of-history></div></div>`);
+      <div class="of-revisions" id="ofRevisions">${s.revisable ? `<button type="button" class="btn btn-ghost" data-of-revise="${id}">Überarbeiten (neue Fassung)</button>` : ''}${s.addable ? `<button type="button" class="btn btn-ghost" data-of-addendum="${id}">Zusatzauftrag erstellen</button>` : ''}<div data-of-scope></div><div data-of-history></div></div>`);
+    // 2.0.0-dev25 (M18): Auftragsumfang – ursprünglicher Auftrag und Zusatzaufträge
+    if (s.addendum_of || s.status === 'angenommen') {
+      try {
+        const u = await api(`/workspace/proposals/${id}/umfang`);
+        if (u.addenda.length || s.addendum_of) {
+          const row = (n, label, status, net, extra, pid) => `<li${pid === id ? ' class="of-current"' : ''}><button type="button" class="text-button" data-quote-open="${pid}">${esc(n)}</button> ${esc(label)} · ${esc(status.replaceAll('_', ' '))} · ${esc(euros(net))} netto${extra ? `<small>${esc(extra)}</small>` : ''}</li>`;
+          box.querySelector('[data-of-scope]').innerHTML = `<details class="of-history of-scope" open><summary>Auftragsumfang</summary><ol>
+            ${row(u.base.number, 'Auftrag' + (u.base.project_label ? ': ' + u.base.project_label : ''), u.base.status, u.base.net_eur, '', u.base.id)}
+            ${u.addenda.map(a => row(a.number, `Zusatzauftrag ${a.no}` + (a.project_label ? ': ' + a.project_label : ''), a.status, a.net_eur, a.reason ? 'Anlass: ' + a.reason : '', a.id)).join('')}</ol>
+            ${u.total_net_eur != null ? `<p><b>Beauftragt insgesamt: ${esc(euros(u.total_net_eur))} netto</b>${u.open_net_eur ? ` · offen angeboten: ${esc(euros(u.open_net_eur))}` : ''}</p>` : ''}</details>`;
+        }
+      } catch { /* Umfang ist eine Zusatzinfo */ }
+    }
     try {
       const h = await api(`/workspace/proposals/${id}/fassungen`);
       if (h.versions.length > 1) box.querySelector('[data-of-history]').innerHTML = `<details class="of-history"><summary>Fassungen (${h.versions.length})</summary><ol>${h.versions.map(v => `<li><b>${esc(v.number)}</b> · ${esc(v.offer_date ? fmtDate(v.offer_date) : '')} · ${v.net_eur != null ? esc(euros(v.net_eur)) + ' netto' : ''} · ${v.superseded ? 'ersetzt' : esc(v.status.replaceAll('_', ' '))}${v.reason ? `<small>Grund: ${esc(v.reason)}</small>` : ''}${v.changes.length ? `<ul>${v.changes.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}</li>`).join('')}</ol></details>`;
@@ -131,6 +213,8 @@
         catch (err) { toast(err.message, true); }
         return;
       }
+      const za = e.target.closest('[data-of-addendum]');
+      if (za) { e.stopImmediatePropagation(); return window.quoteStartAddendum?.(Number(za.dataset.ofAddendum)); }
       const rv = e.target.closest('[data-of-revise]');
       if (rv) { e.stopImmediatePropagation(); return window.quoteStartRevision?.(Number(rv.dataset.ofRevise)); }
       const panel = e.target.closest('#ofPanel');
@@ -146,6 +230,44 @@
           const r = await api('/workspace/proposals/' + id, 'PATCH', {status: 'gesendet_manuell', channel: panel.querySelector('[data-of-channel]').value, date: panel.querySelector('[data-of-sentdate]').value,
             follow_up: panel.querySelector('[data-of-followdate]').value, follow_reason: panel.querySelector('[data-of-followreason]').value});
           return after(r.notice);
+        }
+        const hoUrl = `/workspace/proposals/${id}/abnahme`;
+        const val = sel => panel.querySelector(sel)?.value ?? '';
+        const koUrl = `/workspace/proposals/${id}/kompass`;
+        if (e.target.closest('[data-ko-add]')) {
+          await api(koUrl, 'POST', {action: 'add', kind: val('[data-ko-addkind]'), owner: val('[data-ko-addowner]'), label: val('[data-ko-addlabel]'),
+            due_date: val('[data-ko-adddue]'), impact: val('[data-ko-addimpact]')});
+          return after('Voraussetzung ergänzt');
+        }
+        if (e.target.closest('[data-ko-start]')) {
+          const r = await api(koUrl, 'POST', {action: 'start', date: val('[data-ko-date]'), note: val('[data-ko-snote]'), ...(panel.querySelector('[data-ko-force]')?.checked ? {trotz_offener_punkte: true} : {})});
+          await after(r.notice);
+          $('#ofKickoff')?.scrollIntoView({block: 'center'});
+          return;
+        }
+        if (e.target.closest('[data-ho-protocol]')) {
+          const d = await api(hoUrl + '/protokoll');
+          wsDownload(d.filename, d.markdown, 'text/markdown;charset=utf-8');
+          return;
+        }
+        if (e.target.closest('[data-ho-add]')) {
+          await api(hoUrl, 'POST', {action: 'add', kind: val('[data-ho-addkind]'), label: val('[data-ho-addlabel]')});
+          return after('Punkt ergänzt');
+        }
+        if (e.target.closest('[data-ho-handover]')) {
+          const r = await api(hoUrl, 'POST', {action: 'uebergabe', channel: val('[data-ho-channel]'), date: val('[data-ho-date]'), due: val('[data-ho-due]'), note: val('[data-ho-hnote]')});
+          await after(r.notice);
+          $('#ofHandover')?.scrollIntoView({block: 'center'});
+          return;
+        }
+        if (e.target.closest('[data-ho-accept]')) {
+          const due = val('[data-ho-pdue]');
+          const points = val('[data-ho-points]').split('\n').map(x => x.trim()).filter(Boolean).map(label => ({label, due}));
+          const r = await api(hoUrl, 'POST', {action: 'abnahme', result: val('[data-ho-result]'), channel: val('[data-ho-achannel]'), date: val('[data-ho-adate]'),
+            person: val('[data-ho-person]'), note: val('[data-ho-anote]'), points});
+          await after(r.notice);
+          $('#ofHandover')?.scrollIntoView({block: 'center'});
+          return;
         }
         const fu = e.target.closest('[data-of-fu]');
         if (fu) {
@@ -178,6 +300,22 @@
       const fd = sd && $('#ofPanel [data-of-followdate]');
       if (fd && !fd.dataset.touched && sd.value) fd.value = [plusDays(sd.value, 7), today()].sort().pop();
       if (e.target.matches?.('#ofPanel [data-of-followdate]')) e.target.dataset.touched = '1';
+      const ke = e.target.closest('#ofPanel [data-ko-state],#ofPanel [data-ko-owner],#ofPanel [data-ko-name],#ofPanel [data-ko-due],#ofPanel [data-ko-note]');
+      if (ke && current) {
+        const rowEl = ke.closest('[data-ko-row]'), iid = Number(rowEl.dataset.koRow);
+        const v = sel => rowEl.querySelector(sel).value;
+        api(`/workspace/proposals/${current.id}/kompass`, 'POST', {action: 'item', item_id: iid, state: v('[data-ko-state]'), owner: v('[data-ko-owner]'),
+          owner_name: v('[data-ko-name]'), due_date: v('[data-ko-due]'), note: v('[data-ko-note]')})
+          .then(r => after(r.notice || 'Gespeichert')).catch(err => { toast(err.message, true); window.wsOpenProposal(current.id); });
+        return;
+      }
+      const it = e.target.closest('#ofPanel [data-ho-item]');
+      if (it && current) {
+        const note = it.closest('[data-ho-row]').querySelector('[data-ho-note]').value;
+        api(`/workspace/proposals/${current.id}/abnahme`, 'POST', {action: 'item', item_id: Number(it.dataset.hoItem), state: it.value, note})
+          .then(r => after(r.notice || 'Stand gespeichert')).catch(err => { toast(err.message, true); window.wsOpenProposal(current.id); });
+        return;
+      }
       const oc = e.target.closest('[data-of-fu-outcome]');
       if (oc) {
         const needs = ['entscheidung_offen', 'rueckfragen', 'nicht_erreicht'].includes(oc.value);

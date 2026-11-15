@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev23)
+# Bekannte Einschränkungen (Stand 2.0.0-dev32)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -162,3 +162,53 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Eine Nachfassaufgabe, die in der allgemeinen Aufgabenliste einfach abgehakt wird, hat kein Ergebnis. Das Ergebnis lässt sich nur am Angebot festhalten.
 - „Zusage angekündigt“ und „Absage angekündigt“ ändern den Angebotsstatus nicht. Die Entscheidung dokumentierst du weiterhin bewusst am Angebot.
 - Längste Frist: 120 Tage. Längere Pausen gehören als Wiedervorlage an die Chance.
+
+## Übergabe und Abnahme (2.0.0-dev24)
+
+- Das Abnahmeprotokoll ist eine Markdown-Datei zum Ausdrucken oder Weiterverarbeiten, kein gestaltetes PDF und keine elektronische Unterschrift.
+- Ob eine Abnahme rechtlich wirksam ist (z. B. stillschweigende Abnahme, Fristen nach Werkvertragsrecht), prüft SignalDesk nicht. Die Formulierung im Protokoll ist ein Vorschlag, keine Rechtsberatung.
+- Die Schlussrechnung wird nicht automatisch erstellt; SignalDesk weist nur darauf hin, wenn der Zahlungsplan „nach Abnahme“ vorsieht.
+- Dokumentierte Übergaben und Abnahmen lassen sich nicht zurücknehmen. Nach der Abnahme bleiben Liefergegenstände und Kriterien unverändert; neue Arbeit ist ein Restpunkt oder ein Zusatzauftrag.
+- Liefergegenstände kommen aus den Katalogtexten des Angebots. Bei älteren Angeboten ohne diese Angaben werden die festen Positionen übernommen.
+
+## Zusatzaufträge (2.0.0-dev25)
+
+- Ein Zusatzauftrag ergänzt einen angenommenen Auftrag. Weniger Leistung oder ein Teilstorno nach der Zusage bildet SignalDesk nicht ab; das bitte als Notiz festhalten und bei der Rechnung berücksichtigen.
+- Jeder angenommene Zusatzauftrag hat eigene Übergabe, Abnahme, Nachkalkulation und Rechnung. Eine gemeinsame Schlussrechnung über Auftrag und Zusatzaufträge gibt es nicht.
+- Zusatzaufträge zu Zusatzaufträgen gibt es nicht: Sie beziehen sich immer auf den ursprünglichen Auftrag.
+- Vor der Zusage wird ein Angebot überarbeitet, nicht ergänzt.
+
+## Bestandskunden und Betreuung (2.0.0-dev26)
+
+- Betreuung sind die monatlichen Positionen eines angenommenen Angebots. Beginn ist das Datum der Zusage; du kannst ihn anpassen, solange kein abgerechneter Monat herausfällt.
+- Abgerechnet wird je Kalendermonat, immer der volle Monatsbetrag. Anteilige Monate, Quartals- oder Jahresabrechnung und automatische Preisanpassungen gibt es nicht.
+- Eine Preisänderung der laufenden Betreuung ist ein neues Angebot (bzw. Zusatzauftrag). Die alte Betreuung bitte zum Stichtag beenden.
+- Monatsrechnungen aus der Zeit vor dev26 haben keinen Leistungszeitraum. Für die offenen Monate zählen sie deshalb nicht; bitte die Laufzeit so setzen, dass bereits abgerechnete Monate davor liegen.
+- Rechnungen entstehen weiterhin nur als Entwurf auf deinen Klick; „Heute“ erinnert an nicht abgerechnete Monate.
+
+## Zeiten je Leistung (2.0.0-dev27)
+
+- Die Zuordnung zu einer Position ist freiwillig. Zeiten ohne Position zählen zum Auftrag, aber nicht zur Auswertung je Leistung.
+- Die Aussage je Leistung beruht nur auf abgeschlossenen Aufträgen mit zugeordneten Zeiten. Unter drei Stichproben gibt es keine Aussage; auch drei Aufträge sind eine kleine Stichprobe – die Spanne steht deshalb immer dabei.
+- SignalDesk ändert Zeitansätze im Katalog nie selbst. Der Vorschlag verweist auf „Einstellungen → Leistungen & Preise“.
+- Ältere Zeiteinträge (vor dev27) haben keine Position.
+
+## Projektkompass (2.0.0-dev28)
+
+- Die Voraussetzungen werden beim ersten Öffnen aus dem Angebot und den offenen Briefing-Punkten der Chance übernommen. Spätere Briefing-Änderungen kommen nicht automatisch nach; bitte selbst ergänzen.
+- Materialien werden nur als Text erfasst, nicht als Datei. Es gibt keine Dateiablage.
+- Die Erkennung von Zugangsdaten ist eine Schutzregel für typische Eingaben („Passwort:“, „Login =“, Token-Muster), keine Garantie. Bitte grundsätzlich keine Zugangsdaten eintragen.
+- Der Startstatus „gestartet“ lässt sich nicht zurücknehmen; offene Punkte bleiben danach sichtbar.
+
+## Nachrichtenvorlagen (2.0.0-dev29)
+
+- Nur die festen Platzhalter sind erlaubt; Bedingungen, Schleifen oder Serienbriefe an mehrere Firmen gibt es nicht.
+- Die Anrede „Frau/Herr“ erscheint nur, wenn sie an der Person hinterlegt ist. Titel (Dr., Prof.) werden nicht abgebildet; bei Bedarf den Text der Vorlage anpassen.
+- Die Vorschau prüft Sperren der Firma und die Einschränkungen „keine E-Mails“, „nur Post“ und „Widerspruch“ der gewählten Person. Ob eine Nachricht werblich ist und eine Einwilligung braucht, prüfst du weiterhin selbst.
+- SignalDesk versendet nichts. Die Endfassung wird kopiert und außerhalb verschickt; der Versand eines Angebots wird wie bisher am Angebot dokumentiert.
+
+## Kurzbericht für den Kunden (2.0.0-dev30)
+
+- Der Bericht übernimmt Beobachtung, Fundstelle und Frage so, wie sie beim Befund stehen. Formulierungen bitte vor der Weitergabe selbst lesen; SignalDesk glättet keine Texte.
+- Screenshots werden nicht eingebunden (nur Markdown, kein gestaltetes PDF).
+- Höchstens zwölf Befunde je Bericht. Die Einordnung am Ende ist ein Textvorschlag, keine Rechtsberatung.

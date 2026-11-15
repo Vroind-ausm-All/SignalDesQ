@@ -684,7 +684,7 @@ def duplicate_invoice(conn, invoice_id):
 # ---------------------------------------------------------------- Angebot → Rechnung
 
 def invoice_from_proposal(conn, data):
-    if not isinstance(data, dict) or set(data) - {'proposal_id', 'mode', 'percent'}:
+    if not isinstance(data, dict) or set(data) - {'proposal_id', 'mode', 'percent', 'month'}:
         raise ValueError('Ungültige Angaben.')
     pid = _int_id(data.get('proposal_id'), 'Angebots-ID')
     prop = conn.execute('SELECT * FROM proposals WHERE id=?', (pid,)).fetchone()
@@ -713,15 +713,24 @@ def invoice_from_proposal(conn, data):
     monthly = customer.get('billing') == 'monatlich'
     lines = []
     kind = 'rechnung'
+    period = {}
+    if mode == 'monat' or monthly:
+        # 2.0.0-dev26 (M19): Betreuung je Monat genau einmal abrechnen, mit Leistungszeitraum
+        from .care import assert_month_billable, default_month
+        month = data.get('month') or default_month(conn, pid)
+        if not month:
+            raise ValueError('Alle Monate der Betreuung bis heute sind bereits abgerechnet.')
+        period['service_from'], period['service_to'] = assert_month_billable(conn, pid, month)
+        period['label'] = f' – Leistungszeitraum {month[5:7]}/{month[:4]}'
     if mode == 'monat' or (mode == 'voll' and positions):
         # Sprint D: Positionen aus dem Baukasten einzeln übernehmen (einmalig bzw. Monatsleistungen)
         want = 'monatlich' if mode == 'monat' or monthly else 'einmalig'
         for n, p in enumerate((p for p in positions if p['billing'] == want and not p.get('optional')), 1):  # dev22: Optionen nie berechnen
-            lines.append({'description': f"{p['title']} – {p['scope']} (Angebot {ref}, Pos. {positions.index(p) + 1})"[:500],
+            lines.append({'description': f"{p['title']} – {p['scope']} (Angebot {ref}, Pos. {positions.index(p) + 1}){period.get('label', '') if want == 'monatlich' else ''}"[:500],
                           'quantity': 1, 'unit': 'monat' if want == 'monatlich' else 'pauschal', 'unit_price_cents': cents(p['price_eur'], 'Positionspreis'),
                           'vat_rate': 19})
     elif mode == 'voll':
-        lines.append({'description': f"{title} – Festpreis gemäß Angebot {ref}" + (' (Monatspauschale)' if monthly else ''),
+        lines.append({'description': f"{title} – Festpreis gemäß Angebot {ref}" + (' (Monatspauschale)' + period.get('label', '') if monthly else ''),
                       'quantity': 1, 'unit': 'monat' if monthly else 'pauschal', 'unit_price_cents': net_total, 'vat_rate': 19})
     elif mode == 'abschlag':
         if monthly:
@@ -747,6 +756,7 @@ def invoice_from_proposal(conn, data):
                           'quantity': 1, 'unit': 'pauschal', 'unit_price_cents': -prev['net_cents'], 'vat_rate': 19})
     defaults = buyer_defaults(conn, prop['lead_id'])
     payload = {**defaults, 'lead_id': prop['lead_id'], 'kind': kind, 'tax_mode': tax_mode, 'lines': lines,
+               **{k: v for k, v in period.items() if k != 'label'},
                'intro_text': f"Vielen Dank für Ihren Auftrag. Wir berechnen Ihnen die Leistungen gemäß Angebot {ref}."}
     return create_invoice(conn, payload, proposal_id=pid)
 

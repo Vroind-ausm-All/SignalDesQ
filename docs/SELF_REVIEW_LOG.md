@@ -610,6 +610,138 @@ M16 auf versendete Angebote begrenzt: Dort hängt am meisten Umsatz, und dort fe
 
 **Selbstbewertung 4 von 5.** Abzug: In der allgemeinen Aufgabenliste abgehakte Nachfassaufgaben haben kein Ergebnis (dokumentiert).
 
+## Arbeitspaket 23 – Auftragsübergabe und Abnahme (2.0.0-dev24)
+
+„Schlank“ heißt hier: keine Projektverwaltung, sondern genau die Nachweise, die ein Solo-Auftrag braucht. Dazu gehört, was übergeben wurde, wann und wie, was der Kunde abgenommen hat und was noch offen ist. Am Angebot statt in einem neuen Bereich, weil dort Versand und Zusage schon stehen.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 641 Tests bestanden (3 neu in `tests/test_v2_handover.py`) |
+| Browser-Tests | 20 von 20 (neu `test_handover_browser.py`): Liefergegenstände abhaken, Übergabe, Abnahme mit Restpunkt, Protokoll-Download, Restpunkt erledigt → abgenommen |
+| Abnahme T12 | bestanden |
+| Fund beim Testen | Erwartung im eigenen Test falsch gezählt (fünf statt sechs Verlaufseinträge) – Code war richtig, Test korrigiert |
+| Abgrenzung | Abnahmeaufgaben tauchen nicht im Nachfassen auf und lassen sich dort nicht mit einem Ergebnis schließen (Unit-Test) |
+| Migration | Schema 35 → 36, zwei neue Tabellen |
+
+**Selbstbewertung 4 von 5.** Abzug: Protokoll nur als Markdown; Restpunkte nach der Abnahme sind bewusst keine Zusatzaufträge (M18 offen).
+
+## Arbeitspaket 24 – Zusatzaufträge (2.0.0-dev25)
+
+Leitfrage aus dem Review: Bleibt der Ursprungsumfang erkennbar? Deshalb ist ein Zusatzauftrag kein geändertes Angebot, sondern ein neues mit festem Bezug. Der angenommene Stand wird nie angefasst. Wiederverwendet wird der ganze Angebotsablauf, damit Freigabe und Nachweise nicht doppelt gebaut werden.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 643 Tests bestanden (2 neu in `tests/test_v2_addenda.py`) |
+| Browser-Tests | 21 von 21 (neu `test_addendum_browser.py`): Zusatzauftrag aus dem Auftrag, Leistung, Anlass, -Z1, Auftragsumfang; Auftrag in der Datenbank unverändert |
+| Ursprungsumfang | Kundendokument und Auftrag unverändert (Unit- und Browser-Test); Summe zählt nur angenommene Zusatzaufträge, Revisionen nicht doppelt |
+| Fund beim Testen | Rückwärtsschrägstrich in einem f-String-Ausdruck hätte unter Python 3.10 nicht kompiliert – vor dem ersten Lauf umgestellt |
+| Migration | Schema 36 → 37, zwei Spalten mit Vorgabewerten |
+
+**Selbstbewertung 4 von 5.** Abzug: keine Minderung nach der Zusage; keine gemeinsame Schlussrechnung (dokumentiert).
+
+## Arbeitspaket 25 – Bestandskunden und Betreuung (2.0.0-dev26)
+
+Abnahmekriterium: Betreuung und neue Projekte getrennt. Die eigentliche Lücke war die Abrechnung: Monatsrechnungen hatten keinen Leistungszeitraum, ließen sich beliebig oft erzeugen und es war nicht sichtbar, welcher Monat fehlt. Darum ist die Betreuung über ihre Monate definiert, nicht über ein neues Vertragsmodell.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 646 Tests bestanden (3 neu in `tests/test_v2_care.py`; bestehende Monatsrechnungs-Tests unverändert grün) |
+| Browser-Tests | 22 von 22 (neu `test_care_browser.py`): Betreuung und Projekt getrennt, Monatsrechnung für den offenen Monat, Laufzeit beenden, neue Chance |
+| Fund beim Testen | Rechnungsentwurf entsteht erst nach dem Wechsel in „Abrechnen“ – Browser-Test wartete zu kurz; Test wartet jetzt auf den Entwurf |
+| Migration | Schema 37 → 38, eine neue Tabelle; bestehende Betreuungen beginnen mit dem Zusagedatum |
+
+**Selbstbewertung 4 von 5.** Abzug: ältere Monatsrechnungen ohne Leistungszeitraum werden nicht zugeordnet; keine anteiligen Monate (dokumentiert).
+
+## Arbeitspaket 26 – Zeiten je Leistung (2.0.0-dev27)
+
+Seit dev16 hat jede Position eine Leistungskennung; es fehlte nur die Zuordnung der Ist-Zeit. Lernvorschläge bewusst zurückhaltend: Erst ab drei Stichproben, immer mit Spanne, ohne automatische Änderung des Katalogs. Bei wenigen Aufträgen wäre alles andere Scheingenauigkeit.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 648 Tests bestanden (2 neu in `tests/test_v2_service_times.py`) |
+| Browser-Tests | 23 von 23 (neu `test_service_times_browser.py`): Position wählen, Zeit erfassen, Tabelle zeigt Soll/Ist |
+| Fund beim Testen | Zweites Angebot derselben Firma braucht nach der Zusage eine eigene bestätigte Chance – Testaufbau angepasst (Verhalten richtig) |
+| Migration | Schema 38 → 39, eine Spalte |
+
+**Selbstbewertung 4 von 5.** Abzug: Zuordnung freiwillig, daher anfangs wenig Daten; Wirkung nach Methode (M34) bleibt offen.
+
+## Arbeitspaket 27 – Projektkompass (2.0.0-dev28)
+
+M38 und M39 zusammen, weil der Startstatus genau aus der Material- und Entscheidungsliste folgt. Getrennt wären es zwei Listen für dieselbe Frage: Was fehlt noch, und wer ist dran? Der Status wird berechnet, nicht von Hand gepflegt; nur „gestartet“ setzt du bewusst.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 651 Tests bestanden (3 neu in `tests/test_v2_kickoff.py`) |
+| Browser-Tests | 24 von 24 (neu `test_kickoff_browser.py`): „wartet auf Kunde“, Name setzen, Passwort abgelehnt, Punkte erledigen bis „bereit“, Start |
+| Abnahme M38/M39 | Vorbelegung, Status, Unabhängigkeit mehrerer Projekte, Verantwortliche/Frist/Auswirkung, keine Zugangsdaten |
+| Fund beim Testen | Testaufbau: vor dem ersten Angebot gibt es noch keine Chance; Briefing-Antworten sind eine Liste – Test korrigiert, Code unverändert |
+| Migration | Schema 39 → 40, zwei neue Tabellen |
+
+**Selbstbewertung 4 von 5.** Abzug: Briefing-Änderungen nach dem ersten Öffnen kommen nicht nach; Zugangsdaten-Erkennung ist eine Schutzregel, keine Garantie.
+
+## Arbeitspaket 28 – Nachrichtenvorlagen (2.0.0-dev29)
+
+Geprüft mit der Prüfliste `privacy-and-contact-guardrails`:
+
+| Punkt | Ergebnis |
+|---|---|
+| 1 Sperre | eingehalten – `messages.render` ruft `assert_contact_allowed`; Entwurf läuft über `render` (Test mit gesperrter Firma: keine Vorschau, kein Entwurf) |
+| 2 Reimport | nicht betroffen |
+| 3 Keine Erlaubnis aus Daten | eingehalten – Vorlagen setzen keine `permission`; Hinweis auf eigene Prüfung werblicher Mails |
+| 4 Kein Versand | eingehalten – nur Vorschau, Kopie, Entwurf |
+| 5 Personen | eingehalten – keine Person wird angelegt; Anrede nur von Hand, nie aus dem Vornamen |
+| 6 Datensparsamkeit | eingehalten – neues Feld `salutation` mit Zweck „Anrede in Nachrichten“; wird mit der Person gelöscht |
+| 7 Lesende Auswertungen | nicht betroffen |
+| 8 Test | `test_blocked_firm_and_restricted_person` scheitert ohne Sperrprüfung bzw. ohne Prüfung der Personen-Einschränkung |
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 654 Tests bestanden (3 neu in `tests/test_v2_messages.py`) |
+| Browser-Tests | 25 von 25 (neu `test_messages_browser.py`): Lücken markiert, Endfassung gesperrt, mit Angebot und Person vollständig, neutrale Anrede, Entwurf gespeichert |
+| Fund beim Testen | Hervorhebung fehlender Werte nutzte eine feste Farbe; der Theme-Test (Hell/Dunkel) schlug an – auf die Theme-Variablen umgestellt |
+| Migration | Schema 40 → 41, eine Tabelle, fünf Spalten |
+
+**Selbstbewertung 4 von 5.** Abzug: keine Titel in der Anrede; keine bedingten Textbausteine.
+
+## Arbeitspaket 29 – Kundenfähiger Kurzbericht (2.0.0-dev30)
+
+Auswahl statt Export: Der Bericht entsteht aus einzeln angekreuzten, bereits geprüften Befunden. Was intern bleibt, steht als Liste im Modul und ist im Test als „darf nicht vorkommen“ geprüft.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 656 Tests bestanden (2 neu in `tests/test_v2_customer_report.py`) |
+| Browser-Tests | 26 von 26 (neu `test_kurzbericht_browser.py`): nur geprüfter Befund wählbar, Vorschau ohne interne Werte, Download |
+| Leitplanken | Sperre geprüft (Test mit gesperrter Firma), keine Personen, kein Versand |
+| Fund beim Testen | Im eigenen Testaufbau waren Lauf- und Firmen-ID vertauscht (fiel nur wegen gleicher IDs nicht auf) – korrigiert; die Firmenauswahl der Bewertungsansicht wurde nicht befüllt – Modul füllt sie selbst |
+| Migration | Schema 41 → 42, eine neue Tabelle |
+
+**Selbstbewertung 4 von 5.** Abzug: keine Screenshots, kein gestaltetes Dokument.
+
+## Arbeitspaket 30 – Abnahmefälle T06 und T15 (2.0.0-dev31)
+
+Nach acht Schemawechseln in Etappe C und D war die wichtigste offene Frage, ob eine Sicherung mit allen neuen Daten vollständig zurückkommt. Beide Fälle sind als Szenario geprüft, ohne Codeänderung.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 658 Tests bestanden (2 neu in `tests/test_scenario_t15_restore.py`) |
+| Browser-Tests | 27 von 27 (neu `test_t06_retry_browser.py`) |
+| T15 | bestanden: 16 Tabellen vollständig, Abläufe in der Testinstallation funktionieren, Ausgangsinstallation unverändert, Sicherheitskopie in der Testinstallation, ältere Sicherung migriert |
+| T06 | bestanden: anderer Zeitpunkt, Frist, nach drei Versuchen Kanalwechsel/Parken |
+| Fund beim Testen | Browser-Test klickte den dritten Versuch, bevor die Ansicht nach dem zweiten neu geladen war – Test wartet jetzt auf den gespeicherten Versuch (kein Fehler der Anwendung) |
+
+**Selbstbewertung 5 von 5** für den Umfang dieses Pakets (reine Prüfung, beide Fälle bestanden).
+
+## Arbeitspaket 31 – Abnahmefälle T07, T09, T10, T13 (2.0.0-dev32)
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 662 Tests bestanden (4 neu in `tests/test_scenarios_t07_t13.py`) |
+| Browser-Tests | 27 von 27 |
+| T07, T09, T10, T13 | bestanden |
+| Fund beim Testen | Kundendokument: Beträge im Abschnitt „Festpreis“ mit Dezimalpunkt statt Komma – behoben, Test prüft die Schreibweise. Der eigene Test war anfangs zu streng: „Stundensatz“ ist bei „Leistung nach Aufwand“ eine legitime Kundenangabe, kein interner Wert; die Prüfung interner Felder läuft jetzt über die Schlüssel statt über Teilwörter. |
+
+**Selbstbewertung 5 von 5** für dieses Paket. Bestanden sind T01–T13 und T15; T14 bleibt offen bis M23.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

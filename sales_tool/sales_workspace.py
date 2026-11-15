@@ -185,9 +185,12 @@ def make_proposal(conn,data):
     lead=_lead(conn,data['lead_id'])
     from .workday import assert_contact_allowed, after_proposal, need_status
     assert_contact_allowed(conn,lead,'Angebot erstellen')
-    payload={k:v for k,v in data.items() if k not in ('lead_id','opportunity_id','revision_of','revision_reason')}
+    payload={k:v for k,v in data.items() if k not in ('lead_id','opportunity_id','revision_of','revision_reason','addendum_of','addendum_reason')}
     rev_of=data.get('revision_of')
     if rev_of not in (None,'') and (isinstance(rev_of,bool) or not str(rev_of).isdigit()): raise ValueError('Ungültiger Vorgänger.')
+    add_of=data.get('addendum_of')  # 2.0.0-dev25 (M18): Zusatzauftrag zu einem angenommenen Auftrag
+    if add_of not in (None,'') and (isinstance(add_of,bool) or not str(add_of).isdigit()): raise ValueError('Ungültiger Auftrag.')
+    if add_of not in (None,'') and rev_of not in (None,''): raise ValueError('Entweder überarbeiten oder einen Zusatzauftrag anlegen – nicht beides.')
     from .pricing import build_quote
     # Sprint D: Baukasten mit Positionen; ältere Aufrufe mit Paket werden über den zentralen Katalog übersetzt (dev16)
     proposal=build_quote(conn,payload) if 'positions' in payload else quote_preview(conn,payload)
@@ -198,15 +201,29 @@ def make_proposal(conn,data):
         from .revisions import assert_revisable
         pred=assert_revisable(conn,int(rev_of))
         if pred['lead_id']!=lead['id']: raise ValueError('Der Vorgänger gehört zu einer anderen Firma.')
-    chance=pred['opportunity_id'] if pred is not None and pred['opportunity_id'] else for_new_offer(conn,lead['id'],data.get('opportunity_id'),proposal['customer']['project_label'])
+    base=None
+    if add_of not in (None,''):
+        from .addenda import base_order
+        base=base_order(conn,int(add_of))
+        if base['lead_id']!=lead['id']: raise ValueError('Der Auftrag gehört zu einer anderen Firma.')
+    chance=base['opportunity_id'] if base is not None and base['opportunity_id'] else pred['opportunity_id'] if pred is not None and pred['opportunity_id'] else for_new_offer(conn,lead['id'],data.get('opportunity_id'),proposal['customer']['project_label'])
     if proposal['customer'].get('package') not in (None,'','baukasten'):
         conn.execute("UPDATE opportunities SET offer=? WHERE id=? AND offer=''",(proposal['customer']['package'],chance))
     from .accounting import _next_number
     issued=dt.date.today()
     rev_no=1
+    addendum=(None,0)
     if pred is not None:
         from .revisions import apply
         number,rev_no,pred=apply(conn,pred['id'],data.get('revision_reason'),proposal)
+        if pred['addendum_of']:  # Revision eines Zusatzauftrags bleibt Zusatzauftrag mit demselben Bezug
+            old=json.loads(pred['customer_json']).get('addendum')
+            if old: proposal['customer']['addendum']=old
+            addendum=(pred['addendum_of'],pred['addendum_no'])
+    elif base is not None:
+        from .addenda import apply as apply_addendum
+        number,no,base=apply_addendum(conn,base['id'],data.get('addendum_reason'),proposal,lead['id'])
+        addendum=(base['id'],no)
     else:
         number=_next_number(conn,'AN',issued.year)
     valid_until=(issued+dt.timedelta(days=OFFER_VALID_DAYS)).isoformat()
@@ -218,15 +235,16 @@ def make_proposal(conn,data):
     proposal['internal']['briefing']=snapshot(conn,chance)  # 2.0.0-dev20: Angaben, auf denen das Angebot beruht (intern)
     proposal['internal']['payload']=payload  # 2.0.0-dev21: Bauplan für spätere Revisionen (intern)
     reason=(proposal['internal'].get('revision') or {}).get('reason','')
-    cur=conn.execute('INSERT INTO proposals(lead_id,internal_json,customer_json,number,valid_until,opportunity_id,revision_of,revision_no,revision_reason) VALUES (?,?,?,?,?,?,?,?,?)',(
+    cur=conn.execute('INSERT INTO proposals(lead_id,internal_json,customer_json,number,valid_until,opportunity_id,revision_of,revision_no,revision_reason,addendum_of,addendum_no) VALUES (?,?,?,?,?,?,?,?,?,?,?)',(
         lead['id'],json.dumps(proposal['internal'],ensure_ascii=False),json.dumps(proposal['customer'],ensure_ascii=False),number,valid_until,chance,
-        pred['id'] if pred is not None else None,rev_no,reason))
+        pred['id'] if pred is not None else None,rev_no,reason,addendum[0],addendum[1]))
     if pred is not None:
         from .revisions import link
         link(conn,pred,cur.lastrowid,number,reason)
     after_proposal(conn,lead['id'],number)
     conn.commit()
-    return {'id':cur.lastrowid,'status':'entwurf','number':number,'need_confirmed':bool(ns['confirmed']),'opportunity_id':chance,'revision_no':rev_no,**proposal}
+    return {'id':cur.lastrowid,'status':'entwurf','number':number,'need_confirmed':bool(ns['confirmed']),'opportunity_id':chance,'revision_no':rev_no,
+            'addendum_of':addendum[0],'addendum_no':addendum[1],**proposal}
 
 
 def proposal_rows(conn):
@@ -235,7 +253,7 @@ def proposal_rows(conn):
              'expired':bool(r['valid_until'] and r['status'] in ('entwurf','gesendet_manuell') and r['valid_until']<dt.date.today().isoformat()),
              'project_label':json.loads(r['customer_json'])['project_label'],
              'net_eur':json.loads(r['customer_json'])['net_eur'],'created_at':r['created_at'],
-             'revision_no':r['revision_no'] or 1,'superseded':bool(r['superseded_by']),
+             'revision_no':r['revision_no'] or 1,'superseded':bool(r['superseded_by']),'addendum_of':r['addendum_of'],'addendum_no':r['addendum_no'] or 0,
              'invoiced':bool(conn.execute("SELECT 1 FROM invoices WHERE proposal_id=? AND kind<>'storno' AND status<>'storniert' LIMIT 1",(r['id'],)).fetchone())}
             for r in conn.execute('SELECT p.*,l.company FROM proposals p JOIN leads l ON l.id=p.lead_id ORDER BY p.id DESC LIMIT 100')]
 
@@ -252,7 +270,7 @@ def proposal_detail(conn,ident,customer_only=False):
 def customer_markdown(customer,release=None):
     """Kundendokument. Ohne Freigabe (2.0.0-dev17, M35) trägt es sichtbar „Entwurf“; die Versandfassung nennt ihren Stand."""
     def safe(s): return re.sub(r'[\r\n]+',' ',str(s)).strip()
-    lines=[f"# Angebot: {safe(customer['project_label'])}"]
+    lines=[f"# {'Zusatzauftrag' if customer.get('addendum') else 'Angebot'}: {safe(customer['project_label'])}"]
     if release and not release.get('changed'):
         lines.append(f"*Versandfassung · Stand {safe(release['stand'])} · freigegeben am {safe(release['released_at'])}*")
     else:
@@ -260,11 +278,20 @@ def customer_markdown(customer,release=None):
     rev=customer.get('revision')
     if rev:  # 2.0.0-dev21: Revision nennt ihren Vorgänger
         lines.append(f"**Überarbeitete Fassung {safe(rev['no'])}** – ersetzt Angebot {safe(rev['replaces'])}{' vom '+safe(rev['replaces_date']) if rev.get('replaces_date') else ''}.")
+    add=customer.get('addendum')
+    if add:  # 2.0.0-dev25 (M18): Zusatzauftrag nennt den bestehenden Auftrag
+        lines.append(f"**Zusatzauftrag {safe(add['no'])}** zu Angebot {safe(add['base'])}{' vom '+safe(add['base_date']) if add.get('base_date') else ''}.")
     lines.append(f"**An:** {safe(customer.get('customer_company',''))}")
     if customer.get('offer_number'):
         lines.append(f"**Angebotsnummer:** {safe(customer['offer_number'])} · **Datum:** {safe(customer.get('offer_date',''))} · **Gültig bis:** {safe(customer.get('valid_until',''))}")
     lines+=['',
            '## Ziel und Ergebnis',safe(customer['goal'])]
+    if add:
+        lines+=['','## Bezug zum bestehenden Auftrag',
+                f"Der beauftragte Umfang aus Angebot {safe(add['base'])}{' („'+safe(add['base_label'])+'“)' if add.get('base_label') else ''} bleibt unverändert. "
+                'Dieses Angebot ergänzt ihn um die unten genannten Leistungen; sie werden gesondert beauftragt, abgenommen und abgerechnet.',
+                'Anlass: '+safe(add['reason'])]
+        if add.get('base_scope'): lines+=['','Bisher beauftragt:']+['- '+safe(x) for x in add['base_scope']]
     if rev:
         lines+=['',f"## Änderungen gegenüber Angebot {safe(rev['replaces'])}"]+(['Anlass: '+safe(rev['reason'])] if rev.get('reason') else [])+['- '+safe(x) for x in rev.get('changes',[])]
     if customer.get('positions'):
@@ -293,14 +320,15 @@ def customer_markdown(customer,release=None):
               '- Abnahme anhand der genannten Liefergegenstände nach gemeinsamer Prüfung.']
     if customer.get('acceptance_criteria'): lines += ['','## Abnahmekriterien']+['- '+safe(x) for x in customer['acceptance_criteria']]
     if customer.get('third_party_costs'): lines += ['','## Mögliche Drittanbieter- und Folgekosten (nicht im Festpreis)']+['- '+safe(x) for x in customer['third_party_costs']]
+    eur=lambda v: f"{v:,.2f} €".replace(',','X').replace('.',',').replace('X','.')  # 2.0.0-dev32: deutsche Schreibweise wie in der Tabelle
     if customer.get('billing')=='gemischt':
-        lines += ['','## Festpreis',f"**{customer['once_net_eur']:.2f} EUR netto einmalig** und **{customer['monthly_net_eur']:.2f} EUR netto pro Monat**",safe(customer['tax_note'])]
+        lines += ['','## Festpreis',f"**{eur(customer['once_net_eur'])} netto einmalig** und **{eur(customer['monthly_net_eur'])} netto pro Monat**",safe(customer['tax_note'])]
         if customer['tax_mode']=='regel_19':
-            lines.append(f"**Gesamtbetrag einmalig: {customer['once_net_eur']*1.19:.2f} EUR · monatlich: {customer['monthly_net_eur']*1.19:.2f} EUR**")
+            lines.append(f"**Gesamtbetrag einmalig: {eur(customer['once_net_eur']*1.19)} · monatlich: {eur(customer['monthly_net_eur']*1.19)}**")
     else:
         lines += ['',
-                  '## Festpreis',f"**{customer['net_eur']:.2f} EUR netto{' pro Monat' if customer.get('billing')=='monatlich' else ''}**",safe(customer['tax_note'])]
-        if customer['tax_mode']!='offen': lines.append(f"**Gesamtbetrag: {customer['total_eur']:.2f} EUR{' pro Monat' if customer.get('billing')=='monatlich' else ''}**")
+                  '## Festpreis',f"**{eur(customer['net_eur'])} netto{' pro Monat' if customer.get('billing')=='monatlich' else ''}**",safe(customer['tax_note'])]
+        if customer['tax_mode']!='offen': lines.append(f"**Gesamtbetrag: {eur(customer['total_eur'])}{' pro Monat' if customer.get('billing')=='monatlich' else ''}**")
     lines += ['', '## Zahlung und Änderungen',safe(customer['payment_plan']),safe(customer['change_requests']),
               '', '## Hinweise',safe(customer['guarantee'])]
     if release and not release.get('changed'):
@@ -311,9 +339,19 @@ def customer_markdown(customer,release=None):
 
 
 def create_mail_draft(conn,data):
-    if not isinstance(data,dict) or set(data)-{'lead_id','draft_type','contact_basis'}:
+    if not isinstance(data,dict) or set(data)-{'lead_id','draft_type','contact_basis','template_id','proposal_id','contact_id'}:
         raise ValueError('Ungültige Entwurfsdaten.')
     lead=_lead(conn,data.get('lead_id'))
+    if data.get('template_id') not in (None,''):  # 2.0.0-dev29 (M37): eigene Vorlage mit Platzhaltern aus bestätigten Daten
+        from .messages import render
+        basis=_optional_text(data,'contact_basis',500)
+        if not basis: raise ValueError('Dokumentiere zuerst den vereinbarten Anlass bzw. Kontaktstatus.')
+        r=render(conn,int(data['template_id']),{k:data.get(k) for k in ('lead_id','proposal_id','contact_id')})  # prüft Sperre und Person
+        cur=conn.execute('INSERT INTO mail_drafts(lead_id,draft_type,subject,body,contact_basis,template_id,missing_json,proposal_id,contact_id) VALUES (?,?,?,?,?,?,?,?,?)',(
+            lead['id'],'vorlage',r['subject'],r['body'],basis,r['template_id'],json.dumps(r['missing'],ensure_ascii=False),data.get('proposal_id') or None,data.get('contact_id') or None))
+        conn.commit()
+        return {'id':cur.lastrowid,'subject':r['subject'],'body':r['body'],'contact_basis':basis,'missing':r['missing'],'complete':r['complete'],
+                'notice':'Entwurf, nicht versendet.'+(' Fehlende Angaben sind markiert.' if r['missing'] else ' Vor jeder werblichen E-Mail Berechtigung prüfen.')}
     kind=data.get('draft_type')
     if kind not in DRAFT_TYPES: raise ValueError('Ungültige Vorlage.')
     from .workday import assert_contact_allowed

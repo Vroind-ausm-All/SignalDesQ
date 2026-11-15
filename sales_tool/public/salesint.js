@@ -68,6 +68,8 @@
         ${c.contact_restrictions.length ? `<span class="si-status gesperrt">${c.contact_restrictions.map(k => esc(restrictionLabels[k] || k)).join(' · ')}</span>` : ''}</div>
       <div class="si-roles">${['fachlich', 'budget', 'entscheidung'].map(k => roleSelect(c, k)).join('')}</div>
       <div class="si-restr"><b>Kontaktbeschränkungen</b>${restr}</div>
+      <label>Anrede in Nachrichten <small class="muted">nur eintragen, wenn bekannt – nie aus dem Vornamen ableiten</small><select name="salutation">
+        ${[['', 'nicht hinterlegt (neutral)'], ['neutral', 'neutral („Guten Tag …“)'], ['frau', 'Frau'], ['herr', 'Herr']].map(([k, v]) => `<option value="${k}" ${(c.salutation || '') === k ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></label>
       <details class="si-more" ${c.business_channel || c.restriction_note ? 'open' : ''}><summary>Geschäftlicher Kontaktweg & Notiz</summary><div class="field-grid">
         <label>Veröffentlichter geschäftlicher Kontaktweg<input name="business_channel" maxlength="200" value="${esc(c.business_channel)}" placeholder="persönliche Geschäftsadresse oder Durchwahl"></label>
         <label>Art<select name="business_channel_kind"><option value="">–</option><option value="email" ${c.business_channel_kind === 'email' ? 'selected' : ''}>E-Mail</option><option value="telefon" ${c.business_channel_kind === 'telefon' ? 'selected' : ''}>Telefon</option></select></label>
@@ -96,7 +98,7 @@
   async function saveContact(form) {
     const body = {contact_restrictions: [...form.querySelectorAll('[data-si-restr]:checked')].map(x => x.dataset.siRestr)};
     form.querySelectorAll('[data-si-role]').forEach(s => { body['role_' + s.dataset.siRole] = s.value; });
-    for (const k of ['business_channel', 'business_channel_kind', 'business_channel_source', 'restriction_note']) body[k] = form.elements[k].value;
+    for (const k of ['business_channel', 'business_channel_kind', 'business_channel_source', 'restriction_note', 'salutation']) body[k] = form.elements[k].value;
     if (body.contact_restrictions.includes('widerspruch') && !confirm('Widerspruch eintragen? Offene Kontaktaktionen zu dieser Person werden abgelehnt, eine bekannte E-Mail kommt auf die Sperrliste.')) return;
     try { await api(`/contacts/${form.dataset.siContact}/roles`, 'PATCH', body); toast('Gespeichert'); loadDecisionMap(); loadSuggestions(); }
     catch (e) { toast(e.message, true); }

@@ -97,7 +97,7 @@ def wiedervorlage(conn, today=None):
                              WHERE p.superseded_by IS NULL AND p.status IN ('entwurf','gesendet_manuell') AND l.stage NOT IN ('gesperrt','verloren') ORDER BY p.updated_at"""):
         age = _days_since(r['updated_at'], today)
         expires = r['valid_until'] or ''
-        linked = conn.execute('SELECT 1 FROM tasks WHERE proposal_id=? LIMIT 1', (r['id'],)).fetchone()  # 2.0.0-dev23 (M16)
+        linked = conn.execute("SELECT 1 FROM tasks WHERE proposal_id=? AND action_type='followup' LIMIT 1", (r['id'],)).fetchone()  # 2.0.0-dev23 (M16)
         if r['status'] == 'gesendet_manuell' and age >= 7 and not linked:
             add('nachfassen', f"Angebot {r['number'] or '#' + str(r['id'])} nachfassen", r['company'], r['lead_id'], '', 'Angebot öffnen', 'quotes',
                 r['id'], f"seit {age} Tagen beim Kunden · {_net(r):,.0f} € netto".replace(',', '.'))
@@ -122,7 +122,16 @@ def wiedervorlage(conn, today=None):
                              AND substr(m.starts_at,1,10) BETWEEN ? AND ? ORDER BY m.starts_at""", (t, tomorrow)):
         add('termin', m_title(r), r['company'], r['lead_id'], r['starts_at'][:10], 'Vorbereiten', 'lead', r['lead_id'],
             r['starts_at'].replace('T', ' ')[11:16] + ' Uhr' + (f" · {r['location']}" if r['location'] else ''))
-    order = {'termin': 0, 'rueckruf': 1, 'aufgabe': 2, 'naechster_schritt': 3, 'nachfassen': 4, 'angebot_frist': 5, 'bedarfsanalyse': 6, 'angebot_entwurf': 7}
+    from .care import due_items  # 2.0.0-dev26 (M19): nicht abgerechnete Betreuungsmonate
+    for k in due_items(conn, today):
+        add('betreuung', f"Monatsrechnung {', '.join(k['due_labels'][:3])}{' …' if len(k['due_labels']) > 3 else ''} – Betreuung {k['number']}", k['company'], k['lead_id'],
+            '', 'Rechnung erstellen', 'quotes', k['proposal_id'], f"{len(k['due_months'])} Monat(e) offen · {k['monthly_net_eur']:,.0f} € netto je Monat".replace(',', '.'))
+    from .kickoff import due_items as kickoff_due  # 2.0.0-dev28 (M38/M39): fällige Startvoraussetzungen
+    for r in kickoff_due(conn, today):
+        who = r['owner_name'] or {'ich': 'ich', 'kunde': 'Kunde', 'dritte': 'Dritte'}.get(r['owner'], r['owner'])
+        add('start', f"Startvoraussetzung {r['number']}: {r['label'][:120]}", r['company'], r['lead_id'], r['due_date'], 'Angebot öffnen', 'quotes',
+            r['proposal_id'], f"liefert: {who}" + (f" · ohne: {r['impact']}" if r['impact'] else '') + (' – beim Kunden nachfragen' if r['owner'] != 'ich' else ''))
+    order = {'termin': 0, 'rueckruf': 1, 'aufgabe': 2, 'naechster_schritt': 3, 'nachfassen': 4, 'start': 5, 'angebot_frist': 6, 'betreuung': 7, 'bedarfsanalyse': 8, 'angebot_entwurf': 9}
     items.sort(key=lambda i: (i['kind'] != 'termin', not i['overdue'], order.get(i['kind'], 9), i['due'] or '9999'))
     return items
 

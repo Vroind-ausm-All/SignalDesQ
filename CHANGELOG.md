@@ -1,5 +1,102 @@
 # Changelog
 
+## 2.0.0-dev32 – Abnahmefälle T07, T09, T10, T13; Beträge im Festpreis-Abschnitt
+
+- **Fehlerbehebung im Kundendokument:** Der Abschnitt „Festpreis“ schrieb Beträge mit Punkt („264.00 EUR netto“), die Tabelle darüber mit Komma („264,00 €“). Jetzt einheitlich in deutscher Schreibweise („264,00 € netto“, „Gesamtbetrag: 314,16 €“). Gefunden beim Szenario T13.
+- **Abnahmefälle als Szenarien geprüft** (über die vorhandenen Funktionen, ohne weitere Codeänderung):
+  - T07: Projektanfrage aufnehmen – Eingang mit Frist, Firma, Chance, bestätigter Bedarf, Angebot der Chance, Anfrage fristgerecht erledigt.
+  - T09: Medienangebot – Prüfpunkte Mediengestaltung, Korrekturschleifen, Nutzungsrechte, Druckkosten außerhalb; Projektkompass fragt Material und Freigabeperson an.
+  - T10: Softwareangebot – Prüfpunkte Betrieb, Zugänge, Testdaten und Übergabe; Betrieb als laufende Leistung; Testzugang ohne Passwörter.
+  - T13: Zeitüberschreitung – Hinweis „Umfang mit dem Kunden prüfen“, keine Reststunden in der Auslastung; Mehrarbeit als Zusatzauftrag, der Auftrag bleibt unverändert.
+  Damit sind die Abnahmefälle T01–T13 und T15 bestanden. T14 (Recherche nach einem Fehler wieder aufnehmen) bleibt offen, bis M23 umgesetzt ist.
+- 662 Tests (4 neu) unter Python 3.10 und 3.13, 27 Browser-Tests. Kein Schemawechsel.
+
+## 2.0.0-dev31 – Abnahmefälle T06 und T15 als Szenarien geprüft
+
+Keine Funktionsänderung, kein Schemawechsel.
+
+- **T15 – Sicherung in getrennte Testinstallation zurückspielen:** Eine Installation enthält alles, was Etappe C und D anlegen: Chance mit Briefing, Revision mit Option, Nachfassen mit Ergebnis, Übergabe und Abnahme mit Restpunkt, Zusatzauftrag, Betreuung mit Monatsrechnung, Zeit je Position, gestarteter Projektkompass, Entwurf aus eigener Vorlage und Kurzbericht. Ihre Sicherung wird in eine zweite Installation zurückgespielt. Dort sind alle 16 geprüften Tabellen vollständig, und die Abläufe laufen weiter. Der bereits abgerechnete Monat wird nicht doppelt abgerechnet, eine Revision des Zusatzauftrags ist möglich. Die Ausgangsinstallation bleibt unverändert. Eine Sicherung mit älterem Schemastand wird beim Zurückspielen auf den aktuellen Stand migriert.
+- **T06 – Rückruf nach erfolglosem Versuch planen** (Browser): „Nicht erreicht“ am Vormittag plant den nächsten Versuch zu einer anderen Tageszeit mit Frist. Nach drei Versuchen schlägt SignalDesk Kanalwechsel oder Parken vor, statt weiter anzurufen.
+- 658 Tests (2 neu) unter Python 3.10 und 3.13, 27 Browser-Tests (1 neu).
+
+## 2.0.0-dev30 – Kundenfähiger Kurzbericht
+
+Produktreview M25.
+
+- **„04 / Kurzbericht“** in der Website-Bewertung: Firma wählen, einzelne Befunde ankreuzen, optional eine Einleitung, Vorschau und Download (.md).
+- **Nur geprüfte Befunde wählbar:** Website-Befunde mit Prüfstatus „bestätigt“ und Recherche-Beobachtungen mit Status „freigegeben“. Der Server lehnt alles andere ab; die Zahl nicht wählbarer Befunde wird genannt.
+- **Keine internen Angaben:** Der Bericht enthält Bezeichnung, Beobachtung, Fundstelle mit Stand und die Frage an den Kunden. Punktwerte, Prioritäten, Profilnähe, Angebotsideen, Hypothesen, Kaufsignale, Personen und Kalkulationen bleiben draußen.
+- Abschließende Einordnung: Momentaufnahme, keine vollständige Prüfung, keine Rechtsberatung. Gesperrte Firmen bekommen keinen Bericht. Jeder Bericht wird mit den gezeigten Befunden gespeichert und im Verlauf vermerkt (nicht versendet).
+- **Schemawechsel 41 → 42** (gespeicherte Kurzberichte). 656 Tests (2 neu) unter Python 3.10 und 3.13, 26 Browser-Tests (1 neu).
+
+## 2.0.0-dev29 – Eigene Nachrichtenvorlagen mit Platzhaltern
+
+Produktreview M37.
+
+- **Vorlagen im Mail-Assistenten** (Heute → Kontakt & Termine): Vorlage, Angebot und Person wählen, Vorschau ansehen, als Entwurf speichern. Mitgeliefert sind vier neutrale Startvorlagen (nach dem Gespräch, Angebot versenden, vereinbartes Nachfassen, Terminbestätigung). Sie lassen sich ändern; eigene kommen dazu.
+- **Platzhalter nur aus bestätigten Daten:** Firma, gewählte Person, Angebot mit Nummer, Projekt, Festpreis, Bindefrist und freigegebenem Stand, nächster Termin, nächste Nachfassfrist, eigene Stammdaten. Unbekannte Platzhalter werden beim Speichern abgelehnt.
+- **Fehlende Werte sichtbar:** [FEHLT: …] im Text und als Liste; „Endfassung kopieren“ erst ohne Lücken. Der Angebotsstand fehlt, solange das Angebot nicht freigegeben ist.
+- **Anrede:** neutral („Guten Tag Vorname Nachname,“ bzw. „Guten Tag,“). „Sehr geehrte Frau …/Sehr geehrter Herr …“ nur, wenn die Anrede an der Person ausdrücklich hinterlegt ist. Dafür gibt es ein neues Feld an der Person; nie aus dem Vornamen abgeleitet.
+- **Kontaktregeln:** Vorschau und Entwurf scheitern bei gesperrter Firma und bei Personen mit „keine E-Mails“, „nur Post“ oder Widerspruch. Ein Entwurf braucht weiterhin den dokumentierten Anlass. Nichts wird versendet.
+- **Schemawechsel 40 → 41** (Vorlagen, Anrede an der Person, Bezug der Entwürfe). 654 Tests (3 neu) unter Python 3.10 und 3.13, 25 Browser-Tests (1 neu).
+
+## 2.0.0-dev28 – Projektkompass mit Material- und Entscheidungsliste
+
+Etappe D, Produktreview M38 und M39.
+
+- **Projektkompass** am angenommenen Auftrag, je Auftrag unabhängig (mehrere Projekte einer Firma laufen getrennt).
+  - Vorbelegt mit dem Startgespräch, den offenen Briefing-Punkten der Chance und typischen Voraussetzungen je Leistungsbereich. Für Mediengestaltung sind das Material und Freigabeperson, für Software Testzugang und priorisierte Anforderungen, für Sichtbarkeit Kontozugang.
+- **Je Punkt:** Art (Material, Zugang, Entscheidung, Termin, Sonstiges), wer liefert (ich, Kunde, Dritte, optional mit Namen), bis wann, was ohne den Punkt nicht geht, Stand. „Entfällt“ nur mit Begründung; eigene Punkte lassen sich ergänzen.
+- **Startstatus:** „Vorbereitung“, „wartet auf …“ (mit Name, Punkt und Frist), „bereit zum Start“ oder „gestartet am …“. Start trotz offener Punkte geht nur bewusst und steht im Verlauf.
+- **Heute** zeigt fällige Startvoraussetzungen mit Verantwortlichem und Auswirkung. In der Bestandsübersicht steht der Startstatus je Projekt.
+- **Keine Passwörter:** Es gibt kein Passwortfeld. Eingaben wie „Passwort: …“, „Login = …“ oder Token-Muster werden abgelehnt, mit Hinweis auf sichere Übergabewege.
+- **Schemawechsel 39 → 40** (Projektkompass). 651 Tests (3 neu) unter Python 3.10 und 3.13, 24 Browser-Tests (1 neu).
+
+## 2.0.0-dev27 – Zeiten je Leistung und Lernhinweise
+
+Etappe D, Produktreview M20.
+
+- **Zeit einer Position zuordnen:** In der Nachkalkulation wählst du beim Erfassen die Angebotsposition (oder „Auftrag allgemein“). Optionale Positionen sind nicht wählbar.
+- **Soll/Ist je Position:** Die Auftragskarte zeigt je Position kalkulierte und gebrauchte Stunden mit Abweichung, dazu Stunden ohne Position.
+- **Lernhinweise je Leistung** aus abgeschlossenen Aufträgen: Ab drei Stichproben nennt SignalDesk die mittlere Abweichung und die Spanne. Darunter steht nur die Anzahl.
+- **Vorschläge:** Ab 15 % Abweichung kommt der Hinweis, den Zeitansatz unter „Leistungen & Preise“ zu prüfen. Bei starker Streuung lautet der Rat, Umfang und Korrekturschleifen im Angebot zu schärfen. Werte werden nie automatisch geändert.
+- **Schemawechsel 38 → 39** (Position an Zeiteinträgen). 648 Tests (2 neu) unter Python 3.10 und 3.13, 23 Browser-Tests (1 neu).
+
+## 2.0.0-dev26 – Bestandskunden und Betreuung
+
+Etappe D, Produktreview M19.
+
+- **Neuer Abschnitt „Bestandskunden & Betreuung“** in der Angebotsansicht. Je Firma mit angenommenem Auftrag stehen getrennt nebeneinander:
+  - Betreuung: monatliche Positionen mit Beginn, Ende und Abrechnungsstand,
+  - Projekte: einmalige Leistungen mit Abnahmestand, auch Zusatzaufträge,
+  - neue Projekte als eigene Chancen, direkt anlegbar.
+- **Je Monat genau eine Monatsrechnung** mit Leistungszeitraum (z. B. „Leistungszeitraum 11/2026“). Ohne Angabe nimmt der Entwurf den ältesten offenen Monat. Abgelehnt werden doppelte Monate, Monate vor Beginn oder nach Ende und Monate in der Zukunft. Stornierte Rechnungen zählen nicht.
+- **Laufzeit:** Beginn ist das Zusagedatum. Ein Ende (z. B. nach Kündigung) beendet die Abrechnung danach; das steht im Verlauf der Firma.
+- **Heute** zeigt nicht abgerechnete Betreuungsmonate mit Anzahl und Monatsbetrag.
+- **Schemawechsel 37 → 38** (Laufzeiten der Betreuung). 646 Tests (3 neu) unter Python 3.10 und 3.13, 22 Browser-Tests (1 neu).
+
+## 2.0.0-dev25 – Zusatzaufträge mit erkennbarem Ursprungsumfang
+
+Etappe D, Produktreview M18.
+
+- **„Zusatzauftrag erstellen“** am angenommenen Auftrag öffnet den Angebotsbaukasten leer, mit fester Firma und Chance. Mit Anlass gespeichert, entsteht ein eigenes Angebot mit der Nummer des Auftrags und Zähler (z. B. AN-2026-0003-Z1).
+- **Der Auftrag bleibt unverändert.** Das Kundendokument des Zusatzauftrags heißt „Zusatzauftrag“. Es nennt den Auftrag, den Anlass und den bisher beauftragten Umfang und stellt klar, dass die neuen Leistungen gesondert beauftragt, abgenommen und abgerechnet werden.
+- **Auftragsumfang** am Auftrag und an jedem Zusatzauftrag: ursprünglicher Auftrag und alle Zusatzaufträge mit Stand und Betrag. Die Summe „beauftragt insgesamt“ zählt nur angenommene Zusatzaufträge; offene stehen getrennt daneben.
+- Freigabe, Versand, Nachfassen, Zusage, Übergabe und Abnahme laufen wie bei jedem Angebot. Vor der Zusage lässt sich ein Zusatzauftrag überarbeiten (-Z1-R2) und bleibt dabei Zusatzauftrag.
+- **Schemawechsel 36 → 37** (Bezug und Zähler am Angebot). 643 Tests (2 neu) unter Python 3.10 und 3.13, 21 Browser-Tests (1 neu).
+
+## 2.0.0-dev24 – Auftragsübergabe und Abnahme
+
+Etappe D, Produktreview M17 (Abnahmefall T12).
+
+- **Schritt „Übergabe & Abnahme“** am angenommenen Angebot. Liefergegenstände und Abnahmekriterien werden aus dem Angebot übernommen (optionale Positionen nicht); eigene Punkte lassen sich ergänzen. Jeder Punkt ist offen, erledigt oder entfällt – „entfällt“ nur mit Begründung.
+- **Übergabe dokumentieren** (Datum, Weg, Notiz) erst, wenn kein Liefergegenstand mehr offen ist. Dabei setzt du eine Frist, bis wann die Abnahme eingeholt wird; daraus wird eine Aufgabe.
+- **Abnahme dokumentieren:** abgenommen, abgenommen mit Restpunkten oder Nachbesserung nötig. Restpunkte und Nachbesserungen werden einzeln zu Aufgaben mit Frist. Nach einer Nachbesserung folgt eine erneute Übergabe; sind alle Restpunkte erledigt, gilt der Auftrag als vollständig abgenommen.
+- **Abnahmeprotokoll** zum Herunterladen: vor der Abnahme als Entwurf mit Ankreuzfeldern und Unterschriftszeilen, danach mit Ergebnis, Person und Restpunkten. Ohne Preise, Stunden oder interne Notizen.
+- Hinweis auf die Schlussrechnung, wenn der Zahlungsplan „nach Abnahme“ vorsieht. Die Auftragskarte der Nachkalkulation zeigt den Abnahmestand.
+- Übergabe- und Abnahmeaufgaben sind keine Nachfassaufgaben und erscheinen nicht im Schritt „Nachfassen“.
+- **Schemawechsel 35 → 36** (Übergaben und ihre Punkte). 641 Tests (3 neu) unter Python 3.10 und 3.13, 20 Browser-Tests (1 neu).
+
 ## 2.0.0-dev23 – Nachfassen mit Anlass, Frist und Ergebnis
 
 Etappe C, Produktreview M16. Damit ist Etappe C abgeschlossen.

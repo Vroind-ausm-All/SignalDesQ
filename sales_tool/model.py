@@ -253,6 +253,18 @@ def init_db(conn: sqlite3.Connection):
     init_revisions(conn)  # 2.0.0-dev21: Angebotsrevisionen mit Vorgänger
     from .followups import init_followups
     init_followups(conn)  # 2.0.0-dev23: Nachfassen mit Anlass, Frist und Ergebnis
+    from .handover import init_handover
+    init_handover(conn)  # 2.0.0-dev24: Übergabe und Abnahme je Auftrag
+    from .addenda import init_addenda
+    init_addenda(conn)  # 2.0.0-dev25: Zusatzaufträge zu angenommenen Aufträgen
+    from .care import init_care
+    init_care(conn)  # 2.0.0-dev26: Betreuung mit Laufzeit
+    from .kickoff import init_kickoff
+    init_kickoff(conn)  # 2.0.0-dev28: Projektkompass und Startvoraussetzungen
+    from .messages import init_messages
+    init_messages(conn)  # 2.0.0-dev29: eigene Nachrichtenvorlagen
+    from .customer_report import init_customer_report
+    init_customer_report(conn)  # 2.0.0-dev30: Kurzbericht für den Kunden
     conn.commit()
 
 

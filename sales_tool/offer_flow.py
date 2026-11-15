@@ -119,6 +119,8 @@ def state(conn, pid):
             'revision_no': row['revision_no'] or 1, 'superseded_by': row['superseded_by'],
             'superseded_number': (conn.execute('SELECT number FROM proposals WHERE id=?', (row['superseded_by'],)).fetchone() or {'number': ''})['number'] if row['superseded_by'] else '',
             'revisable': row['status'] in ('entwurf', 'gesendet_manuell') and not row['superseded_by'],
+            'addendum_of': row['addendum_of'], 'addendum_no': row['addendum_no'] or 0,  # 2.0.0-dev25 (M18)
+            'addable': row['status'] == 'angenommen' and not row['superseded_by'],
             **checks(conn, row), 'confirmations': CONFIRMATIONS, 'channels': CHANNELS, 'decision_channels': DECISION_CHANNELS}
 
 
@@ -284,8 +286,8 @@ def start_plan(conn, pid):
             ex = conn.execute('SELECT done FROM tasks WHERE lead_id=? AND title=? ORDER BY id DESC LIMIT 1', (row['lead_id'], s['title'])).fetchone()
             sugg.append({**s, 'exists': bool(ex), 'done': bool(ex and ex['done'])})
     follow = [{'id': t['id'], 'title': t['title'], 'due_date': t['due_date']}
-              for t in conn.execute('SELECT id, title, due_date, proposal_id FROM tasks WHERE lead_id=? AND done=0 ORDER BY id', (row['lead_id'],))
-              if t['proposal_id'] == pid or (not t['proposal_id'] and (num in t['title'] or f'#{pid})' in t['title']) and FOLLOWUP_RE.search(t['title']))]
+              for t in conn.execute('SELECT id, title, due_date, proposal_id, action_type FROM tasks WHERE lead_id=? AND done=0 ORDER BY id', (row['lead_id'],))
+              if (t['proposal_id'] == pid and t['action_type'] == 'followup') or (not t['proposal_id'] and (num in t['title'] or f'#{pid})' in t['title']) and FOLLOWUP_RE.search(t['title']))]
     lead = conn.execute('SELECT next_step FROM leads WHERE id=?', (row['lead_id'],)).fetchone()
     return {'proposal_id': pid, 'number': num, 'status': row['status'], 'suggestions': sugg, 'followups': follow,
             'next_step': lead['next_step'] if lead else ''}

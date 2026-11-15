@@ -769,3 +769,39 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 .of-fu p{margin:.1rem 0 .3rem}
 .of-fu-done{margin:.4rem 0 0;padding-left:1.1rem;font-size:.92em}
 .of-fu-done small{display:block;color:var(--muted)}
+
+/* 2.0.0-dev24 (M17): Übergabe und Abnahme */
+.ho-items{list-style:none;margin:.2rem 0 .5rem;padding:0}
+.ho-items li{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;padding:.25rem 0;border-bottom:1px solid var(--line)}
+.ho-items li>span{flex:1 1 16rem}
+.ho-items li small{display:inline-block;margin-left:.3rem}
+.ho-items li.ho-erledigt>span{color:var(--muted)}
+.ho-items li.ho-entfaellt>span{color:var(--muted);text-decoration:line-through}
+.ho-items input[data-ho-note]{flex:0 1 14rem}
+
+/* 2.0.0-dev25 (M18): Auftragsumfang mit Zusatzaufträgen */
+.of-scope li.of-current{font-weight:600}
+.of-scope li small{display:block;color:var(--muted);font-weight:400}
+
+/* 2.0.0-dev26 (M19): Bestandskunden und Betreuung */
+.cr-firm{border:1px solid var(--line);border-radius:10px;padding:.7rem .9rem;margin:.6rem 0}
+.cr-firm h3{margin:0 0 .3rem}
+.cr-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:.8rem}
+.cr-list{list-style:none;margin:.2rem 0 .5rem;padding:0}
+.cr-list>li{padding:.3rem 0;border-bottom:1px solid var(--line)}
+.cr-list small{display:block;color:var(--muted)}
+.cr-term{margin-top:.3rem}
+
+/* 2.0.0-dev27 (M20): Zeiten je Position und Lernhinweise je Leistung */
+.pk-pos{width:100%;border-collapse:collapse;margin:.4rem 0;font-size:.92em}
+.pk-pos th,.pk-pos td{text-align:left;padding:.2rem .4rem;border-bottom:1px solid var(--line)}
+.pk-service-lessons ul{margin:.2rem 0 .6rem;padding-left:1.1rem}
+.pk-service-lessons small{display:block;color:var(--muted)}
+
+/* 2.0.0-dev28 (M38/M39): Projektkompass */
+.ko-items input[data-ko-name],.ko-items input[data-ko-note]{flex:0 1 10rem}
+.ko-items li>span b{font-weight:600;margin-right:.2rem}
+
+/* 2.0.0-dev29 (M37): Nachrichtenvorlagen */
+.msg-missing{background:var(--danger-bg);color:var(--danger-fg);border-radius:3px;padding:0 .15rem;font-weight:600}
+.msg-edit{margin:.6rem 0}
