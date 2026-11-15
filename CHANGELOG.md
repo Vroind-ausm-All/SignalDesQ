@@ -1,5 +1,46 @@
 # Changelog
 
+## 2.0.0-dev47 – Erlebnisstudien und „Was du lernst“
+
+Produktreview M30 und M34 (Entscheidung des Eigentümers: beides).
+
+- **Neu unter „Angebote“: „Erlebnisstudien“.** Zu einer Firma eine Studie anlegen (vorher, nachher oder einmalig; moderiert oder unmoderiert) mit Aufgaben („Finden Sie die Telefonnummer“) und Fragen.
+- **Sitzungen:** Testpersonen bekommen nur ein Kürzel (P1, P2 …); E-Mail-Adressen und Telefonnummern werden abgelehnt. Je Aufgabe: geschafft, mit Hilfe, nicht geschafft, nicht bearbeitet, Zeit und Beobachtung; je Frage die Antwort.
+- **Nur echte Angaben:** Eine Sitzung zählt erst mit der Bestätigung „stammt von dieser Testperson, nicht ausgedacht, nicht von einer KI“. SignalDesk erzeugt keine Antworten.
+- **Auswertung:** Erfolg je Aufgabe mit Anzahl und Median-Zeit, Stichprobe (Geräte, Zielgruppe, wie gewonnen) getrennt, Hinweis unter 5 Sitzungen, Vergleich mit der Vorher- bzw. Nachher-Studie derselben Firma.
+- **Neu: „Was du lernst“.** Aufwand je Projektart (aus der Nachkalkulation), Aufgabenerfolg je Methode und Wirkung vorher/nachher – Aussage erst ab 3 Fällen, Grenzen immer sichtbar.
+- Schema 48 (vier neue Tabellen).
+
+## 2.0.0-dev46 – Fachreview und Kalibrierung der Website-Bewertung
+
+Produktreview M29 und M33 (Entscheidung des Eigentümers: direkt in der App).
+
+- **Neu unter „Finden → Website-Scoring“: „Fachreview & Kalibrierung“.** Zu einer abgeschlossenen Bewertung ein Review anlegen; alle Rubriken werden mit dem automatischen Ergebnis übernommen.
+- **Je Rubrik:** auswählen oder abwählen, dein Urteil (ok, auffällig, Hinweis, unbekannt, offen), Beleg und Begründung. Jede Eingabe wird sofort gespeichert – Neuladen oder Schließen verliert nichts.
+- **Abschließen** erst, wenn jede gewählte Rubrik ein Urteil mit Begründung hat und jede „auffällig“ einen Beleg; danach unveränderlich. Prüfer, Zeitpunkt und Bewertungsversion stehen dabei.
+- **Kalibrierung:** Übereinstimmung zwischen dir und der Automatik je Rubrik und Version, mit Richtung der Abweichung (z. B. „auffällig → ok“). Rubriken unter 70 % ab 5 Urteilen sind markiert. SignalDesk ändert keine Gewichte selbst.
+- Schema 47 (zwei neue Tabellen).
+
+## 2.0.0-dev45 – Recherchepilot: Stichprobe von Hand prüfen
+
+Produktreview M21 (Entscheidung des Eigentümers: Referenz durch Prüfung von Hand).
+
+- **Neu unter „Finden“: „Messung: Stichprobe von Hand prüfen“.** Zieht 20, 50, 75 oder 100 zufällige Firmen aus deinen Treffern, wahlweise nur aus einer Quelle (z. B. OpenStreetMap).
+- **Je Firma von Hand:** Zielbetrieb ja/nein, Website laut SignalDesk richtig/falsch/fehlt, hat die Firma eine Website, Branche richtig. „unklar“ ist immer erlaubt. Bei „kein Zielbetrieb“ entfallen die übrigen Fragen.
+- **Kennzahlen mit Anzahl:** Anteil Zielbetriebe, Trefferquote der Websites, Abdeckung der Websites, Anteil mit Website, Branche richtig. Hinweis bei kleiner Basis.
+- Der Stand beim Ziehen wird festgehalten, spätere Änderungen verfälschen die Messung nicht. Export als CSV. Nichts wird abgerufen.
+- Schema 46 (zwei neue Tabellen).
+
+## 2.0.0-dev44 – Firmensuche: Gründe sichtbar, mehr Websites
+
+Befund des Eigentümers mit dem Stuttgart-Auszug: „sehr viele Betriebe im Bestand, aber nur 5 neue Treffer, viel ausgefiltert, kaum Websites“.
+
+- **Warum ausgefiltert:** Die Ergebniszeile je Quelle nennt jetzt die Gründe (z. B. „412 ohne Rechtsform, 30 andere Branche“) statt nur einer Summe.
+- **Hinweis bei Handwerk:** Fällt mindestens die Hälfte wegen fehlender Rechtsform heraus, erklärt ein Hinweis den Haken „auch Betriebe ohne Rechtsform“ – mit dem Datenschutz-Hinweis, dass dahinter eine Einzelperson stehen kann. Die Voreinstellung bleibt deine Entscheidung.
+- **Website-Suche mit Ort:** Domain-Vorschläge enthalten jetzt auch Name und Ort (z. B. `elektro-mueller-stuttgart.de`); vorher fiel der Ort ganz heraus.
+- **Firmenname im Impressum:** gleiche Wörter in anderer Reihenfolge („Malerbetrieb Huber“ / „Huber Malerbetrieb e.K.“) und Inhaberangaben („Inh. …“) verhindern den Vorschlag nicht mehr. Es bleibt ein Vorschlag zum Bestätigen; andere PLZ oder andere Namen passen weiterhin nicht.
+- Kein Schemawechsel.
+
 ## 2.0.0-dev43 – Entwürfe ins Postfach (IMAP)
 
 Produktreview M24 Stufe 3 – damit ist M24 umgesetzt.

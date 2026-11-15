@@ -202,6 +202,21 @@
  <section class="panel sales-section" id="nachkalkulation"><div class="studio-section-head"><div><span class="eyebrow">NACH DEM AUFTRAG · NUR FÜR DICH</span><h2>Nachkalkulation</h2></div><span class="muted" id="pkCount"></span></div>
   <p class="muted">Trag ein, wie lange du wirklich gebraucht hast. So siehst du, ob sich ein Festpreis gelohnt hat, und die Auslastung auf „Heute“ rechnet mit dem, was noch offen ist.</p>
   <p id="pkLesson" class="pk-lesson"></p><div id="pkServiceLessons" class="pk-service-lessons"></div><div id="pkList" class="pk-list"></div><p class="muted td-note" id="pkNotice"></p></section>
+ <section class="panel sales-section" id="studien"><details id="stBox"><summary><b>Erlebnisstudien</b> <small class="muted">– echte Testpersonen lösen Aufgaben auf einer Website, z. B. vor und nach einem Relaunch</small></summary>
+  <p class="muted" id="stNotice"></p>
+  <form id="stCreate" class="sales-form st-create"><label>Firma<select name="lead_id" id="stLead"></select></label><label>Titel<input name="title" maxlength="120" required placeholder="z. B. Website vor dem Relaunch"></label>
+   <label>Website<input name="url" type="url" maxlength="300" placeholder="https://"></label>
+   <label>Phase<select name="phase"><option value="vorher">vorher</option><option value="nachher">nachher</option><option value="einmalig" selected>einmalig</option></select></label>
+   <label>Methode<select name="method"><option value="moderiert">moderiert (du bist dabei)</option><option value="unmoderiert">unmoderiert</option></select></label>
+   <label class="st-wide">Aufgaben (eine je Zeile)<textarea name="tasks" rows="3" required placeholder="Finden Sie die Telefonnummer.&#10;Fragen Sie einen Termin an."></textarea></label>
+   <label class="st-wide">Fragen (optional, eine je Zeile)<textarea name="questions" rows="2" placeholder="Was hat Sie gestört?"></textarea></label>
+   <button class="btn btn-primary" type="submit">Studie anlegen</button></form>
+  <div id="stList" class="sales-list"></div><div id="stDetail"></div></details></section>
+ <section class="panel sales-section" id="lernen"><details id="lnBox"><summary><b>Was du lernst</b> <small class="muted">– Aufwand nach Projektart, Ergebnisse nach Methode, Wirkung vorher/nachher</small></summary>
+  <h4>Aufwand nach Projektart</h4><div id="lnEffort"></div>
+  <h4>Ergebnisse nach Methode (Erlebnisstudien)</h4><div id="lnMethods"></div>
+  <h4>Wirkung vorher/nachher</h4><div id="lnBeforeAfter"></div>
+  <h4>Grenzen</h4><ul class="muted" id="lnLimits"></ul></details></section>
  <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">05 / ANGEBOTSVERLAUF</span><h2>Gespeicherte Angebote</h2></div><button type="button" class="text-button" id="quoteRefresh">Aktualisieren ↻</button></div><div id="quoteHistory" class="sales-list"></div><div id="quoteSaved" class="quote-preview"></div></section>
 </div>
 <div class="content hidden" id="viewFinder">
@@ -241,6 +256,11 @@
   <details class="sw-check" id="swCheckBox"><summary><b>Quellen prüfen</b> <span class="muted">Sind GLEIF, Wikidata, OpenStreetMap und TED gerade erreichbar? Eine winzige Testanfrage je Quelle.</span></summary>
    <div class="sw-check-head"><button type="button" class="btn btn-ghost" id="swCheck">Jetzt prüfen</button><span class="muted" id="swCheckNote"></span></div>
    <div id="swCheckRows" class="sw-check-rows"></div></details>
+  <details class="sw-check" id="plBox"><summary><b>Messung: Stichprobe von Hand prüfen</b> <span class="muted">Wie gut ist die Firmensuche wirklich? Zufällige Firmen aus deinen Treffern prüfen, SignalDesk rechnet die Quoten.</span></summary>
+   <p class="muted" id="plNotice"></p>
+   <form id="plDraw" class="sales-row"><label>Größe <select id="plSize"><option value="20">20</option><option value="50" selected>50</option><option value="75">75</option><option value="100">100</option></select></label>
+    <label>Quelle <select id="plSource"><option value="">alle Quellen</option></select></label><button class="btn btn-primary" type="submit">Neue Stichprobe ziehen</button></form>
+   <div id="plList" class="sales-list"></div><div id="plSample"></div></details>
   <details class="sw-check" id="catBox"><summary><b>Großer Firmenkatalog (GLEIF, offline)</b> <span class="muted" id="catSummary">Alle deutschen Firmen mit LEI lokal durchsuchen – auch wenn die GLEIF-Schnittstelle ausfällt.</span></summary>
    <p class="muted">Datei bei GLEIF laden: <i>gleif.org → LEI-Daten → Golden Copy</i>, Format <b>LEI-CDF, CSV</b> (ZIP direkt verwenden). „Vollbestand“ ersetzt den Stand, „Delta“ ergänzt nur Änderungen. Lizenz CC0 1.0. Die Datei wird zeilenweise gelesen – auch mehrere GB, ohne den Arbeitsspeicher zu füllen. Aus dem Katalog wird nichts automatisch Lead: Übernahmen gehen in die Sichtung, mit Dubletten-Abgleich.</p>
    <div class="cat-up"><select id="catKind" aria-label="Art der Datei"><option value="golden">Vollbestand (Golden Copy)</option><option value="delta">Änderungen (Delta)</option></select>
@@ -347,6 +367,11 @@
   <form class="sales-form" id="krForm"><label>Firma<select id="krLead"></select></label><div id="krItems"></div>
    <label>Einleitung (optional)<textarea name="intro" rows="2" maxlength="800" placeholder="z. B. Wie im Gespräch angekündigt …"></textarea></label>
    <button type="submit" class="btn btn-primary">Kurzbericht erstellen</button></form><div id="krPreview" class="sales-mail-preview"></div></section>
+ <section class="panel sales-section"><details id="frBox"><summary><b>Fachreview & Kalibrierung</b> <small class="muted">– automatische Bewertung von Hand prüfen und sehen, wo sie abweicht</small></summary>
+  <p class="muted">Wähle eine abgeschlossene Bewertung, prüfe die Rubriken mit Beleg und Begründung. Jede Eingabe wird sofort gespeichert. Aus abgeschlossenen Reviews zeigt SignalDesk die Übereinstimmung je Rubrik – Gewichte ändert es nie selbst.</p>
+  <form id="frStartForm" class="sales-row"><label>Bewertung<select id="frAudit"></select></label><label>Prüfer<input id="frReviewer" maxlength="80" placeholder="dein Name oder Kürzel" required></label><button class="btn btn-primary" id="frStart" type="submit">Review anlegen</button></form>
+  <div id="frList" class="sales-list"></div><div id="frReview"></div>
+  <h3>Kalibrierung</h3><div id="frCalibration"></div></details></section>
  <section class="panel sales-section"><details id="scConfigBox"><summary><b>Bewertungsraster & Gewichtung anpassen</b> <small class="muted">– jede Änderung erzeugt eine neue Bewertungsversion</small></summary><form id="scConfigForm" class="sales-form"></form></details></section>
 </div>
 <div class="content hidden" id="viewSignals">
@@ -797,6 +822,9 @@
 <script src="/leadlist.js" defer></script>
 <script src="/aktepage.js" defer></script>
 <script src="/calendar.js" defer></script>
+<script src="/pilot.js" defer></script>
+<script src="/fachreview.js" defer></script>
+<script src="/studies.js" defer></script>
 <script src="/nav.js" defer></script>
 <dialog id="lostDialog" class="lost-dialog"><form id="lostForm" class="sales-form"><h3>Warum verloren?</h3><p class="muted">Firma: <b id="lostCompany"></b>. Der Grund hilft dir später zu sehen, woran Chancen scheitern.</p>
  <label>Grund<select name="lost_reason" required><option value="kein_bedarf">Kein Bedarf</option><option value="kein_budget">Kein Budget</option><option value="zeitpunkt">Falscher Zeitpunkt – später wieder</option><option value="wettbewerber">Anderer Anbieter gewählt</option><option value="inhouse">Wird intern gelöst</option><option value="preis">Preis zu hoch</option><option value="nicht_erreicht">Niemanden erreicht</option><option value="passt_nicht">Passt nicht zu meinem Angebot</option><option value="sonstiges">Sonstiges</option></select></label>

@@ -888,3 +888,61 @@ M24 nach Empfehlung, Stufe 3 von 3. Bisher galt „keine Verbindung zu Maildiens
 **Selbstbewertung 4 von 5.** Abzug: an keinem echten Anbieter gemessen; nur SSL auf Port 993, kein STARTTLS (in `docs/EINSCHRAENKUNGEN.md` beschrieben).
 
 **Nachtrag (CI Windows, Python 3.13 auf dev40):** `test_malformed_requests_never_500` brach mit WinError 10048 ab – der Test öffnet je Anfrage eine neue Verbindung (Routen × 4 Methoden × 7 Inhalte), und Windows hält geschlossene Client-Ports eine Weile belegt. Mit jeder neuen Route wurde das knapper. Der Test-Helfer wartet jetzt kurz und versucht es erneut, nur bei genau diesem Fehler; andere Fehler gehen unverändert durch (lokal nachgewiesen). Die Prüfung selbst ist unverändert, Anwendung unverändert.
+
+## Arbeitspaket 43 – Befund Stuttgart-Auszug (2.0.0-dev44)
+
+Der Eigentümer hat den Stuttgart-Auszug (222 MB) eingelesen: viele Betriebe im Bestand, aber nur 5 neue Treffer, „viel ausgefiltert“, die Website-Suche fand nichts. Gesucht wurde in ganz Stuttgart mit Branchen und **ohne** „auch Betriebe ohne Rechtsform“.
+
+Ursachen (aus dem Code nachvollzogen, ohne den echten Auszug – der ist nicht in dieser Umgebung):
+1. Ohne den Haken fallen alle Betriebe ohne Rechtsform im Namen heraus – im Handwerk die meisten (schon im Praxistest 70191: 3 von 4).
+2. Die Website-Suche läuft nur für die übernommenen neuen Treffer – hier also für 5.
+3. Die Domain-Vorschläge ließen den Ort weg, und der Namensvergleich mit dem Impressum scheiterte schon an anderer Wortreihenfolge.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Neue Tests | `tests/test_v2_osm_findings.py` (4): Gründe gezählt und Summe stimmt, Domains mit Ort, Wortreihenfolge passt, fremde Namen und andere PLZ passen weiterhin nicht |
+| Browser | neu `test_osm_filter_reasons_browser.py`: Gründe in der Ergebniszeile, Hinweis zum Haken |
+| Regression | je 695 Tests unter Python 3.13 und 3.10, 35 von 35 Browser-Tests |
+| Wackeliger Test behoben | `test_formguard_browser.py` scheiterte etwa jedes dritte Mal: Der Klick auf „Firmen“ kam manchmal vor dem Fertigladen an, und die fokussierte Zeile konnte durch einen zweiten Listenaufbau ersetzt werden. Der Test öffnet die Liste jetzt über ihre Adresse und wartet auf den Fokus – danach 10 von 10 Läufen grün (Anwendung unverändert) |
+| Offen | Wirkung am echten Auszug noch nicht gemessen; die Messung ist M21 |
+
+**Selbstbewertung 3 von 5.** Die Ursachen sind belegt und behoben bzw. sichtbar, aber nicht an deinen Daten gemessen.
+
+## Arbeitspaket 44 – Recherchepilot (2.0.0-dev45)
+
+M21 nach Entscheidung „von Hand prüfen“. Das Werkzeug misst Genauigkeit an echten Treffern; die eigentliche Messung macht der Eigentümer am Stuttgart-Auszug.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Neue Tests | `tests/test_v2_pilot.py` (3): Stichprobe ohne Dubletten und je Quelle, Stand beim Ziehen bleibt, Quoten nur aus eindeutigen Angaben (nachgerechnet), ungültige Angaben abgelehnt, CSV und Löschen |
+| Browser | neu `test_pilot_browser.py`: ziehen, bewerten, Quoten aktualisieren sich, „kein Zielbetrieb“ blendet Fragen aus, Smartphone-Breite ohne waagerechtes Scrollen; Bildschirmfoto selbst angesehen |
+| Regression | je 698 Tests unter Python 3.13 und 3.10, 36 von 36 Browser-Tests |
+| Grenze | misst nur übernommene Treffer, nicht die verpassten (beschrieben) |
+
+**Selbstbewertung 4 von 5.** Abzug: Die Messung selbst steht noch aus.
+
+## Arbeitspaket 45 – Fachreview und Kalibrierung (2.0.0-dev46)
+
+M29 und M33 nach Entscheidung „direkt in der App“. Das Review hängt an einer bestimmten Bewertung und Version, damit Übereinstimmungen nicht über Regeländerungen hinweg vermischt werden.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Neue Tests | `tests/test_v2_expert_review.py` (3): Übernahme der Rubriken, sofortiges Speichern (über eine zweite Verbindung geprüft), fehlende Angaben, Abschluss, Unveränderlichkeit; Kalibrierung nur aus abgeschlossenen Reviews, nachgerechnet; Gewichte unverändert |
+| Browser | neu `test_fachreview_browser.py`: Review anlegen, Rubriken abwählen und beurteilen, nach Neuladen noch da, abschließen, Kalibrierung zeigt 100 % / 0 %; Bildschirmfotos Desktop und Smartphone selbst angesehen |
+| Regression | je 701 Tests unter Python 3.13 und 3.10, 37 von 37 Browser-Tests |
+| Gefunden und behoben | Speichern beim Verlassen eines Feldes baute die Liste neu und nahm den Fokus aus dem nächsten Feld – Fokus wird jetzt zurückgesetzt |
+
+**Selbstbewertung 4 von 5.** Abzug: Vergleich mehrerer Prüfer untereinander fehlt noch (M33 teilweise).
+
+## Arbeitspaket 46 – Erlebnisstudien und „Was du lernst“ (2.0.0-dev47)
+
+M30 und M34 nach Entscheidung „beides“. Kern von M30 ist die Trennung echter Angaben von allem anderen: ohne Bestätigung zählt eine Sitzung nicht, und es gibt keinen Weg, Antworten erzeugen zu lassen.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Neue Tests | `tests/test_v2_studies_learning.py` (5): nur bestätigte Sitzungen zählen (Quoten, Median, Antworten nachgerechnet), Kürzel statt Namen, E-Mail/Telefon abgelehnt, Fragen ohne Aufgabenergebnis, fremde Aufgaben abgelehnt, abgeschlossene Studie unveränderlich, Vorher/Nachher; Aufwand je Projektart erst ab 3 Aufträgen, Methoden, Vorher/Nachher-Paare |
+| Browser | neu `test_studies_browser.py`: Studie anlegen, Sitzung erfassen, erst nach Bestätigung 50 %, Antwort mit Kürzel, „Was du lernst“ mit Grenzen, Smartphone-Breite ohne waagerechtes Scrollen |
+| Regression | je 706 Tests unter Python 3.13 und 3.10, 38 von 38 Browser-Tests |
+| Gefunden und behoben | Der neue Browser-Test las „Was du lernst“ einmal zu früh (alter Stand vom ersten Öffnen); er wartet jetzt auf den neuen Inhalt – 6 von 6 Läufen grün (Anwendung unverändert) |
+
+**Selbstbewertung 4 von 5.** Abzug: ohne echte Studien und Aufträge noch ohne Aussage; die Bestätigung echter Angaben ist eine Zusage, keine technische Prüfung (beschrieben).

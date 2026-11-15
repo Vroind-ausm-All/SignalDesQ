@@ -226,6 +226,12 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None, cindex=N
     cindex = cindex or ctx.get('_cindex') or CandidateIndex(conn)
     ctx['_cindex'] = cindex
     c = {'found': len(items), 'new': 0, 'merged': 0, 'known': 0, 'dismissed': 0, 'suppressed': 0, 'filtered': 0}
+    drop_why = {}  # 2.0.0-dev44: Grund je ausgefiltertem Treffer – sichtbar statt nur einer Summe
+
+    def drop(reason):
+        c['filtered'] += 1
+        drop_why[reason] = drop_why.get(reason, 0) + 1
+    c['filtered_why'] = drop_why
     license_text = lf.SOURCES.get(source, {}).get('license', '')
     for item in items:
         name = (item.get('name') or '').strip()
@@ -233,32 +239,32 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None, cindex=N
             continue
         legal = item.get('legal_form') or lf.legal_form_of(name)
         if source in ('osm', 'wikidata') and not legal and not ctx.get('include_sole', True):
-            c['filtered'] += 1  # möglicherweise natürliche Person – datensparsam auslassen
+            drop('ohne_rechtsform')  # möglicherweise natürliche Person – datensparsam auslassen
             continue
         if ctx.get('operative', True) and source != 'ted' and ind.NON_OPERATIVE_RE.search(name):
-            c['filtered'] += 1
+            drop('nicht_operativ')
             continue
         kind = item.get('org_kind') or lfm.kind_of(name, item.get('elf', ''), legal)
         if source != 'ted' and (kind if kind != lfm.SONSTIGE else lfm.UNTERNEHMEN) not in ctx.get('org_kinds', ORG_KINDS_DEFAULT):
-            c['filtered'] += 1
+            drop('organisationsart')
             continue
         if source != 'ted':
             ok, ikey = ind.match(f"{name} {item.get('industry', '')}", ctx.get('industries', []), ctx.get('keywords', []))
             if not ok and not item.get('_industry_matched'):
-                c['filtered'] += 1
+                drop('branche')
                 continue
             item['industry_key'] = ikey or item.get('industry_key') or ind.guess(f"{name} {item.get('industry', '')}")
         if ctx.get('postcode_only') and source != 'ted':
             plz = (item.get('zip') or '').strip()
             # passt, wenn die PLZ stimmt – oder wenn die Quelle das PLZ-Gebiet abgefragt hat und am Eintrag keine PLZ steht
             if plz != ctx['postcode_only'] and not (item.get('_in_postcode') and not plz):
-                c['filtered'] += 1  # außerhalb der gewünschten PLZ (oder PLZ unbekannt)
+                drop('plz')  # außerhalb der gewünschten PLZ (oder PLZ unbekannt)
                 continue
         dist = item.get('distance_km')
         if dist is None and ctx.get('place_distance'):
             dist = ctx['place_distance'].get((item.get('city') or '').casefold())
         if dist is not None and ctx.get('radius_km') and dist > ctx['radius_km'] + 2:
-            c['filtered'] += 1
+            drop('entfernung')
             continue
         keys = keys_for(item)
         if any(conn.execute('SELECT 1 FROM discovery_dismissed WHERE key=?', (k,)).fetchone() for k in keys):
@@ -1352,7 +1358,24 @@ def domain_guesses(name, city=''):
     bases = [b for b in dict.fromkeys([joined, hyph, words[0], ''.join(words[:2])]) if 3 <= len(b) <= 40]
     if len(words) > 1 and len(words[0]) < 4:  # zu allgemeine Kurzformen nicht einzeln prüfen
         bases = [b for b in bases if b != words[0]]
-    return ([f'{b}.de' for b in bases] + [f'{b}.com' for b in bases[:2]])[:7]
+    # 2.0.0-dev44: kleine Betriebe hängen oft den Ort an (elektro-mueller-stuttgart.de); der Ort fiel bisher ganz heraus
+    town = re.sub(r'[^a-z0-9]+', '-', _translit(city)).strip('-')
+    with_town = [x for x in dict.fromkeys([f'{hyph}-{town}', f'{joined}{town}'] if town else []) if len(x) <= 50 and x not in bases]
+    return ([f'{b}.de' for b in bases] + [f'{b}.de' for b in with_town] + [f'{b}.com' for b in bases[:2]])[:9]
+
+
+def _name_words(name):
+    from .company_data import LEGAL_SUFFIX_RE
+    s = LEGAL_SUFFIX_RE.sub(' ', (name or '').casefold())
+    s = re.sub(r'&\s*co\.?|\binh(?:aber\b|\.|\b).*$', ' ', s)  # „Inh. Max Muster“: Inhaberangabe gehört nicht zum Betriebsnamen
+    return {w for w in re.findall(r'[a-z0-9äöüß]+', s) if len(w) >= 2}
+
+
+def _same_words(a, b):
+    """Alle Wörter des kürzeren Namens kommen im längeren vor (mindestens zwei Wörter) – Reihenfolge egal."""
+    wa, wb = _name_words(a), _name_words(b)
+    small, big = sorted((wa, wb), key=len)
+    return len(small) >= 2 and small <= big
 
 
 def _match(cand, fields):
@@ -1362,6 +1385,8 @@ def _match(cand, fields):
     wanted_reg = re.sub(r'\s+', '', (cand['register_id'] or '').upper())
     nm, nm2 = normalize_name(cand['name']), normalize_name(val('legal_name'))
     names_match = bool(nm and nm2 and (nm == nm2 or (min(len(nm), len(nm2)) >= 5 and (nm in nm2 or nm2 in nm))))
+    if not names_match and nm and nm2:  # 2.0.0-dev44: gleiche Wörter in anderer Reihenfolge, z. B. „Malerbetrieb Huber“ / „Huber Malerbetrieb e.K.“
+        names_match = _same_words(cand['name'], val('legal_name'))
     if wanted_reg and reg and wanted_reg != reg:
         return None, ''
     if nm and nm2 and not names_match:
