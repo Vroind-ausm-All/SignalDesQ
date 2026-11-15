@@ -933,3 +933,16 @@ M29 und M33 nach Entscheidung „direkt in der App“. Das Review hängt an eine
 | Gefunden und behoben | Speichern beim Verlassen eines Feldes baute die Liste neu und nahm den Fokus aus dem nächsten Feld – Fokus wird jetzt zurückgesetzt |
 
 **Selbstbewertung 4 von 5.** Abzug: Vergleich mehrerer Prüfer untereinander fehlt noch (M33 teilweise).
+
+## Arbeitspaket 46 – Erlebnisstudien und „Was du lernst“ (2.0.0-dev47)
+
+M30 und M34 nach Entscheidung „beides“. Kern von M30 ist die Trennung echter Angaben von allem anderen: ohne Bestätigung zählt eine Sitzung nicht, und es gibt keinen Weg, Antworten erzeugen zu lassen.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Neue Tests | `tests/test_v2_studies_learning.py` (5): nur bestätigte Sitzungen zählen (Quoten, Median, Antworten nachgerechnet), Kürzel statt Namen, E-Mail/Telefon abgelehnt, Fragen ohne Aufgabenergebnis, fremde Aufgaben abgelehnt, abgeschlossene Studie unveränderlich, Vorher/Nachher; Aufwand je Projektart erst ab 3 Aufträgen, Methoden, Vorher/Nachher-Paare |
+| Browser | neu `test_studies_browser.py`: Studie anlegen, Sitzung erfassen, erst nach Bestätigung 50 %, Antwort mit Kürzel, „Was du lernst“ mit Grenzen, Smartphone-Breite ohne waagerechtes Scrollen |
+| Regression | je 706 Tests unter Python 3.13 und 3.10, 38 von 38 Browser-Tests |
+| Gefunden und behoben | Der neue Browser-Test las „Was du lernst“ einmal zu früh (alter Stand vom ersten Öffnen); er wartet jetzt auf den neuen Inhalt – 6 von 6 Läufen grün (Anwendung unverändert) |
+
+**Selbstbewertung 4 von 5.** Abzug: ohne echte Studien und Aufträge noch ohne Aussage; die Bestätigung echter Angaben ist eine Zusage, keine technische Prüfung (beschrieben).

@@ -850,3 +850,13 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 .fr-fields input,.fr-fields textarea,.fr-fields select{min-width:0}
 .fr-cal tr.fr-flag td{background:var(--warn-bg)}
 @media (max-width:720px){.fr-fields{grid-template-columns:1fr}}
+/* 2.0.0-dev47 (M30/M34): Erlebnisstudien */
+.st-create{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.st-create .st-wide,.st-task .st-wide{grid-column:1/-1}
+.st-session{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0}
+.st-session>summary{cursor:pointer}
+.st-task{display:grid;gap:4px;margin:8px 0}
+.st-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.st-row label,.st-task .st-wide{display:flex;flex-direction:column;font-size:12px;min-width:0}
+.st-row .st-wide{flex:1 1 220px}.st-row input[type=number]{width:90px}
+.st-confirm{margin:8px 0;display:block}

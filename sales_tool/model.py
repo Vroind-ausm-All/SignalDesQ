@@ -273,6 +273,8 @@ def init_db(conn: sqlite3.Connection):
     init_pilot(conn)  # 2.0.0-dev45: Recherchepilot (Stichprobe von Hand prüfen)
     from .expert_review import init_expert_review
     init_expert_review(conn)  # 2.0.0-dev46: Fachreview und Kalibrierung
+    from .studies import init_studies
+    init_studies(conn)  # 2.0.0-dev47: Erlebnisstudien
     conn.commit()
 
 

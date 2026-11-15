@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev46)
+# Bekannte Einschränkungen (Stand 2.0.0-dev47)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -286,3 +286,11 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Markiert werden Rubriken unter 70 % Übereinstimmung erst ab 5 Urteilen; darunter ist es nur ein erster Eindruck.
 - Ist die automatische Bewertung „unbekannt“ und du urteilst eindeutig, zählt das als Abweichung – das zeigt Lücken der Messung, nicht unbedingt Fehler.
 - Abgeschlossene Reviews lassen sich nicht ändern oder löschen; bei einem Irrtum ein neues Review anlegen.
+
+## Erlebnisstudien und „Was du lernst“ (2.0.0-dev47)
+
+- SignalDesk kann nicht prüfen, ob Angaben wirklich von einer Testperson stammen; die Bestätigung je Sitzung ist deine Zusage. Unbestätigte Sitzungen zählen nirgends.
+- Kleine Studien (unter 5 Sitzungen) zeigen Probleme, aber keine belastbaren Quoten – das steht jeweils dabei.
+- Vorher/Nachher vergleicht verschiedene Testpersonen und nur Studien derselben Firma; Unterschiede können auch an den Personen liegen.
+- Die Projektart ist die Leistung mit den meisten kalkulierten Stunden im Angebot – gemischte Aufträge landen nur in einer Gruppe.
+- Aussagen in „Was du lernst“ erst ab 3 Fällen; das sind Richtungen, keine gesicherten Zusammenhänge.

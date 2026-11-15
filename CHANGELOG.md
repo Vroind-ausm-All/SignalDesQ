@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0-dev47 – Erlebnisstudien und „Was du lernst“
+
+Produktreview M30 und M34 (Entscheidung des Eigentümers: beides).
+
+- **Neu unter „Angebote“: „Erlebnisstudien“.** Zu einer Firma eine Studie anlegen (vorher, nachher oder einmalig; moderiert oder unmoderiert) mit Aufgaben („Finden Sie die Telefonnummer“) und Fragen.
+- **Sitzungen:** Testpersonen bekommen nur ein Kürzel (P1, P2 …); E-Mail-Adressen und Telefonnummern werden abgelehnt. Je Aufgabe: geschafft, mit Hilfe, nicht geschafft, nicht bearbeitet, Zeit und Beobachtung; je Frage die Antwort.
+- **Nur echte Angaben:** Eine Sitzung zählt erst mit der Bestätigung „stammt von dieser Testperson, nicht ausgedacht, nicht von einer KI“. SignalDesk erzeugt keine Antworten.
+- **Auswertung:** Erfolg je Aufgabe mit Anzahl und Median-Zeit, Stichprobe (Geräte, Zielgruppe, wie gewonnen) getrennt, Hinweis unter 5 Sitzungen, Vergleich mit der Vorher- bzw. Nachher-Studie derselben Firma.
+- **Neu: „Was du lernst“.** Aufwand je Projektart (aus der Nachkalkulation), Aufgabenerfolg je Methode und Wirkung vorher/nachher – Aussage erst ab 3 Fällen, Grenzen immer sichtbar.
+- Schema 48 (vier neue Tabellen).
+
 ## 2.0.0-dev46 – Fachreview und Kalibrierung der Website-Bewertung
 
 Produktreview M29 und M33 (Entscheidung des Eigentümers: direkt in der App).
