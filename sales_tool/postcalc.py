@@ -27,6 +27,9 @@ def init_postcalc(conn):
         done_at TEXT NOT NULL, actual_external_eur REAL, note TEXT NOT NULL DEFAULT ''
       );
     ''')
+    # 2.0.0-dev27 (M20): Zeit optional einer Angebotsposition zuordnen (1-basiert; leer = Auftrag allgemein)
+    if 'position' not in {r[1] for r in conn.execute('PRAGMA table_info(time_entries)')}:
+        conn.execute('ALTER TABLE time_entries ADD COLUMN position INTEGER')
 
 
 def _json(text):
@@ -61,8 +64,8 @@ def _accepted(conn, proposal_id):
 
 
 def add_entry(conn, data, today=None):
-    if not isinstance(data, dict) or set(data) - {'proposal_id', 'work_date', 'hours', 'note'}:
-        raise ValueError('Erwartet: proposal_id, hours, optional work_date, note.')
+    if not isinstance(data, dict) or set(data) - {'proposal_id', 'work_date', 'hours', 'note', 'position'}:
+        raise ValueError('Erwartet: proposal_id, hours, optional work_date, note, position.')
     row = _accepted(conn, data.get('proposal_id'))
     if conn.execute('SELECT 1 FROM project_closings WHERE proposal_id=?', (row['id'],)).fetchone():
         raise ValueError('Der Auftrag ist abgeschlossen. Zum Nachtragen zuerst wieder öffnen.')
@@ -79,8 +82,15 @@ def add_entry(conn, data, today=None):
     note = data.get('note', '')
     if not isinstance(note, str) or len(note) > 300:
         raise ValueError('Notiz: höchstens 300 Zeichen.')
-    cur = conn.execute('INSERT INTO time_entries(proposal_id, work_date, hours, note) VALUES (?,?,?,?)',
-                       (row['id'], day.isoformat(), round(float(hours), 2), re.sub(r'[\r\n]+', ' ', note).strip()))
+    pos = data.get('position')
+    if pos not in (None, ''):
+        valid = {p['n'] for p in _positions(_json(row['internal_json']))}
+        if isinstance(pos, bool) or not isinstance(pos, int) or pos not in valid:
+            raise ValueError('Position: Nummer einer festen Position aus dem Angebot (oder leer für den Auftrag allgemein).')
+    else:
+        pos = None
+    cur = conn.execute('INSERT INTO time_entries(proposal_id, work_date, hours, note, position) VALUES (?,?,?,?,?)',
+                       (row['id'], day.isoformat(), round(float(hours), 2), re.sub(r'[\r\n]+', ' ', note).strip(), pos))
     conn.commit()
     return {'id': cur.lastrowid, 'project': project(conn, row)}
 
@@ -124,6 +134,12 @@ def reopen_project(conn, proposal_id):
     return project(conn, row)
 
 
+def _positions(internal):
+    """Feste Positionen der internen Kalkulation (1-basiert wie im Angebot); optionale zählen nicht."""
+    return [{'n': n, 'service': p.get('service', ''), 'title': p.get('title', ''), 'estimated_hours': _num(p.get('hours'))}
+            for n, p in enumerate(internal.get('positions') or [], 1) if not p.get('optional')]
+
+
 def _min_earning(conn, internal):
     if internal.get('min_hourly_earning'):
         return _num(internal['min_hourly_earning'])
@@ -140,7 +156,12 @@ def project(conn, row):
     est = _num(internal.get('estimated_hours') or internal.get('hours'))
     net = _num(customer.get('net_eur'))
     est_ext = _num(internal.get('external_cost_eur'))
-    entries = [dict(r) for r in conn.execute('SELECT id, work_date, hours, note FROM time_entries WHERE proposal_id=? ORDER BY work_date DESC, id DESC', (row['id'],))]
+    entries = [dict(r) for r in conn.execute('SELECT id, work_date, hours, note, position FROM time_entries WHERE proposal_id=? ORDER BY work_date DESC, id DESC', (row['id'],))]
+    per = []
+    for p in _positions(internal):
+        act = round(sum(e['hours'] for e in entries if e['position'] == p['n']), 2)
+        per.append({**p, 'actual_hours': act,
+                    'variance_pct': round(100 * (act - p['estimated_hours']) / p['estimated_hours']) if p['estimated_hours'] and act else None})
     actual = round(sum(e['hours'] for e in entries), 2)
     closing = conn.execute('SELECT * FROM project_closings WHERE proposal_id=?', (row['id'],)).fetchone()
     done = bool(closing)
@@ -171,7 +192,8 @@ def project(conn, row):
             'min_hourly': minimum, 'estimated_external_eur': est_ext, 'actual_external_eur': ext, 'status': status, 'verdict': verdict,
             'done': done, 'done_at': closing['done_at'] if closing else '', 'closing_note': closing['note'] if closing else '',
             'below_minimum': bool(done and actual_hourly is not None and minimum and actual_hourly < minimum), 'entries': entries[:50],
-            'handover': _handover(conn, row['id'])}
+            'handover': _handover(conn, row['id']), 'positions': per,
+            'unassigned_hours': round(sum(e['hours'] for e in entries if not e['position']), 2)}
 
 
 def _handover(conn, pid):
@@ -208,9 +230,43 @@ def overview(conn):
                   'text': (f'Über {len(done)} abgeschlossene Aufträge brauchst du im Mittel {abs(avg)} % '
                            f"{'mehr' if avg > 0 else 'weniger'} Zeit als kalkuliert." if avg else f'Über {len(done)} abgeschlossene Aufträge triffst du deine Kalkulation im Mittel genau.')
                           + (f' {below} davon lagen unter deinem Mindestverdienst.' if below else '')}
-    return {'projects': projects, 'open': sum(1 for p in projects if not p['done']), 'lesson': lesson,
+    return {'projects': projects, 'open': sum(1 for p in projects if not p['done']), 'lesson': lesson, 'service_lessons': service_lessons(projects),
             'notice': 'Zeiten erfasst du selbst. Erst ab drei abgeschlossenen Aufträgen zeigt SignalDesk, wie gut deine Kalkulation im Mittel trifft. '
                       'Der Kunde sieht weder Stunden noch diese Auswertung.'}
+
+
+MIN_SAMPLES = 3
+
+
+def service_lessons(projects):
+    """2.0.0-dev27 (M20): Je Leistung, wie gut der Zeitansatz trifft – nur aus abgeschlossenen Aufträgen und nur aus Positionen,
+    denen Zeiten zugeordnet wurden. Ein Vorschlag erst ab drei Stichproben; darunter wird nur die Anzahl genannt."""
+    from .catalog import SERVICES
+    by = {}
+    for p in projects:
+        if not p['done']:
+            continue
+        for pos in p['positions']:
+            if pos['estimated_hours'] and pos['actual_hours']:
+                by.setdefault(pos['service'], []).append(pos['actual_hours'] / pos['estimated_hours'])
+    out = []
+    for key, ratios in sorted(by.items(), key=lambda kv: -len(kv[1])):
+        n = len(ratios)
+        avg = round(100 * (sum(ratios) / n - 1))
+        title = SERVICES.get(key, {}).get('title', key)
+        if n < MIN_SAMPLES:
+            text = f'{title}: erst {n} Auftrag/Aufträge mit zugeordneten Zeiten – noch keine Aussage (ab {MIN_SAMPLES}).'
+            suggestion = ''
+        else:
+            spread = round(100 * (max(ratios) - min(ratios)))
+            text = (f'{title}: im Mittel {abs(avg)} % {"mehr" if avg > 0 else "weniger"} Zeit als kalkuliert ({n} Aufträge, Spanne {spread} Prozentpunkte).'
+                    if avg else f'{title}: Zeitansatz trifft im Mittel ({n} Aufträge).')
+            suggestion = ('Zeitansatz dieser Leistung unter Einstellungen → Leistungen & Preise prüfen.' if abs(avg) >= 15 else '')
+            if spread > 80:
+                suggestion = 'Starke Streuung – eher Umfang und Korrekturschleifen im Angebot schärfen als den Ansatz pauschal ändern.'
+        out.append({'service': key, 'title': title, 'samples': n, 'avg_variance_pct': avg if n >= MIN_SAMPLES else None,
+                    'text': text, 'suggestion': suggestion})
+    return out
 
 
 def route(h, conn, method, path):

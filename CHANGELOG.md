@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev27 – Zeiten je Leistung und Lernhinweise
+
+Etappe D, Produktreview M20.
+
+- **Zeit einer Position zuordnen:** In der Nachkalkulation wählst du beim Erfassen die Angebotsposition (oder „Auftrag allgemein“). Optionale Positionen sind nicht wählbar.
+- **Soll/Ist je Position:** Die Auftragskarte zeigt je Position kalkulierte und gebrauchte Stunden mit Abweichung, dazu Stunden ohne Position.
+- **Lernhinweise je Leistung** aus abgeschlossenen Aufträgen: Ab drei Stichproben nennt SignalDesk die mittlere Abweichung und die Spanne. Darunter steht nur die Anzahl.
+- **Vorschläge:** Ab 15 % Abweichung kommt der Hinweis, den Zeitansatz unter „Leistungen & Preise“ zu prüfen. Bei starker Streuung lautet der Rat, Umfang und Korrekturschleifen im Angebot zu schärfen. Werte werden nie automatisch geändert.
+- **Schemawechsel 38 → 39** (Position an Zeiteinträgen). 648 Tests (2 neu) unter Python 3.10 und 3.13, 23 Browser-Tests (1 neu).
+
 ## 2.0.0-dev26 – Bestandskunden und Betreuung
 
 Etappe D, Produktreview M19.

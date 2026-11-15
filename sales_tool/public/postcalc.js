@@ -7,6 +7,14 @@
   const eur = v => (v === null || v === undefined ? '–' : Number(v).toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €');
   const ST = {nicht_begonnen: ['keine Zeiten', 'wait'], laeuft: ['läuft', 'ok'], ueberzogen: ['über Kalkulation', 'bad'], abgeschlossen: ['abgeschlossen', 'mid']};
 
+  // 2.0.0-dev27 (M20): Soll/Ist je Angebotsposition
+  function posTable(p) {
+    if (!p.positions || p.positions.length < 2) return '';
+    return `<table class="pk-pos"><thead><tr><th>Position</th><th>kalkuliert</th><th>gebraucht</th><th>Abweichung</th></tr></thead><tbody>
+      ${p.positions.map(x => `<tr><td>Pos. ${x.n} ${esc(x.title)}</td><td>${num(x.estimated_hours)} h</td><td>${num(x.actual_hours)} h</td><td class="${x.variance_pct > 15 ? 'rc-late' : ''}">${x.variance_pct == null ? '–' : (x.variance_pct > 0 ? '+' : '') + x.variance_pct + ' %'}</td></tr>`).join('')}
+      ${p.unassigned_hours ? `<tr><td class="muted">ohne Position</td><td></td><td>${num(p.unassigned_hours)} h</td><td></td></tr>` : ''}</tbody></table>`;
+  }
+
   function card(p) {
     const st = ST[p.status] || [p.status, 'wait'];
     const pct = p.estimated_hours ? Math.min(100, Math.round(100 * p.actual_hours / p.estimated_hours)) : 0;
@@ -17,7 +25,9 @@
       <div class="priority-bar pk-bar ${p.status === 'ueberzogen' ? 'over' : ''}"><i data-w="${pct}"></i></div>
       <p class="${p.below_minimum || p.status === 'ueberzogen' ? 'rc-late' : ''}">${esc(p.verdict)}${p.closing_note ? ' · ' + esc(p.closing_note) : ''}</p>
       ${p.done ? `<button type="button" class="text-button" data-pk-reopen="${p.proposal_id}">Wieder öffnen</button>` : `
+      ${posTable(p)}
       <form class="pk-form" data-pk-form="${p.proposal_id}"><input type="date" name="work_date" aria-label="Datum" max="${new Date().toISOString().slice(0, 10)}">
+        ${p.positions.length > 1 ? `<select name="position" aria-label="Position"><option value="">Auftrag allgemein</option>${p.positions.map(x => `<option value="${x.n}">Pos. ${x.n} ${esc(x.title)}</option>`).join('')}</select>` : ''}
         <input type="number" name="hours" min="0.1" max="200" step="any" placeholder="Stunden" aria-label="Stunden" required>
         <input name="note" maxlength="300" placeholder="Was? (optional)" aria-label="Notiz"><button type="submit" class="btn btn-primary">Zeit erfassen</button></form>
       ${p.entries.length ? `<details class="pk-entries"><summary>${p.entries.length} ${p.entries.length === 1 ? 'Eintrag' : 'Einträge'}</summary>${p.entries.map(e => `<div><span>${esc(fmtDate(e.work_date))} · ${num(e.hours)} h${e.note ? ' · ' + esc(e.note) : ''}</span>
@@ -34,6 +44,8 @@
       const r = await api('/postcalc');
       $('#pkCount').textContent = r.projects.length ? `${r.open} laufend · ${r.projects.length - r.open} abgeschlossen` : '';
       $('#pkLesson').textContent = r.lesson ? r.lesson.text : '';
+      const sl = $('#pkServiceLessons');
+      if (sl) sl.innerHTML = r.service_lessons?.length ? `<div class="sales-subhead">Je Leistung (aus abgeschlossenen Aufträgen)</div><ul>${r.service_lessons.map(x => `<li>${esc(x.text)}${x.suggestion ? `<small>${esc(x.suggestion)}</small>` : ''}</li>`).join('')}</ul>` : '';
       box.innerHTML = r.projects.length ? r.projects.map(card).join('') : '<div class="empty">Noch kein angenommenes Angebot. Sobald ein Angebot angenommen ist, erfasst du hier deine Zeiten.</div>';
       $('#pkNotice').textContent = r.notice;
       if (typeof applyDataWidths === 'function') applyDataWidths(box);
@@ -52,6 +64,7 @@
       try {
         if (add) {
           const body = {proposal_id: Number(add.dataset.pkForm), hours: Number(f.hours.value), note: f.note.value.trim()};
+          if (f.position && f.position.value) body.position = Number(f.position.value);
           if (f.work_date.value) body.work_date = f.work_date.value;
           await api('/postcalc/entries', 'POST', body);
           toast('Zeit erfasst');

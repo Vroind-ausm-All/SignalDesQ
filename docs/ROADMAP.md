@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev26. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev27. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -58,7 +58,7 @@ geprüft – nicht praxisvalidiert; das leistet erst der Pilot (M21).
 | M17 | Schlanke Auftragsübergabe und Abnahme | P2 | erledigt | dev24 | T12: Liefergegenstände und Abnahmekriterien aus dem angenommenen Angebot; Übergabe erst ohne offene Liefergegenstände; Abnahme, Abnahme mit Restpunkten oder Nachbesserung mit Aufgaben und Frist; Protokoll für den Kunden ohne interne Zahlen (Unit- und Browser-Test) | Schlussrechnung nur als Hinweis; Zusatzaufträge M18 |
 | M18 | Zusatzaufträge und Leistungsänderungen | P2 | erledigt | dev25 | Zusatzauftrag nur zu angenommenem Auftrag (-Z1, gleiche Firma und Chance, Anlass Pflicht); Auftrag bleibt unverändert; Kundendokument nennt Bezug, Anlass und bisherigen Umfang; Auftragsumfang mit Summe beauftragt/offen (Unit- und Browser-Test) | Minderungen und Stornos einzelner Leistungen nach der Zusage nicht abgebildet |
 | M19 | Bestandskunden und Betreuungsleistungen | P2 | erledigt | dev26 | Monatliche Positionen als Betreuung mit Beginn und Ende; je Monat genau eine Rechnung mit Leistungszeitraum; offene Monate in „Heute“; Bestandsübersicht trennt Betreuung, Projekte und neue Chancen (Unit- und Browser-Test) | Preisanpassung einer laufenden Betreuung nur über neues Angebot |
-| M20 | Zeiten je Leistung und Lernvorschläge | P2 | teilweise | dev5 | Ist-Zeiten je Auftrag vorhanden; offen: je Position | Leistungskennung je Position seit dev16 vorhanden; abgeschlossene Aufträge |
+| M20 | Zeiten je Leistung und Lernvorschläge | P2 | erledigt | dev5, dev27 | Ist-Zeiten je Angebotsposition; Soll/Ist je Position; Aussage je Leistung erst ab drei abgeschlossenen Aufträgen, mit Spanne und Vorschlag (Unit- und Browser-Test) | Katalogwerte werden nie automatisch geändert; Wirkung nach Methode bleibt M34 |
 | M21 | Lokaler Recherchepilot | P0 | offen | – | 50–100 Firmen gegen Referenzliste; Messgrößen aus dem Review | **Eigentümer:** echter OSM-Auszug und Referenzliste auf dem eigenen Rechner |
 | M22 | Quellenstatus und Datenqualität | P1 | teilweise | dev6–dev9 | „Keine Website gefunden“ ≠ „hat keine Website“ | Ergebnisse aus M21 |
 | M23 | Gemeinsame Hintergrundaufträge vervollständigen | P1 | teilweise | Masterplan 2.0 | Alle Module mit gleichem Lebenszyklus nach Neustart | fünf Module laufen noch als Thread |
@@ -100,7 +100,7 @@ Eigentümer; in die App kommen nur die Abläufe.
 | B – klare Navigation und Arbeitslisten | dev14 = M06 Einstellungen + M07 Teil 1; dev15 = M08, M09, M11 | **erledigt**; offen aus M07: Adressen für weitere Listen und Berichte |
 | C – mehrere Projekte je Firma | M12 Katalog (dev16), P0-Paket M27/M35/M36 (dev17), M13 Chancen (dev18/dev19) – **erledigt**; M14 Briefings (dev20, **erledigt**); M15 Revisionen und optionale Positionen (dev21/dev22, **erledigt**); M16 Nachfassen (dev23, **erledigt**); Etappe D begonnen | **erledigt**; Migrationen an einer Kopie vorhandener Daten geprüft |
 | C′ – Bewertung fundieren | M28, M29 nach Pilot außerhalb der App; M32 nach M13 | M27 erledigt (dev17); Pilot außerhalb der App liegt beim Eigentümer |
-| D – Auftrag, Lernen, Anbindung | M17 Übergabe und Abnahme (dev24), M18 Zusatzaufträge (dev25), M19 Bestand und Betreuung (dev26) – **erledigt**; als Nächstes M20 Zeiten je Leistung; M20, M24/M25, M37–M39 nach Pilotbedarf; M30, M33, M34 nach ersten Reviews; M22/M23 parallel nach Fehlerbild; M10 bei wachsendem Bestand | später |
+| D – Auftrag, Lernen, Anbindung | M17 Übergabe und Abnahme (dev24), M18 Zusatzaufträge (dev25), M19 Bestand und Betreuung (dev26), M20 Zeiten je Leistung (dev27) – **erledigt**; als Nächstes M25 Kundenbericht bzw. M37–M39 nach Pilotbedarf; M24/M25, M37–M39 nach Pilotbedarf; M30, M33, M34 nach ersten Reviews; M22/M23 parallel nach Fehlerbild; M10 bei wachsendem Bestand | später |
 
 ## Zuordnung der bisherigen Menüziele (M07, Stand dev14)
 

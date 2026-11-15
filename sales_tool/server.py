@@ -933,7 +933,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 38  # 2.0.0-dev26 – bei Schemaänderungen erhöhen (Betreuungslaufzeiten)
+SCHEMA_VERSION = 39  # 2.0.0-dev27 – bei Schemaänderungen erhöhen (Zeiten je Position)
 
 
 def backup_before_migration(db):

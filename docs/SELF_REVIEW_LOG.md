@@ -652,6 +652,19 @@ Abnahmekriterium: Betreuung und neue Projekte getrennt. Die eigentliche Lücke w
 
 **Selbstbewertung 4 von 5.** Abzug: ältere Monatsrechnungen ohne Leistungszeitraum werden nicht zugeordnet; keine anteiligen Monate (dokumentiert).
 
+## Arbeitspaket 26 – Zeiten je Leistung (2.0.0-dev27)
+
+Seit dev16 hat jede Position eine Leistungskennung; es fehlte nur die Zuordnung der Ist-Zeit. Lernvorschläge bewusst zurückhaltend: Erst ab drei Stichproben, immer mit Spanne, ohne automatische Änderung des Katalogs. Bei wenigen Aufträgen wäre alles andere Scheingenauigkeit.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 648 Tests bestanden (2 neu in `tests/test_v2_service_times.py`) |
+| Browser-Tests | 23 von 23 (neu `test_service_times_browser.py`): Position wählen, Zeit erfassen, Tabelle zeigt Soll/Ist |
+| Fund beim Testen | Zweites Angebot derselben Firma braucht nach der Zusage eine eigene bestätigte Chance – Testaufbau angepasst (Verhalten richtig) |
+| Migration | Schema 38 → 39, eine Spalte |
+
+**Selbstbewertung 4 von 5.** Abzug: Zuordnung freiwillig, daher anfangs wenig Daten; Wirkung nach Methode (M34) bleibt offen.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

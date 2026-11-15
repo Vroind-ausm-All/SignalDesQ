@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev26)
+# Bekannte Einschränkungen (Stand 2.0.0-dev27)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -185,3 +185,10 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Eine Preisänderung der laufenden Betreuung ist ein neues Angebot (bzw. Zusatzauftrag). Die alte Betreuung bitte zum Stichtag beenden.
 - Monatsrechnungen aus der Zeit vor dev26 haben keinen Leistungszeitraum. Für die offenen Monate zählen sie deshalb nicht; bitte die Laufzeit so setzen, dass bereits abgerechnete Monate davor liegen.
 - Rechnungen entstehen weiterhin nur als Entwurf auf deinen Klick; „Heute“ erinnert an nicht abgerechnete Monate.
+
+## Zeiten je Leistung (2.0.0-dev27)
+
+- Die Zuordnung zu einer Position ist freiwillig. Zeiten ohne Position zählen zum Auftrag, aber nicht zur Auswertung je Leistung.
+- Die Aussage je Leistung beruht nur auf abgeschlossenen Aufträgen mit zugeordneten Zeiten. Unter drei Stichproben gibt es keine Aussage; auch drei Aufträge sind eine kleine Stichprobe – die Spanne steht deshalb immer dabei.
+- SignalDesk ändert Zeitansätze im Katalog nie selbst. Der Vorschlag verweist auf „Einstellungen → Leistungen & Preise“.
+- Ältere Zeiteinträge (vor dev27) haben keine Position.

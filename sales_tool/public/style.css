@@ -791,3 +791,9 @@ details.td-close>*:not(summary){margin-left:18px;margin-right:18px}
 .cr-list>li{padding:.3rem 0;border-bottom:1px solid var(--line)}
 .cr-list small{display:block;color:var(--muted)}
 .cr-term{margin-top:.3rem}
+
+/* 2.0.0-dev27 (M20): Zeiten je Position und Lernhinweise je Leistung */
+.pk-pos{width:100%;border-collapse:collapse;margin:.4rem 0;font-size:.92em}
+.pk-pos th,.pk-pos td{text-align:left;padding:.2rem .4rem;border-bottom:1px solid var(--line)}
+.pk-service-lessons ul{margin:.2rem 0 .6rem;padding-left:1.1rem}
+.pk-service-lessons small{display:block;color:var(--muted)}
