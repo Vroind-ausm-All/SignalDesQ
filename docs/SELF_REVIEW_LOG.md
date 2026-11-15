@@ -946,3 +946,16 @@ M30 und M34 nach Entscheidung „beides“. Kern von M30 ist die Trennung echter
 | Gefunden und behoben | Der neue Browser-Test las „Was du lernst“ einmal zu früh (alter Stand vom ersten Öffnen); er wartet jetzt auf den neuen Inhalt – 6 von 6 Läufen grün (Anwendung unverändert) |
 
 **Selbstbewertung 4 von 5.** Abzug: ohne echte Studien und Aufträge noch ohne Aussage; die Bestätigung echter Angaben ist eine Zusage, keine technische Prüfung (beschrieben).
+
+## Arbeitspaket 47 – Budget-Aufteilung über den Auftragsdienst (2.0.0-dev48)
+
+Befund aus dem Bildschirmfoto des Eigentümers: GLEIF 300 von 300, alle anderen Quellen übersprungen. Die in dev6 eingeführte faire Aufteilung wirkte nur, wenn alle Quellen in einem Aufruf liefen; seit v1.16 ruft der Auftragsdienst je Quelle einzeln auf. Rückfall, den kein Test sah, weil die Prüfung den Auftragsdienst umging.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Nachgestellt | neuer Test `tests/test_v2_budget_jobs.py` über den Auftragsdienst: vor der Korrektur „OpenStreetMap übersprungen – Budget von 4 neuen Firmen erreicht“, danach grün |
+| Auch geprüft | ungenutzter Anteil einer ausgefallenen Quelle geht an die nächste; Wiederholung einer einzelnen fehlgeschlagenen Quelle bekommt den ganzen Rest |
+| Regression | je 708 Tests unter Python 3.13 und 3.10, 38 von 38 Browser-Tests |
+| Lehre | Prüfungen müssen denselben Weg nehmen wie die Anwendung (hier: Auftragsdienst statt Direktaufruf) |
+
+**Selbstbewertung 4 von 5.** Ursache belegt und behoben; die Wirkung auf die Website-Quote am echten Auszug misst erst die nächste Suche des Eigentümers.
