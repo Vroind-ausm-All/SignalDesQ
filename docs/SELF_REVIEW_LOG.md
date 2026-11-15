@@ -886,3 +886,5 @@ M24 nach Empfehlung, Stufe 3 von 3. Bisher galt „keine Verbindung zu Maildiens
 | Datenschutz | Passwort weder in Datenbank noch Antwort an die Oberfläche; Empfänger nur geschäftliche Firmenadresse (Test) |
 
 **Selbstbewertung 4 von 5.** Abzug: an keinem echten Anbieter gemessen; nur SSL auf Port 993, kein STARTTLS (in `docs/EINSCHRAENKUNGEN.md` beschrieben).
+
+**Nachtrag (CI Windows, Python 3.13 auf dev40):** `test_malformed_requests_never_500` brach mit WinError 10048 ab – der Test öffnet je Anfrage eine neue Verbindung (Routen × 4 Methoden × 7 Inhalte), und Windows hält geschlossene Client-Ports eine Weile belegt. Mit jeder neuen Route wurde das knapper. Der Test-Helfer wartet jetzt kurz und versucht es erneut, nur bei genau diesem Fehler; andere Fehler gehen unverändert durch (lokal nachgewiesen). Die Prüfung selbst ist unverändert, Anwendung unverändert.
