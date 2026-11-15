@@ -482,6 +482,9 @@ def make_handler(db_path, allowed_hosts=None):
                 from .customer_report import route_customer_report
                 if route_customer_report(self, conn, method, route):  # 2.0.0-dev30: Kurzbericht für den Kunden
                     return
+                from .offer_basis import route_offer_basis
+                if route_offer_basis(self, conn, method, route):  # 2.0.0-dev33: Grundlage je Position
+                    return
                 proposal_match=re.fullmatch(r'/api/workspace/proposals/(\d+)(/customer)?',route)
                 if proposal_match:
                     ident=int(proposal_match.group(1))

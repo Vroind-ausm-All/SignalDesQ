@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev32)
+# Bekannte Einschränkungen (Stand 2.0.0-dev33)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -212,3 +212,9 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Der Bericht übernimmt Beobachtung, Fundstelle und Frage so, wie sie beim Befund stehen. Formulierungen bitte vor der Weitergabe selbst lesen; SignalDesk glättet keine Texte.
 - Screenshots werden nicht eingebunden (nur Markdown, kein gestaltetes PDF).
 - Höchstens zwölf Befunde je Bericht. Die Einordnung am Ende ist ein Textvorschlag, keine Rechtsberatung.
+
+## Grundlage je Position (2.0.0-dev33)
+
+- Ein Befund belegt eine Position, wenn sein Paketvorschlag diese Leistung enthält (Zuordnung über die Vorlagen des Katalogs). Befunde ohne Paketvorschlag zählen nicht.
+- Positionen ohne Grundlage blockieren den Versand nicht; sie erscheinen als Hinweis. Ob du sie begründest, streichst oder bewusst anbietest, entscheidest du.
+- Die Grundlage wird beim Öffnen neu berechnet, nicht beim Erstellen gespeichert. Wird ein Befund später verworfen, ändert sich die Anzeige.

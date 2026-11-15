@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.0.0-dev33 – Befund mit Angebot verbinden
+
+Produktreview M32.
+
+- **„Grundlage je Position (nur intern)“** am gespeicherten Angebot. Jede Position zeigt eine von vier Grundlagen:
+  - **bestätigter Bedarf** der Chance bzw. Firma,
+  - **geprüfter Befund**: ein bestätigter Website-Befund oder eine freigegebene Recherche-Beobachtung, deren Paketvorschlag die Leistung enthält,
+  - **begleitend**: Anreise, Tagespauschale, Aufwand,
+  - **ohne Grundlage**.
+- **Ungeprüfte Hypothesen**, die auf eine Position zeigen, stehen ausdrücklich als „offen (ungeprüft)“ dabei und zählen nie als Grundlage. Verworfene Befunde zählen gar nicht.
+- **Versandfreigabe:** Hinweise für Positionen ohne Grundlage (optionale Positionen ausgenommen) und für Positionen mit offenen Hypothesen. Kein Sperrgrund – die Entscheidung bleibt bei dir.
+- Nichts davon erscheint im Kundendokument. Kein Schemawechsel. 664 Tests (2 neu) unter Python 3.10 und 3.13, 28 Browser-Tests (1 neu).
+
 ## 2.0.0-dev32 – Abnahmefälle T07, T09, T10, T13; Beträge im Festpreis-Abschnitt
 
 - **Fehlerbehebung im Kundendokument:** Der Abschnitt „Festpreis“ schrieb Beträge mit Punkt („264.00 EUR netto“), die Tabelle darüber mit Komma („264,00 €“). Jetzt einheitlich in deutscher Schreibweise („264,00 € netto“, „Gesamtbetrag: 314,16 €“). Gefunden beim Szenario T13.

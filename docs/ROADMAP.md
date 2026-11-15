@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev32. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev33. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -77,7 +77,7 @@ bevor M27 erledigt und ein Pilot außerhalb der App gelaufen ist.
 | M29 | Fachreview erfassen | P1 | offen | – | Kriterienauswahl, Beleg, Stufe, Begründung, Prüfer und „offen“ speicherbar; kein Verlust beim Abbruch | Pilot außerhalb der App |
 | M30 | Erlebnisstudien ermöglichen | P2 | offen | – | Echte Antworten, Aufgabenergebnisse und Stichprobe getrennt; keine KI-Antworten als Nutzerdaten | zuerst mit externer Vorlage erproben |
 | M31 | Analyseangebote abgrenzen | P1 | teilweise | dev16 | Expertenprüfung und Nutzerstudie mit unterschiedlichem Umfang, Kosten und Abnahme; Korrekturrunden widerspruchsfrei | Nutzerstudie als Leistung nach M30 |
-| M32 | Befund mit Angebot verbinden | P1 | offen | – | Jede empfohlene Position hat einen freigegebenen Befund oder bestätigten Bedarf; offene Hypothesen sichtbar | Grundlage (Leistungskennungen) seit dev16; erweitert M25 |
+| M32 | Befund mit Angebot verbinden | P1 | erledigt | dev33 | Jede Position zeigt ihre Grundlage (bestätigter Bedarf, geprüfter Befund, begleitend, ohne); Lücken und ungeprüfte Hypothesen als Hinweis bei der Versandfreigabe; nie im Kundendokument (Unit- und Browser-Test) | Hinweis, keine Sperre – Entscheidung bleibt beim Nutzer |
 | M33 | Bewertung kalibrieren | P2 | offen | – | Unabhängige Urteile vergleichen, Regeln versionieren, keine automatische Gewichtsanpassung ohne Prüfung | erste vollständige Reviews |
 | M34 | Wirkung und Aufwand lernen | P2 | offen | – | Ergebnisse und Zeiten nach Methode und Projektart; Stichprobe und Grenzen sichtbar | M20, M30 |
 

@@ -742,6 +742,19 @@ Nach acht Schemawechseln in Etappe C und D war die wichtigste offene Frage, ob e
 
 **Selbstbewertung 5 von 5** für dieses Paket. Bestanden sind T01–T13 und T15; T14 bleibt offen bis M23.
 
+## Arbeitspaket 32 – Befund mit Angebot verbinden (2.0.0-dev33)
+
+Bewusst Hinweis statt Sperre: Ein Angebot ohne Beleg kann richtig sein (z. B. ausdrücklicher Kundenwunsch ohne dokumentierten Bedarf). Wichtig ist, dass die Lücke sichtbar ist und ungeprüfte Vermutungen nie still als Begründung dienen.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 664 Tests bestanden (2 neu in `tests/test_v2_offer_basis.py`) |
+| Browser-Tests | 28 von 28 (neu `test_offer_basis_browser.py`): Grundlage, Lücke, offene Hypothese, Hinweis bei der Freigabe |
+| Abnahme M32 | jede Position mit Grundlage; offene Hypothesen sichtbar; nichts im Kundendokument |
+| Fund beim Testen | Name der fiktiven Testfirma enthielt das geprüfte Wort „Grundlage“ – Testfirma umbenannt. Die neue Box nutzte die Klasse der Fassungen-Übersicht mit; der Revisions-Browsertest fand dadurch zwei Elemente – eigene Klasse vergeben |
+
+**Selbstbewertung 4 von 5.** Abzug: Zuordnung Befund → Leistung nur über die Paketvorlagen.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.
