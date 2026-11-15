@@ -805,6 +805,18 @@ Bewusste Verhaltensänderung nach Review M28: Die vier Regeln zählen etwas (Sch
 
 **Selbstbewertung 4 von 5.** Abzug: Die Schwellen der übrigen Rubriken sind weiterhin Vorgaben ohne Fachreview (M29/M33).
 
+## Arbeitspaket 37 – Angebot mit eigener Adresse (2.0.0-dev38)
+
+Kleiner Schritt aus M07: Seit der globalen Suche (dev34) springt man oft direkt in ein Angebot – ohne Adresse ging dieser Stand beim Neuladen verloren. Die Entscheidung, ob die Firmenakte eine eigene Seite statt eines Dialogs wird, bleibt beim Eigentümer.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 675 Tests bestanden |
+| Browser-Tests | 30 von 30 (neu `test_offer_address_browser.py`: Adresse nach dem Öffnen, Neuladen, eingegebene Adresse, Zurück) |
+| Fund beim Testen | Während eine eingegebene Adresse noch nachlud, verschluckte ein schneller Klick auf ein anderes Angebot den Verlaufseintrag – die Ausnahme gilt jetzt nur für das gerade wiederhergestellte Angebot. Der Test drückte „Zurück“ anfangs, bevor das Angebot fertig aufgebaut war; er wartet jetzt auf die Adresse |
+
+**Selbstbewertung 4 von 5.** Abzug: Filteradressen weiterer Listen stehen noch aus.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

@@ -22,7 +22,7 @@
   const BY_SLUG = Object.fromEntries(Object.entries(SLUG).map(([v, s]) => [s, v]));
   const AREA_OF = Object.fromEntries(AREAS.flatMap(a => a.views.map(v => [v, a.key])));
   const scrollOf = {};
-  let fromHistory = false, pushedLead = false, ignorePop = 0;
+  let fromHistory = false, pushedLead = false, ignorePop = 0, restoringOffer = null;
 
   const areaOf = view => AREA_OF[view] || 'heute';
   const modalOpen = () => !!document.getElementById('modal') && !document.getElementById('modal').classList.contains('hidden');
@@ -44,7 +44,7 @@
     if (window.leadList && window.leadList.preset !== 'alle') p.set('ansicht', window.leadList.preset);  // 2.0.0-dev15
     return p;
   }
-  const viewParams = view => (view === 'leads' ? listParams() : new URLSearchParams());
+  const viewParams = view => (view === 'leads' ? listParams() : new URLSearchParams());  // Angebot: siehe wrapOffer
 
   // ---- Darstellung des aktiven Bereichs
   function markArea(view) {
@@ -135,6 +135,12 @@
           pushedLead = true;
         }
       }
+      // 2.0.0-dev38 (M07): geöffnetes Angebot als Adresse (#/angebote?angebot=ID)
+      const offer = Number(route.params.get('angebot')) || null;
+      if (view === 'quotes' && offer && window.wsOpenProposal) {
+        restoringOffer = offer;  // nur dieses Öffnen schreibt keinen neuen Verlaufseintrag
+        try { await window.wsOpenProposal(offer); } finally { restoringOffer = null; }
+      }
       const section = route.params.get('abschnitt');
       if (view === 'settings' && section) setTimeout(() => document.getElementById(section)?.scrollIntoView({behavior: 'smooth', block: 'start'}), 60);
     } finally { fromHistory = false; }
@@ -176,7 +182,27 @@
     }
   }
 
+  // ---- 2.0.0-dev38 (M07): geöffnetes Angebot in die Adresse schreiben (ohne neuen Verlaufseintrag beim Neuladen)
+  function wrapOffer() {
+    const plainOpen = window.wsOpenProposal;
+    if (typeof plainOpen !== 'function' || plainOpen.__nav) return;
+    const wrapped = async function (id) {
+      const r = await plainOpen(id);
+      if (id && id !== restoringOffer && currentView === 'quotes') {
+        const {params} = parse(location.hash);
+        if (params.get('angebot') !== String(id)) {
+          params.set('angebot', String(id));
+          history.pushState(null, '', build('quotes', params));
+        }
+      }
+      return r;
+    };
+    wrapped.__nav = true;
+    window.wsOpenProposal = wrapped;
+  }
+
   function start() {
+    wrapOffer();
     const bar = document.getElementById('areaBar');
     if (bar) new MutationObserver(dots).observe(bar, {subtree: true, childList: true, characterData: true});
     dots();

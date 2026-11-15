@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.0-dev38 – Angebot mit eigener Adresse
+
+Produktreview M07 (Teil).
+
+- **Ein geöffnetes Angebot hat eine eigene Adresse** (`#/angebote?angebot=ID`). Neuladen, Lesezeichen und eine eingegebene Adresse öffnen dasselbe Angebot; „Zurück“ führt zum vorher geöffneten Angebot.
+- Nur Oberfläche, kein Schemawechsel. 675 Tests unter Python 3.10 und 3.13, 30 Browser-Tests (1 neu).
+
 ## 2.0.0-dev37 – Faustregeln der Website-Bewertung als Hinweis statt Urteil
 
 Produktreview M28.
