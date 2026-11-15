@@ -731,6 +731,17 @@ Nach acht Schemawechseln in Etappe C und D war die wichtigste offene Frage, ob e
 
 **Selbstbewertung 5 von 5** für den Umfang dieses Pakets (reine Prüfung, beide Fälle bestanden).
 
+## Arbeitspaket 31 – Abnahmefälle T07, T09, T10, T13 (2.0.0-dev32)
+
+| Prüfung | Ergebnis |
+|---|---|
+| Regression unter Python 3.13 und 3.10 | je 662 Tests bestanden (4 neu in `tests/test_scenarios_t07_t13.py`) |
+| Browser-Tests | 27 von 27 |
+| T07, T09, T10, T13 | bestanden |
+| Fund beim Testen | Kundendokument: Beträge im Abschnitt „Festpreis“ mit Dezimalpunkt statt Komma – behoben, Test prüft die Schreibweise. Der eigene Test war anfangs zu streng: „Stundensatz“ ist bei „Leistung nach Aufwand“ eine legitime Kundenangabe, kein interner Wert; die Prüfung interner Felder läuft jetzt über die Schlüssel statt über Teilwörter. |
+
+**Selbstbewertung 5 von 5** für dieses Paket. Bestanden sind T01–T13 und T15; T14 bleibt offen bis M23.
+
 ## Noch nicht erstellte Dokumente aus dem Auftrag
 
 `SAAS_LAUNCH_PLAN.md`, `DATA_SOURCE_MATRIX.md`, `PRODUCT_ONBOARDING.md`, `SECURITY_PRIVACY_CHECKLIST.md` gehören zu späteren Sprints und sind bewusst noch nicht angelegt. Die Roadmap ist mit 2.0.0-dev11 neu gefasst.

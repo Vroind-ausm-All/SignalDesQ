@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0-dev32 – Abnahmefälle T07, T09, T10, T13; Beträge im Festpreis-Abschnitt
+
+- **Fehlerbehebung im Kundendokument:** Der Abschnitt „Festpreis“ schrieb Beträge mit Punkt („264.00 EUR netto“), die Tabelle darüber mit Komma („264,00 €“). Jetzt einheitlich in deutscher Schreibweise („264,00 € netto“, „Gesamtbetrag: 314,16 €“). Gefunden beim Szenario T13.
+- **Abnahmefälle als Szenarien geprüft** (über die vorhandenen Funktionen, ohne weitere Codeänderung):
+  - T07: Projektanfrage aufnehmen – Eingang mit Frist, Firma, Chance, bestätigter Bedarf, Angebot der Chance, Anfrage fristgerecht erledigt.
+  - T09: Medienangebot – Prüfpunkte Mediengestaltung, Korrekturschleifen, Nutzungsrechte, Druckkosten außerhalb; Projektkompass fragt Material und Freigabeperson an.
+  - T10: Softwareangebot – Prüfpunkte Betrieb, Zugänge, Testdaten und Übergabe; Betrieb als laufende Leistung; Testzugang ohne Passwörter.
+  - T13: Zeitüberschreitung – Hinweis „Umfang mit dem Kunden prüfen“, keine Reststunden in der Auslastung; Mehrarbeit als Zusatzauftrag, der Auftrag bleibt unverändert.
+  Damit sind die Abnahmefälle T01–T13 und T15 bestanden. T14 (Recherche nach einem Fehler wieder aufnehmen) bleibt offen, bis M23 umgesetzt ist.
+- 662 Tests (4 neu) unter Python 3.10 und 3.13, 27 Browser-Tests. Kein Schemawechsel.
+
 ## 2.0.0-dev31 – Abnahmefälle T06 und T15 als Szenarien geprüft
 
 Keine Funktionsänderung, kein Schemawechsel.

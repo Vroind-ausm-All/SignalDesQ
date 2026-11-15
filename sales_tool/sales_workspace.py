@@ -320,14 +320,15 @@ def customer_markdown(customer,release=None):
               '- Abnahme anhand der genannten Liefergegenstände nach gemeinsamer Prüfung.']
     if customer.get('acceptance_criteria'): lines += ['','## Abnahmekriterien']+['- '+safe(x) for x in customer['acceptance_criteria']]
     if customer.get('third_party_costs'): lines += ['','## Mögliche Drittanbieter- und Folgekosten (nicht im Festpreis)']+['- '+safe(x) for x in customer['third_party_costs']]
+    eur=lambda v: f"{v:,.2f} €".replace(',','X').replace('.',',').replace('X','.')  # 2.0.0-dev32: deutsche Schreibweise wie in der Tabelle
     if customer.get('billing')=='gemischt':
-        lines += ['','## Festpreis',f"**{customer['once_net_eur']:.2f} EUR netto einmalig** und **{customer['monthly_net_eur']:.2f} EUR netto pro Monat**",safe(customer['tax_note'])]
+        lines += ['','## Festpreis',f"**{eur(customer['once_net_eur'])} netto einmalig** und **{eur(customer['monthly_net_eur'])} netto pro Monat**",safe(customer['tax_note'])]
         if customer['tax_mode']=='regel_19':
-            lines.append(f"**Gesamtbetrag einmalig: {customer['once_net_eur']*1.19:.2f} EUR · monatlich: {customer['monthly_net_eur']*1.19:.2f} EUR**")
+            lines.append(f"**Gesamtbetrag einmalig: {eur(customer['once_net_eur']*1.19)} · monatlich: {eur(customer['monthly_net_eur']*1.19)}**")
     else:
         lines += ['',
-                  '## Festpreis',f"**{customer['net_eur']:.2f} EUR netto{' pro Monat' if customer.get('billing')=='monatlich' else ''}**",safe(customer['tax_note'])]
-        if customer['tax_mode']!='offen': lines.append(f"**Gesamtbetrag: {customer['total_eur']:.2f} EUR{' pro Monat' if customer.get('billing')=='monatlich' else ''}**")
+                  '## Festpreis',f"**{eur(customer['net_eur'])} netto{' pro Monat' if customer.get('billing')=='monatlich' else ''}**",safe(customer['tax_note'])]
+        if customer['tax_mode']!='offen': lines.append(f"**Gesamtbetrag: {eur(customer['total_eur'])}{' pro Monat' if customer.get('billing')=='monatlich' else ''}**")
     lines += ['', '## Zahlung und Änderungen',safe(customer['payment_plan']),safe(customer['change_requests']),
               '', '## Hinweise',safe(customer['guarantee'])]
     if release and not release.get('changed'):

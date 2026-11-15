@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev31. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev32. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -133,7 +133,11 @@ Eigentümer; in die App kommen nur die Abläufe.
 | T06 | Rückruf nach erfolglosem Versuch planen | **bestanden** (dev31, Browser-Szenario: neuer Versuch zu anderer Tageszeit mit Frist, nach drei Versuchen Kanalwechsel oder Parken) |
 | T08 | Zwei Chancen einer Firma mit getrennten Phasen, Bedarf, Terminen | **bestanden** (dev18: Phase, Anliegen, Termine; dev19: Bedarfsanalyse und Freigabe je Chance – Unit- und Browser-Tests) |
 | T12 | Übergabe und Abnahme eines Auftrags | **bestanden** (dev24: Liefergegenstände, Übergabe, Abnahme mit Restpunkt, Protokoll – Unit- und Browser-Test) |
-| T07, T09–T11, T13 | Projektanfrage, Medien-/Softwareangebot, Revision, Zeitüberschreitung | offen bzw. als Funktion vorhanden (T11 Revision seit dev21); für T09/T10 liefert dev16 Korrekturschleifen und Prüfpunkte je Leistungsbereich |
+| T07 | Projektanfrage aufnehmen | **bestanden** (dev32: Eingang mit Frist → Firma, Chance, bestätigter Bedarf, Angebot der Chance; fristgerecht erledigt) |
+| T09 | Medienangebot | **bestanden** (dev32: Prüfpunkte Mediengestaltung, Korrekturschleifen, Nutzungsrechte, Druckkosten außerhalb; Kompass mit Material und Freigabeperson) |
+| T10 | Softwareangebot | **bestanden** (dev32: Prüfpunkte Betrieb, Zugänge, Testdaten, Übergabe; Betrieb als laufende Leistung; Testzugang ohne Passwörter) |
+| T11 | Revision eines Angebots | **bestanden** (dev21: Vorgänger, Grund, Änderungsliste; Unit- und Browser-Test) |
+| T13 | Zeitüberschreitung | **bestanden** (dev32: Ist über Kalkulation → Hinweis „Umfang prüfen“, Rest 0; Mehrarbeit als Zusatzauftrag, Auftrag unverändert) |
 | T14 | Recherche während eines Fehlers wieder aufnehmen | Kernabläufe seit Masterplan 2.0; vollständig mit M23 |
 | T15 | Sicherung in getrennte Testinstallation zurückspielen | **bestanden** (dev31, Szenario mit allen Daten aus Etappe C und D: vollständig wiederhergestellt, Abläufe laufen weiter, Ausgangsinstallation unverändert; ältere Sicherung wird migriert) |
 
