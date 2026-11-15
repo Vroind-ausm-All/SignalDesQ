@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev46 – Fachreview und Kalibrierung der Website-Bewertung
+
+Produktreview M29 und M33 (Entscheidung des Eigentümers: direkt in der App).
+
+- **Neu unter „Finden → Website-Scoring“: „Fachreview & Kalibrierung“.** Zu einer abgeschlossenen Bewertung ein Review anlegen; alle Rubriken werden mit dem automatischen Ergebnis übernommen.
+- **Je Rubrik:** auswählen oder abwählen, dein Urteil (ok, auffällig, Hinweis, unbekannt, offen), Beleg und Begründung. Jede Eingabe wird sofort gespeichert – Neuladen oder Schließen verliert nichts.
+- **Abschließen** erst, wenn jede gewählte Rubrik ein Urteil mit Begründung hat und jede „auffällig“ einen Beleg; danach unveränderlich. Prüfer, Zeitpunkt und Bewertungsversion stehen dabei.
+- **Kalibrierung:** Übereinstimmung zwischen dir und der Automatik je Rubrik und Version, mit Richtung der Abweichung (z. B. „auffällig → ok“). Rubriken unter 70 % ab 5 Urteilen sind markiert. SignalDesk ändert keine Gewichte selbst.
+- Schema 47 (zwei neue Tabellen).
+
 ## 2.0.0-dev45 – Recherchepilot: Stichprobe von Hand prüfen
 
 Produktreview M21 (Entscheidung des Eigentümers: Referenz durch Prüfung von Hand).

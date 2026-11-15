@@ -271,6 +271,8 @@ def init_db(conn: sqlite3.Connection):
     init_imap(conn)  # 2.0.0-dev43: Entwürfe ins Postfach (IMAP)
     from .pilot import init_pilot
     init_pilot(conn)  # 2.0.0-dev45: Recherchepilot (Stichprobe von Hand prüfen)
+    from .expert_review import init_expert_review
+    init_expert_review(conn)  # 2.0.0-dev46: Fachreview und Kalibrierung
     conn.commit()
 
 

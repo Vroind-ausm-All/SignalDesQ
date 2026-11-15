@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev45)
+# Bekannte Einschränkungen (Stand 2.0.0-dev46)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -279,3 +279,10 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Die Stichprobe kommt aus den **übernommenen** Treffern. Ausgefilterte Betriebe sind nicht darin – wie viele die Suche verpasst, misst sie nicht. Dafür die Gründe in der Ergebniszeile ansehen (dev44).
 - Die Quoten sind so gut wie deine Angaben. „unklar“ zählt nirgends mit; unter 30 Angaben je Quote gibt es einen Hinweis.
 - „Abdeckung Websites“ heißt: Unter den Zielbetrieben, die laut deiner Prüfung eine Website haben, zeigte SignalDesk die richtige an.
+
+## Fachreview und Kalibrierung (2.0.0-dev46)
+
+- Die Kalibrierung vergleicht dein Urteil mit der automatischen Bewertung. Ob zwei Prüfer untereinander übereinstimmen, wird noch nicht ausgewertet.
+- Markiert werden Rubriken unter 70 % Übereinstimmung erst ab 5 Urteilen; darunter ist es nur ein erster Eindruck.
+- Ist die automatische Bewertung „unbekannt“ und du urteilst eindeutig, zählt das als Abweichung – das zeigt Lücken der Messung, nicht unbedingt Fehler.
+- Abgeschlossene Reviews lassen sich nicht ändern oder löschen; bei einem Irrtum ein neues Review anlegen.

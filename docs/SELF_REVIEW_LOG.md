@@ -920,3 +920,16 @@ M21 nach Entscheidung „von Hand prüfen“. Das Werkzeug misst Genauigkeit an 
 | Grenze | misst nur übernommene Treffer, nicht die verpassten (beschrieben) |
 
 **Selbstbewertung 4 von 5.** Abzug: Die Messung selbst steht noch aus.
+
+## Arbeitspaket 45 – Fachreview und Kalibrierung (2.0.0-dev46)
+
+M29 und M33 nach Entscheidung „direkt in der App“. Das Review hängt an einer bestimmten Bewertung und Version, damit Übereinstimmungen nicht über Regeländerungen hinweg vermischt werden.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Neue Tests | `tests/test_v2_expert_review.py` (3): Übernahme der Rubriken, sofortiges Speichern (über eine zweite Verbindung geprüft), fehlende Angaben, Abschluss, Unveränderlichkeit; Kalibrierung nur aus abgeschlossenen Reviews, nachgerechnet; Gewichte unverändert |
+| Browser | neu `test_fachreview_browser.py`: Review anlegen, Rubriken abwählen und beurteilen, nach Neuladen noch da, abschließen, Kalibrierung zeigt 100 % / 0 %; Bildschirmfotos Desktop und Smartphone selbst angesehen |
+| Regression | je 701 Tests unter Python 3.13 und 3.10, 37 von 37 Browser-Tests |
+| Gefunden und behoben | Speichern beim Verlassen eines Feldes baute die Liste neu und nahm den Fokus aus dem nächsten Feld – Fokus wird jetzt zurückgesetzt |
+
+**Selbstbewertung 4 von 5.** Abzug: Vergleich mehrerer Prüfer untereinander fehlt noch (M33 teilweise).

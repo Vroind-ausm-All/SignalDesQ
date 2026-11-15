@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev45. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev46. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -74,11 +74,11 @@ bevor M27 erledigt und ein Pilot außerhalb der App gelaufen ist.
 |---|---|---|---|---|---|---|
 | M27 | Begriffe und Richtung der Website-Bewertung korrigieren | P0 | erledigt | dev17 | „Auffällig“ (in %, höher = mehr Hinweise) und „Akquise-Priorität“ statt Gesamtnote in Scoring, Akte, Bericht, Recherche; „Profilnähe“ getrennt von der Passung A/B/C; unbekannte Branche/Größe zählt nicht als schlecht (Unit-Test) | Rubriken selbst (M28) |
 | M28 | Rubriken fachlich überarbeiten | P1 | erledigt | dev37 | Überschriften (A3), Schriftfamilien (A6), Jahresangabe (A7), Navigation (B7) liefern „Hinweis (prüfen)“ mit Begründung statt „auffällig“; zählen als geprüft, nie als Mangel, belegen kein Angebot; Bewertungsversion 2.1 (Unit- und Browser-Rendering-Test) | Weitere Rubriken nach den ersten Fachreviews (M29/M33) |
-| M29 | Fachreview erfassen | P1 | offen | – | Kriterienauswahl, Beleg, Stufe, Begründung, Prüfer und „offen“ speicherbar; kein Verlust beim Abbruch | Pilot außerhalb der App |
+| M29 | Fachreview erfassen | P1 | erledigt | dev46 | Kriterienauswahl, Urteil, Beleg, Begründung, Prüfer, Version und „offen“ speicherbar; jede Eingabe sofort gespeichert; Abschluss nur vollständig, danach unveränderlich (Unit- und Browser-Test) | Entscheidung des Eigentümers: direkt in der App |
 | M30 | Erlebnisstudien ermöglichen | P2 | offen | – | Echte Antworten, Aufgabenergebnisse und Stichprobe getrennt; keine KI-Antworten als Nutzerdaten | zuerst mit externer Vorlage erproben |
 | M31 | Analyseangebote abgrenzen | P1 | teilweise | dev16 | Expertenprüfung und Nutzerstudie mit unterschiedlichem Umfang, Kosten und Abnahme; Korrekturrunden widerspruchsfrei | Nutzerstudie als Leistung nach M30 |
 | M32 | Befund mit Angebot verbinden | P1 | erledigt | dev33 | Jede Position zeigt ihre Grundlage (bestätigter Bedarf, geprüfter Befund, begleitend, ohne); Lücken und ungeprüfte Hypothesen als Hinweis bei der Versandfreigabe; nie im Kundendokument (Unit- und Browser-Test) | Hinweis, keine Sperre – Entscheidung bleibt beim Nutzer |
-| M33 | Bewertung kalibrieren | P2 | offen | – | Unabhängige Urteile vergleichen, Regeln versionieren, keine automatische Gewichtsanpassung ohne Prüfung | erste vollständige Reviews |
+| M33 | Bewertung kalibrieren | P2 | teilweise | dev46 | Übereinstimmung je Version und Rubrik aus abgeschlossenen Reviews, Richtung der Abweichung, Markierung unter 70 % ab 5 Urteilen; keine automatische Gewichtsänderung (Test) | Vergleich mehrerer unabhängiger Prüfer je Website fehlt noch; braucht erste echte Reviews |
 | M34 | Wirkung und Aufwand lernen | P2 | offen | – | Ergebnisse und Zeiten nach Methode und Projektart; Stichprobe und Grenzen sichtbar | M20, M30 |
 
 **Ergänzung aus dem Leitfaden Kundenonboarding (M35–M39).** Persönliche Mail- und Dokumentvorlagen des Leitfadens bleiben beim
