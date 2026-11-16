@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.0-dev50 – Firmen und Heute aufgeräumt: mehr Liste auf einen Blick
+
+Schritt 2 der Etappe „Visuelle Konsolidierung und Aufgabenführung“ (siehe [ROADMAP](docs/ROADMAP.md)). Keine Funktion entfällt – was umgezogen ist, steht in [UI_BAUKASTEN.md, Abschnitt „Was wohin zog“](docs/UI_BAUKASTEN.md).
+
+- **Eine Kopfzeile statt zwei:** Oben links stehen jetzt die Reiter des Bereichs (z. B. Firmenliste · Pipeline · Datenpflege), rechts die Suche (Strg+K). Die Kopfzeile ist 52 statt 82 px hoch, die Reiterleiste darunter entfällt. Angebote und Abrechnen haben nur eine Ansicht und zeigen daher keine Reiter.
+- **„＋ Neuer Lead“ oben entfällt.** Du legst eine Firma in der Firmenliste mit „＋ Neue Firma“ an – oder überall mit Strg+K → „Neue Firma anlegen“.
+- **Hell/Dunkel** wechselst du unter Einstellungen → Darstellung (Wie System · Hell · Dunkel); der Umschalter in der Kopfzeile entfällt, ebenso das Datum (steht jetzt bei „Heute“).
+- **Firmenliste:** Titel mit Anzahl und genau einer Hauptaktion; darunter Suche, die häufigen Ansichten als Reiter (Alle, Heute fällig, Ohne nächsten Schritt, deine eigenen), der Rest unter „Weitere ▾“ (auch „Ansicht speichern“), Phase, Zurücksetzen und CSV-Import unter „Filter ▾“, Kaufsignal, Leistung und Letzter Kontakt unter „Spalten ▾“. Die Liste hat feste 56-px-Zeilen mit Firma · Nächster Schritt · Fällig · Phase · Passung; überfällig ist rot, heute gelb. Klick oder Enter auf die Zeile öffnet die Akte wie bisher, Filter in der Adresse und „← Zurück“ bleiben.
+- **Gemessen bei 1280 × 720 mit 9 Firmen:** die erste Firmenzeile beginnt bei 221 px statt 574 px, 8 statt 2 Zeilen sind ganz sichtbar, die Schrift ist 14 statt 12 px. Auf dem Smartphone (390 px) steht die erste Firma bei 342 px statt unter dem Bildrand.
+- **Heute:** Titel mit Datum und „＋ Neuer Eingang“ (öffnet das Erfassen eines Anrufs oder einer Anfrage). Darunter eine Zeile mit dem Kurzstand (als Nächstes, Wiedervorlage, Kapazität; „Einrichtung: n Punkte offen“ nur, solange etwas offen ist). „Als Nächstes“ ist eine Liste: Schritt mit Firma · Warum jetzt · Fällig · Phase. Klick auf die Zeile öffnet die Akte; „Erledigt“ hakt eine Aufgabe oder einen Rückruf direkt ab, ohne die Akte zu öffnen. Die Liste beginnt bei 184 px statt 342 px.
+- **Alles Weitere als Klappzeilen mit Kurzstand:** Eingang & Rückrufe, Wiedervorlage, Kapazität & Potenzial (mit Pipeline), Tagesplan & Tagesabschluss, Systemstatus. Inhalte unverändert; ein Sprung dorthin (z. B. „Zum Eingang“) klappt die Zeile auf.
+- Sichtbar „Firma“ statt „Lead“ in Kopfzeile, Firmenliste und Heute („Firma öffnen“, „neue Firmen“). Die übrigen Bereiche folgen in den nächsten Schritten.
+- Tests: neu Browser-Test `test_ui_firmen_heute_browser.py` (Abnahmemaße, Menüs, Strg+K, Akte und Zurück, Klappzeilen, „Erledigt“, 390 px); sieben bestehende Browser-Tests und drei Unit-Tests an die neuen Orte angepasst. Je 714 Tests unter Python 3.13 und 3.10, 40 von 40 Browser-Tests (zweimal hintereinander).
+- Kein Schemawechsel, keine neuen Abhängigkeiten.
+
 ## 2.0.0-dev49 – Menü auf dem Smartphone und gemeinsamer Baukasten für die Oberfläche
 
 Schritt 1 der neuen Etappe „Visuelle Konsolidierung und Aufgabenführung“ (siehe [ROADMAP](docs/ROADMAP.md)).

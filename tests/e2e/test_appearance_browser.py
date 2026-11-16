@@ -52,11 +52,12 @@ class AppearanceBrowserTests(unittest.TestCase):
                         self.assertEqual((_root(page, 'theme'), _root(page, 'mode')), ('klassisch', 'light'))
                         self.assertEqual(_bg(page), 'rgb(246, 247, 244)')  # Klassisch hell wie bisher
 
-                        page.locator('#modeToggle').click()  # oben: Hell ⇄ Dunkel
+                        # 2.0.0-dev50: Hell/Dunkel nicht mehr in der Kopfzeile, sondern unter Einstellungen → Darstellung
+                        page.locator('.sidebar [data-view="settings"]').click()  # 2.0.0-dev14: eigener Bereich Einstellungen
+                        page.locator('[data-ap-mode="dunkel"]').click()
                         page.wait_for_function('() => document.documentElement.dataset.mode === "dark"')
                         page.wait_for_load_state('networkidle')
 
-                        page.locator('.sidebar [data-view="settings"]').click()  # 2.0.0-dev14: eigener Bereich Einstellungen
                         page.locator('[data-ap-theme="sand"]').click()
                         page.wait_for_function('() => document.documentElement.dataset.theme === "sand"')
                         page.locator('[data-ap-density="kompakt"]').click()
@@ -80,7 +81,7 @@ class AppearanceBrowserTests(unittest.TestCase):
                         other.on('pageerror', lambda exc: errors.append(str(exc)))
                         other.goto(base)
                         other.wait_for_function('() => document.documentElement.dataset.theme === "sand"')
-                        other.locator('#modeToggle').wait_for()
+                        other.locator('#gsOpen').wait_for()  # 2.0.0-dev50: Kopfzeile ohne Hell/Dunkel-Umschalter
                         other.evaluate('window.SignalAppearance.set({mode: "system"})')
                         other.wait_for_load_state('networkidle')
                         self.assertEqual(_root(other, 'mode'), 'dark')

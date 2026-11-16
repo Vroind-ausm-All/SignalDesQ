@@ -60,7 +60,8 @@
       b.classList.toggle('active', on);
       if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
-    document.querySelectorAll('#areaBar .area-tabs').forEach(n => n.classList.toggle('hidden', n.dataset.area !== area));
+    // 2.0.0-dev50: Reiter stehen in der Kopfzeile; ein Bereich mit nur einer Ansicht zeigt keine Reiterleiste
+    document.querySelectorAll('#areaBar .area-tabs').forEach(n => n.classList.toggle('hidden', n.dataset.area !== area || n.querySelectorAll('[data-area-view]').length < 2));
     document.querySelectorAll('#areaBar [data-area-view]').forEach(b => {
       const on = b.dataset.areaView === view || (view === 'report' && b.dataset.areaView === 'center');
       b.classList.toggle('active', on);

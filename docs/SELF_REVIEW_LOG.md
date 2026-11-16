@@ -974,3 +974,18 @@ Schritt 1 der Etappe „Visuelle Konsolidierung und Aufgabenführung“. Blocker
 
 **Selbstbewertung 4 von 5.** Abzug: nur in Chromium geprüft, nicht auf echten Geräten; der Baukasten ist bis Schritt 2 ungenutzt, seine Wirkung auf die Messwerte des Zielbilds ist also noch nicht belegt.
 
+## Arbeitspaket 49 – Firmen und Heute auf dem Baukasten (2.0.0-dev50)
+
+Schritt 2 der Etappe E. Grundsatz „keine Funktion entfällt“: Jede verschobene Funktion steht mit altem Ort, neuem Ort und Prüffall in [UI_BAUKASTEN.md](UI_BAUKASTEN.md) („Was wohin zog“). Datenmodell, Prioritätsregeln von „Heute“ und Schnittstellen unverändert; geändert wurden nur drei Anzeigetexte des Servers („Lead öffnen“ → „Firma öffnen“, „Leads, Pipeline …“ → „Firmen, Pipeline …“).
+
+| Prüfung | Ergebnis |
+|---|---|
+| Abnahmemaße (1280 × 720, 9 Firmen) | Firmen: erste Zeile 221 px (vorher 574, Ziel ≤ 280), 8 Zeilen ganz sichtbar (vorher 2, Ziel ≥ 7), Zeile 56 px, Schrift 14 px (vorher 12); Heute: „Als Nächstes“ bei 184 px (vorher 342, Ziel ≤ 200) |
+| Neuer Browser-Test | `test_ui_firmen_heute_browser.py`: Maße, je genau eine sichtbare Hauptaktion, „Neue Firma“ per Knopf und Strg+K, Filter-/Spalten-/Weitere-Menü, Zeile → Akte → Zurück mit Filter, Enter, Klappzeilen mit Kurzstand, „Erledigt“ ohne Akte, Darstellung, 390 × 844 ohne waagerechtes Scrollen (auch mit offenen Menüs), keine Seitenfehler, keine Abrufe nach außen |
+| Angepasste Erwartungen | `test_focus_leadlist_browser` (Zeile statt Knopf öffnet; Erste Schritte, „Ansicht speichern“/Löschen und Spalten erst aufklappen), `test_formguard_browser` (Spalten aufklappen), `test_reach_browser`, `test_postcalc_browser` (Klappzeilen aufklappen), `test_appearance_browser` (Hell/Dunkel über Einstellungen), `test_v2_appearance` (kein `modeToggle` mehr; `--ui-cols` als Maßvariable), `test_v2_focus` (neue Markierung der Klappzeile), `test_v2_ui_baukasten` (neue Klassen, Rahmen-Abschnitt ohne feste Farben) – keine Prüfung abgeschwächt |
+| Selbst angesehen | Firmen und Heute vorher/nachher in Klassisch hell, Schiefer dunkel, Kontrast (1280 × 720) und 390 × 844; offene Menüs und Klappzeilen; Vergleich mit dem Zielbild |
+| Regression | je 714 Tests unter Python 3.13 und 3.10 (übersprungen wie bisher 4 bzw. 6), Browser 40 von 40 in zwei Läufen hintereinander |
+| Gefunden und behoben | Das Filter-Menü ragte bei 390 px links aus dem Fenster (−27 px), weil es nur rechtsbündig ausweichen konnte; es wird jetzt in das Fenster geschoben. Die Statuszeile hatte den Standardabstand eines Absatzes (Liste bei 194 statt 184 px). Die Akte wurde hinter der Reiterleiste eingehängt, die jetzt in der Kopfzeile steht – sie folgt nun auf die Kopfzeile |
+
+**Selbstbewertung 4 von 5.** Abzug: „Erledigt“ gibt es nur für Aufgaben und Rückrufe (für nächste Schritte einer Firma fehlt ein fachliches „erledigt“ – bewusst nicht erfunden); schmal zeigen die Listen nur Was · Fällig · ›; nur in Chromium geprüft; die Akte zeigt beim Anlegen noch „Neuer Lead“.
+

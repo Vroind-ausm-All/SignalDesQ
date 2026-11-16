@@ -20,7 +20,8 @@
   </aside>
   <div class="nav-scrim" id="navScrim" aria-hidden="true"></div>
   <main class="main">
-    <header class="topbar"><button type="button" class="btn btn-ghost nav-menu" id="navMenuBtn" aria-controls="sideNav" aria-expanded="false">☰ Menü</button><div class="breadcrumb"><span id="areaCrumb">Heute</span> <span>/</span> <span id="sectionBreadcrumb">Übersicht</span></div><div class="top-actions"><button type="button" class="btn btn-ghost gs-open" id="gsOpen" aria-label="Suchen" aria-keyshortcuts="Control+K" title="Firma, Chance, Angebots- oder Rechnungsnummer suchen">⌕<span class="gs-label"> Suchen</span> <kbd>Strg K</kbd></button><div class="date-chip" id="today"></div><button type="button" class="btn btn-ghost mode-toggle" id="modeToggle">☾ Dunkel</button><button class="btn btn-primary" id="newLeadBtn" aria-label="Neuer Lead">＋<span class="top-label">Neuer Lead</span></button></div></header>
+    <!-- 2.0.0-dev50: eine Kopfzeile (52 px) – links die Reiter des Bereichs, rechts die Suche; Brotkrumen nur schmal als Bereichsname -->
+    <header class="topbar"><button type="button" class="btn btn-ghost nav-menu" id="navMenuBtn" aria-controls="sideNav" aria-expanded="false">☰ Menü</button><div class="breadcrumb"><span id="areaCrumb">Heute</span> <span>/</span> <span id="sectionBreadcrumb">Übersicht</span></div>
     <div class="area-bar" id="areaBar">
       <nav class="area-tabs" data-area="heute" aria-label="Heute"><button type="button" class="area-tab" data-area-view="dashboard">Übersicht</button><button type="button" class="area-tab" data-area-view="tasks">Aufgaben <small id="dueBadge"></small></button><button type="button" class="area-tab" data-area-view="workspace">Kontakt &amp; Termine</button></nav>
       <nav class="area-tabs hidden" data-area="finden" aria-label="Finden"><button type="button" class="area-tab" data-area-view="finder">Suche &amp; Sichtung</button><button type="button" class="area-tab" data-area-view="datacheck">Import &amp; Prüfung</button><button type="button" class="area-tab" data-area-view="center">Recherche &amp; Berichte <small class="nav-new" id="rcNavBadge"></small></button><button type="button" class="area-tab" data-area-view="research">URL-Recherche</button><button type="button" class="area-tab" data-area-view="scoring">Website-Scoring</button><button type="button" class="area-tab" data-area-view="signals">Kaufsignale <small class="nav-new" id="sgNavBadge"></small></button></nav>
@@ -29,36 +30,43 @@
       <nav class="area-tabs hidden" data-area="abrechnen" aria-label="Abrechnen"><button type="button" class="area-tab" data-area-view="accounting">Rechnungen &amp; Buchhaltung</button></nav>
       <nav class="area-tabs hidden" data-area="einstellungen" aria-label="Einstellungen"><button type="button" class="area-tab" data-area-view="settings">Profil &amp; Arbeitsweise</button><button type="button" class="area-tab" data-area-view="studio">Erweiterte Werkzeuge: KI-Studio <small class="nav-cap" id="aiNavBadge"></small></button><button type="button" class="area-tab" data-area-view="playbook">Hilfe &amp; Leitfaden</button></nav>
     </div>
-    <div class="content" id="viewDashboard">
-      <div class="eyebrow" id="tdGreeting">DEIN ARBEITSTAG</div>
-      <div class="page-title td-title"><div><h1>Heute.</h1><p>Oben die drei nächsten Schritte mit Grund und Frist – Zugesagtes und Termine vor neuer Akquise. Darunter Eingang, Wiedervorlage und Potenzial; Tagesplan und Tagesabschluss zum Aufklappen.</p></div><button class="btn btn-primary" id="tdNext">Nächster Schritt →</button></div>
-      <section class="panel td-focus" id="tdFocus" aria-labelledby="tdFocusTitle"><div class="panel-header"><h3 id="tdFocusTitle">Als Nächstes</h3><span class="muted" id="tdFocusMore"></span></div>
-        <ol class="td-focus-list" id="tdFocusList"><li class="empty">Wird geladen …</li></ol><p class="muted td-note" id="tdFocusNote"></p></section>
-      <section class="panel td-onb hidden" id="tdOnboarding" aria-labelledby="tdOnbTitle"><div class="panel-header"><h3 id="tdOnbTitle">Erste Schritte</h3><span class="muted" id="tdOnbState"></span></div>
-        <ol class="td-onb-list" id="tdOnbList"></ol><div class="td-onb-foot"><span class="muted">Die Schritte verschwinden von selbst, sobald alles eingerichtet ist.</span><button type="button" class="text-button" id="tdOnbHide">Ausblenden</button></div></section>
-      <div class="td-cols" id="erreichbarkeit">
-        <section class="panel" aria-labelledby="rcInTitle"><div class="panel-header"><h3 id="rcInTitle">Eingang &amp; Rückrufe</h3><span class="muted" id="rcInCount"></span></div>
-          <form id="rcInForm" class="sales-form rc-in-form"><input name="who" maxlength="120" placeholder="Wer hat sich gemeldet?" aria-label="Wer hat sich gemeldet?">
-            <select name="channel" aria-label="Eingangsweg"></select><input name="contact" maxlength="120" placeholder="Rückrufnummer / E-Mail" aria-label="Rückrufnummer oder E-Mail">
-            <select name="lead_id" aria-label="Bekannte Firma"><option value="">– keine bekannte Firma –</option></select>
-            <input name="note" maxlength="1000" placeholder="Worum ging es?" aria-label="Worum ging es?"><button type="submit" class="btn btn-primary">Festhalten</button></form>
-          <div class="td-list" id="rcInList"></div><p class="muted td-note" id="rcInStats"></p></section>
-        <section class="panel" aria-labelledby="rcListTitle"><div class="panel-header"><h3 id="rcListTitle">Als Nächstes kontaktieren</h3><span class="muted" id="rcListCount"></span></div>
-          <div class="td-list" id="rcList"></div><p class="muted td-note" id="rcListNote"></p></section>
+    <div class="top-actions"><button type="button" class="btn btn-ghost gs-open" id="gsOpen" aria-label="Suchen" aria-keyshortcuts="Control+K" title="Firma, Chance, Angebots- oder Rechnungsnummer suchen – oder „Neue Firma anlegen“">⌕<span class="gs-label"> Suchen</span> <kbd>Strg K</kbd></button></div></header>
+    <!-- 2.0.0-dev50: Heute aus dem UI-Baukasten – Seitenkopf, Statuszeile, „Als Nächstes“ als Liste, alles Weitere als Klappzeilen mit Kurzstand -->
+    <div class="content ui-page" id="viewDashboard">
+      <div class="ui-head"><h1>Heute</h1><span class="ui-meta" id="today"></span><span class="ui-sp"></span><button type="button" class="btn btn-primary" id="tdNewInbound" title="Verpassten Anruf oder Anfrage festhalten – mit Rückruffrist">＋ Neuer Eingang</button></div>
+      <div class="ui-tool"><p class="ui-strip" id="tdStrip" role="status" aria-live="polite">Wird geladen …</p></div>
+      <section class="ui-list td-focus" id="tdFocus" aria-labelledby="tdFocusTitle">
+        <div class="ui-row-head" aria-hidden="true"><span id="tdFocusTitle">Als Nächstes</span><span>Warum jetzt</span><span>Fällig</span><span>Phase</span><span></span><span></span></div>
+        <ol class="ui-rows" id="tdFocusList"><li class="ui-empty">Wird geladen …</li></ol></section>
+      <p class="ui-small td-focus-foot"><span id="tdFocusMore"></span> <span id="tdFocusNote"></span></p>
+      <div class="ui-list td-folds">
+        <details class="ui-fold td-onb hidden" id="tdOnboarding"><summary><b id="tdOnbTitle">Erste Schritte</b><span id="tdOnbState"></span></summary><div class="ui-fold-body">
+          <ol class="td-onb-list" id="tdOnbList"></ol><div class="td-onb-foot"><span class="muted">Die Schritte verschwinden von selbst, sobald alles eingerichtet ist.</span><button type="button" class="ui-txt" id="tdOnbHide">Ausblenden</button></div></div></details>
+        <details class="ui-fold" id="erreichbarkeit"><summary><b>Eingang &amp; Rückrufe</b><span id="rcInCount"></span></summary><div class="ui-fold-body td-cols">
+          <section aria-labelledby="rcInTitle"><h3 class="ui-section" id="rcInTitle">Eingang &amp; Rückrufe</h3>
+            <form id="rcInForm" class="sales-form rc-in-form"><input name="who" maxlength="120" placeholder="Wer hat sich gemeldet?" aria-label="Wer hat sich gemeldet?">
+              <select name="channel" aria-label="Eingangsweg"></select><input name="contact" maxlength="120" placeholder="Rückrufnummer / E-Mail" aria-label="Rückrufnummer oder E-Mail">
+              <select name="lead_id" aria-label="Bekannte Firma"><option value="">– keine bekannte Firma –</option></select>
+              <input name="note" maxlength="1000" placeholder="Worum ging es?" aria-label="Worum ging es?"><button type="submit" class="btn btn-ghost">Festhalten</button></form>
+            <div class="td-list" id="rcInList"></div><p class="muted td-note" id="rcInStats"></p></section>
+          <section aria-labelledby="rcListTitle"><h3 class="ui-section" id="rcListTitle">Als Nächstes kontaktieren <span class="muted" id="rcListCount"></span></h3>
+            <div class="td-list" id="rcList"></div><p class="muted td-note" id="rcListNote"></p></section>
+        </div></details>
+        <details class="ui-fold" id="wiedervorlage"><summary><b id="tdWvTitle">Wiedervorlage</b><span id="tdWvCount"></span></summary><div class="ui-fold-body"><div class="td-list" id="tdWv"></div></div></details>
+        <details class="ui-fold" id="tdPotBox"><summary><b id="tdPotTitle">Kapazität &amp; Potenzial</b><span id="tdPotState"></span></summary><div class="ui-fold-body">
+          <div class="rc-cap" id="rcCap"></div>
+          <div class="td-pot-head"><h3 class="ui-section">Offenes Potenzial</h3><button type="button" class="ui-txt" data-go="quotes">Angebote ↗</button></div>
+          <div class="td-pot-kpis" id="tdPotKpis"></div><div class="td-list" id="tdPot"></div><p class="muted td-note" id="tdPotNote"></p>
+          <div class="td-pot-head"><h3 class="ui-section">Pipeline – was steht an?</h3><button type="button" class="ui-txt" data-go="pipeline">Pipeline öffnen ↗</button></div>
+          <div class="td-stages" id="tdStages"></div></div></details>
+        <details class="ui-fold td-plan" id="tagesabschluss"><summary><b id="tdPlanTitle">Tagesplan &amp; Tagesabschluss</b><span><span id="tdPlanState"></span> <span id="tdCloseState"></span></span></summary><div class="ui-fold-body">
+          <div id="tdPlanBox"><div class="td-pot-head"><h3 class="ui-section">Tagesplan</h3><button type="button" class="btn btn-ghost" id="tdNext">Nächster Schritt →</button></div><ol class="td-steps" id="tdSteps"></ol></div>
+          <div class="td-close" id="tdCloseBox"><h3 class="ui-section" id="tdCloseTitle">Tagesabschluss</h3>
+            <p class="muted">Was heute erledigt wurde, was morgen ansteht – und welche Firmen ohne nächsten Schritt liegen bleiben würden.</p>
+            <div id="tdCloseBody"></div></div></div></details>
+        <details class="ui-fold td-status" id="tdStatusBox"><summary><b>Systemstatus</b><span id="tdStatusSummary"></span></summary><div class="ui-fold-body"><div class="td-list" id="tdStatus"></div></div></details>
       </div>
-      <div class="panel rc-cap" id="rcCap"></div>
-      <div class="td-cols">
-        <section class="panel" id="wiedervorlage" aria-labelledby="tdWvTitle"><div class="panel-header"><h3 id="tdWvTitle">Wiedervorlage</h3><span class="muted" id="tdWvCount"></span></div><div class="td-list" id="tdWv"></div></section>
-        <section class="panel" aria-labelledby="tdPotTitle"><div class="panel-header"><h3 id="tdPotTitle">Offenes Potenzial</h3><button class="text-button" data-go="quotes">Angebote ↗</button></div>
-          <div class="td-pot-kpis" id="tdPotKpis"></div><div class="td-list" id="tdPot"></div><p class="muted td-note" id="tdPotNote"></p></section>
-      </div>
-      <details class="panel td-plan" id="tdPlanBox"><summary class="panel-header"><h3 id="tdPlanTitle">Tagesplan</h3><span class="muted" id="tdPlanState"></span></summary><ol class="td-steps" id="tdSteps"></ol></details>
-      <details class="panel td-close" id="tagesabschluss"><summary class="panel-header"><h3 id="tdCloseTitle">Tagesabschluss</h3><span class="muted" id="tdCloseState"></span></summary>
-        <p class="muted">Was heute erledigt wurde, was morgen ansteht – und welche Firmen ohne nächsten Schritt liegen bleiben würden.</p>
-        <div id="tdCloseBody"></div></details>
-      <div class="section-heading"><div><span class="eyebrow">DEAL FLOW · KLICKBAR</span><h2>Pipeline – was steht an?</h2></div><button class="text-button" data-go="pipeline">Pipeline öffnen ↗</button></div>
-      <div class="td-stages" id="tdStages"></div>
-      <details class="panel td-status"><summary><b>Was funktioniert gerade?</b> <span class="muted" id="tdStatusSummary"></span></summary><div class="td-list" id="tdStatus"></div></details>
+      <p class="ui-small">So liest du „Heute“: oben die drei nächsten Schritte mit Grund und Frist – Zugesagtes und Termine vor neuer Akquise. Ein Klick auf die Zeile öffnet die Akte, „Erledigt“ hakt eine Aufgabe oder einen Rückruf ab. Eingang, Wiedervorlage, Kapazität, Tagesplan und Tagesabschluss stehen darunter zum Aufklappen.</p>
       <div class="legal-foot"><b>Wichtig:</b> Scores und Prioritäten sind nachvollziehbare Arbeitshilfen, keine Kaufwahrscheinlichkeit. Ein öffentlich sichtbares Signal ist keine Einwilligung zur Werbeansprache – jede Kontaktaktion braucht eine eigene Freigabe.</div>
     </div>
 
@@ -88,7 +96,25 @@
       <section class="panel research-report" id="researchReport" aria-live="polite"><div class="research-welcome"><div class="research-welcome-icon">◎</div><h2>Dein Recherchebericht erscheint hier</h2><p>Die Ergebnisse zeigen nur öffentlich belegte Daten. Aussagen über Kaufinteresse, Budget oder unbeobachtete Schwachstellen werden nicht erfunden.</p></div></section>
       <section class="panel research-history"><div class="studio-section-head"><div><span class="eyebrow">VERLAUF</span><h2>Gespeicherte Recherchen</h2></div><button type="button" class="text-button" id="researchRefresh">Aktualisieren ↻</button></div><div id="researchHistory" class="research-history-list"><span class="muted">Noch keine Recherchen.</span></div></section>
     </div>
-    <div class="content hidden" id="viewLeads"><div class="eyebrow">FIRMEN · ARBEITSLISTE</div><div class="page-title"><div><h1>Firmen.</h1><p>Deine Arbeitsmenge: nächster Schritt, Phase, Passung und letzter Kontakt auf einen Blick. Arbeitsansichten filtern, eigene Ansichten speichern – Unbekanntes bleibt sichtbar unbekannt.</p></div><button class="btn btn-primary" id="newLeadBtn2">＋ Lead hinzufügen</button></div><div class="toolbar"><input id="leadSearch" class="search" placeholder="⌕   Firma, Signal oder Notiz suchen…"><select id="stageFilter" aria-label="Status filtern"><option value="">Alle Phasen</option></select><button id="resetFilter" class="btn btn-ghost">Zurücksetzen</button><label class="import-label btn btn-ghost">CSV importieren<input type="file" id="csvImport" accept=".csv,text/csv" hidden></label></div><div class="ll-views" id="leadViews" role="group" aria-label="Arbeitsansichten"></div><div class="ll-bar"><div class="ll-info" id="leadFilterInfo" role="status" aria-live="polite"></div><div class="ll-cols">Weitere Spalten: <label><input type="checkbox" data-ll-col="signal"> Kaufsignal</label> <label><input type="checkbox" data-ll-col="offer"> Leistung</label></div></div><div class="panel table-wrap"><table><thead id="leadHead"><tr><th>FIRMA</th><th>NÄCHSTER SCHRITT</th><th>PHASE</th><th>PASSUNG</th><th>LETZTER KONTAKT</th><th> </th></tr></thead><tbody id="leadRows"></tbody></table></div><div class="inline-info">Reihenfolge nach Passung zum Zielkundenprofil (A vor B, Unbekanntes vor „passt kaum“). Unbekannte Angaben zählen nicht als schlecht. Die Passung ist keine Kaufwahrscheinlichkeit.</div></div>
+    <!-- 2.0.0-dev50: Firmenliste aus dem UI-Baukasten – Seitenkopf mit einer Hauptaktion, Werkzeugzeile (Suche · Ansichten · Filter · Spalten), Liste mit 56-px-Zeilen -->
+    <div class="content ui-page hidden" id="viewLeads">
+      <div class="ui-head"><h1 title="Deine Arbeitsmenge: nächster Schritt, Fälligkeit, Phase und Passung auf einen Blick">Firmen</h1><span class="ui-meta ll-info" id="leadFilterInfo" role="status" aria-live="polite"></span><span class="ui-sp"></span><button type="button" class="btn btn-primary" id="newLeadBtn">＋ Neue Firma</button></div>
+      <div class="ui-tool">
+        <input id="leadSearch" class="ui-search" type="search" placeholder="⌕ Firma, Signal oder Notiz suchen …" aria-label="Firmen durchsuchen">
+        <div class="ui-tabs" id="leadViews" role="group" aria-label="Arbeitsansichten"></div>
+        <details class="ui-menu" id="leadMore"><summary class="btn btn-ghost" id="leadMoreBtn">Weitere ▾</summary><div class="ui-menu-body" id="leadMoreBody" role="group" aria-label="Weitere Ansichten"></div></details>
+        <details class="ui-menu" id="leadFilterMenu"><summary class="btn btn-ghost">Filter ▾</summary><div class="ui-menu-body" role="group" aria-label="Filter">
+          <label class="ui-menu-field">Phase<select id="stageFilter" aria-label="Phase filtern"><option value="">Alle Phasen</option></select></label>
+          <button type="button" id="resetFilter" class="ui-menu-item">Zurücksetzen</button>
+          <label class="ui-menu-item import-label">CSV importieren …<input type="file" id="csvImport" accept=".csv,text/csv" hidden></label></div></details>
+        <details class="ui-menu" id="leadColsMenu"><summary class="btn btn-ghost">Spalten ▾</summary><div class="ui-menu-body ll-cols" role="group" aria-label="Weitere Spalten">
+          <label class="ui-menu-item"><input type="checkbox" data-ll-col="last"> Letzter Kontakt</label>
+          <label class="ui-menu-item"><input type="checkbox" data-ll-col="signal"> Kaufsignal</label>
+          <label class="ui-menu-item"><input type="checkbox" data-ll-col="offer"> Leistung</label></div></details>
+      </div>
+      <div class="ui-list"><table class="ui-table" id="leadTable"><thead id="leadHead"><tr class="ui-row-head"><th>FIRMA</th><th>NÄCHSTER SCHRITT</th><th>FÄLLIG</th><th>PHASE</th><th>PASSUNG</th><th><span class="ui-sr">Öffnen</span></th></tr></thead><tbody id="leadRows"></tbody></table></div>
+      <p class="ui-small">Deine Arbeitsmenge: nächster Schritt, Fälligkeit, Phase und Passung auf einen Blick. Häufige Arbeitsansichten stehen als Reiter oben, weitere und eigene Ansichten unter „Weitere“; Phase, Zurücksetzen und CSV-Import unter „Filter“, zusätzliche Spalten unter „Spalten“. Reihenfolge nach Passung zum Zielkundenprofil (A vor B, Unbekanntes vor „passt kaum“). Unbekannte Angaben zählen nicht als schlecht. Die Passung ist keine Kaufwahrscheinlichkeit.</p>
+    </div>
     <div class="content hidden" id="viewPipeline">
       <div class="eyebrow">VON DER ERSTEN IDEE ZUM ERSTEN AUFTRAG</div>
       <div class="page-title"><div><h1>Deal-Pipeline</h1><p>Jede Firma hat einen Status. Verschiebe sie bewusst und halte den nächsten Schritt fest.</p></div><button class="btn btn-primary" id="pipelineNewLead">＋ Lead anlegen</button></div>
@@ -822,6 +848,7 @@
 <script src="/formguard.js" defer></script>
 <script src="/workday.js" defer></script>
 <script src="/leadlist.js" defer></script>
+<script src="/uikit.js" defer></script>
 <script src="/aktepage.js" defer></script>
 <script src="/calendar.js" defer></script>
 <script src="/pilot.js" defer></script>

@@ -43,11 +43,8 @@
     catch(e){current=before;apply();writeLocal(current);if(window.toast)window.toast(e.message,true)}
   }
 
-  function label(list,id){const f=(list||[]).find(x=>x.id===id);return f?f.label:id}
-
   function syncControls(){
-    const btn=document.getElementById('modeToggle');
-    if(btn){const d=dark();btn.textContent=d?'☀ Hell':'☾ Dunkel';btn.setAttribute('aria-label',d?'Zum hellen Modus wechseln':'Zum dunklen Modus wechseln');btn.title='Darstellung: '+label(options&&options.themes,current.theme)+' · '+label(options&&options.modes,current.mode)}
+    // 2.0.0-dev50: kein Umschalter mehr in der Kopfzeile – Hell/Dunkel/System nur unter Einstellungen → Darstellung
     document.querySelectorAll('[data-ap-theme]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.apTheme===current.theme)));
     document.querySelectorAll('[data-ap-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.apMode===current.mode)));
     document.querySelectorAll('[data-ap-density]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.apDensity===current.density)));
@@ -71,10 +68,9 @@
   }
 
   document.addEventListener('click',e=>{
-    const t=e.target.closest('[data-ap-theme],[data-ap-mode],[data-ap-density],#modeToggle');
+    const t=e.target.closest('[data-ap-theme],[data-ap-mode],[data-ap-density]');
     if(!t)return;
-    if(t.id==='modeToggle')set({mode:dark()?'hell':'dunkel'});
-    else if(t.dataset.apTheme)set({theme:t.dataset.apTheme});
+    if(t.dataset.apTheme)set({theme:t.dataset.apTheme});
     else if(t.dataset.apMode)set({mode:t.dataset.apMode});
     else if(t.dataset.apDensity)set({density:t.dataset.apDensity});
   });

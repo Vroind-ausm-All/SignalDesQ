@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev49)
+# Bekannte Einschränkungen (Stand 2.0.0-dev50)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -301,3 +301,14 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Die Schublade mit den sechs Bereichen gibt es nur bis 520 px Breite. Zwischen 521 und 790 px bleibt die schmale Seitenleiste mit Symbolen wie bisher.
 - Bei schmaler Breite zeigt die Kopfzeile nur den Bereich (nicht die Ansicht) und „Neuer Lead“ nur als „＋“; die Ansicht steht in den Reitern darunter.
 - Geprüft in Chromium (Playwright) bei 390 × 844 und 1280 × 720; auf echten Smartphones und anderen Browsern nicht getestet.
+
+## Firmen und Heute im neuen Aufbau (2.0.0-dev50)
+
+- Nur Rahmen, Firmenliste und Heute sind auf den Baukasten umgestellt. Finden, Pipeline, Datenpflege, Aufgaben, Kontakt & Termine, Angebote, Abrechnen, Einstellungen und die Firmenakte haben noch den alten Aufbau (Schritte 3–6) und dort steht weiter „Lead“ (z. B. „Neuer Lead“ als Titel des Anlegens in der Akte, „Lead gespeichert“).
+- „Erledigt“ in „Als Nächstes“ gibt es nur für Aufgaben und Eingänge/Rückrufe – nur dafür hat SignalDesk ein Abhaken. Nächste Schritte einer Firma, Termine und Angebote erledigst du wie bisher in der Akte bzw. im Angebot; dort steht in der Zeile das Ziel („Angebot öffnen“, „Anruf dokumentieren“) oder nichts, wenn die Zeile ohnehin die Akte öffnet.
+- „Letzter Kontakt“ ist in der Firmenliste keine Standardspalte mehr, sondern unter „Spalten ▾“ zuschaltbar (gemerkt in diesem Browser).
+- Bis 520 px Breite zeigen beide Listen nur Was · Fällig · ›; nächster Schritt, Phase, Passung und „Erledigt“ stehen dann in der Akte bzw. unter „Heute → Aufgaben“.
+- Die Klappzeilen auf „Heute“ sind nach jedem Neuladen zu; welche du offen hattest, merkt sich SignalDesk nicht.
+- Hell/Dunkel wechselst du nur noch unter Einstellungen → Darstellung (der Umschalter in der Kopfzeile entfiel).
+- Geprüft in Chromium (Playwright) bei 1280 × 720 und 390 × 844; nicht auf echten Geräten und nicht in anderen Browsern.
+

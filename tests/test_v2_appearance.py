@@ -31,7 +31,7 @@ CSS = (PUBLIC / 'style.css').read_text(encoding='utf-8')
 THEMES = ('klassisch', 'schiefer', 'sand', 'kontrast')
 HEX = re.compile(r'#[0-9a-fA-F]{3,8}\b')
 # 2.0.0-dev49: Maße des UI-Baukastens stehen im Grundblock, sind aber keine Farbrollen – der Dunkelmodus muss sie nicht wiederholen.
-LAYOUT_TOKENS = ('--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--row', '--ctl', '--side')
+LAYOUT_TOKENS = ('--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--row', '--ctl', '--side', '--ui-cols')  # dev50: Listenspalten
 
 
 def _strip(css):
@@ -146,7 +146,9 @@ class PageTests(unittest.TestCase):
         self.assertIn('<script src="/theme.js"></script>', head)
         self.assertLess(head.index('/theme.js'), head.index('/style.css'))
         self.assertNotIn('defer', head[head.index('/theme.js') - 20:head.index('/theme.js') + 20])
-        self.assertIn('id="modeToggle"', html)
+        # 2.0.0-dev50: kein Hell/Dunkel-Umschalter mehr in der Kopfzeile – die Wahl steht unter Einstellungen → Darstellung
+        self.assertNotIn('id="modeToggle"', html)
+        self.assertIn('data-ap-mode', (PUBLIC / 'theme.js').read_text(encoding='utf-8'))
         self.assertIn('id="apPanel"', html)
 
     def test_release_contains_new_files(self):

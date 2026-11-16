@@ -43,6 +43,8 @@ class PostcalcBrowserTests(unittest.TestCase):
                         page.on('pageerror', lambda exc: errors.append(str(exc)))
                         page.on('console', lambda m: errors.append(m.text) if m.type == 'error' else None)
                         page.goto(f'http://127.0.0.1:{server.server_port}')
+                        page.wait_for_load_state('networkidle')
+                        page.locator('#tdPotBox > summary').click()  # 2.0.0-dev50: Kapazität & Potenzial als Klappzeile
                         page.locator('#rcCap', has_text='Zugesagt 20 h').wait_for(timeout=15000)  # ohne Zeiten: volle Kalkulation
 
                         page.locator('[data-view="quotes"]').click()
