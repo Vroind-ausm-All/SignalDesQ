@@ -217,6 +217,47 @@
     markArea(route.view || 'dashboard');
     if (route.view) apply(route);
   }
+  // ---- 2.0.0-dev49: Hauptnavigation bei schmaler Breite als Schublade
+  // Unter 521 px ist die Seitenleiste ausgeblendet; „☰ Menü“ in der Kopfzeile öffnet sie von links. Schließen per Knopf,
+  // Escape, Klick auf den abgedunkelten Hintergrund oder Wahl eines Bereichs; der Fokus kehrt dann auf den Menü-Knopf zurück.
+  // Auf breiten Bildschirmen ist der Knopf unsichtbar und die Seitenleiste unverändert.
+  function drawer() {
+    const btn = document.getElementById('navMenuBtn'), side = document.getElementById('sideNav');
+    const main = document.querySelector('.main');
+    if (!btn || !side) return;
+    const narrow = window.matchMedia('(max-width: 520px)');
+    const isOpen = () => document.body.classList.contains('nav-open');
+    function open() {
+      document.body.classList.add('nav-open');
+      btn.setAttribute('aria-expanded', 'true');
+      if (main) main.inert = true;  // Tab bleibt in der Schublade, der Inhalt dahinter ist nicht bedienbar
+      const target = side.querySelector('.nav[aria-current="page"]') || side.querySelector('.nav[data-area]');
+      if (target) target.focus();
+    }
+    function close(focusButton = true) {
+      if (!isOpen()) return;
+      document.body.classList.remove('nav-open');
+      btn.setAttribute('aria-expanded', 'false');
+      if (main) main.inert = false;
+      if (focusButton && narrow.matches) btn.focus();
+    }
+    btn.addEventListener('click', () => (isOpen() ? close() : open()));
+    document.getElementById('navClose')?.addEventListener('click', () => close());
+    document.getElementById('navScrim')?.addEventListener('click', () => close());
+    // Bereich oder Hilfe gewählt: der Wechsel selbst läuft über die vorhandenen Klick-Handler (app.js, oben)
+    side.addEventListener('click', e => { if (isOpen() && e.target.closest('.nav[data-area], .nav-help, [data-view-link]')) close(); });
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape' || !isOpen()) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      close();
+    }, true);
+    // Fenster wieder breit: Schublade ohne Fokuswechsel schließen
+    const onChange = () => { if (!narrow.matches) close(false); };
+    if (narrow.addEventListener) narrow.addEventListener('change', onChange); else narrow.addListener(onChange);
+  }
+  drawer();
+
   const ready = window.appReady && typeof window.appReady.then === 'function' ? window.appReady : Promise.resolve();
   ready.then(() => (document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', start) : start()));
 

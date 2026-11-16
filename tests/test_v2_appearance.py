@@ -30,6 +30,8 @@ PUBLIC = ROOT / 'sales_tool' / 'public'
 CSS = (PUBLIC / 'style.css').read_text(encoding='utf-8')
 THEMES = ('klassisch', 'schiefer', 'sand', 'kontrast')
 HEX = re.compile(r'#[0-9a-fA-F]{3,8}\b')
+# 2.0.0-dev49: Maße des UI-Baukastens stehen im Grundblock, sind aber keine Farbrollen – der Dunkelmodus muss sie nicht wiederholen.
+LAYOUT_TOKENS = ('--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--row', '--ctl', '--side')
 
 
 def _strip(css):
@@ -109,7 +111,7 @@ class StylesheetTests(unittest.TestCase):
         base = TOKENS[':root']
         self.assertEqual(sorted(used - set(base)), [])
         dark = TOKENS[':root[data-mode="dark"]']
-        missing = sorted(k for k in base if k not in dark and k != '--toast-error')
+        missing = sorted(k for k in base if k not in dark and k != '--toast-error' and k not in LAYOUT_TOKENS)
         self.assertEqual(missing, [], 'Dunkelmodus muss jede Farbrolle setzen')
         for theme in THEMES[1:]:
             self.assertIn(f':root[data-theme="{theme}"]', TOKENS)

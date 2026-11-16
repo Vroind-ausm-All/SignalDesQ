@@ -3,8 +3,9 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d2026"><title>SignalDesk · Akquise Cockpit</title><link rel="icon" href="/favicon.svg"><script src="/theme.js"></script><link rel="stylesheet" href="/style.css"></head>
 <body>
 <div class="layout">
-  <aside class="sidebar">
-    <div class="brand"><div class="brand-mark">↗</div><div><b>SignalDesk</b><small>Akquise Cockpit / 2026</small></div></div>
+  <!-- 2.0.0-dev49: bei schmaler Breite öffnet „☰ Menü“ (Kopfzeile) diese Seitenleiste als Schublade von links (nav.js) -->
+  <aside class="sidebar" id="sideNav">
+    <div class="brand"><div class="brand-mark">↗</div><div><b>SignalDesk</b><small>Akquise Cockpit / 2026</small></div><button type="button" class="nav-close" id="navClose">✕ Schließen</button></div>
         <nav aria-label="Hauptnavigation">
       <!-- 2.0.0-dev14 (Review M07): sechs Bereiche; die Ansichten eines Bereichs stehen als Reiter oben (#areaBar) -->
       <button class="nav active" data-view="dashboard" data-area="heute"><span>◈</span> Heute <small class="nav-new" id="tdNavBadge"></small></button>
@@ -17,8 +18,9 @@
     <button type="button" class="nav-help" data-view-link="playbook">? Hilfe &amp; Gesprächsleitfaden</button>
     <div class="side-bottom"><span class="live-dot"></span> Lokal & privat <p>Optionale lokale KI · Kein Auto-Versand<br>SQLite auf deinem Rechner</p><small id="sideVersion">v2.0 · Entwicklungsstand</small><div id="authBar" class="auth-bar hidden"></div></div>
   </aside>
+  <div class="nav-scrim" id="navScrim" aria-hidden="true"></div>
   <main class="main">
-    <header class="topbar"><div class="breadcrumb"><span id="areaCrumb">Heute</span> <span>/</span> <span id="sectionBreadcrumb">Übersicht</span></div><div class="top-actions"><button type="button" class="btn btn-ghost gs-open" id="gsOpen" aria-label="Suchen" aria-keyshortcuts="Control+K" title="Firma, Chance, Angebots- oder Rechnungsnummer suchen">⌕<span class="gs-label"> Suchen</span> <kbd>Strg K</kbd></button><div class="date-chip" id="today"></div><button type="button" class="btn btn-ghost mode-toggle" id="modeToggle">☾ Dunkel</button><button class="btn btn-primary" id="newLeadBtn">＋ Neuer Lead</button></div></header>
+    <header class="topbar"><button type="button" class="btn btn-ghost nav-menu" id="navMenuBtn" aria-controls="sideNav" aria-expanded="false">☰ Menü</button><div class="breadcrumb"><span id="areaCrumb">Heute</span> <span>/</span> <span id="sectionBreadcrumb">Übersicht</span></div><div class="top-actions"><button type="button" class="btn btn-ghost gs-open" id="gsOpen" aria-label="Suchen" aria-keyshortcuts="Control+K" title="Firma, Chance, Angebots- oder Rechnungsnummer suchen">⌕<span class="gs-label"> Suchen</span> <kbd>Strg K</kbd></button><div class="date-chip" id="today"></div><button type="button" class="btn btn-ghost mode-toggle" id="modeToggle">☾ Dunkel</button><button class="btn btn-primary" id="newLeadBtn" aria-label="Neuer Lead">＋<span class="top-label">Neuer Lead</span></button></div></header>
     <div class="area-bar" id="areaBar">
       <nav class="area-tabs" data-area="heute" aria-label="Heute"><button type="button" class="area-tab" data-area-view="dashboard">Übersicht</button><button type="button" class="area-tab" data-area-view="tasks">Aufgaben <small id="dueBadge"></small></button><button type="button" class="area-tab" data-area-view="workspace">Kontakt &amp; Termine</button></nav>
       <nav class="area-tabs hidden" data-area="finden" aria-label="Finden"><button type="button" class="area-tab" data-area-view="finder">Suche &amp; Sichtung</button><button type="button" class="area-tab" data-area-view="datacheck">Import &amp; Prüfung</button><button type="button" class="area-tab" data-area-view="center">Recherche &amp; Berichte <small class="nav-new" id="rcNavBadge"></small></button><button type="button" class="area-tab" data-area-view="research">URL-Recherche</button><button type="button" class="area-tab" data-area-view="scoring">Website-Scoring</button><button type="button" class="area-tab" data-area-view="signals">Kaufsignale <small class="nav-new" id="sgNavBadge"></small></button></nav>

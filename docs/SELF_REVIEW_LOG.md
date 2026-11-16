@@ -959,3 +959,18 @@ Befund aus dem Bildschirmfoto des Eigentümers: GLEIF 300 von 300, alle anderen 
 | Lehre | Prüfungen müssen denselben Weg nehmen wie die Anwendung (hier: Auftragsdienst statt Direktaufruf) |
 
 **Selbstbewertung 4 von 5.** Ursache belegt und behoben; die Wirkung auf die Website-Quote am echten Auszug misst erst die nächste Suche des Eigentümers.
+
+## Arbeitspaket 48 – Baukasten und mobile Navigation (2.0.0-dev49)
+
+Schritt 1 der Etappe „Visuelle Konsolidierung und Aufgabenführung“. Blocker aus der UX-Durchsicht: bei 390 px Breite war keiner der sechs Bereiche außer dem aktuellen erreichbar, weil die Seitenleiste unter 521 px ausgeblendet ist. Dazu der Baukasten aus dem abgestimmten Prototyp als gemeinsame CSS-Grundlage – nur bereitgestellt, noch keine Ansicht umgebaut.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Neue Tests | `tests/test_v2_ui_baukasten.py` (6): Maße im Grundblock und nur einmal definiert, alle Bausteinklassen vorhanden und mit Präfix `ui-`, neue Regeln ohne feste Farben und nur mit definierten Variablen, Dokument nennt die sieben Bausteine und Messwerte, Menü-Knopf mit `aria-controls`/`aria-expanded`, keine Inline-Handler, Dokument im Release |
+| Browser | neu `test_mobile_nav_browser.py`: 390 × 844 – Knopf sichtbar, kein waagerechtes Scrollen, Öffnen zeigt sechs Bereiche mit Markierung und Fokus in der Schublade, „Angebote“ wechselt Adresse und schließt, Escape schließt mit Fokus auf dem Knopf, Hintergrund und „Schließen“ schließen, Zurück im Browser unverändert; 1280 × 720 – Knopf unsichtbar, Seitenleiste 238 px wie bisher; keine Seitenfehler, keine Abrufe nach außen |
+| Selbst angesehen | Bildschirmfotos 390 px (zu, offen) in Klassisch hell und dunkel, Schiefer dunkel, Kontrast dunkel, Sand hell; 1280 px vor und nach der Änderung pixelweise verglichen (nur Subpixel-Abweichung im Datumsfeld) |
+| Regression | je 714 Tests unter Python 3.13 und 3.10 (übersprungen wie bisher 4 bzw. 6), 39 von 39 Browser-Tests |
+| Gefunden und behoben | Beim Einfügen der Maße in den Theme-Grundblock fehlte nach `--card-shadow` das Semikolon – der Schatten wäre ungültig geworden; der Darstellungs-Test hat es gemeldet. Der Test „Dunkelmodus setzt jede Farbrolle“ nimmt die neun Maßvariablen jetzt ausdrücklich aus (sie sind keine Farben) |
+
+**Selbstbewertung 4 von 5.** Abzug: nur in Chromium geprüft, nicht auf echten Geräten; der Baukasten ist bis Schritt 2 ungenutzt, seine Wirkung auf die Messwerte des Zielbilds ist also noch nicht belegt.
+
