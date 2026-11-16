@@ -7,20 +7,23 @@
 (function () {
   const AREAS = [
     {key: 'heute', label: 'Heute', views: ['dashboard', 'tasks', 'workspace']},
-    {key: 'finden', label: 'Finden', views: ['finder', 'datacheck', 'center', 'research', 'scoring', 'signals', 'report']},
+    // 2.0.0-dev51 (UX Schritt 3): Finden hat vier Reiter – Sichten · Neue Suche · Import · Analysen (Recherche, URL-Recherche,
+    // Website-Scoring, Kaufsignale, Bericht als Unteransichten). Alle bisherigen Adressen gelten weiter.
+    {key: 'finden', label: 'Finden', views: ['sichten', 'finder', 'datacheck', 'center', 'research', 'scoring', 'signals', 'report']},
     {key: 'firmen', label: 'Firmen', views: ['leads', 'pipeline', 'quality']},
     {key: 'angebote', label: 'Angebote', views: ['quotes']},
     {key: 'abrechnen', label: 'Abrechnen', views: ['accounting']},
     {key: 'einstellungen', label: 'Einstellungen', views: ['settings', 'studio', 'playbook']},
   ];
   const SLUG = {dashboard: 'heute', tasks: 'heute/aufgaben', workspace: 'heute/kontakt-termine',
-    finder: 'finden', datacheck: 'finden/import', center: 'finden/recherche', research: 'finden/url-recherche',
+    sichten: 'finden/sichten', finder: 'finden/neue-suche', datacheck: 'finden/import', center: 'finden/recherche', research: 'finden/url-recherche',
     scoring: 'finden/website-scoring', signals: 'finden/kaufsignale', report: 'finden/bericht',
     leads: 'firmen', pipeline: 'firmen/pipeline', quality: 'firmen/datenpflege',
     quotes: 'angebote', accounting: 'abrechnen',
     settings: 'einstellungen', studio: 'einstellungen/ki-studio', playbook: 'einstellungen/hilfe'};
   const BY_SLUG = Object.fromEntries(Object.entries(SLUG).map(([v, s]) => [s, v]));
   const AREA_OF = Object.fromEntries(AREAS.flatMap(a => a.views.map(v => [v, a.key])));
+  const ANALYSEN = ['center', 'research', 'scoring', 'signals', 'report'];  // 2.0.0-dev51: Unteransichten des Reiters „Analysen“
   const scrollOf = {};
   let fromHistory = false, pushedLead = false, ignorePop = 0, restoringOffer = null;
 
@@ -34,6 +37,8 @@
     // 2.0.0-dev40 (M07 B): Firmenakte als eigene Seite – #/firmen/akte/ID (ältere Adressen mit ?firma=ID gelten weiter)
     const akte = path.replace(/\/+$/, '').match(/^firmen\/akte\/(\d+)$/);
     if (akte) { params.set('firma', akte[1]); return {view: 'leads', params, akte: true}; }
+    // 2.0.0-dev51: #/finden führt zu „Sichten“, wenn offene Treffer warten, sonst zu „Neue Suche“ (Entscheidung in apply)
+    if (path.replace(/\/+$/, '') === 'finden') return {view: 'finder', params, entry: true};
     return {view: BY_SLUG[path.replace(/\/+$/, '')] || null, params};
   }
   // Filter der Firmenliste wandern mit, damit Neuladen und „← Zurück“ wieder die gefilterte Liste zeigen
@@ -63,8 +68,14 @@
     // 2.0.0-dev50: Reiter stehen in der Kopfzeile; ein Bereich mit nur einer Ansicht zeigt keine Reiterleiste
     document.querySelectorAll('#areaBar .area-tabs').forEach(n => n.classList.toggle('hidden', n.dataset.area !== area || n.querySelectorAll('[data-area-view]').length < 2));
     document.querySelectorAll('#areaBar [data-area-view]').forEach(b => {
-      const on = b.dataset.areaView === view || (view === 'report' && b.dataset.areaView === 'center');
+      const on = b.dataset.areaView === view || (ANALYSEN.includes(view) && b.dataset.areaGroup === 'analysen');
       b.classList.toggle('active', on);
+      if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    // Reiterzeile „Analysen“ (steht in der sichtbaren Analyse-Ansicht): Bericht gehört zu „Recherche & Berichte“
+    document.querySelectorAll('.fd-an [data-area-view]').forEach(b => {
+      const on = b.dataset.areaView === view || (view === 'report' && b.dataset.areaView === 'center');
+      b.classList.toggle('is-active', on);
       if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
     const crumb = document.getElementById('areaCrumb');
@@ -118,6 +129,10 @@
   async function apply(route) {
     let view = route.view || 'dashboard';
     if (view === 'report') view = 'center';  // Bericht ohne Firma: Übersicht der Berichte
+    if (route.entry && window.findenEntry) {  // 2.0.0-dev51: Einstieg in „Finden“ nach offenen Treffern
+      view = await window.findenEntry(true);
+      history.replaceState(null, '', build(view, route.params));
+    }
     fromHistory = true;
     try {
       if (view === 'leads') {
@@ -184,7 +199,8 @@
       const btn = document.querySelector(`.sidebar .nav[data-area="${a.key}"] .nav-dot`);
       if (!btn) continue;
       // nur Zähler („neu“, fällige Aufgaben), nicht Statusangaben wie die KI-Verfügbarkeit
-      const any = [...document.querySelectorAll(`#areaBar .area-tabs[data-area="${a.key}"] small.nav-new, #areaBar .area-tabs[data-area="${a.key}"] #dueBadge`)].some(s => s.textContent.trim());
+      const any = [...document.querySelectorAll(`#areaBar .area-tabs[data-area="${a.key}"] small.nav-new, #areaBar .area-tabs[data-area="${a.key}"] #dueBadge`)].some(s => s.textContent.trim())
+        || (a.key === 'finden' && !!document.getElementById('sgNavBadge')?.textContent.trim());  // 2.0.0-dev51: Kaufsignale stehen unter „Analysen“
       btn.textContent = any ? '•' : '';
     }
   }
@@ -212,6 +228,8 @@
     wrapOffer();
     const bar = document.getElementById('areaBar');
     if (bar) new MutationObserver(dots).observe(bar, {subtree: true, childList: true, characterData: true});
+    const sg = document.getElementById('sgNavBadge');
+    if (sg) new MutationObserver(dots).observe(sg, {subtree: true, childList: true, characterData: true});
     dots();
     const route = parse(location.hash);
     if (!route.view) history.replaceState(null, '', build(typeof currentView !== 'undefined' ? currentView : 'dashboard'));

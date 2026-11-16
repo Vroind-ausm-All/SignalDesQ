@@ -106,6 +106,12 @@ class UiWorkdayTest(unittest.TestCase):
             # Profil mit Budget speichern und starten
             page.click('[data-view=finder]')
             page.wait_for_timeout(800)
+            # 2.0.0-dev51: mit offenen Treffern öffnet „Finden“ die Sichtung; das Formular steht unter „Neue Suche“,
+            # Quellen, Budget und Suchprofile als Klappzeilen
+            self.assertEqual(page.evaluate('() => currentView'), 'sichten')
+            page.click('#areaBar [data-area-view=finder]')
+            page.click('#fdSrcFold > summary')
+            page.click('#fdProfFold > summary')
             page.fill('#swForm [name=place]', '70173')
             for cb in page.query_selector_all('#swForm [name=src]'):
                 cb.check() if cb.get_attribute('value') == 'gleif' else cb.uncheck()
@@ -118,7 +124,10 @@ class UiWorkdayTest(unittest.TestCase):
             page.wait_for_timeout(2300)
             self.assertIn('neue Firmen', page.text_content('.sw-budget-line'))
             # Firmendaten-Übertragung: Website-Vorschlag nach der Übernahme in der Akte bestätigen
+            page.click('#swProgress [data-sw-show]')  # dev51: Treffer unter „Sichten“, Suchlauf-Filter unter „Filter ▾“
+            page.click('#swFilterMenu > summary')
             page.select_option('#swSweep', '')
+            page.keyboard.press('Escape')  # Menü schließen (Auswahllisten schließen es nicht von selbst)
             page.wait_for_timeout(600)
             page.locator('.sw-item', has_text='Kesselwerk Anlagenbau').locator('[data-sw-do=uebernehmen]').click()
             page.wait_for_timeout(800)
@@ -179,7 +188,7 @@ class UiWorkdayTest(unittest.TestCase):
             page.wait_for_timeout(500)
             # Handyansicht
             page.set_viewport_size({'width': 390, 'height': 844})
-            for view in ('dashboard', 'finder', 'quality', 'settings'):
+            for view in ('dashboard', 'finder', 'sichten', 'quality', 'settings'):
                 page.evaluate('v => switchView(v)', view)
                 page.wait_for_timeout(500)
                 self.assertFalse(page.evaluate('() => document.documentElement.scrollWidth > window.innerWidth + 1'), view)

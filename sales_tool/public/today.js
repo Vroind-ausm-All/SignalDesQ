@@ -74,7 +74,7 @@
       if (lead) setTimeout(() => $(`[data-rc-open="${lead}"]`)?.click(), 900);
       return;
     }
-    switchView(a.view);
+    switchView(a.view === 'finder' && window.areaEntry ? window.areaEntry('finder') : a.view);  // 2.0.0-dev51: offene Treffer → Sichten
     // 2.0.0-dev14: Sprungziel innerhalb der Ansicht, z. B. Einstellungen → Zielkundenprofil
     if (a.anchor) setTimeout(() => reveal($('#' + a.anchor))?.scrollIntoView({behavior: 'smooth', block: 'start'}), 80);
   };

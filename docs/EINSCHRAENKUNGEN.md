@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev50)
+# Bekannte Einschränkungen (Stand 2.0.0-dev51)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -310,5 +310,16 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Bis 520 px Breite zeigen beide Listen nur Was · Fällig · ›; nächster Schritt, Phase, Passung und „Erledigt“ stehen dann in der Akte bzw. unter „Heute → Aufgaben“.
 - Die Klappzeilen auf „Heute“ sind nach jedem Neuladen zu; welche du offen hattest, merkt sich SignalDesk nicht.
 - Hell/Dunkel wechselst du nur noch unter Einstellungen → Darstellung (der Umschalter in der Kopfzeile entfiel).
+- Geprüft in Chromium (Playwright) bei 1280 × 720 und 390 × 844; nicht auf echten Geräten und nicht in anderen Browsern.
+
+## Finden im neuen Aufbau (2.0.0-dev51)
+
+- Umgestellt sind „Sichten“ und „Neue Suche“. Die Unteransichten von „Analysen“ (Recherche & Berichte, URL-Recherche, Website-Scoring, Kaufsignale, Bericht) und „Import“ haben noch den alten Aufbau; neu ist dort nur die Reiterzeile bzw. der Abschnitt „Firmenliste importieren“. Auch „Einstellungen → Datenquellen“ steht im alten Aufbau der Einstellungen (Umbau in Schritt 5).
+- „Sichten“ hat kein „Spalten ▾“ (das Zielbild zeigt es); Adresse, Kontakt und Quellen-Links stehen in der aufgeklappten Zeile. Welche Zeilen aufgeklappt waren, merkt sich SignalDesk nicht über ein Neuladen hinaus.
+- Bis 520 px zeigt „Sichten“ nur Firma · Entfernung · ›; Website-Status, Quelle und „Übernehmen“ stehen dann in der aufgeklappten Zeile.
+- Die Voreinstellung unter „Wen suchst du?“ wird nicht eigens gespeichert, sondern aus Quellen, „ohne Rechtsform“, Website-Suche und Budget abgelesen. Seit dev51 merkt sich der Browser bei einer gestarteten Suche auch Quellen, „ohne Rechtsform“ und „nur operative“; nach dem Neuladen gelten also die Quellen der letzten Suche, nicht mehr immer alle vier.
+- Ob „Finden“ in der Seitenleiste „Sichten“ oder „Neue Suche“ öffnet, entscheidet die zuletzt geladene Zahl offener Treffer (sie wird bei jedem Laden der Treffer und beim Start aktualisiert); `#/finden` fragt jedes Mal neu.
+- Der Zähler am Reiter „Analysen“ zählt wie bisher alle Punkte der Prüfliste aus „Recherche & Berichte“ – dazu gehören auch offene Treffer der Firmensuche, die unter „Sichten“ stehen.
+- Einige Meldungen des Servers sagen weiter „Lead“ (z. B. Fehlermeldungen beim Übernehmen, „Lead-Finder-Treffer prüfen“ in der Prüfliste); die Oberfläche von Finden sagt „Firma“.
 - Geprüft in Chromium (Playwright) bei 1280 × 720 und 390 × 844; nicht auf echten Geräten und nicht in anderen Browsern.
 

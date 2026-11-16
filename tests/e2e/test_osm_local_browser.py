@@ -44,6 +44,9 @@ class OsmLocalBrowserTests(unittest.TestCase):
                         page.locator('#swForm select[name="radius_km"]').select_option('0')
                         self.assertFalse(page.locator('#swForm input[name="osm_online"]').is_checked())  # online nur auf Wunsch
 
+                        # 2.0.0-dev51: OpenStreetMap einlesen steht unter Einstellungen → Datenquellen (Verweis in der Statuszeile)
+                        page.locator('#fdSources [data-settings-link="datenquellen"]').click()
+                        page.wait_for_function('() => location.hash.includes("abschnitt=datenquellen")')
                         page.locator('#osmBox > summary').click()
                         page.locator('#osmState', has_text='noch kein lokaler Bestand').wait_for(timeout=15000)
                         self.assertEqual(page.locator('#osmHowto .osm-how').count(), 3)
@@ -57,7 +60,11 @@ class OsmLocalBrowserTests(unittest.TestCase):
                         if SHOTS:
                             page.locator('#osmBox').screenshot(path=str(Path(SHOTS) / 'osm.png'))
 
-                        # Suche nur über OpenStreetMap, offline aus dem lokalen Bestand
+                        # Suche nur über OpenStreetMap, offline aus dem lokalen Bestand (dev51: Quellen und Optionen als Klappzeilen)
+                        page.locator('.sidebar [data-area="finden"]').click()
+                        page.locator('#areaBar [data-area-view="finder"]').click()
+                        page.locator('#fdSrcFold > summary').click()
+                        page.locator('#fdOptFold > summary').click()
                         for src in ('gleif', 'wikidata', 'ted'):
                             page.locator(f'#swForm input[name="src"][value="{src}"]').uncheck()
                         page.locator('#swForm input[name="include_sole"]').check()
@@ -71,6 +78,7 @@ class OsmLocalBrowserTests(unittest.TestCase):
                           return done && r.items.length === 4 && r.items.every(i => i.zip === '70191' || i.zip === '');
                         }""", timeout=30000)
                         # 2.0.0-dev9: Betriebe ohne Rechtsform sind gekennzeichnet, die Branche kommt aus dem OSM-Merkmal
+                        page.locator('#swProgress [data-sw-show]').click()  # dev51: Treffer stehen unter „Sichten“
                         maler = page.locator('.sw-main', has_text='Malerbetrieb Beispiel')
                         maler.wait_for(timeout=15000)
                         self.assertIn('ohne Rechtsform', maler.inner_text())
@@ -79,6 +87,7 @@ class OsmLocalBrowserTests(unittest.TestCase):
                             page.locator('#swList, .sw-list').first.screenshot(path=str(Path(SHOTS) / 'treffer.png'))
                         # alle Treffer des Filters in einem Zug übernehmen
                         page.once('dialog', lambda dlg: dlg.accept())
+                        page.locator('#swBulkMenu > summary').click()  # dev51: Massenaktionen unter „Auswahl ▾“
                         page.locator('#swTakeAll').click()
                         page.wait_for_function("async () => (await (await fetch('/api/leads')).json()).length === 4", timeout=30000)
                         # 2.0.0-dev10: Firmenakte eines Betriebs ohne Rechtsform zeigt Datenschutz-Hinweis und Löschfrist

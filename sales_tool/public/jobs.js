@@ -77,7 +77,7 @@
     });
     const orig = window.switchView;
     if (typeof orig === 'function') {
-      window.switchView = function (view) { orig(view); if (['finder', 'center'].includes(view)) setTimeout(window.refreshJobs, 50); };
+      window.switchView = function (view) { orig(view); if (['finder', 'sichten', 'center'].includes(view)) setTimeout(window.refreshJobs, 50); };
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();

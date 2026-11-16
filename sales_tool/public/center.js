@@ -116,7 +116,7 @@
         $('#rcDetailBody').innerHTML = src.length ? `<div class="table-wrap"><table class="acc-table"><thead><tr><th>Modul</th><th>Art</th><th>Beleg</th><th>Datum</th><th>Status</th></tr></thead><tbody>${src.map(s => `<tr><td>${esc(s.module)}</td><td>${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.type)} ↗</a>` : esc(s.type)}</td><td><small>${esc(s.excerpt)}</small></td><td><small>${esc(s.date)}</small></td><td><small>${esc(s.status || '–')}${s.note ? ' · ' + esc(s.note) : ''}</small></td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">Noch keine Quellen.</div>';
       } else {
         const d = await api(`/research-center/leads/${leadId}/dossier`);
-        $('#rcDetailBody').innerHTML = `<div class="acc-btn-group"><a class="btn btn-ghost" href="/api/research-center/leads/${leadId}/dossier.md" download>Dossier (.md) ↓</a><a class="btn btn-ghost" href="/api/research-center/leads/${leadId}/dossier.json" download>Daten & Quellen (.json) ↓</a><button type="button" class="btn btn-ghost" data-rc-lead="${leadId}">Lead bearbeiten</button><button type="button" class="btn btn-primary" data-rc-handoff="${leadId}">An CRM übergeben</button><button type="button" class="btn btn-ghost" data-rc-offer="${leadId}">Angebot vorbereiten</button></div>
+        $('#rcDetailBody').innerHTML = `<div class="acc-btn-group"><a class="btn btn-ghost" href="/api/research-center/leads/${leadId}/dossier.md" download>Dossier (.md) ↓</a><a class="btn btn-ghost" href="/api/research-center/leads/${leadId}/dossier.json" download>Daten & Quellen (.json) ↓</a><button type="button" class="btn btn-ghost" data-rc-lead="${leadId}">Firma bearbeiten</button><button type="button" class="btn btn-primary" data-rc-handoff="${leadId}">An CRM übergeben</button><button type="button" class="btn btn-ghost" data-rc-offer="${leadId}">Angebot vorbereiten</button></div>
           <p class="muted">Nächster Schritt: ${esc(d.next_step)} · Recherchestand ${d.readiness_pct} % · Priorität ${d.priority === null ? 'Datenlage unzureichend' : d.priority}</p>
           <pre class="rc-dossier">${esc(d.markdown)}</pre>`;
       }
@@ -125,7 +125,7 @@
   }
 
   async function handoff(leadId) {
-    if (!confirm('Recherche an CRM übergeben? Der Lead wird auf „Qualifiziert“ gesetzt und eine Aufgabe angelegt. Es wird nichts versendet.')) return;
+    if (!confirm('Recherche an CRM übergeben? Die Firma wird auf „Qualifiziert“ gesetzt und eine Aufgabe angelegt. Es wird nichts versendet.')) return;
     try {
       const r = await api(`/research-center/leads/${leadId}/handoff`, 'POST', {confirm: true});
       toast(`Übergeben: ${r.task} (fällig ${fmtDate(r.due_date)})`);
@@ -142,7 +142,7 @@
       sel.value = String(leadId);
       sel.dispatchEvent(new Event('change'));
       if (d.offers[0]) $('#quotePackage').value = d.offers[0].key;
-      toast(d.offers[0] ? `Paketvorschlag „${d.offers[0].title}“ – unverbindlich bis zur Bedarfsklärung` : 'Lead übernommen – Paket bitte wählen');
+      toast(d.offers[0] ? `Paketvorschlag „${d.offers[0].title}“ – unverbindlich bis zur Bedarfsklärung` : 'Firma übernommen – Paket bitte wählen');
     } catch (e) { toast(e.message, true); }
   }
 
@@ -159,7 +159,7 @@
       const sub = e.target.closest('[data-rc-sub]');
       if (sub) return switchView(sub.dataset.rcSub);
       const go = e.target.closest('[data-go-view]');
-      if (go) return switchView(go.dataset.goView);
+      if (go) return switchView(go.dataset.goView === 'finder' && window.areaEntry ? window.areaEntry('finder') : go.dataset.goView);  // 2.0.0-dev51
       const b = e.target.closest('[data-rc-bulk]');
       if (b) return bulk(b.dataset.rcBulk);
       const o = e.target.closest('[data-rc-open]');

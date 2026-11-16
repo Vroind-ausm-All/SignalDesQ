@@ -791,8 +791,8 @@ def _run_osm(conn, sid, run_id, ctx, area, ua, index):
         return counts, note
     if not ctx.get('osm_online'):
         return ({'found': 0, 'new': 0, 'merged': 0, 'known': 0, 'dismissed': 0, 'suppressed': 0, 'filtered': 0},
-                'Nicht abgefragt: OpenStreetMap läuft manuell. Einen Auszug einlesen (unten „OpenStreetMap nutzbar machen“) '
-                'oder dort „jetzt online abfragen“ ankreuzen.')
+                'Nicht abgefragt: OpenStreetMap läuft manuell. Einen Auszug einlesen (Einstellungen → Datenquellen → „OpenStreetMap nutzbar machen“) '
+                'oder in der neuen Suche unter „Quellen & Budget“ „jetzt online abfragen“ ankreuzen.')
     c = area['center']
     selectors = ind.osm_selectors(ctx['industries']) or DEFAULT_OSM
     r = int(max(ctx['radius_km'], 3) * 1000)

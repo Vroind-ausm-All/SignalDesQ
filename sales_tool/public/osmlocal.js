@@ -1,6 +1,8 @@
 'use strict';
 // 2.0.0-dev7: OpenStreetMap manuell – Stand des lokalen Bestands, drei Wege mit Aufwand, Datei einlesen, fertige Abfrage für
 // Overpass Turbo. Es wird nur auf Klick etwas geladen oder gesendet.
+// 2.0.0-dev51: steht unter Einstellungen → Datenquellen; der Ort für die Overpass-Abfrage hat dort ein eigenes Feld
+// (vorbelegt mit dem Ort der neuen Suche, solange du es nicht selbst änderst), der Umkreis kommt aus der neuen Suche.
 (function () {
   const esc = v => escapeHTML(String(v ?? ''));
   const de = n => Number(n || 0).toLocaleString('de-DE');
@@ -9,8 +11,10 @@
   async function refresh() {
     const box = $('#osmBox');
     if (!box) return;
-    const f = $('#swForm')?.elements;
-    const qs = new URLSearchParams({place: f?.place.value.trim() || '', radius: f?.radius_km.value || '0'});
+    const f = $('#swForm')?.elements, own = $('#osmPlace');
+    if (own && !own.dataset.touched) own.value = f?.place.value.trim() || '';
+    const place = (own ? own.value : f?.place.value || '').trim();
+    const qs = new URLSearchParams({place, radius: f?.radius_km.value || '0'});
     try {
       const r = await api('/osm?' + qs);
       const last = r.imports[0];
@@ -22,7 +26,8 @@
       $('#osmHowto').innerHTML = r.howto.map(h => `<details class="osm-how" ${h.key === 'auszug' && !r.places ? 'open' : ''}><summary><b>${esc(h.title)}</b> <small>${esc(h.effort)}</small></summary><ol>${h.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol></details>`).join('');
       const t = $('#osmTurbo');
       t.classList.toggle('hidden', !r.turbo);
-      if (r.turbo) { t.href = r.turbo.url; t.textContent = `Abfrage für „${f.place.value.trim()}“ in Overpass Turbo öffnen ↗`; }
+      if (r.turbo) { t.href = r.turbo.url; t.textContent = `Abfrage für „${place}“ in Overpass Turbo öffnen ↗`; }
+      if ($('#osmSummary')) $('#osmSummary').textContent = r.places ? `${de(r.places)} Betriebe im lokalen Bestand${last ? ` · eingelesen am ${fmtDate((last.finished_at || last.started_at).slice(0, 10))}` : ''}` : 'noch kein lokaler Bestand – Auszug einlesen';
       $('#osmClear').classList.toggle('hidden', !r.places);
       $('#osmNotice').textContent = `${r.notice} Daten: ${r.license}.`;
       clearTimeout(poll);
@@ -53,8 +58,9 @@
     });
     $('#osmBox').addEventListener('toggle', () => { if ($('#osmBox').open) refresh(); });
     for (const n of ['place', 'radius_km']) $('#swForm')?.elements[n]?.addEventListener('change', () => { if ($('#osmBox').open) refresh(); });
+    $('#osmPlace')?.addEventListener('change', e => { e.target.dataset.touched = e.target.value.trim() ? '1' : ''; refresh(); });
     document.querySelectorAll('[data-go="finder"]').forEach(b => b.addEventListener('click', refresh));
-    document.addEventListener('signaldesk:view', e => { if (e.detail.view === 'finder') refresh(); });  // 2.0.0-dev14: Bereichsreiter
+    document.addEventListener('signaldesk:view', e => { if (['finder', 'settings'].includes(e.detail.view)) refresh(); });  // 2.0.0-dev14: Bereichsreiter; dev51: Datenquellen
     refresh();
   });
 })();

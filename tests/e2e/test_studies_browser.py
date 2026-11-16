@@ -55,14 +55,19 @@ class StudiesBrowserTests(unittest.TestCase):
                         sess.wait_for()
                         sid = sess.get_attribute('data-st-session')
                         self.assertIn('zählt noch nicht', sess.inner_text())
-                        selects = page.locator(f'select[data-st-s="{sid}"][data-st-k="outcome"]')
-                        selects.nth(0).select_option('geschafft')
-                        page.wait_for_load_state('networkidle')
-                        page.locator(f'select[data-st-s="{sid}"][data-st-k="outcome"]').nth(1).select_option('nicht_geschafft')
-                        page.wait_for_load_state('networkidle')
-                        page.locator(f'textarea[data-st-s="{sid}"][data-st-k="answer"]').fill('Kontakt war versteckt')
-                        page.locator(f'textarea[data-st-s="{sid}"][data-st-k="answer"]').press('Tab')
-                        page.wait_for_load_state('networkidle')
+                        # 2.0.0-dev51: Jede Eingabe speichert sofort und zeichnet die Studie danach neu. wait_for_load_state('networkidle')
+                        # kehrt sofort zurück, wenn die Seite den Zustand schon einmal erreicht hatte – dann konnte das Neuzeichnen nach der
+                        # zweiten Auswahl die gerade getippte Antwort überschreiben (sporadisch „Antworten (0)“). Deshalb auf das Neuzeichnen warten.
+                        def changed_and_redrawn(selector, act):
+                            old = page.locator(selector).element_handle()
+                            act(page.locator(selector))
+                            page.wait_for_function('el => !el.isConnected', arg=old)
+                        out = f'select[data-st-s="{sid}"][data-st-k="outcome"]'
+                        changed_and_redrawn(f'{out} >> nth=0', lambda l: l.select_option('geschafft'))
+                        changed_and_redrawn(f'{out} >> nth=1', lambda l: l.select_option('nicht_geschafft'))
+                        ans = f'textarea[data-st-s="{sid}"][data-st-k="answer"]'
+                        changed_and_redrawn(ans, lambda l: (l.fill('Kontakt war versteckt'), l.press('Tab')))
+                        self.assertEqual(page.input_value(ans), 'Kontakt war versteckt')
                         # vor der Bestätigung zählt nichts
                         self.assertIn('–', page.locator('[data-st-overall]').inner_text())
                         page.locator(f'input[data-st-s="{sid}"][data-st-k="confirmed"]').check()

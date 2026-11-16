@@ -4,8 +4,10 @@ Verbindliche Grundlage für die Etappe „Visuelle Konsolidierung und Aufgabenf�
 Jede Ansicht wird aus denselben sieben Bausteinen gebaut. Die Klassen stehen in `sales_tool/public/style.css`
 (Abschnitt „UI-Baukasten“, Präfix `ui-`, damit nichts Bestehendes kollidiert).
 
-**Stand dev50:** Rahmen (Kopfzeile), Firmenliste und Heute sind umgestellt (Schritt 2). Die übrigen Ansichten sind **noch nicht**
-umgestellt; sie folgen in den Schritten 3–6. Neu gebaute oder umgebaute Ansichten verwenden ausschließlich diese Bausteine.
+**Stand dev51:** Rahmen (Kopfzeile), Firmenliste und Heute (Schritt 2) sowie „Finden → Sichten“ und „Finden → Neue Suche“ (Schritt 3)
+sind umgestellt. Die übrigen Ansichten sind **noch nicht** umgestellt – auch die Unteransichten von „Finden → Analysen“ und „Import“
+haben nur die neue Reiterzeile bzw. einen neuen ersten Abschnitt; sie folgen in den Schritten 4–6. Neu gebaute oder umgebaute Ansichten
+verwenden ausschließlich diese Bausteine.
 
 ## Die sieben Bausteine
 
@@ -35,6 +37,15 @@ Dazu das **Kontextlayout** `.ui-with-side` mit `.ui-side`: Inhalt links, rechts 
 | Nur für Bildschirmleser | `.ui-sr` | z. B. Spaltenkopf „Öffnen“ über dem › |
 
 **Schmal (bis 520 px)** zeigt jede Liste nur die erste Spalte (Was), die dritte (fällig) und das ›.
+
+### Ergänzungen seit dev51 (Schritt 3): Formular-Bausteine
+
+| Baustein | Klassen | Regel |
+|---|---|---|
+| Karte | `.ui-card` | ein Block zusammengehöriger Eingaben (z. B. Ort · Umkreis · Branchen · „Wen suchst du?“), 16 px Innenabstand; keine Karten in Karten |
+| Feld | `<label class="ui-field">Beschriftung<input …></label>` | Beschriftung 12 px darüber, Feld 36 px hoch |
+| Auswahlgruppe | `.ui-seg` mit `<button aria-pressed>`; aktiv `.is-active` | eine Wahl aus wenigen Voreinstellungen; keine aktiv heißt „eigene Auswahl“ |
+| Marke | `.ui-chip` mit `<button>×</button>` | gewählter Wert in einem Feld (z. B. Branche), × entfernt ihn |
 
 ## Regeln der Anwenderlogik
 
@@ -105,3 +116,52 @@ Keine Funktion entfiel. Je verschobener Funktion: bisheriger Ort, neuer Ort, Pr�
 | Heute: Auslastung, Offenes Potenzial, Pipeline | Karte, Karte, Kachelreihe | Klappzeile „Kapazität & Potenzial“ | `test_reach_browser`, `test_postcalc_browser` |
 | Heute: Tagesplan, Tagesabschluss | zwei Klappkarten | eine Klappzeile „Tagesplan & Tagesabschluss“ (`#tagesabschluss`) | `test_ui_workday` |
 | Heute: „Was funktioniert gerade?“ | Klappkarte | Klappzeile „Systemstatus“ | `test_ui_firmen_heute_browser` |
+
+### Messwerte Finden (dev51)
+
+Gemessen bei 1280 × 720 mit 11 fiktiven Treffern (Schiefer dunkel und Klassisch hell gleich):
+
+| Messung | dev50 | dev51 | Abnahme |
+|---|---|---|---|
+| Neue Suche: Oberkante „Suche starten“ | 1.455 px (unter dem Bildrand) | 78 px | ≤ 140 px |
+| Neue Suche: Unterkante Ort · Umkreis · Branchen / „Wen suchst du?“ | Ort 558 px, Branchen 977 px; „Wen suchst du?“ gab es nicht | 260 px / 336 px | im ersten Bildschirm (≤ 720 px) |
+| Sichten: Oberkante der ersten Trefferzeile | 2.124 px | 221 px | ≤ 280 px |
+| Sichten: Trefferzeilen ganz sichtbar | 0 (Zeile 117 px hoch) | 8 (Zeile 56 px) | ≥ 7 |
+| 390 × 844: „Suche starten“ / erste Trefferzeile | 2.179 px / 3.573 px | 111 px / 374 px | kein waagerechtes Scrollen |
+| Seitenlänge der Finden-Seite | 4.346 px (Suche und Sichtung auf einer Seite) | Neue Suche 1.022 px, Sichten 947 px | – |
+
+Prüffall: `tests/e2e/test_ui_finden_browser.py`.
+
+## Was wohin zog (Schritt 3, dev51)
+
+Keine Funktion entfiel. Alle bisherigen Adressen gelten weiter (`#/finden`, `#/finden/import`, `#/finden/recherche`, `#/finden/url-recherche`,
+`#/finden/website-scoring`, `#/finden/kaufsignale`, `#/finden/bericht`); neu sind `#/finden/sichten` und `#/finden/neue-suche`.
+`#/finden`, „Finden“ in der Seitenleiste und „Neue Firmen finden“ öffnen „Sichten“, solange offene Treffer warten, sonst „Neue Suche“.
+
+| Funktion | Bisher | Jetzt | Prüffall |
+|---|---|---|---|
+| Reiter des Bereichs | sieben: Suche & Sichtung · Import & Prüfung · Recherche & Berichte · URL-Recherche · Website-Scoring · Kaufsignale (Bericht ohne Reiter) | vier: Sichten · Neue Suche · Import · Analysen; „Analysen“ hat eine eigene Reiterzeile (Recherche & Berichte · URL-Recherche · Website-Scoring · Kaufsignale, der Bericht gehört zu „Recherche & Berichte“) | `test_ui_finden_browser`, `test_navigation_browser` |
+| Suchformular | obere Hälfte der Finden-Seite | „Finden → Neue Suche“ | `test_ui_finden_browser`, `test_osm_local_browser` |
+| „▶ Arbeitstag starten – alle Quellen abfragen“ | Knopf unter dem Formular (1.455 px) | Hauptaktion „Suche starten“ im Seitenkopf (`#swGo`) | `test_ui_finden_browser` |
+| Branchen | alle Gruppen mit Kästchen offen sichtbar, Suchfeld, „Auswahl leeren“ | Feld mit den gewählten Branchen als Marken (× entfernt); Klick klappt die Auswahl mit Suchfeld, allen Gruppen und „Auswahl leeren“ auf | `test_ui_finden_browser` |
+| Quellen (GLEIF, Wikidata, OpenStreetMap, online abfragen, TED), Budget je Lauf | Kästchen unter dem Formular | Klappzeile „Quellen & Budget“ mit Kurzstand; zusätzlich Voreinstellungen unter „Wen suchst du?“ | `test_ui_finden_browser`, `test_osm_local_browser`, `test_ui_workday` |
+| „Wen suchst du?“ (Unternehmen, Vereine, öffentliche Einrichtungen) | eigener Kasten | Klappzeile „Optionen“ als „Organisationsarten“; „Wen suchst du?“ heißt jetzt die Wahl der Voreinstellung (Handwerk & lokale Betriebe · Größere Firmen · Öffentliche Aufträge · Alles) | `test_ui_finden_browser` |
+| Filter (nur operative, ohne Rechtsform, Websites automatisch suchen), TED bundesweit, eigene Schlagwörter | Kasten „Filter“, Quellen-Kasten, Formularzeile | Klappzeile „Optionen“ mit Kurzstand | `test_ui_finden_browser`, `test_osm_filter_reasons_browser` |
+| Suchprofile | Zeile über dem Formular | Klappzeile „Suchprofile“ („▶ Profil starten“ ist Nebenaktion) | `test_ui_workday`, `test_ui_finden_browser` |
+| Fortschritt der laufenden Suche (mit Gründen für „ausgefiltert“) | unter dem Formular | unter den Klappzeilen der neuen Suche, mit Zugang „n Treffer sichten →“ | `test_osm_filter_reasons_browser`, `test_ui_workday` |
+| „Deine Gebiete & Suchläufe“ (Sichten, Erneut suchen) | Liste unter den Treffern | Liste „Letzte Suchen“ in „Neue Suche“; Klick auf die Zeile öffnet „Sichten“ für diese Suche | `test_ui_finden_browser` |
+| Recherche-Aufträge | unter den Treffern | Klappzeile „Recherche-Aufträge“ in „Neue Suche“ | – (Anzeige der Auftragsliste, unverändert) |
+| Einzelne Quelle gezielt abfragen (Lead-Finder, manuelle Quellen) | Klappkarte unter den Treffern | Klappzeile in „Neue Suche“ | – (unverändert) |
+| Firmenliste / GLEIF-Export importieren (`#swFile`) | Knopf neben „Arbeitstag starten“ | „Finden → Import“, erster Abschnitt; Ergebnis öffnet „Sichten“ | `test_ui_finden_browser` |
+| Gefundene Firmen | Karten mit allen Angaben und Knöpfen, untere Hälfte der Finden-Seite | „Finden → Sichten“: Liste Firma · Website · Entfernung · Quelle · „Übernehmen“ · ›; Klick oder Enter klappt Adresse, Website-Nachweis, Kontakt, Quellen, Dubletten und alle Aktionen auf | `test_ui_finden_browser`, `test_osm_local_browser` |
+| Verwerfen, Website suchen, Website eintragen, ✓ Website passt / ✕ passt nicht, Dubletten (Gleiche Firma / Andere Firma / Ist diese Firma), Firma öffnen | Knöpfe je Karte | in der aufgeklappten Zeile; bis 520 px dort auch „Übernehmen“ | `test_ui_finden_browser` |
+| Status-Auswahl Neu/Übernommen/… | Auswahlliste | Ansichten Offen · Mit Website · Übernommen (mit Anzahl) in der Werkzeugzeile; alle Status unter „Filter ▾“ | `test_ui_finden_browser` |
+| Suchlauf, Website, Sortierung, Ort, Entfernung, ohne Ausschreibungen, Dubletten prüfen | Werkzeugleiste | „Filter ▾“ (dazu „Filter zurücksetzen“) | `test_ui_finden_browser`, `test_ui_workday` |
+| Ausgewählte übernehmen / verwerfen, Übernehmen & Bericht, Websites suchen, Alle Treffer übernehmen | Knopfleiste über den Treffern | „Auswahl ▾“ in der Werkzeugzeile; Auswahl über die Kästchen vor dem Namen, „alle auf dieser Seite“ im Spaltenkopf | `test_osm_local_browser`, `test_ui_finden_browser` |
+| Zählerzeile (neu · übernommen · verworfen · schon als Firma · mögliche Dubletten · ohne Website) | über den Treffern | Zusatz im Seitenkopf (Suche · n offen · Dubletten/ohne Website als Sprung), Summen unter der Liste | `test_ui_finden_browser` |
+| OpenStreetMap nutzbar machen (Auszug einlesen, Stand, Anleitung, Overpass-Turbo-Abfrage, Bestand löschen) | Klappkasten auf der Finden-Seite | Einstellungen → Datenquellen (`#/einstellungen?abschnitt=datenquellen`); eigenes Ortsfeld für die Overpass-Abfrage, vorbelegt mit dem Ort der neuen Suche; „Neue Suche“ zeigt den Stand in der Statuszeile mit Verweis | `test_osm_local_browser`, `test_osm_filter_reasons_browser`, `test_ui_finden_browser` |
+| Großer Firmenkatalog (GLEIF, offline) | Klappkasten auf der Finden-Seite | Einstellungen → Datenquellen | `test_ui_finden_browser` |
+| Quellen prüfen | Klappkasten auf der Finden-Seite | Einstellungen → Datenquellen | `test_ui_finden_browser` |
+| Messung: Stichprobe von Hand prüfen | Klappkasten auf der Finden-Seite | Firmen → Datenpflege (`#/firmen/datenpflege`) | `test_pilot_browser`, `test_ui_finden_browser` |
+| Erklärtext, Hinweis „Fund ≠ Kontakterlaubnis“ | über dem Formular | `title` der Überschrift „Finden“ und Hinweis unter den Klappzeilen; rechtlicher Rahmen unverändert am Ende | – (Text) |
+| Begriffe | „Lead“ in Treffern, Import, Analysen | sichtbar „Firma“ („Als Firma übernommen“, „schon Firma“, „Firma öffnen“, „Firmen auswählen“); interne Namen unverändert | `test_ui_finden_browser` |

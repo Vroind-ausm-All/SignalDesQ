@@ -75,8 +75,8 @@
 
   function actions(c) {
     if (c.status === 'neu') return `<div class="acc-btn-group"><button type="button" class="btn btn-primary" data-lf-review="${c.id}" data-decision="uebernehmen">Übernehmen</button><button type="button" class="btn btn-ghost" data-lf-review="${c.id}" data-decision="verwerfen">Verwerfen</button>${c.website ? `<button type="button" class="btn btn-ghost" data-lf-research="${esc(c.website)}">Website prüfen</button>` : ''}</div>`;
-    if (c.status === 'dublette') return `<span class="pill">${statusNames.dublette}</span>${c.duplicate_lead_id ? ` <button type="button" class="text-button" data-lf-lead="${c.duplicate_lead_id}">Lead öffnen</button>` : ''}`;
-    if (c.status === 'uebernommen') return `<span class="pill won">${statusNames.uebernommen}</span>${c.lead_id ? ` <button type="button" class="text-button" data-lf-lead="${c.lead_id}">Lead öffnen</button>` : ''}`;
+    if (c.status === 'dublette') return `<span class="pill">${statusNames.dublette}</span>${c.duplicate_lead_id ? ` <button type="button" class="text-button" data-lf-lead="${c.duplicate_lead_id}">Firma öffnen</button>` : ''}`;
+    if (c.status === 'uebernommen') return `<span class="pill won">${statusNames.uebernommen}</span>${c.lead_id ? ` <button type="button" class="text-button" data-lf-lead="${c.lead_id}">Firma öffnen</button>` : ''}`;
     return `<span class="pill lost">${statusNames[c.status] || esc(c.status)}</span>`;
   }
 
@@ -88,7 +88,7 @@
     const res = await api(`/lead-finder/candidates/${id}/review`, 'POST', {decision});
     const c = current?.candidates.find(x => x.id === id);
     if (c) { c.status = res.status; c.lead_id = res.lead_id || null; }
-    if (!quiet) toast(decision === 'uebernehmen' ? 'Als Lead übernommen – Rechtsstatus „unbekannt“, nächster Schritt: Website prüfen' : 'Verworfen');
+    if (!quiet) toast(decision === 'uebernehmen' ? 'Als Firma übernommen – Rechtsstatus „unbekannt“, nächster Schritt: Website prüfen' : 'Verworfen');
     return res;
   }
 
@@ -116,10 +116,10 @@
     $('#lfSelectAll').addEventListener('change', e => { $$('[data-lf-check]').forEach(c => { c.checked = e.target.checked; }); updateSelected(); });
     $('#lfImportSelected').addEventListener('click', async () => {
       const ids = $$('[data-lf-check]:checked').map(c => Number(c.dataset.lfCheck));
-      if (!ids.length || !confirm(`${ids.length} Treffer als Leads übernehmen? Jeder startet mit Rechtsstatus „unbekannt“.`)) return;
+      if (!ids.length || !confirm(`${ids.length} Treffer als Firmen übernehmen? Jede startet mit Rechtsstatus „unbekannt“.`)) return;
       let ok = 0;
       for (const id of ids) { try { await review(id, 'uebernehmen', true); ok++; } catch (err) { toast(err.message, true); } }
-      toast(`${ok} Lead(s) übernommen`);
+      toast(`${ok} Firma/Firmen übernommen`);
       render(current); await reload(); loadRuns();
     });
     $('#viewFinder').addEventListener('change', e => { if (e.target.matches('[data-lf-check]')) updateSelected(); });

@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.0.0-dev51 – Finden aufgeräumt: Sichten, Neue Suche, Import, Analysen
+
+Schritt 3 der Etappe „Visuelle Konsolidierung und Aufgabenführung“ (siehe [ROADMAP](docs/ROADMAP.md)). Keine Funktion entfällt – was umgezogen ist, steht in [UI_BAUKASTEN.md, Abschnitt „Was wohin zog (Schritt 3)“](docs/UI_BAUKASTEN.md). Server, Datenmodell und Suchlogik sind unverändert; geändert wurden nur zwei Hinweistexte des Servers, die auf den alten Ort von „OpenStreetMap nutzbar machen“ verwiesen.
+
+- **Vier Reiter statt sieben:** Sichten · Neue Suche · Import · Analysen. Recherche & Berichte, URL-Recherche, Website-Scoring und Kaufsignale findest du unter „Analysen“ in einer eigenen Reiterzeile. Alle bisherigen Adressen funktionieren weiter; neu sind `#/finden/sichten` und `#/finden/neue-suche`.
+- **„Finden“ öffnet, was ansteht:** Warten offene Treffer, landest du in „Sichten“, sonst in „Neue Suche“ – über die Seitenleiste, `#/finden` und „Neue Firmen finden“.
+- **Neue Suche kompakt:** oben „Suche starten“ (vorher 1.455 px tief, jetzt bei 78 px – ohne Scrollen sichtbar). Darunter eine Zeile mit dem Stand deiner Datenquellen und dem Verweis auf Einstellungen → Datenquellen, dann Ort, Umkreis und Branchen. Gewählte Branchen stehen als Marken im Feld (× entfernt sie); ein Klick klappt die Auswahl mit Suche und allen Branchen auf.
+- **„Wen suchst du?“ mit vier Voreinstellungen:** Handwerk & lokale Betriebe (OpenStreetMap, Wikidata, GLEIF; Betriebe ohne Rechtsform und Website-Suche an), Größere Firmen (GLEIF, Wikidata; ohne Rechtsform aus), Öffentliche Aufträge (TED), Alles (wie bisher). Sie setzen nur vorhandene Felder. Änderst du danach etwas von Hand, bleibt deine Änderung und die Auswahl zeigt „Eigene Auswahl“. Gemerkt wird die Voreinstellung mit deinen Suchprofilen und der zuletzt gestarteten Suche – dafür merkt sich SignalDesk jetzt auch Quellen, „ohne Rechtsform“ und „nur operative“ der letzten Suche.
+- **Quellen & Budget, Optionen, Suchprofile** als Klappzeilen mit Kurzstand („GLEIF · OpenStreetMap · Wikidata · bis 300 neue Firmen …“). Fortschritt der Suche mit den Gründen für „ausgefiltert“ wie bisher, dazu „n Treffer sichten →“ und die Liste „Letzte Suchen“.
+- **Sichten als Liste:** Firma (mit Branche und „ohne Rechtsform“) · Website (belegt, Vorschlag prüfen, Suche läuft, keine) · Entfernung · Quelle · „Übernehmen“ · ›. Ein Klick oder Enter klappt Adresse, Website-Nachweis, Kontakt, Quellen, Dubletten-Hinweise und alle Aktionen auf (Verwerfen, Website passt / passt nicht, Website suchen oder eintragen). Ansichten Offen · Mit Website · Übernommen in der Werkzeugzeile, alle übrigen Filter unter „Filter ▾“, Massenaktionen (Ausgewählte übernehmen/verwerfen, Übernehmen & Bericht, Websites suchen, Alle Treffer übernehmen) unter „Auswahl ▾“. Tastatur wie bisher (j/k, o, b, v).
+- **Gemessen bei 1280 × 720 mit 11 Treffern:** erste Trefferzeile bei 221 px statt 2.124 px, 8 statt 0 Zeilen ganz sichtbar, Zeile 56 statt 117 px. Auf dem Smartphone (390 px) steht „Suche starten“ bei 111 statt 2.179 px, der erste Treffer bei 374 statt 3.573 px.
+- **Umgezogen:** „OpenStreetMap nutzbar machen“ (mit eigenem Ortsfeld für die Overpass-Turbo-Abfrage), „Großer Firmenkatalog“ und „Quellen prüfen“ nach Einstellungen → Datenquellen; „Messung: Stichprobe von Hand prüfen“ nach Firmen → Datenpflege; „Firmenliste importieren“ nach Finden → Import.
+- Sichtbar „Firma“ statt „Lead“ in Finden, Import und Analysen („Als Firma übernommen“, „schon Firma“, „Firma öffnen“, „Firmen auswählen“).
+- Neue Bausteine im UI-Baukasten: Karte, Feld, Auswahlgruppe, Marke (`ui-card`, `ui-field`, `ui-seg`, `ui-chip`).
+- Tests: neu Browser-Test `test_ui_finden_browser.py`; fünf Browser-Tests an die neuen Orte angepasst, ein sporadisch scheiternder Browser-Test (Erlebnisstudien) wartet jetzt auf das Neuzeichnen statt auf einen schon erreichten Ladezustand. Je 714 Tests unter Python 3.13 und 3.10, 41 von 41 Browser-Tests (zweimal hintereinander).
+- Kein Schemawechsel, keine neuen Abhängigkeiten.
+
 ## 2.0.0-dev50 – Firmen und Heute aufgeräumt: mehr Liste auf einen Blick
 
 Schritt 2 der Etappe „Visuelle Konsolidierung und Aufgabenführung“ (siehe [ROADMAP](docs/ROADMAP.md)). Keine Funktion entfällt – was umgezogen ist, steht in [UI_BAUKASTEN.md, Abschnitt „Was wohin zog“](docs/UI_BAUKASTEN.md).

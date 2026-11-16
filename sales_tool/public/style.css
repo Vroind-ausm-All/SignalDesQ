@@ -947,6 +947,18 @@ body.nav-open .sidebar :focus-visible{outline:2px solid var(--on-dark-accent);ou
 /* 7 Abstände und Schrift: --s1…--s6 = 4/8/12/16/24/32; Titel 26 · Abschnitt 16 · Inhalt 14 · Zusatz 12 */
 .ui-section{font-size:16px;font-weight:700;line-height:1.25;margin:0}
 .ui-small{font-size:12px;color:var(--muted)}
+/* 2.0.0-dev51: Formular-Bausteine – Karte, Feld, Auswahlgruppe (eine Wahl aus wenigen), Marke (gewählter Wert mit ×) */
+.ui-card{display:flex;flex-direction:column;gap:var(--s3);padding:var(--s4);background:var(--surface);border:1px solid var(--line);border-radius:10px;min-width:0}
+.ui-field{display:flex;flex-direction:column;gap:var(--s1);min-width:0;font-size:12px;font-weight:600;color:var(--muted)}
+.ui-field>input,.ui-field>select{height:var(--ctl);padding:0 var(--s3);border:1px solid var(--line-2);border-radius:8px;background:var(--surface);color:var(--ink);font-size:14px;font-weight:400;width:100%;min-width:0}
+.ui-seg{display:inline-flex;flex-wrap:wrap;max-width:100%;border:1px solid var(--line-2);border-radius:8px;background:var(--surface);overflow:hidden}
+.ui-seg>button{min-height:var(--ctl);padding:0 var(--s3);border:0;border-left:1px solid var(--line-2);background:transparent;color:var(--ink-2);font-size:13px;font-weight:600;cursor:pointer}
+.ui-seg>button:first-child{border-left:0}
+.ui-seg>button:hover{color:var(--ink);background:var(--surface-2)}
+.ui-seg>button.is-active,.ui-seg>button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-ink)}
+.ui-seg>button:focus-visible{outline:2px solid var(--accent-strong);outline-offset:-2px}
+.ui-chip{display:inline-flex;align-items:center;gap:var(--s1);height:24px;padding:0 var(--s2);border-radius:12px;background:var(--accent-soft);color:var(--accent-ink);font-size:12px;font-weight:700;white-space:nowrap}
+.ui-chip>button{border:0;background:none;padding:0 2px;color:inherit;font-weight:700;cursor:pointer;line-height:1}
 /* Schmal: Liste zeigt Was · fällig · ›; die übrigen Spalten (2, 4, 5) treten zurück */
 @media(max-width:520px){
 .ui-row,.ui-row-head{grid-template-columns:minmax(0,1fr) auto 12px;gap:var(--s3);padding:0 var(--s3)}
@@ -990,3 +1002,51 @@ body.nav-open .sidebar :focus-visible{outline:2px solid var(--on-dark-accent);ou
 .ui-fold-body .td-pot-kpis{padding:0 0 var(--s2)}
 .ui-fold-body .rc-cap{margin:0}
 .ui-fold-body .ui-section .muted{font-weight:400}
+
+/* ===== 2.0.0-dev51: Finden – Neue Suche, Sichten, Analysen, Datenquellen (UX Schritt 3) =====
+   Aufbau aus dem Baukasten; hier nur Anordnung und Feinheiten. Farben nur über Theme-Variablen. */
+.fd-form{display:flex;flex-direction:column;gap:var(--s4);margin:0}
+.fd-where{display:grid;grid-template-columns:minmax(0,1.1fr) 150px minmax(0,2fr);gap:var(--s4);align-items:end}
+.fd-who{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2) var(--s3)}
+.fd-label{flex:1 0 100%;font-size:12px;font-weight:600;color:var(--muted)}
+.fd-ind>summary.fd-ind-field{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s1);min-height:var(--ctl);padding:var(--s1) var(--s2);border:1px solid var(--line-2);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px;font-weight:500;cursor:pointer}
+.fd-ind[open]>summary.fd-ind-field{border-color:var(--accent-line)}
+.fd-chips{display:contents}
+.fd-ind-add{color:var(--muted);padding:0 var(--s1)}
+.fd-ind-body{width:min(560px,calc(100vw - 32px));max-width:min(560px,calc(100vw - 32px));max-height:380px;overflow:auto}
+.fd-ind-tools{display:flex;align-items:center;gap:var(--s3);padding:0 var(--s1) var(--s2)}
+.fd-ind-tools input{flex:1 1 auto;min-width:0;height:var(--ctl);padding:0 var(--s3);border:1px solid var(--line-2);border-radius:8px;background:var(--surface);color:var(--ink)}
+.fd-ind-body .sw-ind-groups{max-height:none;overflow:visible}
+.fd-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s3)}
+.fd-kw{grid-column:1/-1}
+.fd-progress{margin:0;padding:var(--s3) var(--s4);border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.fd-progress .sw-prog-head .ui-sp{flex:1 1 auto}
+.fd-hist .ui-main small{font-size:12px}
+.fd-hist-acts{display:flex;justify-content:flex-end;gap:var(--s3)}
+.fd-more-folds .lf-expert{padding:0;margin:0}
+.fd-more-folds .lf-expert>summary{margin:0}
+/* Sichten: eine Zeile je Firma, aufgeklappt mit allen Angaben und Aktionen */
+.fd-list .sw-list{display:block;gap:0}
+.fd-list .sw-item{display:block;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.fd-list .sw-item.cur>.fd-row{box-shadow:inset 3px 0 0 var(--accent-strong)}
+.fd-list .sw-item.is-open>.fd-row{background:var(--accent-soft)}
+.fd-firm{display:flex;align-items:center;gap:var(--s2);min-width:0}
+.fd-firm>input,.fd-all>input{flex:none;width:auto;margin:0}
+.fd-list .sw-main>b{font-size:14px}
+.fd-list .sw-main small{font-size:12px;margin-top:2px;overflow-wrap:normal}
+.fd-warn{color:var(--warn-fg)}
+.fd-all{display:inline-flex;align-items:center;gap:var(--s2)}
+.fd-more{display:flex;flex-direction:column;gap:var(--s2);padding:var(--s3) var(--s4) var(--s4) 44px;border-top:1px dashed var(--line);font-size:13px}
+.fd-facts{color:var(--muted);font-size:12px}
+.fd-list .fd-acts{flex-direction:row;flex-wrap:wrap;align-items:center;gap:var(--s3)}
+.fd-take-alt{display:none}
+.fd-more-src{display:inline;color:var(--muted)}
+/* Analysen: Reiterzeile über der jeweiligen Ansicht */
+.fd-an{margin:0 0 var(--s4)}
+/* Einstellungen → Datenquellen, Import */
+.fd-sources>.ui-list{margin-top:var(--s3)}
+.fd-sources .ui-fold.sw-check{margin:0;padding:0}
+.fd-osm-place{max-width:480px;margin-bottom:var(--s3)}
+.fd-import .studio-section-head{align-items:center}
+@media(max-width:900px){.fd-where{grid-template-columns:minmax(0,1fr) 140px}.fd-ind-wrap{grid-column:1/-1}.fd-opts{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:520px){.fd-where{grid-template-columns:minmax(0,1fr)}.fd-take-alt{display:inline-flex}.fd-more{padding-left:var(--s3)}.ui-seg>button{flex:1 1 auto}}

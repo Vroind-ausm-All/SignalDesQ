@@ -635,12 +635,12 @@ HOWTO = [
                'Hier unter „Datei einlesen“ auswählen. SignalDesk liest nur benannte Betriebe heraus; das dauert einige Minuten.',
                'Fertig: Jede Firmensuche nutzt ab jetzt diesen Bestand – ohne Internet, ohne Wartezeit. Für frische Daten später neu einlesen.']},
     {'key': 'turbo', 'title': 'Handexport aus Overpass Turbo (für eine PLZ oder einen Ort)', 'effort': 'etwa 2 Minuten je Gebiet',
-     'steps': ['Ort oder PLZ oben eintragen und unten „Abfrage in Overpass Turbo öffnen“ anklicken.',
+     'steps': ['Ort oder PLZ oben in diesem Abschnitt eintragen (vorbelegt mit dem Ort der neuen Suche) und „Abfrage in Overpass Turbo öffnen“ anklicken.',
                'Im Browser auf „Ausführen“ klicken. Meldet die Seite Überlastung: einen Moment warten und erneut ausführen.',
                'Über „Export“ → „Rohdaten“ oder „GeoJSON“ die Datei speichern.',
                'Die Datei hier unter „Datei einlesen“ auswählen.']},
     {'key': 'online', 'title': 'Online abfragen (wie bisher)', 'effort': 'kein Aufwand, aber oft überlastet',
-     'steps': ['Bei den Quellen „OpenStreetMap jetzt online abfragen“ ankreuzen. Antwortet kein Server, bleibt die Suche ohne OpenStreetMap-Treffer.']},
+     'steps': ['In „Finden → Neue Suche“ unter „Quellen & Budget“ „OpenStreetMap jetzt online abfragen“ ankreuzen. Antwortet kein Server, bleibt die Suche ohne OpenStreetMap-Treffer.']},
 ]
 
 
