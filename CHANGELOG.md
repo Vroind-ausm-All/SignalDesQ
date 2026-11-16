@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0-dev49 – Menü auf dem Smartphone und gemeinsamer Baukasten für die Oberfläche
+
+Schritt 1 der neuen Etappe „Visuelle Konsolidierung und Aufgabenführung“ (siehe [ROADMAP](docs/ROADMAP.md)).
+
+- **Menü auf schmalen Bildschirmen:** Bis 520 px Breite (z. B. Smartphone, 390 px) war die Seitenleiste ausgeblendet – du kamst nur an die Reiter des aktuellen Bereichs. Jetzt steht oben links „☰ Menü“. Es öffnet die Seitenleiste als Schublade von links mit allen sechs Bereichen; der aktuelle ist markiert. Schließen mit „✕ Schließen“, Escape, Klick auf den abgedunkelten Hintergrund oder durch Wahl eines Bereichs; danach steht der Fokus wieder auf „☰ Menü“. Für Bildschirmleser sind `aria-expanded` und `aria-controls` gesetzt, der Inhalt dahinter ist solange nicht bedienbar.
+- Damit alles in eine Zeile passt, zeigt die Kopfzeile bei schmaler Breite nur den Bereich und „Neuer Lead“ als „＋“ (Name für Bildschirmleser bleibt „Neuer Lead“).
+- **Auf breiten Bildschirmen ändert sich nichts** – der Menü-Knopf ist dort unsichtbar.
+- **Neu für die nächsten Schritte: UI-Baukasten.** Sieben Bausteine (Seitenkopf, Werkzeugzeile, Liste, Klappzeile, Status, Knöpfe, Abstände und Schrift) als Klassen mit Präfix `ui-` in style.css, dazu Abstandsmaße 4–32 px, Zeile 56 px, Knopf 36 px, Kontextspalte 320 px. Regeln und Messwerte stehen in [docs/UI_BAUKASTEN.md](docs/UI_BAUKASTEN.md). Die vorhandenen Ansichten sind **noch nicht** umgestellt – das folgt ab Schritt 2 (Firmen und Heute).
+- Tests: neu `test_v2_ui_baukasten.py` (6) und Browser-Test `test_mobile_nav_browser.py`; je 714 Tests unter Python 3.13 und 3.10, 39 von 39 Browser-Tests grün.
+- Kein Schemawechsel.
+
 ## 2.0.0-dev48 – Fehlerbehebung: Budget wieder fair auf alle Quellen verteilt
 
 Befund des Eigentümers (Bildschirmfoto, Stuttgart 50 km): GLEIF meldete 300 von 300 neuen Firmen, Wikidata, OpenStreetMap und TED

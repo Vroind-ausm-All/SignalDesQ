@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev48)
+# Bekannte Einschränkungen (Stand 2.0.0-dev49)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -294,3 +294,10 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Vorher/Nachher vergleicht verschiedene Testpersonen und nur Studien derselben Firma; Unterschiede können auch an den Personen liegen.
 - Die Projektart ist die Leistung mit den meisten kalkulierten Stunden im Angebot – gemischte Aufträge landen nur in einer Gruppe.
 - Aussagen in „Was du lernst“ erst ab 3 Fällen; das sind Richtungen, keine gesicherten Zusammenhänge.
+
+## UI-Baukasten und mobile Navigation (2.0.0-dev49)
+
+- Die Bausteine aus [UI_BAUKASTEN.md](UI_BAUKASTEN.md) stehen in style.css bereit, die vorhandenen Ansichten nutzen sie aber noch nicht. Sie werden schrittweise umgestellt (Etappe E, Schritte 2–6); bis dahin sehen die Ansichten aus wie in dev48 und erreichen die Messwerte des Zielbilds nicht.
+- Die Schublade mit den sechs Bereichen gibt es nur bis 520 px Breite. Zwischen 521 und 790 px bleibt die schmale Seitenleiste mit Symbolen wie bisher.
+- Bei schmaler Breite zeigt die Kopfzeile nur den Bereich (nicht die Ansicht) und „Neuer Lead“ nur als „＋“; die Ansicht steht in den Reitern darunter.
+- Geprüft in Chromium (Playwright) bei 390 × 844 und 1280 × 720; auf echten Smartphones und anderen Browsern nicht getestet.
