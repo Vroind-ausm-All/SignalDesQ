@@ -67,6 +67,7 @@ class BriefingBrowserTests(unittest.TestCase):
 
                         page.goto(base + '/#/angebote')
                         page.wait_for_load_state('networkidle')
+                        page.locator('#qtNew').click()  # 2.0.0-dev52: der Editor öffnet über „＋ Neues Angebot“
                         page.select_option('#quoteForm [name=lead_id]', str(lead['id']))
                         page.wait_for_function(f'() => document.querySelector("#quoteForm [name=opportunity_id]").value === "{chance["id"]}"')
                         page.locator('#qbBriefing').click()

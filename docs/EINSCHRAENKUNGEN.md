@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev51)
+# Bekannte Einschränkungen (Stand 2.0.0-dev52)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -323,3 +323,15 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Einige Meldungen des Servers sagen weiter „Lead“ (z. B. Fehlermeldungen beim Übernehmen, „Lead-Finder-Treffer prüfen“ in der Prüfliste); die Oberfläche von Finden sagt „Firma“.
 - Geprüft in Chromium (Playwright) bei 1280 × 720 und 390 × 844; nicht auf echten Geräten und nicht in anderen Browsern.
 
+
+## Angebote im neuen Aufbau (2.0.0-dev52)
+
+- Umgestellt sind die Angebotsliste, der Seitenkopf und die Reiter des geöffneten Angebots, die Kontextspalte sowie die Seiten „Aufträge & Betreuung“ und „Auswertung“. Die Arbeitsschritte im geöffneten Angebot (Freigabe, Versand, Nachfassen, Entscheidung, Projektstart, Kick-off, Übergabe), das Formular des Editors, die Karten der Nachkalkulation und die Bestandskunden stehen noch in ihren bisherigen Bausteinen – nur geordnet und eingebettet.
+- „Nächster Schritt“ und „Fällig“ in der Liste werden aus vorhandenen Daten abgeleitet: Freigabe und Prüfpunkte (je offenem Entwurf eine Abfrage), das früheste offene Nachfassen, Kick-off- und Abnahmestand, Betreuung und „berechnet“. Für angenommene Angebote steht keine Fälligkeit, weil der Kick-off keine eigene Frist hat. „Rechnung erstellen“ erscheint, solange zu einem abgenommenen Auftrag gar keine Rechnung existiert – ob alle Teilrechnungen geschrieben sind, prüft die Liste nicht.
+- Die Liste zeigt wie bisher die letzten 100 Angebote. Die Liste hat kein „Spalten ▾“ (das Zielbild zeigt es); Spalten sind fest.
+- Die Hauptaktion im Kopf des geöffneten Angebots springt nur zum passenden Arbeitsschritt (und setzt den Fokus dorthin); freigeben, versenden oder dokumentieren musst du dort wie bisher selbst. Nach der Annahme wechselt sie zwischen Projektstart, Kick-off, Übergabe, Abnahme und Rechnung.
+- „Ablauf“ zeigt „Freigabe“ als aktuelle Phase, sobald alle Prüfpunkte erfüllt sind, sonst „Entwurf“ (bzw. „Bedarf“, solange der Bedarf nicht bestätigt ist).
+- „＋ Neues Angebot“ beginnt mit einem leeren Editor – außer der Editor enthält noch Positionen, die nicht gespeichert sind; dann geht es dort weiter. Ein Neuladen im Editor (`#/angebote?neu=1`) beginnt leer; ungespeicherte Positionen gehen dabei wie bisher verloren.
+- Der Verlauf eines Angebots setzt sich aus vorhandenen Zeitpunkten zusammen (erstellt, freigegeben, versendet, Nachfassen, Entscheidung, Projektstart, Übergabe, Abnahme, Nachrichtenentwürfe mit Bezug auf das Angebot). Statuswechsel aus der Zeit vor dev17 haben kein Datum und erscheinen nicht.
+- Seit dev52 behalten Erlebnisstudie, Fachreview und Stichprobe Eingaben in anderen Feldern, wenn nach einer Auswahl neu gezeichnet wird. Geprüft mit künstlich verzögerter Antwort; ein Feld, das man nach dem Neuzeichnen ohne weitere Eingabe verlässt, speichert über ein nachgereichtes „change“.
+- Geprüft in Chromium (Playwright) bei 1280 × 720 und 390 × 844; nicht auf echten Geräten und nicht in anderen Browsern.

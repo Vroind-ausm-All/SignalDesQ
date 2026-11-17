@@ -87,8 +87,8 @@ class UiFirmenHeuteBrowserTests(unittest.TestCase):
                         for gone in ('#modeToggle', '.date-chip', '#newLeadBtn2'):
                             self.assertEqual(page.locator(gone).count(), 0, gone)
                         self.assertFalse(page.locator('.breadcrumb').is_visible())
-                        page.locator('.sidebar [data-area="angebote"]').click()  # Bereich mit nur einer Ansicht: keine Reiter
-                        self.assertFalse(page.locator('#areaBar .area-tabs[data-area="angebote"]').is_visible())
+                        page.locator('.sidebar [data-area="abrechnen"]').click()  # Bereich mit nur einer Ansicht: keine Reiter (dev52: Angebote hat drei)
+                        self.assertFalse(page.locator('#areaBar .area-tabs[data-area="abrechnen"]').is_visible())
                         page.locator('.sidebar [data-area="firmen"]').click()
                         page.wait_for_function(f'() => {ROWS} === 9')
 

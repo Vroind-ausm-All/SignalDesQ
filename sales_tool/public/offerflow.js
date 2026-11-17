@@ -9,31 +9,35 @@
   let current = null;
 
   function mark(ok) { return `<span class="pill ${ok ? 'ok' : 'bad'}">${ok ? 'erfüllt' : 'fehlt'}</span>`; }
+  // 2.0.0-dev52 (UX Schritt 4): spätere Phasen als Vorschau – Titel sichtbar, das noch gesperrte Formular eingeklappt
+  const later = (id, title, note, body) => `<li class="of-step off" id="${id}"><details class="of-later"><summary><b>${title}</b> <small class="muted">${esc(note)}</small></summary>${body}</details></li>`;
 
   function stepRelease(s) {
     if (s.released) {
-      return `<li class="of-step done"><b>1 · Versandfassung</b><span>✓ freigegeben am ${esc(fmtDate(s.released_at.slice(0, 10)))} · Stand <code>${esc(s.stand)}</code></span>
+      return `<li class="of-step done" id="ofRelease"><b>1 · Versandfassung</b><span>✓ freigegeben am ${esc(fmtDate(s.released_at.slice(0, 10)))} · Stand <code>${esc(s.stand)}</code></span>
         ${s.stand_changed ? '<p class="qb-check warn">! Das gespeicherte Dokument weicht vom freigegebenen Stand ab. Bitte nicht versenden und neu erstellen.</p>' : ''}</li>`;
     }
-    return `<li class="of-step"><b>1 · Versandfassung freigeben</b><p class="muted">Der Export trägt bis dahin sichtbar „Entwurf“. Freigeben heißt nicht versenden.</p>
+    return `<li class="of-step" id="ofRelease"><b>1 · Versandfassung freigeben</b><p class="muted">Der Export trägt bis dahin sichtbar „Entwurf“. Freigeben heißt nicht versenden.</p>
       <ul class="of-checks">${s.checks.map(c => `<li>${mark(c.ok)} ${esc(c.label)}${c.detail ? ` <small class="muted">${esc(c.detail)}</small>` : ''}</li>`).join('')}</ul>
       ${s.hints.length ? `<div class="qb-check warn of-hints">${s.hints.map(h => '! ' + esc(h)).join('<br>')}</div>` : ''}
       <fieldset class="of-confirm" ${s.ready ? '' : 'disabled'}><legend>Vor dem Versand selbst geprüft</legend>
         ${Object.entries(s.confirmations).map(([k, v]) => `<label class="quote-addon"><input type="checkbox" data-of-confirm="${esc(k)}"><span>${esc(v)}</span></label>`).join('')}
-        <button type="button" class="btn btn-primary" data-of-release>Versandfassung freigeben</button></fieldset></li>`;
+        <button type="button" class="btn btn-ghost" data-of-release>Versandfassung freigeben</button></fieldset></li>`;
   }
 
   function stepSend(s) {
     if (s.sent_at || s.status === 'gesendet_manuell') {
-      return `<li class="of-step done"><b>2 · Versand</b><span>✓ ${s.sent_at ? `am ${esc(fmtDate(s.sent_at))} ${esc(s.channels[s.sent_channel] || '')} · Stand <code>${esc(s.sent_stand)}</code>` : 'als versendet dokumentiert (vor 2.0.0-dev17, ohne Stand)'}</span></li>`;
+      return `<li class="of-step done" id="ofSend"><b>2 · Versand</b><span>✓ ${s.sent_at ? `am ${esc(fmtDate(s.sent_at))} ${esc(s.channels[s.sent_channel] || '')} · Stand <code>${esc(s.sent_stand)}</code>` : 'als versendet dokumentiert (vor 2.0.0-dev17, ohne Stand)'}</span></li>`;
     }
     if (['angenommen', 'abgelehnt'].includes(s.status)) return '';
-    return `<li class="of-step ${s.released ? '' : 'off'}"><b>2 · Versand dokumentieren</b><p class="muted">Erst nachdem du die freigegebene Fassung selbst verschickt hast.</p>
+    const sendBody = `<p class="muted">Erst nachdem du die freigegebene Fassung selbst verschickt hast.</p>
       <div class="sales-row"><label>Weg<select data-of-channel ${s.released ? '' : 'disabled'}>${opt(s.channels, 'email')}</select></label>
       <label>Datum<input type="date" data-of-sentdate value="${today()}" max="${today()}" ${s.released ? '' : 'disabled'}></label></div>
       <div class="sales-row"><label>Nachfassen am<input type="date" data-of-followdate value="${plusDays(today(), 7)}" min="${today()}" ${s.released ? '' : 'disabled'}></label>
       <label>Anlass<input data-of-followreason maxlength="160" placeholder="z. B. Entscheidung nach der Gesellschafterrunde" ${s.released ? '' : 'disabled'}></label>
-      <button type="button" class="btn btn-ghost" data-of-sent ${s.released ? '' : 'disabled'}>Als versendet dokumentieren</button></div></li>`;
+      <button type="button" class="btn btn-ghost" data-of-sent ${s.released ? '' : 'disabled'}>Als versendet dokumentieren</button></div>`;
+    if (!s.released) return later('ofSend', '2 · Versand dokumentieren', 'folgt nach der Freigabe', sendBody);
+    return `<li class="of-step" id="ofSend"><b>2 · Versand dokumentieren</b>${sendBody}</li>`;
   }
 
   // 2.0.0-dev23 (M16): Nachfassen mit Anlass, Frist und Ergebnis
@@ -55,17 +59,18 @@
   function stepDecision(s) {
     if (s.decided_at) {
       const who = [s.decision_channels[s.decision_channel] || '', s.decision_person ? 'von ' + s.decision_person : ''].filter(Boolean).join(', ');
-      return `<li class="of-step done"><b>3 · Entscheidung</b><span>${s.status === 'angenommen' ? '✓ angenommen' : '– abgelehnt'} am ${esc(fmtDate(s.decided_at))}${who ? ' · ' + esc(who) : ''}</span>${s.decision_note ? `<small class="muted">${esc(s.decision_note)}</small>` : ''}</li>`;
+      return `<li class="of-step done" id="ofDecision"><b>3 · Entscheidung</b><span>${s.status === 'angenommen' ? '✓ angenommen' : '– abgelehnt'} am ${esc(fmtDate(s.decided_at))}${who ? ' · ' + esc(who) : ''}</span>${s.decision_note ? `<small class="muted">${esc(s.decision_note)}</small>` : ''}</li>`;
     }
-    if (['angenommen', 'abgelehnt'].includes(s.status)) return `<li class="of-step done"><b>3 · Entscheidung</b><span>${s.status === 'angenommen' ? '✓ angenommen' : '– abgelehnt'} (vor 2.0.0-dev17 dokumentiert)</span></li>`;
-    return `<li class="of-step ${s.released ? '' : 'off'}"><b>3 · Zusage oder Absage dokumentieren</b>
-      <p class="muted">Eine positive Rückmeldung mit Änderungswünschen ist noch keine Zusage zu diesem Stand.</p>
+    if (['angenommen', 'abgelehnt'].includes(s.status)) return `<li class="of-step done" id="ofDecision"><b>3 · Entscheidung</b><span>${s.status === 'angenommen' ? '✓ angenommen' : '– abgelehnt'} (vor 2.0.0-dev17 dokumentiert)</span></li>`;
+    const decBody = `<p class="muted">Eine positive Rückmeldung mit Änderungswünschen ist noch keine Zusage zu diesem Stand.</p>
       <div class="sales-row"><label>Weg<select data-of-dchannel ${s.released ? '' : 'disabled'}>${opt(s.decision_channels, 'email')}</select></label>
       <label>Person<input data-of-person maxlength="120" placeholder="Wer hat entschieden?" ${s.released ? '' : 'disabled'}></label>
       <label>Datum<input type="date" data-of-ddate value="${today()}" max="${today()}" ${s.released ? '' : 'disabled'}></label></div>
       <label>Notiz<input data-of-note maxlength="500" placeholder="z. B. Bestellnummer, Bedingungen" ${s.released ? '' : 'disabled'}></label>
-      <div class="sales-row"><button type="button" class="btn btn-primary" data-of-decide="angenommen" ${s.released ? '' : 'disabled'}>Zusage dokumentieren</button>
-      <button type="button" class="btn btn-ghost" data-of-decide="abgelehnt" ${s.released ? '' : 'disabled'}>Absage dokumentieren</button></div></li>`;
+      <div class="sales-row"><button type="button" class="btn btn-ghost" data-of-decide="angenommen" ${s.released ? '' : 'disabled'}>Zusage dokumentieren</button>
+      <button type="button" class="btn btn-ghost" data-of-decide="abgelehnt" ${s.released ? '' : 'disabled'}>Absage dokumentieren</button></div>`;
+    if (!s.released) return later('ofDecision', '3 · Zusage oder Absage dokumentieren', 'folgt nach Freigabe und Versand', decBody);
+    return `<li class="of-step" id="ofDecision"><b>3 · Zusage oder Absage dokumentieren</b>${decBody}</li>`;
   }
 
   function stepStart(p, s) {
@@ -78,7 +83,7 @@
     return `<li class="of-step" id="ofStart"><b>4 · ${s.status === 'angenommen' ? 'Projektstart festlegen' : 'Nachfassen beenden'}</b>
       ${p.suggestions.length ? `<div class="sales-subhead">Startaufgaben</div>${p.suggestions.map(x => `<label class="quote-addon"><input type="checkbox" data-of-create="${esc(x.key)}" ${x.exists ? 'disabled' : 'checked'}><span>${esc(x.title)}<small>${x.exists ? (x.done ? 'bereits erledigt' : 'bereits angelegt') : (x.days ? `fällig in ${x.days} Tag(en)` : 'fällig heute')}</small></span></label>`).join('')}` : ''}
       ${p.followups.length ? `<div class="sales-subhead">Offene Nachfassaufgaben zu diesem Angebot – beenden?</div>${p.followups.map(f => `<label class="quote-addon"><input type="checkbox" data-of-close="${f.id}" checked><span>${esc(f.title)}<small>${f.due_date ? 'fällig ' + esc(fmtDate(f.due_date)) : ''}</small></span></label>`).join('')}` : ''}
-      <button type="button" class="btn btn-primary" data-of-start>${s.status === 'angenommen' ? 'Projektstart übernehmen' : 'Ausgewählte Aufgaben beenden'}</button></li>`;
+      <button type="button" class="btn btn-ghost" data-of-start>${s.status === 'angenommen' ? 'Projektstart übernehmen' : 'Ausgewählte Aufgaben beenden'}</button></li>`;
   }
 
   // 2.0.0-dev28 (M38/M39): Projektkompass – Startvoraussetzungen mit Verantwortlichen, Frist und Auswirkung
@@ -92,7 +97,7 @@
       <input data-ko-name="${i.id}" maxlength="120" value="${esc(i.owner_name)}" placeholder="Name (optional)" aria-label="Name">
       <input type="date" data-ko-due="${i.id}" value="${esc(i.due_date)}" aria-label="Bis wann">
       <input data-ko-note="${i.id}" maxlength="300" value="${esc(i.note)}" placeholder="Notiz / Begründung" aria-label="Notiz"></li>`;
-    return `<li class="of-step ${started ? 'done' : ''}" id="ofKickoff"><b>Projektkompass</b> <span class="pill ${started || k.status === 'bereit' ? 'ok' : k.status === 'wartet' ? 'bad' : ''}" data-ko-status>${esc(k.status_label)}</span>
+    return `<li class="of-step ${started ? 'done' : ''}" id="ofKickoff"><details class="of-fold" ${started ? '' : 'open'}><summary><b>Kick-off · Projektkompass</b> <span class="pill ${started || k.status === 'bereit' ? 'ok' : k.status === 'wartet' ? 'bad' : ''}" data-ko-status>${esc(k.status_label)}</span></summary>
       ${k.waiting.length && !started ? `<p class="qb-check warn">! Wartet auf: ${k.waiting.map(w => `${esc(w.owner)} – ${esc(w.label)}${w.due_date ? ' (bis ' + esc(fmtDate(w.due_date)) + ')' : ''}`).join('; ')}</p>` : ''}
       <ul class="ho-items ko-items">${k.items.map(row).join('')}</ul>
       <p class="muted">${esc(k.secret_hint)}</p>
@@ -103,7 +108,7 @@
       ${started ? `<p>Gestartet am ${esc(fmtDate(k.started_at))}${k.start_note ? ' · ' + esc(k.start_note) : ''}</p>` : `<div class="sales-row"><label>Gestartet am<input type="date" data-ko-date value="${today()}" max="${today()}"></label>
         <label>Notiz<input data-ko-snote maxlength="300" placeholder="z. B. Kick-off per Video"></label>
         ${k.open ? '<label class="quote-addon"><input type="checkbox" data-ko-force><span>trotz offener Punkte starten</span></label>' : ''}
-        <button type="button" class="btn btn-primary" data-ko-start>Projektstart dokumentieren</button></div>`}</li>`;
+        <button type="button" class="btn btn-ghost" data-ko-start>Projektstart dokumentieren</button></div>`}</details></li>`;
   }
 
   // 2.0.0-dev24 (M17, T12): Übergabe und Abnahme des angenommenen Auftrags
@@ -130,7 +135,7 @@
       <label>Datum<input type="date" data-ho-date value="${today()}" max="${today()}"></label>
       <label>Abnahme einholen bis<input type="date" data-ho-due value="${esc(h.default_due)}" min="${today()}"></label></div>
       <div class="sales-row"><label>Notiz<input data-ho-hnote maxlength="500" placeholder="z. B. Zugänge übergeben, Einweisung erfolgt"></label>
-      <button type="button" class="btn btn-primary" data-ho-handover ${h.can_hand_over ? '' : 'disabled'}>Übergabe dokumentieren</button></div>` : '';
+      <button type="button" class="btn btn-ghost" data-ho-handover ${h.can_hand_over ? '' : 'disabled'}>Übergabe dokumentieren</button></div>` : '';
     const acc = h.can_accept ? `<div class="sales-subhead">Abnahme dokumentieren</div>
       <p class="muted">Übergeben am ${esc(fmtDate(h.handed_at))}. Restpunkte und Nachbesserungen bitte einzeln, je Zeile einer.</p>
       <div class="sales-row"><label>Ergebnis<select data-ho-result>${opt(h.results, 'abgenommen')}</select></label>
@@ -140,12 +145,12 @@
       <label>Restpunkte / Nachbesserungen<textarea data-ho-points rows="3" maxlength="3000" placeholder="leer lassen bei vollständiger Abnahme"></textarea></label>
       <div class="sales-row"><label>Frist für die Punkte<input type="date" data-ho-pdue value="${esc(h.default_due)}" min="${today()}"></label>
       <label>Notiz<input data-ho-anote maxlength="500"></label>
-      <button type="button" class="btn btn-primary" data-ho-accept>Abnahme dokumentieren</button></div>` : '';
+      <button type="button" class="btn btn-ghost" data-ho-accept>Abnahme dokumentieren</button></div>` : '';
     const result = finished ? `<p><b>${esc(h.result_label)}</b> am ${esc(fmtDate(h.accepted_at))}${h.accepted_person ? ' durch ' + esc(h.accepted_person) : ''}${h.rest_open ? ` · <span class="pill bad">${h.rest_open} Restpunkt(e) offen</span>` : ''}</p>
       ${h.final_invoice_due ? '<p class="qb-check warn">! Laut Zahlungsplan ist die Schlussrechnung fällig – unter „Abrechnen“ erstellen.</p>' : ''}` : '';
-    return `<li class="of-step ${h.status === 'abgenommen' ? 'done' : ''}" id="ofHandover"><b>5 · Übergabe & Abnahme</b> <span class="pill ${finished ? 'ok' : ''}" data-ho-status>${esc(h.status_label)}</span>
+    return `<li class="of-step ${h.status === 'abgenommen' ? 'done' : ''}" id="ofHandover"><details class="of-fold" ${h.status === 'abgenommen' ? '' : 'open'}><summary><b>5 · Übergabe & Abnahme</b> <span class="pill ${finished ? 'ok' : ''}" data-ho-status>${esc(h.status_label)}</span></summary>
       ${result}${group(['liefer'], 'Liefergegenstände')}${group(['kriterium'], 'Abnahmekriterien')}${group(['nachbesserung'], 'Nachbesserungen')}${group(['restpunkt'], 'Restpunkte')}
-      ${add}${hand}${acc}<div class="sales-row"><button type="button" class="btn btn-ghost" data-ho-protocol>${finished ? 'Abnahmeprotokoll herunterladen (.md)' : 'Protokoll-Entwurf zur Abnahme (.md)'}</button></div></li>`;
+      ${add}${hand}${acc}<div class="sales-row"><button type="button" class="btn btn-ghost" data-ho-protocol>${finished ? 'Abnahmeprotokoll herunterladen (.md)' : 'Protokoll-Entwurf zur Abnahme (.md)'}</button></div></details></li>`;
   }
 
   async function render(id) {
@@ -160,6 +165,7 @@
       if (s.status === 'angenommen' && !s.superseded_by) ko = await api('/workspace/proposals/' + id + '/kompass');
     } catch (e) { toast(e.message, true); return; }
     current = {id, s, p};
+    window.offerState = {id, s, p, f, ho, ko};  // 2.0.0-dev52: für Kopf, Kontextspalte und Verlauf des Arbeitsplatzes (angebote.js)
     box.querySelector('[data-quote-status]')?.closest('label')?.remove();
     const exp = box.querySelector('[data-quote-export]');
     if (exp) exp.textContent = s.released && !s.stand_changed ? 'Versandfassung herunterladen (.md)' : 'Entwurf herunterladen (.md)';
@@ -173,7 +179,7 @@
         <button type="button" class="btn btn-ghost" data-quote-open="${s.superseded_by}">${esc(s.superseded_number)} öffnen</button></li>`
       : `${stepRelease(s)}${stepSend(s)}${stepFollow(s, f)}${stepDecision(s)}${stepStart(p, s)}${stepKickoff(ko)}${stepHandover(ho)}`;
     (head || box).insertAdjacentHTML(head ? 'afterend' : 'afterbegin', `<ol class="of-panel" id="ofPanel" data-of-id="${id}">${steps}</ol>
-      <div class="of-revisions" id="ofRevisions">${s.revisable ? `<button type="button" class="btn btn-ghost" data-of-revise="${id}">Überarbeiten (neue Fassung)</button>` : ''}${s.addable ? `<button type="button" class="btn btn-ghost" data-of-addendum="${id}">Zusatzauftrag erstellen</button>` : ''}<div data-of-basis></div><div data-of-scope></div><div data-of-history></div></div>`);
+      <div class="of-revisions" id="ofRevisions">${s.revisable ? `<button type="button" class="btn btn-ghost" data-of-revise="${id}">Überarbeiten (neue Fassung)</button>` : ''}${s.addable ? `<button type="button" class="btn btn-ghost" data-of-addendum="${id}">Zusatzauftrag erstellen</button>` : ''}<div data-of-basis></div><div data-of-scope></div>${$('#qtHistVersions') ? '' : '<div data-of-history></div>'}</div>`);
     // 2.0.0-dev33 (M32): Grundlage je Position – nur intern
     try {
       const g = await api(`/workspace/proposals/${id}/grundlage`);
@@ -197,9 +203,14 @@
         }
       } catch { /* Umfang ist eine Zusatzinfo */ }
     }
+    // 2.0.0-dev52: Fassungen stehen im Reiter „Verlauf“ des Arbeitsplatzes (#qtHistVersions), sonst wie bisher unter den Schritten
+    const histBox = $('#qtHistVersions') || box.querySelector('[data-of-history]');
+    if (histBox) histBox.innerHTML = '';
+    window.offerState.versions = null;
     try {
       const h = await api(`/workspace/proposals/${id}/fassungen`);
-      if (h.versions.length > 1) box.querySelector('[data-of-history]').innerHTML = `<details class="of-history"><summary>Fassungen (${h.versions.length})</summary><ol>${h.versions.map(v => `<li><b>${esc(v.number)}</b> · ${esc(v.offer_date ? fmtDate(v.offer_date) : '')} · ${v.net_eur != null ? esc(euros(v.net_eur)) + ' netto' : ''} · ${v.superseded ? 'ersetzt' : esc(v.status.replaceAll('_', ' '))}${v.reason ? `<small>Grund: ${esc(v.reason)}</small>` : ''}${v.changes.length ? `<ul>${v.changes.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}</li>`).join('')}</ol></details>`;
+      window.offerState.versions = h.versions;
+      if (h.versions.length > 1) histBox.innerHTML = `<details class="of-history"><summary>Fassungen (${h.versions.length})</summary><ol>${h.versions.map(v => `<li><b>${esc(v.number)}</b> · ${esc(v.offer_date ? fmtDate(v.offer_date) : '')} · ${v.net_eur != null ? esc(euros(v.net_eur)) + ' netto' : ''} · ${v.superseded ? 'ersetzt' : esc(v.status.replaceAll('_', ' '))}${v.reason ? `<small>Grund: ${esc(v.reason)}</small>` : ''}${v.changes.length ? `<ul>${v.changes.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}</li>`).join('')}</ol></details>`;
     } catch { /* Fassungen sind eine Zusatzinfo */ }
   }
 

@@ -4,9 +4,12 @@ Verbindliche Grundlage für die Etappe „Visuelle Konsolidierung und Aufgabenf�
 Jede Ansicht wird aus denselben sieben Bausteinen gebaut. Die Klassen stehen in `sales_tool/public/style.css`
 (Abschnitt „UI-Baukasten“, Präfix `ui-`, damit nichts Bestehendes kollidiert).
 
-**Stand dev51:** Rahmen (Kopfzeile), Firmenliste und Heute (Schritt 2) sowie „Finden → Sichten“ und „Finden → Neue Suche“ (Schritt 3)
-sind umgestellt. Die übrigen Ansichten sind **noch nicht** umgestellt – auch die Unteransichten von „Finden → Analysen“ und „Import“
-haben nur die neue Reiterzeile bzw. einen neuen ersten Abschnitt; sie folgen in den Schritten 4–6. Neu gebaute oder umgebaute Ansichten
+**Stand dev52:** Rahmen (Kopfzeile), Firmenliste und Heute (Schritt 2), „Finden → Sichten“ und „Finden → Neue Suche“ (Schritt 3)
+sowie der Bereich „Angebote“ mit Liste, Editor, geöffnetem Angebot, „Aufträge & Betreuung“ und „Auswertung“ (Schritt 4) sind umgestellt.
+Die übrigen Ansichten sind **noch nicht** umgestellt – auch die Unteransichten von „Finden → Analysen“ und „Import“ haben nur die neue
+Reiterzeile bzw. einen neuen ersten Abschnitt; Einstellungen, Abrechnen und die Firmenakte folgen in den Schritten 5 und 6. Innerhalb der
+Angebote stehen die Arbeitsschritte (Freigabe, Versand, Nachfassen, Kick-off, Übergabe), die Kartenliste der Nachkalkulation, die
+Bestandskunden und das Formular des Editors noch in ihren bisherigen Bausteinen – nur geordnet und eingebettet. Neu gebaute oder umgebaute Ansichten
 verwenden ausschließlich diese Bausteine.
 
 ## Die sieben Bausteine
@@ -46,6 +49,15 @@ Dazu das **Kontextlayout** `.ui-with-side` mit `.ui-side`: Inhalt links, rechts 
 | Feld | `<label class="ui-field">Beschriftung<input …></label>` | Beschriftung 12 px darüber, Feld 36 px hoch |
 | Auswahlgruppe | `.ui-seg` mit `<button aria-pressed>`; aktiv `.is-active` | eine Wahl aus wenigen Voreinstellungen; keine aktiv heißt „eigene Auswahl“ |
 | Marke | `.ui-chip` mit `<button>×</button>` | gewählter Wert in einem Feld (z. B. Branche), × entfernt ihn |
+
+### Ergänzungen seit dev52 (Schritt 4): Detailseite und Eingaben
+
+| Baustein | Klassen | Regel |
+|---|---|---|
+| Reiter einer Detailseite | `.ui-tabs` mit `role="tablist"`, `.ui-tab` mit `role="tab"`/`aria-selected`, Inhalte mit `role="tabpanel"` | in der Werkzeugzeile der Detailseite; Pfeiltasten wechseln den Reiter |
+| Zeile mit Vertiefung | `<details><summary class="ui-row">…</summary><div class="ui-fold-body">…` | Listenzeile, die aufklappt statt zu öffnen (Positionen eines Angebots); das › dreht sich |
+| Prüfliste und Ablauf in der Kontextspalte | `.ui-card` mit `<ul class="qt-checks">`/`<ol class="qt-phases">`, Zeichen `.qt-ico` (✓ grün, ! rot, i gelb, Ziffer grau, aktuelle Phase gefüllt) | höchstens eine Zeile je Punkt, Zusatz 12 px darunter; jede Phase springt zu ihrem Arbeitsschritt |
+| Eingaben beim Neuzeichnen erhalten | `uiKeep(root, selector, draw)` und `uiSerial()` in `uikit.js` | jede Ansicht, die nach dem Speichern neu zeichnet, schreibt ungespeicherte Eingaben anderer Felder samt Fokus zurück und speichert der Reihe nach |
 
 ## Regeln der Anwenderlogik
 
@@ -132,6 +144,21 @@ Gemessen bei 1280 × 720 mit 11 fiktiven Treffern (Schiefer dunkel und Klassisch
 
 Prüffall: `tests/e2e/test_ui_finden_browser.py`.
 
+### Messwerte Angebote (dev52)
+
+Gemessen bei 1280 × 720 mit 5 fiktiven Angeboten (Entwurf, gesendet mit Nachfassen, angenommen, abgelehnt, zweiter Entwurf);
+Klassisch hell und Schiefer dunkel gleich:
+
+| Messung | dev51 | dev52 | Abnahme |
+|---|---|---|---|
+| Liste: Oberkante der ersten Angebotszeile | 2.221 px (unter Formular, Vorschau, Kalkulation, Betreuung, Nachkalkulation, Studien) | 221 px | ≤ 280 px |
+| Liste: Seitenlänge | 3.550 px | 720 px (eine Bildschirmseite) | – |
+| Geöffnetes Angebot: Titel / Reiter / erste Position | Titel und Status gab es nicht; Arbeitsschritte („Gespeichertes Angebot“) bei 3.939 px | 82 px / 132 px / 221 px (Kopf der Positionen 184 px) | Positionen ≤ 260 px |
+| Geöffnetes Angebot: Hauptaktion | keine (Freigabe, Versand, Zusage als Knöpfe in den Schritten) | eine, je Phase („Zur Freigabe prüfen“ … „Kick-off vorbereiten“) | genau eine |
+| 390 × 844: erste Angebotszeile | 4.144 px | 330 px | kein waagerechtes Scrollen (390 px) |
+
+Prüffall: `tests/e2e/test_ui_angebote_browser.py`.
+
 ## Was wohin zog (Schritt 3, dev51)
 
 Keine Funktion entfiel. Alle bisherigen Adressen gelten weiter (`#/finden`, `#/finden/import`, `#/finden/recherche`, `#/finden/url-recherche`,
@@ -165,3 +192,31 @@ Keine Funktion entfiel. Alle bisherigen Adressen gelten weiter (`#/finden`, `#/f
 | Messung: Stichprobe von Hand prüfen | Klappkasten auf der Finden-Seite | Firmen → Datenpflege (`#/firmen/datenpflege`) | `test_pilot_browser`, `test_ui_finden_browser` |
 | Erklärtext, Hinweis „Fund ≠ Kontakterlaubnis“ | über dem Formular | `title` der Überschrift „Finden“ und Hinweis unter den Klappzeilen; rechtlicher Rahmen unverändert am Ende | – (Text) |
 | Begriffe | „Lead“ in Treffern, Import, Analysen | sichtbar „Firma“ („Als Firma übernommen“, „schon Firma“, „Firma öffnen“, „Firmen auswählen“); interne Namen unverändert | `test_ui_finden_browser` |
+
+## Was wohin zog (Schritt 4, dev52)
+
+Keine Funktion entfiel. Fachliche Regeln (Bedarfsprüfung, Freigabe, Fassungen, Sperren, Statusfolge, Mindestverdienst, Zusatzaufträge,
+optionale Positionen, Nachfassen) sind unverändert; Server und Datenmodell auch. Alle bisherigen Adressen gelten weiter (`#/angebote`,
+`#/angebote?angebot=ID`); neu sind `#/angebote?neu=1` (Editor), `#/angebote/auftraege` und `#/angebote/auswertung`.
+
+| Funktion | Bisher | Jetzt | Prüffall |
+|---|---|---|---|
+| Reiter des Bereichs | keiner (eine Ansicht „Angebote & Nachkalkulation“) | drei: Angebote · Aufträge & Betreuung · Auswertung | `test_ui_angebote_browser`, `test_ui_firmen_heute_browser` (Bereich ohne Reiter ist jetzt „Abrechnen“) |
+| Gespeicherte Angebote (`#quoteHistory`, `[data-quote-open]`) | Abschnitt „05 / Angebotsverlauf“ am Seitenende (2.221 px) | Einstieg der Seite: Liste Angebot · Nächster Schritt · Fällig · Status · Betrag netto · ›, Klick oder Enter öffnet | `test_ui_angebote_browser`, alle Angebots-Tests |
+| Nummer, Status, „gültig bis“, „Bindefrist abgelaufen“, „berechnet“ | Textzeile je Angebot | Zusatz unter dem Projekt, Status-Pille, Spalte „Fällig“ (Bindefrist bzw. Nachfassen), rote Pille bei abgelaufener Bindefrist; „noch nicht berechnet“ unter „Filter ▾“ | `test_ui_angebote_browser` |
+| „Aktualisieren ↻“ (`#quoteRefresh`) | Kopf des Angebotsverlaufs | „Filter ▾“ | – (Knopf unverändert) |
+| Angebotsformular (`#quoteForm`, Positionen, Vorlage, Steuer, Überarbeitung, Zusatzauftrag) | immer sichtbar oben auf der Seite | Editor als eigene Ansicht über „＋ Neues Angebot“ (`#/angebote?neu=1`); öffnet sich auch, wenn „Heute“, Recherche, Empfehlung oder „Überarbeiten“/„Zusatzauftrag erstellen“ eine Firma vorbelegen; „＋ Neues Angebot“ beginnt leer, außer der Editor enthält noch Ungespeichertes | `test_ui_angebote_browser`, `test_briefing_browser`, `test_catalog_browser`, `test_chances_browser`, `test_options_browser`, `test_revision_browser`, `test_addendum_browser` |
+| „Festpreise berechnen“ / „Angebot als Entwurf speichern“ | grün / Nebenaktion | Nebenaktion / grün (die eine Hauptaktion des Editors); „＋ Hinzufügen“ Nebenaktion | `test_ui_angebote_browser` |
+| Kundenvorschau (`#quoteCustomer`), Interne Kalkulation (`#quoteInternal`) | Karten „02“ und „03“ neben bzw. unter dem Formular | im Editor rechts bzw. darunter; im geöffneten Angebot als Reiter „Kundenvorschau“ und „Interne Kalkulation“ (dieselben Elemente wandern) | `test_catalog_browser`, `test_options_browser`, `test_ui_angebote_browser` |
+| Grundsatz „Keine versteckten Aufschläge“, Verweis auf Einstellungen → Leistungen & Preise | Fußnote und eigene Karte | Hinweis unter der Liste und unter der Kalkulation im Editor | `test_navigation_browser` |
+| Geöffnetes Angebot | „Gespeichertes Angebot …“ unter dem Angebotsverlauf, Positionen nur in der Kundenvorschau oben | Arbeitsplatz: „← Angebote“, Projekt als Titel, Status-Pille, Firma · Nummer, eine Hauptaktion je Phase; Reiter Positionen (Liste Leistung · Umfang · Art · Betrag, aufklappbar; Summe und Zahlung & Bedingungen als Klappzeilen) · Kundenvorschau · Interne Kalkulation · Verlauf | `test_ui_angebote_browser`, `test_offer_address_browser` |
+| Freigabe, Versand, Nachfassen, Zusage/Absage, Projektstart, Kick-off/Projektkompass, Übergabe & Abnahme, Export, Rechnung, Überarbeiten, Zusatzauftrag, Grundlage je Position, Auftragsumfang (`#ofPanel`, `#ofStart`, `#ofKickoff`, `#ofHandover`, `#ofFollow`, `.of-basis`, `.of-scope`) | Liste unter „Gespeichertes Angebot“ | Karte „Arbeitsschritte“ unter dem Reiterinhalt (`#quoteSaved`, immer sichtbar); Versand und Entscheidung vor der Freigabe als eingeklappte Vorschau; Kick-off und Übergabe als Klappzeilen (offen, solange sie laufen); Knöpfe in den Schritten sind Nebenaktionen, die Hauptaktion im Kopf springt zum passenden Schritt | `test_offer_flow_browser`, `test_followup_browser`, `test_kickoff_browser`, `test_handover_browser`, `test_offer_basis_browser`, `test_addendum_browser`, `test_ui_angebote_browser` |
+| Fassungen (`.of-history`) | unter den Arbeitsschritten | Reiter „Verlauf“, dazu eine Zeitleiste (erstellt, freigegeben, versendet, Nachfassen, Zusage/Absage, Projektstart, Übergabe, Abnahme, Nachrichtenentwürfe zu diesem Angebot) | `test_revision_browser`, `test_ui_angebote_browser` |
+| Prüfpunkte der Freigabe | nur im Schritt „Versandfassung freigeben“ | zusätzlich rechts „Prüfung vor Freigabe“ (Prüfpunkte, Mindestverdienst, Zahl der Hinweise); nach der Freigabe Datum, Stand und nur noch Abweichungen | `test_ui_angebote_browser` |
+| Ablauf | – | rechts „Ablauf“: Bedarf → Entwurf → Freigabe → Versand → Annahme, aktuelle Phase hervorgehoben, nach Annahme „Auftrag“ | `test_ui_angebote_browser` |
+| Bestandskunden & Betreuung (`#crList`, `[data-cr-firm]`) | Abschnitt unter der Kalkulation | Angebote → Aufträge & Betreuung, Klappzeile (offen) | `test_care_browser` |
+| Nachkalkulation mit Zeiterfassung (`#pkList`, `.pk-card`) | Abschnitt unter Bestandskunden | Angebote → Aufträge & Betreuung, Klappzeile „Nachkalkulation & Zeiterfassung“ (offen); darüber die Liste der angenommenen Aufträge mit Kick-off- und Abnahmestand | `test_postcalc_browser`, `test_service_times_browser`, `test_ui_angebote_browser` |
+| Lehren der Nachkalkulation (`#pkLesson`, `#pkServiceLessons`) | im Abschnitt Nachkalkulation | Angebote → Auswertung, Klappzeile „Lehren der Nachkalkulation“ | `test_ui_angebote_browser` |
+| Erlebnisstudien (`#stBox`), „Was du lernst“ (`#lnBox`) | Klappkarten auf der Angebotsseite | Angebote → Auswertung, Klappzeilen | `test_studies_browser`, `test_keep_input_browser`, `test_ui_angebote_browser` |
+| Begriffe | „Interessent / Unternehmen“ im Formular, „Lead“ in einer Statusmeldung | „Firma“; interne Namen unverändert | – (Text) |
+

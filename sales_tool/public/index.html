@@ -26,7 +26,7 @@
       <nav class="area-tabs" data-area="heute" aria-label="Heute"><button type="button" class="area-tab" data-area-view="dashboard">Übersicht</button><button type="button" class="area-tab" data-area-view="tasks">Aufgaben <small id="dueBadge"></small></button><button type="button" class="area-tab" data-area-view="workspace">Kontakt &amp; Termine</button></nav>
       <nav class="area-tabs hidden" data-area="finden" aria-label="Finden"><button type="button" class="area-tab" data-area-view="sichten">Sichten</button><button type="button" class="area-tab" data-area-view="finder">Neue Suche</button><button type="button" class="area-tab" data-area-view="datacheck">Import</button><button type="button" class="area-tab" data-area-view="center" data-area-group="analysen">Analysen <small class="nav-new" id="rcNavBadge"></small></button></nav>
       <nav class="area-tabs hidden" data-area="firmen" aria-label="Firmen"><button type="button" class="area-tab" data-area-view="leads">Firmenliste</button><button type="button" class="area-tab" data-area-view="pipeline">Pipeline</button><button type="button" class="area-tab" data-area-view="quality">Datenpflege <small class="nav-new" id="qNavBadge"></small></button></nav>
-      <nav class="area-tabs hidden" data-area="angebote" aria-label="Angebote"><button type="button" class="area-tab" data-area-view="quotes">Angebote &amp; Nachkalkulation</button></nav>
+      <nav class="area-tabs hidden" data-area="angebote" aria-label="Angebote"><button type="button" class="area-tab" data-area-view="quotes">Angebote</button><button type="button" class="area-tab" data-area-view="orders">Aufträge &amp; Betreuung</button><button type="button" class="area-tab" data-area-view="insights">Auswertung</button></nav>
       <nav class="area-tabs hidden" data-area="abrechnen" aria-label="Abrechnen"><button type="button" class="area-tab" data-area-view="accounting">Rechnungen &amp; Buchhaltung</button></nav>
       <nav class="area-tabs hidden" data-area="einstellungen" aria-label="Einstellungen"><button type="button" class="area-tab" data-area-view="settings">Profil &amp; Arbeitsweise</button><button type="button" class="area-tab" data-area-view="studio">Erweiterte Werkzeuge: KI-Studio <small class="nav-cap" id="aiNavBadge"></small></button><button type="button" class="area-tab" data-area-view="playbook">Hilfe &amp; Leitfaden</button></nav>
     </div>
@@ -189,10 +189,35 @@
   </div>
   <section class="panel sales-section"><span class="eyebrow">PROTOKOLL</span><h2>Letzte Anruf-Ergebnisse</h2><div id="wsRecentCalls" class="sales-list"></div></section>
 </div>
-<div class="content hidden" id="viewQuotes">
-  <div class="eyebrow">3 · VERKAUFEN · NACHVOLLZIEHBARE FESTPREISE</div><div class="page-title"><div><h1>Angebote & Preise.</h1><p>Stelle dein Angebot aus deinem Leistungskatalog zusammen. Jede Position hat einen Festpreis, der sich nachvollziehbar aus Aufwand, Stundensatz, Puffer und enthaltenen Fremdkosten ergibt. Anreise und Tagespauschale kommen als eigene Positionen dazu.</p></div><span class="pill" id="qbRatePill">66 €/h</span></div>
-  <div class="sales-cols quote-grid">
-   <section class="panel sales-section"><span class="eyebrow">01 / ANGEBOT ZUSAMMENSTELLEN</span><h2>Positionen</h2>
+<!-- 2.0.0-dev52 (UX Schritt 4): Angebote als Liste, Editor und Arbeitsplatz. #qtList ist der Einstieg (#/angebote), „＋ Neues Angebot“
+     öffnet den Editor (#/angebote?neu=1), ein Angebot öffnet den Arbeitsplatz (#/angebote?angebot=ID) mit Reitern Positionen · Kundenvorschau ·
+     Interne Kalkulation · Verlauf und der Kontextspalte Prüfung vor Freigabe · Ablauf. #quoteCustomer/#quoteInternal wandern zwischen Editor und
+     Arbeitsplatz (angebote.js). Aufträge & Betreuung und Auswertung sind eigene Reiter (#viewOrders, #viewInsights). -->
+<div class="content ui-page hidden" id="viewQuotes" data-qt-mode="list">
+ <section class="qt-pane" id="qtList" aria-labelledby="qtListTitle">
+  <div class="ui-head"><h1 id="qtListTitle">Angebote</h1><span class="ui-meta" id="qtCount" role="status" aria-live="polite"></span><span class="ui-sp"></span><button type="button" class="btn btn-primary" id="qtNew">＋ Neues Angebot</button></div>
+  <div class="ui-tool">
+   <input type="search" id="qtQ" class="ui-search" placeholder="⌕ Projekt, Firma oder Nummer suchen …" aria-label="Angebote durchsuchen">
+   <div class="ui-tabs" id="qtViews" role="group" aria-label="Ansichten"><button type="button" class="ui-tab is-active" data-qt-view="alle" aria-pressed="true">Alle <span class="ui-count" data-qt-cnt="alle"></span></button><button type="button" class="ui-tab" data-qt-view="offen" aria-pressed="false">Offen <span class="ui-count" data-qt-cnt="offen"></span></button><button type="button" class="ui-tab" data-qt-view="angenommen" aria-pressed="false">Angenommen <span class="ui-count" data-qt-cnt="angenommen"></span></button></div>
+   <details class="ui-menu" id="qtFilterMenu"><summary class="btn btn-ghost" id="qtFilterBtn">Filter ▾</summary><div class="ui-menu-body" role="group" aria-label="Filter">
+    <label class="ui-menu-field">Status<select id="qtStatus" aria-label="Status"><option value="">alle Status</option><option value="entwurf">Entwurf (nicht freigegeben)</option><option value="freigegeben">freigegeben, nicht gesendet</option><option value="gesendet">gesendet</option><option value="angenommen">angenommen</option><option value="abgelehnt">abgelehnt</option><option value="ersetzt">ersetzt (ältere Fassung)</option></select></label>
+    <label class="ui-menu-item"><input type="checkbox" id="qtExpired"> nur mit abgelaufener Bindefrist</label>
+    <label class="ui-menu-item"><input type="checkbox" id="qtUnbilled"> angenommen, noch nicht berechnet</label>
+    <label class="ui-menu-item"><input type="checkbox" id="qtHideOld"> ersetzte Fassungen ausblenden</label>
+    <button type="button" class="ui-menu-item" id="qtReset">Filter zurücksetzen</button>
+    <button type="button" class="ui-menu-item" id="quoteRefresh">Aktualisieren ↻</button></div></details>
+  </div>
+  <div class="ui-list qt-list">
+   <div class="ui-row-head" aria-hidden="true"><span>Angebot</span><span>Nächster Schritt</span><span>Fällig</span><span>Status</span><span class="ui-num">Betrag netto</span><span></span></div>
+   <div id="quoteHistory" role="list" aria-label="Angebote"></div>
+  </div>
+  <p class="ui-small">Stundensatz, Mindestverdienst, Tagespauschale, Anreise und Katalogwerte pflegst du zentral unter <button type="button" class="ui-txt" data-settings-link="preise">Einstellungen → Leistungen &amp; Preise</button>. Keine versteckten Aufschläge: Stunden und Kalkulation erscheinen nie im Kundendokument.</p>
+ </section>
+
+ <section class="qt-pane hidden" id="qtEdit" aria-labelledby="qtEditTitle">
+  <div class="ui-head"><button type="button" class="ui-back" data-qt-back>← Angebote</button><h1 id="qtEditTitle">Neues Angebot</h1><span class="ui-meta" id="qtEditMeta">Entwurf – noch nicht gespeichert</span><span class="ui-pill" id="qbRatePill">66 €/h</span></div>
+  <div class="qt-edit-grid">
+   <section class="ui-card qt-edit-form" aria-label="Angebot zusammenstellen"><h2 class="ui-section">Positionen</h2>
      <form id="quoteForm" class="sales-form">
        <div id="qbRevision" class="qb-revision hidden" role="status"><b>Überarbeitung von <span id="qbRevisionOf"></span></b>
          <label>Grund der Überarbeitung (steht im Angebot)<input id="qbRevisionReason" maxlength="300" placeholder="z. B. Umfang auf Wunsch reduziert"></label>
@@ -201,13 +226,13 @@
          <p class="muted">Der angenommene Auftrag bleibt unverändert. Hier nur die zusätzlichen Leistungen erfassen.</p>
          <label>Anlass des Zusatzauftrags (steht im Angebot)<input id="qbAddendumReason" maxlength="300" placeholder="z. B. Kundenwunsch: zusätzliche Sprachversion"></label>
          <button type="button" class="text-button" id="qbAddendumCancel">Zusatzauftrag abbrechen</button></div>
-       <label>Interessent / Unternehmen<select name="lead_id" class="sales-lead-select" required></select></label>
+       <label>Firma<select name="lead_id" class="sales-lead-select" required></select></label>
        <label>Chance<select name="opportunity_id" data-ch-select="angebot"><option value="">neue Chance (aus dem Projekttitel)</option></select></label>
        <div class="sales-row"><label>Vorlage (optional)<select id="quotePackage" name="package"></select></label><button type="button" class="btn btn-ghost qb-tpl" id="qbTemplate">Vorlage laden</button></div>
        <label>Projekttitel<input name="project_label" maxlength="140" placeholder="z. B. Neuer Webauftritt mit Shop-Anbindung"></label>
        <label>Ergebnis / Kundenziel<textarea name="customer_goal" rows="2" maxlength="500" placeholder="Konkretes, realistisch erreichbares Ergebnis"></textarea></label>
        <div class="qb-add"><b>Leistung hinzufügen</b>
-         <div class="qb-add-row"><select id="qbService" aria-label="Leistung"></select><select id="qbSize" aria-label="Umfang"></select><input id="qbQty" type="number" min="1" step="1" value="1" aria-label="Menge"><button type="button" class="btn btn-primary" id="qbAdd">＋ Hinzufügen</button></div>
+         <div class="qb-add-row"><select id="qbService" aria-label="Leistung"></select><select id="qbSize" aria-label="Umfang"></select><input id="qbQty" type="number" min="1" step="1" value="1" aria-label="Menge"><button type="button" class="btn btn-ghost" id="qbAdd">＋ Hinzufügen</button></div>
          <small class="muted" id="qbHint"></small>
          <div class="acc-btn-group"><button type="button" class="btn btn-ghost" data-qb-quick="anreise">＋ Anreise</button><button type="button" class="btn btn-ghost" data-qb-quick="tagessatz">＋ Tagespauschale</button><button type="button" class="btn btn-ghost" data-qb-quick="aufwand">＋ Nach Aufwand</button></div>
        </div>
@@ -216,21 +241,63 @@
        <button type="button" class="text-button" id="qbBriefing">Voraussetzungen aus dem Briefing der Chance übernehmen</button>
        <label>Umsatzsteuerstatus<select name="tax_mode"><option value="offen">Noch offen – Entwurf, nicht versenden</option><option value="regel_19">Regulär mit 19 % USt.</option><option value="kleinunternehmer">§ 19 UStG (nur falls wirklich anwendbar)</option></select></label>
        <div id="quoteAddons" class="hidden"></div>
-       <div class="acc-btn-group"><button class="btn btn-primary" type="button" id="quoteCalculate">Festpreise berechnen</button><button class="btn btn-ghost" type="submit">Angebot als Entwurf speichern</button></div>
+       <div class="acc-btn-group"><button class="btn btn-ghost" type="button" id="quoteCalculate">Festpreise berechnen</button><button class="btn btn-primary" type="submit">Angebot als Entwurf speichern</button></div>
      </form>
    </section>
-   <section class="panel sales-section"><span class="eyebrow">02 / KUNDENVORSCHAU</span><h2>Was dein Kunde sieht</h2><div id="quoteCustomer" class="quote-preview"><p class="muted">Positionen hinzufügen und „Festpreise berechnen“.</p></div></section>
+   <section class="ui-card" aria-label="Kundenvorschau"><h2 class="ui-section">Kundenvorschau <span class="ui-small">– was dein Kunde sieht</span></h2><div id="qtSlotEditCustomer"><div id="quoteCustomer" class="quote-preview"><p class="muted">Positionen hinzufügen und „Festpreise berechnen“.</p></div></div></section>
   </div>
-  <section class="panel sales-section"><span class="eyebrow">03 / NUR FÜR DICH</span><h2>So setzt sich der Preis zusammen</h2><div id="quoteInternal" class="quote-internal"><p class="muted">Erscheint nach der Berechnung: Aufwand × Stundensatz + Puffer + enthaltene Fremdkosten = Festpreis, dazu dein effektiver Stundenlohn.</p></div>
-   <div class="legal-foot"><b>Grundsatz:</b> Keine versteckten Aufschläge. Laufende Kosten Dritter (Hosting, Lizenzen, Werbebudget, KI-/Telefonminuten) stehen im Angebot ausdrücklich als „nicht im Festpreis“. Stunden und Kalkulation erscheinen nie im Kundendokument.</div></section>
- <div class="panel sales-section settings-link"><span class="eyebrow">KALKULATIONSGRUNDLAGEN</span><p>Stundensatz, Mindestverdienst, Tagespauschale, Anreise und Katalogwerte pflegst du zentral unter <button type="button" class="text-button" data-settings-link="preise">Einstellungen → Leistungen &amp; Preise</button>.</p></div>
- <section class="panel sales-section" id="bestand"><div class="studio-section-head"><div><span class="eyebrow">NACH DER ZUSAGE</span><h2>Bestandskunden &amp; Betreuung</h2></div><span class="muted" id="crCount"></span></div>
-  <p class="muted">Betreuung (monatlich, mit Laufzeit), Projekte und neue Chancen je Firma getrennt. Je Monat gibt es genau eine Monatsrechnung mit Leistungszeitraum.</p>
-  <div id="crList" class="cr-list-wrap"></div></section>
- <section class="panel sales-section" id="nachkalkulation"><div class="studio-section-head"><div><span class="eyebrow">NACH DEM AUFTRAG · NUR FÜR DICH</span><h2>Nachkalkulation</h2></div><span class="muted" id="pkCount"></span></div>
-  <p class="muted">Trag ein, wie lange du wirklich gebraucht hast. So siehst du, ob sich ein Festpreis gelohnt hat, und die Auslastung auf „Heute“ rechnet mit dem, was noch offen ist.</p>
-  <p id="pkLesson" class="pk-lesson"></p><div id="pkServiceLessons" class="pk-service-lessons"></div><div id="pkList" class="pk-list"></div><p class="muted td-note" id="pkNotice"></p></section>
- <section class="panel sales-section" id="studien"><details id="stBox"><summary><b>Erlebnisstudien</b> <small class="muted">– echte Testpersonen lösen Aufgaben auf einer Website, z. B. vor und nach einem Relaunch</small></summary>
+  <section class="ui-card" aria-label="Interne Kalkulation"><h2 class="ui-section">Interne Kalkulation <span class="ui-small">– nur für dich</span></h2><div id="qtSlotEditInternal"><div id="quoteInternal" class="quote-internal"><p class="muted">Erscheint nach der Berechnung: Aufwand × Stundensatz + Puffer + enthaltene Fremdkosten = Festpreis, dazu dein effektiver Stundenlohn.</p></div></div>
+   <p class="ui-small"><b>Grundsatz:</b> Keine versteckten Aufschläge. Laufende Kosten Dritter (Hosting, Lizenzen, Werbebudget, KI-/Telefonminuten) stehen im Angebot ausdrücklich als „nicht im Festpreis“. Stunden und Kalkulation erscheinen nie im Kundendokument.</p></section>
+ </section>
+
+ <section class="qt-pane hidden" id="qtOffer" aria-labelledby="qtTitle">
+  <div class="ui-head"><button type="button" class="ui-back" data-qt-back>← Angebote</button><h1 id="qtTitle">Angebot</h1><span class="ui-pill" id="qtPill"></span><span class="ui-meta" id="qtMeta"></span><span class="ui-sp"></span><button type="button" class="btn btn-primary hidden" id="qtMain"></button></div>
+  <div class="ui-tool"><div class="ui-tabs" id="qtTabs" role="tablist" aria-label="Angebot"><button type="button" class="ui-tab" role="tab" data-qt-tab="positionen" aria-selected="true">Positionen</button><button type="button" class="ui-tab" role="tab" data-qt-tab="kunde" aria-selected="false">Kundenvorschau</button><button type="button" class="ui-tab" role="tab" data-qt-tab="intern" aria-selected="false">Interne Kalkulation</button><button type="button" class="ui-tab" role="tab" data-qt-tab="verlauf" aria-selected="false">Verlauf</button></div></div>
+  <div class="ui-with-side qt-work">
+   <div class="qt-main">
+    <div class="qt-panel" data-qt-panel="positionen" role="tabpanel">
+     <div class="ui-list qt-pos-list" id="qtPositions"></div>
+     <div class="ui-list qt-terms" id="qtTerms"></div>
+    </div>
+    <div class="qt-panel ui-card hidden" data-qt-panel="kunde" role="tabpanel" id="qtSlotCustomer"></div>
+    <div class="qt-panel ui-card hidden" data-qt-panel="intern" role="tabpanel" id="qtSlotInternal"></div>
+    <div class="qt-panel hidden" data-qt-panel="verlauf" role="tabpanel"><div class="ui-list" id="qtHistory"></div><div id="qtHistVersions" data-of-history></div></div>
+    <section class="ui-card qt-flow" id="quoteSaved" aria-label="Arbeitsschritte"></section>
+   </div>
+   <aside class="ui-side" aria-label="Kontext">
+    <section class="ui-card qt-side" id="qtChecks"><h2 class="ui-section">Prüfung vor Freigabe</h2><ul class="qt-checks" id="qtCheckList"></ul></section>
+    <section class="ui-card qt-side" id="qtFlowCard"><h2 class="ui-section">Ablauf</h2><ol class="qt-phases" id="qtPhases"></ol></section>
+   </aside>
+  </div>
+ </section>
+</div>
+<!-- 2.0.0-dev52: Angebote → Aufträge & Betreuung (#/angebote/auftraege): angenommene Angebote mit Kick-off und Abnahme, Nachkalkulation mit
+     Zeiterfassung, Bestandskunden & Betreuung. -->
+<div class="content ui-page hidden" id="viewOrders">
+ <div class="ui-head"><h1>Aufträge &amp; Betreuung</h1><span class="ui-meta" id="odCount" role="status" aria-live="polite"></span></div>
+ <div class="ui-tool"><p class="ui-strip" id="odStrip">Angenommene Angebote mit Kick-off, Übergabe und Zeiten. Ein Klick öffnet den Auftrag.</p></div>
+ <div class="ui-list od-list">
+  <div class="ui-row-head" aria-hidden="true"><span>Auftrag</span><span>Nächster Schritt</span><span>Kick-off</span><span>Abnahme</span><span class="ui-num">Betrag netto</span><span></span></div>
+  <div id="odRows" role="list" aria-label="Aufträge"></div>
+ </div>
+ <div class="ui-list">
+  <details class="ui-fold" id="nachkalkulation" open><summary><b>Nachkalkulation &amp; Zeiterfassung</b><span id="pkCount"></span></summary><div class="ui-fold-body">
+   <p class="ui-small">Trag ein, wie lange du wirklich gebraucht hast. So siehst du, ob sich ein Festpreis gelohnt hat, und die Auslastung auf „Heute“ rechnet mit dem, was noch offen ist. Nur für dich.</p>
+   <div id="pkList" class="pk-list"></div><p class="muted td-note" id="pkNotice"></p></div></details>
+  <details class="ui-fold" id="bestand" open><summary><b>Bestandskunden &amp; Betreuung</b><span id="crCount"></span></summary><div class="ui-fold-body">
+   <p class="ui-small">Betreuung (monatlich, mit Laufzeit), Projekte und neue Chancen je Firma getrennt. Je Monat gibt es genau eine Monatsrechnung mit Leistungszeitraum.</p>
+   <div id="crList" class="cr-list-wrap"></div></div></details>
+ </div>
+</div>
+<!-- 2.0.0-dev52: Angebote → Auswertung (#/angebote/auswertung): Lehren der Nachkalkulation, Erlebnisstudien, „Was du lernst“. -->
+<div class="content ui-page hidden" id="viewInsights">
+ <div class="ui-head"><h1>Auswertung</h1><span class="ui-meta">Nur für dich – Aufwand, Wirkung und Grenzen der Aussagen</span></div>
+ <div class="ui-tool"><p class="ui-strip">Aussagen erst ab genügend Fällen – die Grenzen stehen unter „Was du lernst“.</p></div>
+ <div class="ui-list">
+  <details class="ui-fold" id="lessonBox" open><summary><b>Lehren der Nachkalkulation</b><span id="pkLessonState">gesamt und je Leistung, aus abgeschlossenen Aufträgen</span></summary><div class="ui-fold-body">
+   <p id="pkLesson" class="pk-lesson"></p><div id="pkServiceLessons" class="pk-service-lessons"></div>
+   <p class="ui-small">Die Lehren entstehen aus abgeschlossenen Aufträgen mit erfassten Zeiten (Aufträge &amp; Betreuung → Nachkalkulation).</p></div></details>
+   <details class="ui-fold" id="stBox"><summary><b>Erlebnisstudien</b><span id="stState">echte Testpersonen lösen Aufgaben auf einer Website, z. B. vor und nach einem Relaunch</span></summary><div class="ui-fold-body st-body">
   <p class="muted" id="stNotice"></p>
   <form id="stCreate" class="sales-form st-create"><label>Firma<select name="lead_id" id="stLead"></select></label><label>Titel<input name="title" maxlength="120" required placeholder="z. B. Website vor dem Relaunch"></label>
    <label>Website<input name="url" type="url" maxlength="300" placeholder="https://"></label>
@@ -238,14 +305,14 @@
    <label>Methode<select name="method"><option value="moderiert">moderiert (du bist dabei)</option><option value="unmoderiert">unmoderiert</option></select></label>
    <label class="st-wide">Aufgaben (eine je Zeile)<textarea name="tasks" rows="3" required placeholder="Finden Sie die Telefonnummer.&#10;Fragen Sie einen Termin an."></textarea></label>
    <label class="st-wide">Fragen (optional, eine je Zeile)<textarea name="questions" rows="2" placeholder="Was hat Sie gestört?"></textarea></label>
-   <button class="btn btn-primary" type="submit">Studie anlegen</button></form>
-  <div id="stList" class="sales-list"></div><div id="stDetail"></div></details></section>
- <section class="panel sales-section" id="lernen"><details id="lnBox"><summary><b>Was du lernst</b> <small class="muted">– Aufwand nach Projektart, Ergebnisse nach Methode, Wirkung vorher/nachher</small></summary>
+   <button class="btn btn-ghost" type="submit">Studie anlegen</button></form>
+  <div id="stList" class="sales-list"></div><div id="stDetail"></div></div></details>
+   <details class="ui-fold" id="lnBox"><summary><b>Was du lernst</b><span>Aufwand nach Projektart, Ergebnisse nach Methode, Wirkung vorher/nachher</span></summary><div class="ui-fold-body ln-body">
   <h4>Aufwand nach Projektart</h4><div id="lnEffort"></div>
   <h4>Ergebnisse nach Methode (Erlebnisstudien)</h4><div id="lnMethods"></div>
   <h4>Wirkung vorher/nachher</h4><div id="lnBeforeAfter"></div>
-  <h4>Grenzen</h4><ul class="muted" id="lnLimits"></ul></details></section>
- <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">05 / ANGEBOTSVERLAUF</span><h2>Gespeicherte Angebote</h2></div><button type="button" class="text-button" id="quoteRefresh">Aktualisieren ↻</button></div><div id="quoteHistory" class="sales-list"></div><div id="quoteSaved" class="quote-preview"></div></section>
+  <h4>Grenzen</h4><ul class="muted" id="lnLimits"></ul></div></details>
+ </div>
 </div>
 <!-- 2.0.0-dev51 (UX Schritt 3): Finden → Neue Suche. Seitenkopf mit „Suche starten“, Statuszeile der Datenquellen, oben Ort · Umkreis ·
      Branchen und „Wen suchst du?“ (Voreinstellungen), alles Weitere als Klappzeilen mit Kurzstand. Datenquellen stehen unter Einstellungen. -->
@@ -871,6 +938,7 @@
 <script src="/report.js" defer></script>
 <script src="/quotes.js" defer></script>
 <script src="/offerflow.js" defer></script>
+<script src="/angebote.js" defer></script>
 <script src="/chances.js" defer></script>
 <script src="/tasks.js" defer></script>
 <script src="/pipeline.js" defer></script>

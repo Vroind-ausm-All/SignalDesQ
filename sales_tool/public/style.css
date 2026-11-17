@@ -1050,3 +1050,65 @@ body.nav-open .sidebar :focus-visible{outline:2px solid var(--on-dark-accent);ou
 .fd-import .studio-section-head{align-items:center}
 @media(max-width:900px){.fd-where{grid-template-columns:minmax(0,1fr) 140px}.fd-ind-wrap{grid-column:1/-1}.fd-opts{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:520px){.fd-where{grid-template-columns:minmax(0,1fr)}.fd-take-alt{display:inline-flex}.fd-more{padding-left:var(--s3)}.ui-seg>button{flex:1 1 auto}}
+
+/* ===== 2.0.0-dev52: Angebote – Liste, Editor, Arbeitsplatz, Aufträge & Betreuung, Auswertung (UX Schritt 4) =====
+   Aufbau aus dem Baukasten; hier nur Anordnung und Feinheiten. Farben nur über Theme-Variablen. */
+.qt-pane{display:flex;flex-direction:column;gap:var(--s4);min-width:0}
+.qt-pane.hidden{display:none}
+.qt-row .ui-cut,.od-row .ui-cut{font-size:14px}
+.qt-date{font-size:13px;color:var(--ink-2)}
+.qt-row .ui-pill+.ui-pill{margin-left:var(--s1)}
+/* Editor: Formular links, Kundenvorschau rechts, Kalkulation darunter */
+.qt-edit-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:var(--s4);align-items:start}
+.qt-edit-form .sales-form{margin:0}
+#qtEdit .ui-head .ui-pill{font-weight:600}
+@media(max-width:1080px){.qt-edit-grid{grid-template-columns:minmax(0,1fr)}}
+/* Arbeitsplatz eines Angebots: Reiter, Positionen als Liste, Summe/Zahlung als Klappzeilen, Arbeitsschritte darunter */
+.qt-main{display:flex;flex-direction:column;gap:var(--s4);min-width:0}
+.qt-panel{display:flex;flex-direction:column;gap:var(--s4);min-width:0}
+.qt-panel.hidden{display:none}
+.qt-pos-list .ui-row,.qt-pos-list .ui-row-head{grid-template-columns:minmax(0,2fr) minmax(0,1.1fr) 88px 104px 12px}
+.qt-pos>summary{list-style:none}.qt-pos>summary::-webkit-details-marker{display:none}
+.qt-pos>summary .ui-chev{transition:transform .15s}
+.qt-pos[open]>summary{background:var(--accent-soft)}.qt-pos[open]>summary .ui-chev{transform:rotate(90deg)}
+.qt-pos-body p{margin:0 0 var(--s1)}
+.qt-terms .ui-fold:first-child{border-top:0}
+.qt-flow h3{margin:0}
+.qt-flow .of-panel{margin:0}
+.qt-flash{outline:2px solid var(--accent-strong);outline-offset:2px}
+.of-later>summary,.of-fold>summary{cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2)}
+.of-later>summary b,.of-fold>summary b{font-weight:600}
+.of-fold[open]>summary{margin-bottom:var(--s2)}
+.of-step.off:has(.of-later[open]){opacity:1}
+/* Kontextspalte: Prüfung vor Freigabe und Ablauf */
+.qt-side{gap:var(--s3)}
+.qt-checks,.qt-phases{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--s2)}
+.qt-check,.qt-phase{display:grid;grid-template-columns:20px minmax(0,1fr);gap:var(--s2);align-items:start;font-size:13px;color:var(--ink-2)}
+.qt-check small{display:block;color:var(--muted);font-size:12px}
+.qt-ico{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:10px;background:var(--surface-3);color:var(--ink-2);font-size:11px;font-weight:700}
+.qt-check.is-ok .qt-ico,.qt-phase.is-done .qt-ico{background:var(--accent-soft);color:var(--accent-ink)}
+.qt-check.is-bad .qt-ico{background:var(--danger-bg);color:var(--danger-fg)}
+.qt-check.is-hint .qt-ico{background:var(--warn-bg);color:var(--warn-fg)}
+.qt-phase.is-current .qt-ico{background:var(--accent-strong);color:var(--surface)}
+.qt-phase .ui-txt{justify-self:start;text-align:left;white-space:normal}
+.qt-phase.is-current .ui-txt{color:var(--ink);font-weight:700}
+.qt-phase:not(.is-current) .ui-txt{color:var(--ink-2);font-weight:500}
+.qt-phase.is-bad .qt-ico{background:var(--danger-bg);color:var(--danger-fg)}
+/* Verlauf */
+.qt-hist li{display:grid;grid-template-columns:120px minmax(0,1fr);gap:var(--s3);padding:var(--s2) var(--s4);border-top:1px solid var(--line);font-size:14px}
+.qt-hist li:first-child{border-top:0}
+.qt-hist small{display:block;color:var(--muted);font-size:12px}
+.qt-hist-date{color:var(--muted);font-size:13px}
+.qt-hist-note{padding:var(--s2) var(--s4);margin:0}
+#qtHistVersions .of-history{margin:0}
+/* Aufträge & Betreuung, Auswertung */
+.od-list .ui-row,.od-list .ui-row-head{grid-template-columns:minmax(0,2fr) minmax(0,1.5fr) 148px 124px 104px 12px}
+.od-row .ui-pill{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.st-body>.sales-form,.ln-body h4:first-child{margin-top:0}
+@media(max-width:520px){
+#qtPositions .ui-row,#qtPositions .ui-row-head,.od-list .ui-row,.od-list .ui-row-head{grid-template-columns:minmax(0,1fr) auto 12px}
+#qtPositions .ui-row>:nth-child(3),#qtPositions .ui-row-head>:nth-child(3){display:none}
+#qtPositions .ui-row>:nth-child(4),#qtPositions .ui-row-head>:nth-child(4){display:block}
+.qt-hist li{grid-template-columns:minmax(0,1fr)}
+#qtOffer .ui-head .btn-primary{flex:1 0 100%}
+}

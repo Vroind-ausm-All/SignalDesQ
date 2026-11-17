@@ -62,6 +62,7 @@ class RevisionBrowserTests(unittest.TestCase):
                         page.locator('#quoteForm button[type=submit]').click()
                         page.locator('#quoteSaved h3', has_text=v1['number'] + '-R2').wait_for()
                         self.assertTrue(page.locator('#qbRevision').is_hidden())
+                        page.locator('#qtTabs [data-qt-tab="verlauf"]').click()  # 2.0.0-dev52: Fassungen stehen im Reiter „Verlauf“
                         hist = page.locator('.of-history')
                         hist.locator('summary').click()
                         text = hist.inner_text()
@@ -70,6 +71,7 @@ class RevisionBrowserTests(unittest.TestCase):
                         self.assertIn('Grund: SEO später als eigenes Projekt', text)
                         if SHOTS:
                             page.locator('#quoteSaved').screenshot(path=str(Path(SHOTS) / 'revision.png'))
+                        page.locator('#qtOffer [data-qt-back]').click()  # 2.0.0-dev52: zur Liste, dort die alte Fassung öffnen
                         page.locator(f'[data-quote-open="{v1["id"]}"]').first.click()
                         page.locator('#ofPanel', has_text='Ersetzt').wait_for()
                         self.assertEqual(page.locator('#ofPanel [data-of-release]').count(), 0)

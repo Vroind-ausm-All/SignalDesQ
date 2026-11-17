@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev51. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev52. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -114,7 +114,7 @@ Je Schritt ein lauffähiger Stand; bestehende Adressen, Zurück-Verhalten, Filte
 | 1 | Baukasten und mobile Navigation: Bausteinklassen und Maße in style.css, Dokument UI_BAUKASTEN.md; „☰ Menü“ öffnet bei schmaler Breite die Seitenleiste als Schublade | **erledigt** (dev49) | Unit-Test `test_v2_ui_baukasten.py`, Browser-Test `test_mobile_nav_browser.py` (390 px und 1280 px) |
 | 2 | Firmen und Heute auf die Bausteine umstellen; Kopfzeile mit den Reitern des Bereichs und der Suche (ohne Datum, Hell/Dunkel und „Neuer Lead“); „Neue Firma“ zusätzlich als Befehl in Strg+K | **erledigt** (dev50) | Browser-Test `test_ui_firmen_heute_browser.py` (Abnahmemaße 1280 × 720, 390 × 844), Abschnitt „Was wohin zog“ in [UI_BAUKASTEN.md](UI_BAUKASTEN.md) |
 | 3 | Finden umstellen: vier Reiter (Sichten · Neue Suche · Import · Analysen), kompakte neue Suche mit Voreinstellungen „Wen suchst du?“, Treffer als Liste; Datenquellen nach Einstellungen, Stichprobe nach Firmen → Datenpflege | **erledigt** (dev51) | Browser-Test `test_ui_finden_browser.py` (Abnahmemaße 1280 × 720, 390 × 844, alle Adressen, Voreinstellungen), Abschnitt „Was wohin zog (Schritt 3)“ in [UI_BAUKASTEN.md](UI_BAUKASTEN.md) |
-| 4 | Angebote umstellen | offen | – |
+| 4 | Angebote umstellen: drei Reiter (Angebote · Aufträge & Betreuung · Auswertung), Angebotsliste mit nächstem Schritt und Fälligkeit, „＋ Neues Angebot“ als eigener Editor, geöffnetes Angebot als Arbeitsplatz (Reiter Positionen · Kundenvorschau · Interne Kalkulation · Verlauf, Kontextspalte „Prüfung vor Freigabe“ und „Ablauf“, eine Hauptaktion je Phase); Fehlerbehebung: Eingaben gehen beim Neuzeichnen von Erlebnisstudie, Fachreview und Stichprobe nicht mehr verloren | **erledigt** (dev52) | Browser-Tests `test_ui_angebote_browser.py` (Abnahmemaße 1280 × 720, 390 × 844, Adressen, Phasen Entwurf → angenommen) und `test_keep_input_browser.py` (vorher rot, nachher grün), Abschnitt „Was wohin zog (Schritt 4)“ in [UI_BAUKASTEN.md](UI_BAUKASTEN.md) |
 | 5 | Einstellungen und Abrechnen umstellen | offen | – |
 | 6 | Firmenakte umstellen (Detailseite mit Kontextspalte) | offen | – |
 
@@ -132,7 +132,7 @@ Je Schritt ein lauffähiger Stand; bestehende Adressen, Zurück-Verhalten, Filte
 | Leads | Firmen → Firmenliste | `#/firmen` (Filter: `?suche=…&phase=…`, Firma: `?firma=…`) |
 | Pipeline | Firmen → Pipeline | `#/firmen/pipeline` |
 | Datenqualität & System | aufgeteilt: Firmen → Datenpflege (`#/firmen/datenpflege`); wiederkehrende Recherche unter Finden → Analysen → Recherche & Berichte; Datenquellen (OpenStreetMap, GLEIF-Katalog, Quellen prüfen) unter Einstellungen → Datenquellen; Stichprobe unter Firmen → Datenpflege; alles Übrige unter Einstellungen | – |
-| Angebote & Preise | Angebote; Kalkulationsgrundlagen und Katalog unter Einstellungen → Leistungen & Preise | `#/angebote`, `#/einstellungen?abschnitt=preise` |
+| Angebote & Preise | Angebote → Angebote (Liste, „＋ Neues Angebot“, geöffnetes Angebot); Bestandskunden, Kick-off, Übergabe und Nachkalkulation unter Angebote → Aufträge & Betreuung; Erlebnisstudien und „Was du lernst“ unter Angebote → Auswertung (seit dev52); Kalkulationsgrundlagen und Katalog unter Einstellungen → Leistungen & Preise | `#/angebote`, `#/angebote?neu=1`, `#/angebote?angebot=ID`, `#/angebote/auftraege`, `#/angebote/auswertung`, `#/einstellungen?abschnitt=preise` |
 | Rechnungen & Buchhaltung | Abrechnen | `#/abrechnen` |
 | KI-Studio | Einstellungen → Erweiterte Werkzeuge | `#/einstellungen/ki-studio` |
 | Sales-Playbook | „Hilfe & Gesprächsleitfaden“ unten in der Seitenleiste | `#/einstellungen/hilfe` |

@@ -11,7 +11,8 @@
     // Website-Scoring, Kaufsignale, Bericht als Unteransichten). Alle bisherigen Adressen gelten weiter.
     {key: 'finden', label: 'Finden', views: ['sichten', 'finder', 'datacheck', 'center', 'research', 'scoring', 'signals', 'report']},
     {key: 'firmen', label: 'Firmen', views: ['leads', 'pipeline', 'quality']},
-    {key: 'angebote', label: 'Angebote', views: ['quotes']},
+    // 2.0.0-dev52 (UX Schritt 4): Angebote hat drei Reiter – Angebote · Aufträge & Betreuung · Auswertung
+    {key: 'angebote', label: 'Angebote', views: ['quotes', 'orders', 'insights']},
     {key: 'abrechnen', label: 'Abrechnen', views: ['accounting']},
     {key: 'einstellungen', label: 'Einstellungen', views: ['settings', 'studio', 'playbook']},
   ];
@@ -19,7 +20,7 @@
     sichten: 'finden/sichten', finder: 'finden/neue-suche', datacheck: 'finden/import', center: 'finden/recherche', research: 'finden/url-recherche',
     scoring: 'finden/website-scoring', signals: 'finden/kaufsignale', report: 'finden/bericht',
     leads: 'firmen', pipeline: 'firmen/pipeline', quality: 'firmen/datenpflege',
-    quotes: 'angebote', accounting: 'abrechnen',
+    quotes: 'angebote', orders: 'angebote/auftraege', insights: 'angebote/auswertung', accounting: 'abrechnen',
     settings: 'einstellungen', studio: 'einstellungen/ki-studio', playbook: 'einstellungen/hilfe'};
   const BY_SLUG = Object.fromEntries(Object.entries(SLUG).map(([v, s]) => [s, v]));
   const AREA_OF = Object.fromEntries(AREAS.flatMap(a => a.views.map(v => [v, a.key])));
@@ -162,6 +163,9 @@
       if (view === 'quotes' && offer && window.wsOpenProposal) {
         restoringOffer = offer;  // nur dieses Öffnen schreibt keinen neuen Verlaufseintrag
         try { await window.wsOpenProposal(offer); } finally { restoringOffer = null; }
+      } else if (view === 'quotes' && window.angebote) {
+        // 2.0.0-dev52: ohne Angebot die Liste, mit ?neu=1 der Editor für ein neues Angebot
+        if (route.params.get('neu')) window.angebote.showEdit(false); else window.angebote.showList();
       }
       const section = route.params.get('abschnitt');
       if (view === 'settings' && section) setTimeout(() => document.getElementById(section)?.scrollIntoView({behavior: 'smooth', block: 'start'}), 60);
@@ -214,6 +218,7 @@
       if (id && id !== restoringOffer && currentView === 'quotes') {
         const {params} = parse(location.hash);
         if (params.get('angebot') !== String(id)) {
+          params.delete('neu');  // 2.0.0-dev52: aus dem Editor gespeichert → Adresse des Angebots
           params.set('angebot', String(id));
           history.pushState(null, '', build('quotes', params));
         }

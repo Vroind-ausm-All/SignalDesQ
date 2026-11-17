@@ -45,13 +45,18 @@
     } catch (e) { $('#plNotice').textContent = e.message; }
   }
 
-  async function save(id, key, value) {
-    try {
-      await api(`/pilot/eintrag/${id}`, 'POST', {[key]: value});
-      const y = window.scrollY;
-      renderSample(await api(`/pilot/${current.id}`));  // Quoten sofort neu; Scrollposition bleibt
-      window.scrollTo(0, y);
-    } catch (e) { toast(e.message, true); }
+  // 2.0.0-dev52: Speichern der Reihe nach; beim Neuzeichnen bleiben ungespeicherte Eingaben in anderen Feldern samt Fokus stehen
+  const queue = window.uiSerial ? window.uiSerial() : fn => fn();
+  function save(id, key, value) {
+    return queue(async () => {
+      try {
+        await api(`/pilot/eintrag/${id}`, 'POST', {[key]: value});
+        const v = await api(`/pilot/${current.id}`);
+        const y = window.scrollY;
+        if (window.uiKeep) window.uiKeep($('#plSample'), '[data-pl-item]', () => renderSample(v)); else renderSample(v);  // Quoten sofort neu
+        window.scrollTo(0, y);
+      } catch (e) { toast(e.message, true); }
+    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {

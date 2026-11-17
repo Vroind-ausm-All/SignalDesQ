@@ -342,7 +342,7 @@ def capacity(conn, profile=None, av=None, today=None):
             'offers_open': len(open_rows), 'weeks_accepted': weeks_accepted, 'weeks_if_all_accepted': weeks_all, 'level': level, 'hint': hint,
             'tracked_projects': len(tracked), 'untracked_projects': untracked,
             'notice': 'Aufträge mit erfassten Zeiten zählen mit ihren verbleibenden Stunden, abgeschlossene gar nicht mehr. '
-                      + (f'{untracked} Auftrag/Aufträge ohne erfasste Zeiten zählen 8 Wochen lang mit der vollen Kalkulation – Zeiten unter „Angebote & Preise → Nachkalkulation“ erfassen.'
+                      + (f'{untracked} Auftrag/Aufträge ohne erfasste Zeiten zählen 8 Wochen lang mit der vollen Kalkulation – Zeiten unter „Angebote → Aufträge & Betreuung“ erfassen.'
                          if untracked else 'Grundlage sind die kalkulierten Stunden der Angebote.')}
 
 

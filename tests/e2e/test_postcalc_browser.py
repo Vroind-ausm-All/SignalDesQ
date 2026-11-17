@@ -48,6 +48,7 @@ class PostcalcBrowserTests(unittest.TestCase):
                         page.locator('#rcCap', has_text='Zugesagt 20 h').wait_for(timeout=15000)  # ohne Zeiten: volle Kalkulation
 
                         page.locator('[data-view="quotes"]').click()
+                        page.locator('#areaBar [data-area-view="orders"]').click()  # 2.0.0-dev52: Nachkalkulation unter „Aufträge & Betreuung“
                         card = page.locator('.pk-card', has_text='Elektro Fiktiv')
                         card.wait_for(timeout=15000)
                         self.assertIn('keine Zeiten', card.inner_text())
