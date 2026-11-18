@@ -96,7 +96,7 @@ def check_stage_change(conn, lead, data):
 def _lead(conn, lead_id):
     row = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
     if not row:
-        raise LookupError('Lead nicht gefunden.')
+        raise LookupError('Firma nicht gefunden.')
     return row
 
 

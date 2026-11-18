@@ -10,12 +10,12 @@ function wsPopulateLeads(){
 }
 function wsMessage(msg,error=false){toast(msg,error)}
 function wsPermission(){const id=Number(document.querySelector('#wsCallForm [name=lead_id]').value);const lead=leads.find(l=>l.id===id);const el=$('#wsCallPermission');
-  if(!lead){el.textContent='Bitte einen Lead auswählen.';el.classList.remove('sales-warning');return}
+  if(!lead){el.textContent='Bitte eine Firma auswählen.';el.classList.remove('sales-warning');return}
   const p=wsData?.call_permissions?.[String(id)];el.textContent=p?.reason||'Telefonrechtliche Prüfung fehlt.';el.classList.toggle('sales-warning',!p?.allowed)
 }
 window.refreshSalesWorkspace=async function(){try{wsData=await api('/workspace');wsPopulateLeads();$('#wsDue').textContent=wsData.due_count;$('#wsMeetingsCount').textContent=wsData.meetings.filter(m=>['geplant','bestaetigt'].includes(m.status)).length;$('#wsCallsCount').textContent=wsData.calls_logged;
   const agenda=[...wsData.tasks.map(t=>({date:t.due_date||'9999',name:t.title,company:t.company||'Allgemein',id:t.lead_id})),...wsData.lead_steps.map(t=>({date:t.next_date||'9999',name:t.next_step,company:t.company,id:t.id}))].sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
-  $('#wsAgenda').innerHTML=agenda.length?agenda.map(a=>`<div class="sales-item"><div><strong>${wsText(a.name)}</strong><small>${wsText(a.company)} · ${wsText(a.date==='9999'?'ohne Datum':fmtDate(a.date))}</small></div>${a.id?`<button type="button" class="btn btn-ghost" data-ws-lead="${a.id}">Lead öffnen</button>`:''}</div>`).join(''):'<div class="empty">Keine Aufgaben: Recherchiere zehn passende Unternehmen und plane den ersten Schritt.</div>';
+  $('#wsAgenda').innerHTML=agenda.length?agenda.map(a=>`<div class="sales-item"><div><strong>${wsText(a.name)}</strong><small>${wsText(a.company)} · ${wsText(a.date==='9999'?'ohne Datum':fmtDate(a.date))}</small></div>${a.id?`<button type="button" class="btn btn-ghost" data-ws-lead="${a.id}">Firma öffnen</button>`:''}</div>`).join(''):'<div class="empty">Keine Aufgaben: Recherchiere zehn passende Unternehmen und plane den ersten Schritt.</div>';
   $('#wsMeetings').innerHTML=wsData.meetings.length?wsData.meetings.slice(0,12).map(m=>`<div class="sales-item"><div><strong>${wsText(m.title)}</strong><small>${wsText(m.company)} · ${wsText(m.starts_at.replace('T',' '))} · ${m.duration_min} Min. · ${wsText(m.status)}</small></div><button class="btn btn-ghost" data-ws-ics="${m.id}">.ics</button></div>`).join(''):'<div class="empty">Noch kein Termin geplant.</div>';
   const calls=await api('/workspace/calls');$('#wsRecentCalls').innerHTML=calls.length?calls.slice(0,12).map(c=>`<div class="sales-item"><div><strong>${wsText(c.company)} · ${wsText(c.outcome.replaceAll('_',' '))}</strong><small>${wsText(c.notes||'Keine Gesprächsnotiz')} · ${wsText(c.created_at)}</small></div></div>`).join(''):'<div class="empty">Noch kein Gespräch dokumentiert.</div>';
   const mails=await api('/workspace/mail-drafts');
@@ -44,7 +44,7 @@ function wsIcs(meeting){const stamp=s=>s.replaceAll('-','').replaceAll(':','')+'
 function wsInit(){
  $('#wsRefresh').addEventListener('click',window.refreshSalesWorkspace);$('#quoteRefresh').addEventListener('click',window.refreshSalesQuotes);
  $('#wsCallForm [name=lead_id]').addEventListener('change',wsPermission);
- $('#wsCallForm').addEventListener('submit',async e=>{e.preventDefault();const d=wsFormJson(e.target);d.lead_id=Number(d.lead_id);if(!d.lead_id)return wsMessage('Firma auswählen',true);if(d.outcome==='widerspruch'&&!confirm('Widerspruch speichern und diesen Lead für Ansprache sperren?'))return;
+ $('#wsCallForm').addEventListener('submit',async e=>{e.preventDefault();const d=wsFormJson(e.target);d.lead_id=Number(d.lead_id);if(!d.lead_id)return wsMessage('Firma auswählen',true);if(d.outcome==='widerspruch'&&!confirm('Widerspruch speichern und diese Firma für Ansprache sperren?'))return;
   if(!d.slot)delete d.slot;
   try{const res=await api('/workspace/calls','POST',d);e.target.reset();wsMessage(res.follow_up?'Dokumentiert – Wiedervorlage angelegt: '+res.follow_up.task:'Gespräch dokumentiert');await reload();await window.refreshSalesWorkspace()}catch(err){wsMessage(err.message,true)}});
  $('#wsMeetingForm').addEventListener('submit',async e=>{e.preventDefault();const d=wsFormJson(e.target);d.lead_id=Number(d.lead_id);d.duration_min=Number(d.duration_min);try{const r=await api('/workspace/meetings','POST',d);e.target.reset();await window.refreshSalesWorkspace();wsMessage(r.warning||'Termin lokal gespeichert – kein Kalendereintrag versendet',Boolean(r.warning))}catch(err){wsMessage(err.message,true)}});

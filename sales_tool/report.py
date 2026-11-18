@@ -79,7 +79,7 @@ def create_reports(conn, data, db_path, start=True):
     else:
         ids = data['lead_ids']
         if not isinstance(ids, list) or not 1 <= len(ids) <= MAX_BATCH or any(isinstance(i, bool) or not isinstance(i, int) for i in ids):
-            raise ValueError(f'1–{MAX_BATCH} Lead-IDs angeben.')
+            raise ValueError(f'1–{MAX_BATCH} Firmen-IDs angeben.')
     queued, skipped = [], []
     for lid in dict.fromkeys(ids):
         lead = conn.execute('SELECT id, website, stage, permission FROM leads WHERE id=?', (lid,)).fetchone()
@@ -281,7 +281,7 @@ def run_report(db_path, rid):
         for key, _ in STEPS:
             lead = conn.execute('SELECT * FROM leads WHERE id=?', (rep['lead_id'],)).fetchone()
             if not lead or lead['stage'] == 'gesperrt' or lead['permission'] == 'nicht_kontaktieren' or check_suppressed(conn, website=lead['website'], name=lead['company']):
-                _set(conn, rid, key, status='übersprungen', detail='Lead gesperrt oder gelöscht.')
+                _set(conn, rid, key, status='übersprungen', detail='Firma gesperrt oder gelöscht.')
                 continue
             current = json.loads(conn.execute('SELECT steps_json FROM company_reports WHERE id=?', (rid,)).fetchone()['steps_json'])
             if current.get(key, {}).get('status') in ('fertig', 'hinweis'):
@@ -319,7 +319,7 @@ def report_view(conn, rid=None, lead_id=None):
         if not row:
             lead = conn.execute('SELECT id FROM leads WHERE id=?', (lead_id,)).fetchone()
             if not lead:
-                raise LookupError('Lead nicht gefunden.')
+                raise LookupError('Firma nicht gefunden.')
             return {'report': None, 'lead_id': lead_id, 'dossier': dossier(conn, lead_id)}
     else:
         row = conn.execute('SELECT * FROM company_reports WHERE id=?', (rid,)).fetchone()

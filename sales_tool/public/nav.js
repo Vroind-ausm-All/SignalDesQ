@@ -13,14 +13,17 @@
     {key: 'firmen', label: 'Firmen', views: ['leads', 'pipeline', 'quality']},
     // 2.0.0-dev52 (UX Schritt 4): Angebote hat drei Reiter – Angebote · Aufträge & Betreuung · Auswertung
     {key: 'angebote', label: 'Angebote', views: ['quotes', 'orders', 'insights']},
-    {key: 'abrechnen', label: 'Abrechnen', views: ['accounting']},
+    // 2.0.0-dev53 (UX Schritt 5): Abrechnen hat vier Reiter – Rechnungen · Ausgaben · Auswertung · Steuer & Export
+    {key: 'abrechnen', label: 'Abrechnen', views: ['accounting', 'expenses', 'revenue', 'tax']},
+    // 2.0.0-dev53: Einstellungen ohne Reiter – Abschnittsliste mit Kurzstand (einstellungen.js); KI-Studio und Hilfe sind Abschnitte daraus
     {key: 'einstellungen', label: 'Einstellungen', views: ['settings', 'studio', 'playbook']},
   ];
   const SLUG = {dashboard: 'heute', tasks: 'heute/aufgaben', workspace: 'heute/kontakt-termine',
     sichten: 'finden/sichten', finder: 'finden/neue-suche', datacheck: 'finden/import', center: 'finden/recherche', research: 'finden/url-recherche',
     scoring: 'finden/website-scoring', signals: 'finden/kaufsignale', report: 'finden/bericht',
     leads: 'firmen', pipeline: 'firmen/pipeline', quality: 'firmen/datenpflege',
-    quotes: 'angebote', orders: 'angebote/auftraege', insights: 'angebote/auswertung', accounting: 'abrechnen',
+    quotes: 'angebote', orders: 'angebote/auftraege', insights: 'angebote/auswertung',
+    accounting: 'abrechnen', expenses: 'abrechnen/ausgaben', revenue: 'abrechnen/auswertung', tax: 'abrechnen/steuer',
     settings: 'einstellungen', studio: 'einstellungen/ki-studio', playbook: 'einstellungen/hilfe'};
   const BY_SLUG = Object.fromEntries(Object.entries(SLUG).map(([v, s]) => [s, v]));
   const AREA_OF = Object.fromEntries(AREAS.flatMap(a => a.views.map(v => [v, a.key])));
@@ -56,7 +59,8 @@
     if (window.leadList && window.leadList.preset !== 'alle') p.set('ansicht', window.leadList.preset);  // 2.0.0-dev15
     return p;
   }
-  const viewParams = view => (view === 'leads' ? listParams() : new URLSearchParams());  // Angebot: siehe wrapOffer
+  // Angebot: siehe wrapOffer; 2.0.0-dev53: Einstellungen tragen ihren Abschnitt in der Adresse
+  const viewParams = view => (view === 'leads' ? listParams() : view === 'settings' && window.einstellungen ? window.einstellungen.params() : new URLSearchParams());
 
   // ---- Darstellung des aktiven Bereichs
   function markArea(view) {
@@ -130,6 +134,8 @@
   async function apply(route) {
     let view = route.view || 'dashboard';
     if (view === 'report') view = 'center';  // Bericht ohne Firma: Übersicht der Berichte
+    // 2.0.0-dev53: ?abschnitt=ki-werkzeuge bzw. hilfe öffnet die Ansicht KI-Studio bzw. Playbook
+    if (view === 'settings' && window.einstellungen) view = window.einstellungen.viewFor(route.params);
     if (route.entry && window.findenEntry) {  // 2.0.0-dev51: Einstieg in „Finden“ nach offenen Treffern
       view = await window.findenEntry(true);
       history.replaceState(null, '', build(view, route.params));
@@ -167,8 +173,13 @@
         // 2.0.0-dev52: ohne Angebot die Liste, mit ?neu=1 der Editor für ein neues Angebot
         if (route.params.get('neu')) window.angebote.showEdit(false); else window.angebote.showList();
       }
-      const section = route.params.get('abschnitt');
-      if (view === 'settings' && section) setTimeout(() => document.getElementById(section)?.scrollIntoView({behavior: 'smooth', block: 'start'}), 60);
+      // 2.0.0-dev53: die Adresse #/abrechnen zeigt die Rechnungsliste (Editor und geöffnete Rechnung haben keine eigene Adresse)
+      if (view === 'accounting' && window.accShowList) window.accShowList();
+      // 2.0.0-dev53: Abschnitt der Einstellungen (Name oder bisherige Element-ID); ohne Abschnitt der zuletzt benutzte, schmal die Liste
+      if (route.view === 'settings' && window.einstellungen) {
+        if (view === 'settings') await window.einstellungen.route(route.params);
+        else if (route.params.get('abschnitt')) await window.einstellungen.open(route.params.get('abschnitt'), {history: true});
+      }
     } finally { fromHistory = false; }
   }
 
@@ -179,11 +190,16 @@
 
   // ---- Klicks
   document.addEventListener('click', e => {
+    // 2.0.0-dev53: Abschnittsliste und Verweise in die Einstellungen öffnen den Abschnitt (mit Eingabeschutz, einstellungen.js)
+    const es = e.target.closest('#esNav .es-item');
+    if (es && window.einstellungen) { e.preventDefault(); return window.einstellungen.pick(es.dataset.esKey); }
     const tab = e.target.closest('[data-area-view], [data-view-link]');
-    if (tab) return window.switchView(tab.dataset.areaView || tab.dataset.viewLink);
+    if (tab) { if (tab.closest('summary')) e.preventDefault(); return window.switchView(tab.dataset.areaView || tab.dataset.viewLink); }
     const jump = e.target.closest('[data-settings-jump], [data-settings-link]');
     if (jump) {
+      if (jump.closest('summary')) e.preventDefault();  // Aktion in einer Klappzeile: nur springen, nicht aufklappen
       const id = jump.dataset.settingsJump || jump.dataset.settingsLink;
+      if (window.einstellungen) return window.einstellungen.open(id);
       if (currentView !== 'settings') window.switchView('settings');
       const p = new URLSearchParams(); p.set('abschnitt', id);
       history.replaceState(null, '', build('settings', p));

@@ -25,7 +25,7 @@
     const head = `<div class="eyebrow">FIRMEN-BERICHT${rep ? ' · ' + esc(fmtDate((rep.finished_at || rep.created_at).slice(0, 10))) : ''}</div>
       <div class="page-title"><div><h1>${esc(lead.company || ds.company || 'Firma')}</h1><p>${link(lead.website || ds.website)} ${ds.priority != null ? `· Recherchepriorität <b>${ds.priority}</b>` : '· Datenlage noch unzureichend'} · Recherchestand ${esc(ds.readiness_pct ?? 0)} %</p></div>
       <div class="acc-btn-group"><button type="button" class="btn btn-primary" data-rp-run="${d.lead_id}" ${running ? 'disabled' : ''}>${rep ? 'Bericht neu erstellen' : 'Bericht erstellen'} ▶</button>
-      <button type="button" class="btn btn-ghost" data-rc-lead="${d.lead_id}">Lead öffnen</button>
+      <button type="button" class="btn btn-ghost" data-rc-lead="${d.lead_id}">Firma öffnen</button>
       <a class="btn btn-ghost" href="/api/research-center/leads/${d.lead_id}/dossier.md" download>Dossier (.md) ↓</a></div></div>`;
     if (!rep) {
       $('#rpBody').innerHTML = head + `<div class="panel rp-sec"><p>Für diese Firma gibt es noch keinen Bericht. Ein Klick erledigt Impressum, Website-Bewertung, Website-Inhalte & Ansprechpartner, Karriereseite & Kaufsignale und die Paketempfehlung.</p></div>`;

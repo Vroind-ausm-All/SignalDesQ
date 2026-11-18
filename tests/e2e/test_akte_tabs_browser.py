@@ -1,5 +1,5 @@
 """Browserprüfung 2.0.0-dev12: Firmenakte mit Reitern – Kopf mit Name und nächster Aktion, Reiter per Maus und Tastatur,
-Sprung aus „Als Nächstes“ in den richtigen Reiter, neuer Lead ohne Reiter. Fiktive Firma, keine Abrufe nach außen."""
+Sprung aus „Als Nächstes“ in den richtigen Reiter, neue Firma ohne Reiter. Fiktive Firma, keine Abrufe nach außen."""
 import json
 import os
 import tempfile
@@ -55,7 +55,9 @@ class AkteTabsBrowserTests(unittest.TestCase):
 
                         # Kopf: Firmenname, Kennzahlen, nächste Aktion; Start im Überblick
                         self.assertEqual(page.text_content('#modalTitle'), 'Beispiel Malerbetrieb')
-                        self.assertIn('Phase Qualifiziert', page.text_content('#modalMeta'))  # 2.0.0-dev13: Name statt interner Schlüssel
+                        # 2.0.0-dev54: Phase als Pille im Seitenkopf (Name statt interner Schlüssel), Zusatz Ort · Branche
+                        self.assertEqual(page.text_content('#modalPhase'), 'Qualifiziert')
+                        self.assertEqual(page.text_content('#modalMeta'), 'Stuttgart 70191 · Sonstige')
                         self.assertTrue(page.locator('#lfHeadNext').is_visible())
                         self.assertEqual(_active(page), 'ueberblick')
                         self.assertTrue(page.locator('#leadFile').is_visible())
@@ -87,13 +89,13 @@ class AkteTabsBrowserTests(unittest.TestCase):
                         page.evaluate('() => window.leadTabs.reveal(document.querySelector("#discoveryForm"))')
                         self.assertEqual(_active(page), 'bedarf')
 
-                        # Neuer Lead: keine Reiter, nur das Formular
+                        # Neue Firma: keine Reiter, nur das Formular
                         page.locator('#closeModal').click()
                         page.locator('#newLeadBtn').click()
                         page.locator('#leadForm').wait_for(state='visible')
                         self.assertFalse(page.locator('#leadTabs').is_visible())
                         self.assertFalse(page.locator('#lfHeadNext').is_visible())
-                        self.assertEqual(page.text_content('#modalTitle'), 'Neuer Lead')
+                        self.assertEqual(page.text_content('#modalTitle'), 'Neue Firma')  # 2.0.0-dev54: Begriff „Firma“
 
                         self.assertEqual(errors, [])
                         self.assertEqual(outside, [])

@@ -266,7 +266,7 @@ def build_quote(conn, data):
         'payment_plan': (once_plan if once else '') + ('; ' if once and monthly else '') +
                         ('Monatliche Leistungen monatlich im Voraus, Laufzeit und Kündigungsfrist ausdrücklich vereinbaren' if monthly else ''),
         'change_requests': 'Zusätzliche Leistungen nur nach gesondertem, transparentem Angebot und Freigabe.',
-        'guarantee': 'Keine Umsatz-, Ranking- oder Lead-Garantie; Abnahme nach den vereinbarten Liefergegenständen.',
+        'guarantee': 'Keine Umsatz-, Ranking- oder Anfragen-Garantie; Abnahme nach den vereinbarten Liefergegenständen.',
     }
     core = [i for i in intern if not i['optional']]
     hours = round(sum(i['hours'] for i in core), 2)

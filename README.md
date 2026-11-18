@@ -1,6 +1,6 @@
 # SignalDesk – Kunden finden, bewerten, erreichen, abrechnen (lokal)
 
-> **Stand 2.0.0-dev52: Entwicklungsstand, kein fertiges Release.** Geprüft mit automatischen Tests unter Linux (Python 3.10, 3.12, 3.13) und im Browser. Erste Messung an echten Quellen: [`docs/PRAXISTEST_70191.md`](docs/PRAXISTEST_70191.md); Website-Zuordnung noch ungemessen. Vor der Nutzung vorhandener Daten eine Sicherung erstellen.
+> **Stand 2.0.0-dev54: Entwicklungsstand, kein fertiges Release.** Geprüft mit automatischen Tests unter Linux (Python 3.10, 3.12, 3.13) und im Browser. Erste Messung an echten Quellen: [`docs/PRAXISTEST_70191.md`](docs/PRAXISTEST_70191.md); Website-Zuordnung noch ungemessen. Vor der Nutzung vorhandener Daten eine Sicherung erstellen.
 
 SignalDesk ist ein Vertriebsarbeitsplatz für Soloselbstständige und kleine Dienstleister. Es läuft auf deinem Rechner, speichert alles in einer lokalen Datei und versendet nichts.
 
@@ -34,8 +34,8 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 | **Bewerten** | Zielkundenprofil; Passung vor dem Gespräch (A, B, C), Qualifizierung danach, K.-o.-Kriterien; Unbekanntes zählt nicht als schlecht |
 | **Erreichen** | Belegte Kontaktwege, Anrufversuche mit Zeitfenster, Wiedervorlage nach „nicht erreicht“, eigene Zeiten, Terminvorschläge, Textbausteine |
 | **Verkaufen** | Pipeline, Firmenakte mit Reitern, Bedarf bestätigen, Festpreisangebote aus einem Katalog mit 26 Leistungen, Verlustgründe, Nachkalkulation mit tatsächlichen Stunden |
-| **Abrechnen** | Rechnungen nach § 14 UStG, GoBD-Festschreibung, Zahlungen, Mahnwesen, Ausgaben, XRechnung, UStVA- und EÜR-Vorbereitung |
-| **Einstellungen** | Darstellung (vier Themes hell und dunkel, Dichte „Kompakt“), Zeiten, Zielkunden, Leistungen & Preise, Recherche, Sicherung und Wiederherstellung, Offline-Modus, optionaler Login mit Rollen |
+| **Abrechnen** | Reiter Rechnungen · Ausgaben · Auswertung · Steuer & Export: Rechnungen nach § 14 UStG, GoBD-Festschreibung, Zahlungen, Mahnwesen, Ausgaben, XRechnung, UStVA- und EÜR-Vorbereitung |
+| **Einstellungen** | Abschnittsliste mit Kurzstand und Suche: Meine Firma (Stammdaten für Rechnungen), Leistungen & Preise, Zielkunden, Darstellung (vier Themes hell und dunkel, Dichte „Kompakt“), Kalender & Postfach (mit deinen Zeiten), Datenquellen, Sicherung & Zugang (Wiederherstellung, Offline-Modus, optionaler Login mit Rollen), KI-Werkzeuge, Hilfe & Playbook |
 | **Bedienung** | Sechs Bereiche mit Reitern; jede Ansicht und jede Firma hat eine direkte Adresse, Zurück und Neuladen führen an dieselbe Stelle; Firmenliste mit Arbeitsansichten und eigenen gespeicherten Ansichten |
 
 ## Was SignalDesk bewusst nicht tut

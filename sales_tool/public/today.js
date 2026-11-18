@@ -74,6 +74,8 @@
       if (lead) setTimeout(() => $(`[data-rc-open="${lead}"]`)?.click(), 900);
       return;
     }
+    // 2.0.0-dev53: Einstellungen öffnen den Abschnitt, der das Sprungziel enthält (z. B. Zielkundenprofil → Zielkunden)
+    if (a.view === 'settings' && window.einstellungen) return window.einstellungen.open(a.anchor || '');
     switchView(a.view === 'finder' && window.areaEntry ? window.areaEntry('finder') : a.view);  // 2.0.0-dev51: offene Treffer → Sichten
     // 2.0.0-dev14: Sprungziel innerhalb der Ansicht, z. B. Einstellungen → Zielkundenprofil
     if (a.anchor) setTimeout(() => reveal($('#' + a.anchor))?.scrollIntoView({behavior: 'smooth', block: 'start'}), 80);

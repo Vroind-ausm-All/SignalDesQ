@@ -134,7 +134,7 @@ def create_run(conn, data, db_path, start=True):
     if lead_id is not None:
         lead = conn.execute('SELECT id, website FROM leads WHERE id=?', (lead_id,)).fetchone() if isinstance(lead_id, int) else None
         if not lead or not lead['website']:
-            raise ValueError('Lead nicht gefunden oder ohne Website.')
+            raise ValueError('Firma nicht gefunden oder ohne Website.')
         items, rejected = parse_input(lead['website'])
     else:
         text, csv_text = data.get('domains') or '', data.get('csv') or ''
@@ -361,7 +361,7 @@ def review_item(conn, item_id, data):
         dup, reason = find_duplicate(conn, website=website, name=val('legal_name'),
                                      register_court=val('register_court'), register_number=val('register_number'))
         if dup:
-            raise ValueError(f'Firma existiert bereits als Lead #{dup} (Treffer über {reason}) – bitte „ergänzen“ wählen.')
+            raise ValueError(f'Firma existiert bereits als Firma #{dup} (Treffer über {reason}) – bitte „ergänzen“ wählen.')
         cur = conn.execute('''INSERT INTO leads(company, website, location, industry, offer, stage, permission, contact_route, next_step, next_date, note)
                               VALUES (?,?,?,'','',?,?,?,?,?,?)''',  # 2.0.0-dev13: Branche und Leistung unbekannt statt vorbelegt
                            (val('legal_name') or item['company_hint'] or item['domain'], website,
@@ -372,10 +372,10 @@ def review_item(conn, item_id, data):
     else:
         lead_id = data.get('lead_id') or item['duplicate_lead_id'] or item['lead_id']
         if not isinstance(lead_id, int) or not conn.execute('SELECT 1 FROM leads WHERE id=?', (lead_id,)).fetchone():
-            raise ValueError('Zu ergänzenden Lead angeben.')
+            raise ValueError('Zu ergänzende Firma angeben.')
         lead = conn.execute('SELECT permission, stage FROM leads WHERE id=?', (lead_id,)).fetchone()
         if lead['permission'] == 'nicht_kontaktieren' or lead['stage'] == 'gesperrt':
-            raise ValueError('Lead ist gesperrt – keine Anreicherung.')
+            raise ValueError('Firma ist gesperrt – keine Anreicherung.')
     source_type, source_url = result.get('source_type') or 'impressum_html', result.get('imprint_url') or ''
     lead = dict(conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone())
     applied, kept = [], []
@@ -417,7 +417,7 @@ def review_item(conn, item_id, data):
     conn.execute("UPDATE batch_items SET review_status='uebernommen', lead_id=? WHERE id=?", (lead_id, item_id))
     conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
                  (lead_id, 'notiz', f"Impressum geprüft ({source_url}): {len(applied)} Feld(er) übernommen" + (f", {persons} Person(en) mit Datenschutz-Nachweis" if persons else '')))
-    _audit(conn, 'imprint', item_id, 'uebernommen', f'Lead {lead_id}: {", ".join(applied)}')
+    _audit(conn, 'imprint', item_id, 'uebernommen', f'Firma {lead_id}: {", ".join(applied)}')
     conn.commit()
     return {'review_status': 'uebernommen', 'lead_id': lead_id, 'applied': applied, 'kept_existing': kept, 'persons_added': persons}
 
@@ -450,10 +450,10 @@ def route_imprint(h, conn, method, route, query, db_path):
         lid = int(m.group(1))
         lead = conn.execute('SELECT permission, stage FROM leads WHERE id=?', (lid,)).fetchone()
         if not lead:
-            raise LookupError('Lead nicht gefunden.')
+            raise LookupError('Firma nicht gefunden.')
         if lead['permission'] == 'nicht_kontaktieren' or lead['stage'] == 'gesperrt':
-            raise ValueError('Lead ist gesperrt.')
-        h._send(202, create_run(conn, {'lead_id': lid, 'label': f'Lead #{lid}', 'parallel': 1}, db_path))
+            raise ValueError('Firma ist gesperrt.')
+        h._send(202, create_run(conn, {'lead_id': lid, 'label': f'Firma #{lid}', 'parallel': 1}, db_path))
         return True
     return False
 
@@ -467,7 +467,7 @@ def route_company_data(h, conn, method, route, query):
         lid = int(m.group(1))
         lead = conn.execute('SELECT * FROM leads WHERE id=?', (lid,)).fetchone()
         if not lead:
-            raise LookupError('Lead nicht gefunden.')
+            raise LookupError('Firma nicht gefunden.')
         h._send(200, {'facts': facts_for_lead(conn, lid), 'privacy': privacy_rows(conn, lid),
                       'company': {k: lead[k] for k in ('legal_name', 'legal_form', 'street', 'zip', 'city', 'register_court',
                                                         'register_number', 'vat_id', 'business_phone', 'business_email',
@@ -489,7 +489,7 @@ def route_company_data(h, conn, method, route, query):
             if not isinstance(body, dict) or set(body) - {'kind', 'value', 'reason'} or body.get('kind') not in SUPPRESSION_KINDS:
                 raise ValueError('Erwartet: {kind: domain|name|email, value, reason}.')
             if body['kind'] == 'register':
-                raise ValueError('Registersperren entstehen automatisch beim Sperren eines Leads.')
+                raise ValueError('Registersperren entstehen automatisch beim Sperren einer Firma.')
             value = str(body.get('value') or '').strip()[:200]
             norm = add_suppression(conn, body['kind'], value, str(body.get('reason') or 'manuell')[:300])
             if not norm:

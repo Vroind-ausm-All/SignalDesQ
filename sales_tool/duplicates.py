@@ -124,7 +124,7 @@ def lead_duplicates(conn, limit=200):
     pairs.sort(key=lambda p: (p['verdict'] != 'same', -p['score']))
     return {'pairs': pairs[:limit], 'total': len(pairs), 'same': sum(p['verdict'] == 'same' for p in pairs),
             'engine': ident.engine(),
-            'notice': 'Vorschläge – nichts wird automatisch zusammengeführt. Rechnungen bleiben beim Lead, der sie hat.'}
+            'notice': 'Vorschläge – nichts wird automatisch zusammengeführt. Rechnungen bleiben bei der Firma, die sie hat.'}
 
 
 def _invoice_count(conn, lead_id):
@@ -146,18 +146,18 @@ def merge_leads(conn, keep, drop):
     from .company_data import _audit
     for v in (keep, drop):
         if isinstance(v, bool) or not isinstance(v, int):
-            raise ValueError('keep/drop müssen Lead-IDs sein.')
+            raise ValueError('keep/drop müssen Firmen-IDs sein.')
     if keep == drop:
-        raise ValueError('Ein Lead kann nicht mit sich selbst zusammengeführt werden.')
+        raise ValueError('Eine Firma kann nicht mit sich selbst zusammengeführt werden.')
     k = conn.execute('SELECT * FROM leads WHERE id=?', (keep,)).fetchone()
     d = conn.execute('SELECT * FROM leads WHERE id=?', (drop,)).fetchone()
     if not k or not d:
-        raise LookupError('Lead nicht gefunden.')
+        raise LookupError('Firma nicht gefunden.')
     inv_k, inv_d = _invoice_count(conn, keep), _invoice_count(conn, drop)
     if inv_d and inv_k:
-        raise ValueError('Beide Leads haben Rechnungen – festgeschriebene Rechnungen sind unveränderbar, daher kein Zusammenführen.')
+        raise ValueError('Beide Firmen haben Rechnungen – festgeschriebene Rechnungen sind unveränderbar, daher kein Zusammenführen.')
     if inv_d:
-        raise ValueError(f'Lead #{drop} hat Rechnungen und muss erhalten bleiben – bitte umgekehrt zusammenführen (#{drop} behalten).')
+        raise ValueError(f'Firma #{drop} hat Rechnungen und muss erhalten bleiben – bitte umgekehrt zusammenführen (#{drop} behalten).')
     verdict, score, reason = ident.decide(lead_item(k), lead_item(d))
     moved = {}
     try:
@@ -176,7 +176,7 @@ def merge_leads(conn, keep, drop):
         conn.execute(f"UPDATE leads SET {', '.join(f + '=?' for f in upd)}, updated_at=datetime('now') WHERE id=?", (*upd.values(), keep))
         conn.execute('DELETE FROM leads WHERE id=?', (drop,))
         conn.execute('DELETE FROM lead_not_duplicate WHERE a=? OR b=?', (drop, drop))
-        detail = (f"Lead #{drop} „{d['company']}“ hierher zusammengeführt ({reason}). Übernommen: "
+        detail = (f"Firma #{drop} „{d['company']}“ hierher zusammengeführt ({reason}). Übernommen: "
                   + (', '.join(f'{v} {t}' for t, v in sorted(moved.items())) or 'keine verknüpften Daten')
                   + (f"; ergänzte Felder: {', '.join(f for f in upd if f != 'note')}" if len(upd) > 1 else ''))
         conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)', (keep, 'notiz', detail[:900]))
@@ -195,9 +195,9 @@ def mark_not_duplicate(conn, a, b):
         if isinstance(v, bool) or not isinstance(v, int):
             raise ValueError('IDs müssen Zahlen sein.')
     if a == b:
-        raise ValueError('Zwei verschiedene Leads angeben.')
+        raise ValueError('Zwei verschiedene Firmen angeben.')
     if conn.execute('SELECT COUNT(*) FROM leads WHERE id IN (?,?)', (a, b)).fetchone()[0] != 2:
-        raise LookupError('Lead nicht gefunden.')
+        raise LookupError('Firma nicht gefunden.')
     conn.execute('INSERT OR IGNORE INTO lead_not_duplicate(a, b) VALUES (?,?)', _pair(a, b))
     conn.commit()
     return {'ok': True}

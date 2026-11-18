@@ -411,9 +411,9 @@ def _validate_invoice(conn, data, settings):
     if lead_id in ('', None):
         lead_id = None
     else:
-        lead_id = _int_id(lead_id, 'Lead-ID')
+        lead_id = _int_id(lead_id, 'Firmen-ID')
         if not conn.execute('SELECT id FROM leads WHERE id=?', (lead_id,)).fetchone():
-            raise ValueError('Lead existiert nicht.')
+            raise ValueError('Firma existiert nicht.')
     kind = data.get('kind', 'rechnung')
     if kind not in ('rechnung', 'abschlag', 'schluss'):
         raise ValueError('Rechnungsart ungültig.')
@@ -765,10 +765,10 @@ def buyer_defaults(conn, lead_id):
     """Rechnungsempfänger aus der letzten Rechnung an diesen Lead, sonst Firmenname des Leads."""
     if lead_id in (None, ''):
         return {}
-    lead_id = _int_id(lead_id, 'Lead-ID')
+    lead_id = _int_id(lead_id, 'Firmen-ID')
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
     if not lead:
-        raise LookupError('Lead nicht gefunden.')
+        raise LookupError('Firma nicht gefunden.')
     last = conn.execute('SELECT * FROM invoices WHERE lead_id=? AND kind<>\'storno\' ORDER BY id DESC LIMIT 1', (lead_id,)).fetchone()
     keys = ('buyer_name', 'buyer_contact', 'buyer_street', 'buyer_zip', 'buyer_city', 'buyer_country',
             'buyer_vat_id', 'buyer_reference', 'buyer_email')
@@ -1203,7 +1203,7 @@ def sales_kpis(conn, params):
         'acceptance_rate_pct': round(100 * by_status.get('angenommen', 0) / decided, 1) if decided else None,
         'avg_accepted_net_eur': round(sum(accepted) / len(accepted), 2) if accepted else None,
         'paid_by_contact_route_cents': by_route, 'leads_won': won, 'leads_lost': lost,
-        'note': 'Kleine Fallzahlen sind nicht aussagekräftig. Gewonnen/Verloren nach letzter Lead-Änderung im Zeitraum.',
+        'note': 'Kleine Fallzahlen sind nicht aussagekräftig. Gewonnen/Verloren nach letzter Änderung der Firma im Zeitraum.',
     }
 
 

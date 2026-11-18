@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev52. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
+Stand 2.0.0-dev54. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
 Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
 dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
 Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
@@ -101,7 +101,7 @@ Eigentümer; in die App kommen nur die Abläufe.
 | C – mehrere Projekte je Firma | M12 Katalog (dev16), P0-Paket M27/M35/M36 (dev17), M13 Chancen (dev18/dev19) – **erledigt**; M14 Briefings (dev20, **erledigt**); M15 Revisionen und optionale Positionen (dev21/dev22, **erledigt**); M16 Nachfassen (dev23, **erledigt**); Etappe D begonnen | **erledigt**; Migrationen an einer Kopie vorhandener Daten geprüft |
 | C′ – Bewertung fundieren | M28, M29 nach Pilot außerhalb der App; M32 nach M13 | M27 erledigt (dev17); Pilot außerhalb der App liegt beim Eigentümer |
 | D – Auftrag, Lernen, Anbindung | M17 Übergabe und Abnahme (dev24), M18 Zusatzaufträge (dev25), M19 Bestand und Betreuung (dev26), M20 Zeiten je Leistung (dev27), M38/M39 Projektkompass (dev28), M37 Nachrichtenvorlagen (dev29), M25 Kurzbericht (dev30) – **erledigt**; offen in D: M24 Kalender (Anbieterwahl), M30/M33/M34 nach ersten Reviews; M24/M25, M37–M39 nach Pilotbedarf; M30, M33, M34 nach ersten Reviews; M22/M23 parallel nach Fehlerbild; M10 bei wachsendem Bestand | später |
-| E – Visuelle Konsolidierung und Aufgabenführung | Ein Baukasten für alle Ansichten (sieben Bausteine, [UI_BAUKASTEN.md](UI_BAUKASTEN.md)); sechs Schritte, siehe unten | Schritte 1 bis 3 **erledigt** (dev49, dev50, dev51); Schritte 4–6 offen |
+| E – Visuelle Konsolidierung und Aufgabenführung | Ein Baukasten für alle Ansichten (sieben Bausteine, [UI_BAUKASTEN.md](UI_BAUKASTEN.md)); sechs Schritte, siehe unten | **erledigt** – Schritte 1 bis 6 (dev49 bis dev54); verbleibende Altteile im alten Aufbau siehe [EINSCHRAENKUNGEN.md](EINSCHRAENKUNGEN.md) |
 
 ## Etappe E – Visuelle Konsolidierung und Aufgabenführung
 
@@ -115,8 +115,8 @@ Je Schritt ein lauffähiger Stand; bestehende Adressen, Zurück-Verhalten, Filte
 | 2 | Firmen und Heute auf die Bausteine umstellen; Kopfzeile mit den Reitern des Bereichs und der Suche (ohne Datum, Hell/Dunkel und „Neuer Lead“); „Neue Firma“ zusätzlich als Befehl in Strg+K | **erledigt** (dev50) | Browser-Test `test_ui_firmen_heute_browser.py` (Abnahmemaße 1280 × 720, 390 × 844), Abschnitt „Was wohin zog“ in [UI_BAUKASTEN.md](UI_BAUKASTEN.md) |
 | 3 | Finden umstellen: vier Reiter (Sichten · Neue Suche · Import · Analysen), kompakte neue Suche mit Voreinstellungen „Wen suchst du?“, Treffer als Liste; Datenquellen nach Einstellungen, Stichprobe nach Firmen → Datenpflege | **erledigt** (dev51) | Browser-Test `test_ui_finden_browser.py` (Abnahmemaße 1280 × 720, 390 × 844, alle Adressen, Voreinstellungen), Abschnitt „Was wohin zog (Schritt 3)“ in [UI_BAUKASTEN.md](UI_BAUKASTEN.md) |
 | 4 | Angebote umstellen: drei Reiter (Angebote · Aufträge & Betreuung · Auswertung), Angebotsliste mit nächstem Schritt und Fälligkeit, „＋ Neues Angebot“ als eigener Editor, geöffnetes Angebot als Arbeitsplatz (Reiter Positionen · Kundenvorschau · Interne Kalkulation · Verlauf, Kontextspalte „Prüfung vor Freigabe“ und „Ablauf“, eine Hauptaktion je Phase); Fehlerbehebung: Eingaben gehen beim Neuzeichnen von Erlebnisstudie, Fachreview und Stichprobe nicht mehr verloren | **erledigt** (dev52) | Browser-Tests `test_ui_angebote_browser.py` (Abnahmemaße 1280 × 720, 390 × 844, Adressen, Phasen Entwurf → angenommen) und `test_keep_input_browser.py` (vorher rot, nachher grün), Abschnitt „Was wohin zog (Schritt 4)“ in [UI_BAUKASTEN.md](UI_BAUKASTEN.md) |
-| 5 | Einstellungen und Abrechnen umstellen | offen | – |
-| 6 | Firmenakte umstellen (Detailseite mit Kontextspalte) | offen | – |
+| 5 | Einstellungen und Abrechnen umstellen: Einstellungen als Abschnittsliste (240 px) mit Kurzstand und Warnungen, Suche und Eingabeschutz beim Abschnittswechsel, je Abschnitt eine Adresse (alle bisherigen Sprungziele gelten weiter); Abrechnen mit vier Reitern (Rechnungen · Ausgaben · Auswertung · Steuer & Export), Rechnungsliste mit nächstem Schritt, Editor und geöffnete Rechnung als eigene Ansicht, Stammdaten-Warnung mit Sprung nach Einstellungen → Meine Firma | **erledigt** (dev53) | Browser-Test `test_ui_einstellungen_abrechnen_browser.py` (Abnahmemaße 1280 × 720, 390 × 844, alle Abschnitte und Sprungziele, Eingabeschutz, Suche, Reiter), Abschnitt „Was wohin zog (Schritt 5)“ in [UI_BAUKASTEN.md](UI_BAUKASTEN.md) |
+| 6 | Firmenakte umstellen: Detailseite mit Seitenkopf („← Firmen“, Firmenname, Phase, Ort · Branche, eine Hauptaktion je Lage) und fünf Reitern in der Werkzeugzeile; Überblick mit „Vereinbart“ (getrennt von der Empfehlung des Programms), Chancenliste, Klappzeilen (Empfehlung, Bedarf, Passung, Website-Bewertung, Quellen & Belege, Kaufsignale, Aufgaben) und Kontextspalte (Ansprechpartner, letzter Kontakt, Kontaktstatus mit Sperre, Website, Telefon, Phasen); Kontakt & Verlauf mit benannten Aktionen und Verlauf als Liste; „Neue Firma“ statt „Neuer Lead“; sichtbar „Firma“ statt „Lead“ in der ganzen Oberfläche und in den Meldungen des Servers | **erledigt** (dev54) | Browser-Test `test_ui_akte_browser.py` (Abnahmemaße 1280 × 720, 390 × 844, Sperre, eine Hauptaktion, Zurück mit Filter, Neue Firma, kein sichtbares „Lead“ in sechs Bereichen), Abschnitt „Was wohin zog (Schritt 6)“ in [UI_BAUKASTEN.md](UI_BAUKASTEN.md) |
 
 ## Zuordnung der bisherigen Menüziele (M07, Stand dev14)
 
@@ -133,8 +133,8 @@ Je Schritt ein lauffähiger Stand; bestehende Adressen, Zurück-Verhalten, Filte
 | Pipeline | Firmen → Pipeline | `#/firmen/pipeline` |
 | Datenqualität & System | aufgeteilt: Firmen → Datenpflege (`#/firmen/datenpflege`); wiederkehrende Recherche unter Finden → Analysen → Recherche & Berichte; Datenquellen (OpenStreetMap, GLEIF-Katalog, Quellen prüfen) unter Einstellungen → Datenquellen; Stichprobe unter Firmen → Datenpflege; alles Übrige unter Einstellungen | – |
 | Angebote & Preise | Angebote → Angebote (Liste, „＋ Neues Angebot“, geöffnetes Angebot); Bestandskunden, Kick-off, Übergabe und Nachkalkulation unter Angebote → Aufträge & Betreuung; Erlebnisstudien und „Was du lernst“ unter Angebote → Auswertung (seit dev52); Kalkulationsgrundlagen und Katalog unter Einstellungen → Leistungen & Preise | `#/angebote`, `#/angebote?neu=1`, `#/angebote?angebot=ID`, `#/angebote/auftraege`, `#/angebote/auswertung`, `#/einstellungen?abschnitt=preise` |
-| Rechnungen & Buchhaltung | Abrechnen | `#/abrechnen` |
-| KI-Studio | Einstellungen → Erweiterte Werkzeuge | `#/einstellungen/ki-studio` |
+| Rechnungen & Buchhaltung | Abrechnen → Rechnungen · Ausgaben · Auswertung · Steuer & Export (seit dev53); Stammdaten unter Einstellungen → Meine Firma, Backup unter Einstellungen → Sicherung & Zugang | `#/abrechnen`, `#/abrechnen/ausgaben`, `#/abrechnen/auswertung`, `#/abrechnen/steuer` |
+| KI-Studio | Einstellungen → KI-Werkzeuge (seit dev53; vorher Reiter „Erweiterte Werkzeuge“) | `#/einstellungen/ki-studio`, `#/einstellungen?abschnitt=ki-werkzeuge` |
 | Sales-Playbook | „Hilfe & Gesprächsleitfaden“ unten in der Seitenleiste | `#/einstellungen/hilfe` |
 
 ## Abnahmefälle aus dem Review

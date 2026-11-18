@@ -25,7 +25,7 @@
         <small>${esc(sug.evidence || '')}${sug.fields.length ? ` · ${sug.fields.length} Firmendaten schon gelesen` : ''}</small></span>
         <span class="acc-btn-group"><button type="button" class="btn btn-primary" data-lf-sug="bestaetigen">✓ Website passt – Daten übernehmen</button><button type="button" class="text-button" data-lf-sug="ablehnen">✕ passt nicht</button></span></div>` : ''}
       ${cd.can_run && cd.state !== 'laeuft' ? `<button type="button" class="text-button" data-lf-read>${cd.checked_at ? 'Impressum erneut lesen' : 'Impressum jetzt lesen'}</button>` : ''}
-      ${cd.auto ? '' : '<small class="muted">Automatische Übertragung ist ausgeschaltet (Einstellungen → Daten & Zugang).</small>'}</div>`;
+      ${cd.auto ? '' : '<small class="muted">Automatische Übertragung ist ausgeschaltet (Einstellungen → Sicherung & Zugang).</small>'}</div>`;
   }
 
   async function services() {
@@ -59,17 +59,23 @@
       <small class="muted">${esc(c.notice)}</small></div>`;
   }
 
+  // 2.0.0-dev54 (UX Schritt 6): Verlauf als Liste im Reiter „Kontakt & Verlauf“ (bisher Zeitleiste im Überblick)
   function timeline(t) {
     const items = t.filter(e => !filter || e.kind === filter);
     const kinds = [...new Set(t.map(e => e.kind))];
-    return `<div class="lf-tl-head"><b>Zeitleiste</b><select id="lfFilter" aria-label="Zeitleiste filtern"><option value="">alles (${t.length})</option>${kinds.map(k => `<option value="${k}" ${k === filter ? 'selected' : ''}>${esc(k)}</option>`).join('')}</select></div>
-      <ol class="lf-tl">${items.slice(0, 80).map(e => `<li><span class="lf-ic" aria-hidden="true">${KIND_ICON[e.kind] || '•'}</span><div><b>${esc(e.title)}</b><small>${esc(e.at)}${e.detail ? ' · ' + esc(e.detail) : ''}</small></div></li>`).join('') || '<li class="muted">Noch nichts dokumentiert.</li>'}</ol>`;
+    return `<div class="lf-tl-head"><h2 class="ui-section">Verlauf</h2><select id="lfFilter" aria-label="Verlauf filtern"><option value="">alles (${t.length})</option>${kinds.map(k => `<option value="${k}" ${k === filter ? 'selected' : ''}>${esc(k)}</option>`).join('')}</select></div>
+      <ol class="ui-list lf-tl">${items.slice(0, 80).map(e => `<li><span class="lf-ic" aria-hidden="true">${KIND_ICON[e.kind] || '•'}</span><div><b>${esc(e.title)}</b><small>${esc(e.at)}${e.detail ? ' · ' + esc(e.detail) : ''}</small></div></li>`).join('') || '<li class="ui-empty">Noch nichts dokumentiert.</li>'}</ol>`;
   }
+  function drawTimeline() { const el = $('#lfTimeline'); if (el && file) el.innerHTML = timeline(file.timeline); }
 
-  // 2.0.0-dev12: Firmenakte mit Reitern. Kopf mit Name, Phase, Passung und nächster Aktion bleibt beim Scrollen stehen.
+  // 2.0.0-dev12: Firmenakte mit Reitern. 2.0.0-dev54: Kopf nach der Detailseiten-Regel (← Zurück, Titel, Phase, Zusatz, eine Hauptaktion).
   const TABS = ['ueberblick', 'kontakt', 'bedarf', 'recherche', 'stammdaten'];
   const panel = name => document.querySelector(`[data-lf-panel="${name}"]`);
   let headAction = null;
+  const todayIso = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const shortDate = d => new Intl.DateTimeFormat('de-DE', {day: 'numeric', month: 'short'}).format(new Date(`${String(d).slice(0, 10)}T12:00:00`));
+  const STAGE_TONE = s => (s === 'gewonnen' ? ' is-done' : ['verloren', 'gesperrt'].includes(s) ? ' is-overdue' : s === 'angebot' ? ' is-underway' : '');
+  const stageName = s => (typeof stageNames !== 'undefined' && stageNames[s]) || s;
 
   function setTab(name, focus = false) {
     if (!TABS.includes(name)) name = 'ueberblick';
@@ -88,21 +94,43 @@
     tabs.classList.toggle('hidden', !existing);
     tabs.closest('header')?.classList.toggle('with-tabs', !!existing);
     $('#lfHeadNext')?.classList.add('hidden');
+    $('#modalPhase')?.classList.add('hidden');
+    $('#modalLock')?.classList.add('hidden');
     headAction = null;
     if ($('#modalMeta')) $('#modalMeta').textContent = '';
-    if ($('#modalEyebrow')) $('#modalEyebrow').textContent = existing ? 'FIRMENAKTE' : 'NEUER LEAD';
+    if ($('#modalEyebrow')) $('#modalEyebrow').textContent = existing ? 'Firmenakte' : 'Neue Firma';
     if (existing) setTab('ueberblick');
     else for (const t of TABS) panel(t)?.classList.toggle('lf-panel-off', t !== 'stammdaten');
   }
 
-  function head(f) {
-    const grade = f.assessment?.fit.grade;
+  // Hauptaktion passend zur Lage – nur vorhandene Aktionen: Gespräch ins Protokoll, bei Sperre/Verlust eine Notiz, nach Gewinn die Rechnung
+  function mainAction(f) {
+    const close = f.steps.find(s => s.key === 'abschluss');
+    if (f.lock || f.lead.stage === 'verloren') return {act: 'notiz', label: 'Notiz erfassen'};
+    if (close && close.partial && !close.done) return {action: close.action, label: close.action.label};
+    return {act: 'gespraech', label: 'Gespräch notieren'};
+  }
+
+  function head(f, lead) {
     $('#modalTitle').textContent = f.lead.company;
-    const fitLabel = window.gradeLabel ? window.gradeLabel(grade) : (grade || 'offen');
-    $('#modalMeta').textContent = `Phase ${(typeof stageNames !== 'undefined' && stageNames[f.lead.stage]) || f.lead.stage} · Passung ${grade && grade !== 'X' ? grade + ' – ' : ''}${fitLabel} · Belege ${f.coverage.pct} %`;
-    const btn = $('#lfHeadNext'), n = f.next;
-    headAction = n && n.action && !n.blocked ? n.action : null;
-    if (btn) { btn.classList.toggle('hidden', !headAction); btn.textContent = headAction ? headAction.label + ' ▶' : ''; btn.title = headAction ? 'Als Nächstes: ' + n.label : ''; }
+    const ph = $('#modalPhase');
+    if (ph) { ph.textContent = stageName(f.lead.stage); ph.className = 'ui-pill' + STAGE_TONE(f.lead.stage); ph.title = 'Phase'; }
+    $('#modalLock')?.classList.toggle('hidden', !f.lock);
+    $('#modalMeta').textContent = [f.lead.location, lead?.industry].filter(Boolean).join(' · ');
+    headAction = mainAction(f);
+    const btn = $('#lfHeadNext');
+    if (btn) { btn.classList.remove('hidden'); btn.textContent = headAction.label; btn.title = f.lock ? 'Kontaktsperre: nur dokumentieren, nicht ansprechen' : ''; }
+  }
+
+  function noteAct(type) {
+    setTab('kontakt');
+    const form = $('#activityForm');
+    if (!form) return;
+    form.elements.activity_type.value = type;
+    // nur vorbelegt, noch nichts eingegeben: gilt nicht als ungespeicherte Eingabe (Eingabeschutz fragt erst nach Text)
+    if (!form.elements.detail.value.trim()) window.leadGuard?.rebase?.('activityForm');
+    form.elements.detail.focus();
+    form.scrollIntoView({behavior: 'smooth', block: 'center'});
   }
 
   window.leadTabs = {reset: resetTabs, show: setTab, reveal(el) { const p = el && el.closest('[data-lf-panel]'); if (p) setTab(p.dataset.lfPanel); }};
@@ -119,56 +147,188 @@
       e.preventDefault();
       setTab(TABS[(next + TABS.length) % TABS.length], true);
     });
-    $('#lfHeadNext')?.addEventListener('click', () => { if (headAction) go(headAction); });
+    $('#lfHeadNext')?.addEventListener('click', () => {
+      if (!headAction) return;
+      if (headAction.act) return noteAct(headAction.act);
+      go(headAction.action);
+    });
+    // Kontakt & Verlauf: klar benannte Aktionen (Gespräch im Protokoll, Anruf/Mail/Termin unter Kontakt & Termine wie bisher)
+    $('#lfPanelKontakt')?.addEventListener('click', e => {
+      const b = e.target.closest('[data-lf-act]');
+      if (!b || !currentLeadId) return;
+      const a = b.dataset.lfAct;
+      if (a === 'gespraech') return noteAct('gespraech');
+      return go({view: 'workspace', section: a === 'termin' ? 'meeting' : 'contact', lead_id: currentLeadId});
+    });
+    $('#lfTimeline')?.addEventListener('change', e => { if (e.target.id === 'lfFilter') { filter = e.target.value; drawTimeline(); } });
   }
 
+  // ---- Überblick: Vereinbart · Chancen · Klappzeilen; rechts Kontext und Phasen
+  function dueText(d) {
+    const t = todayIso();
+    if (!d) return '<span class="muted">ohne Datum</span>';
+    if (d < t) return `<span class="ui-pill is-overdue">überfällig seit ${esc(shortDate(d))}</span>`;
+    if (d === t) return '<span class="ui-pill is-attention">fällig heute</span>';
+    return `<span>fällig am ${esc(fmtDate(d))}</span>`;
+  }
+
+  function lastTalk(f) {
+    return f.timeline.find(e => e.kind === 'anruf' || (e.kind === 'aktivitaet' && ['Gespräch', 'Anfrage'].includes(e.title)) || (e.kind === 'termin' && /erledigt/.test(e.detail)));
+  }
+
+  function agreed(f) {
+    const step = f.lead.next_step, date = f.lead.next_date, talk = lastTalk(f);
+    const task = f.open_tasks.find(t => t.due_date);
+    let title, bits;
+    if (step || date) {
+      title = step || 'Termin ohne Beschreibung';
+      bits = [dueText(date), 'eingetragen unter Stammdaten', talk ? `letztes Gespräch am ${esc(fmtDate(talk.at.slice(0, 10)))}` : 'noch kein Gespräch dokumentiert'];
+    } else if (task) {
+      title = task.title;
+      bits = [dueText(task.due_date), 'offene Aufgabe zu dieser Firma'];
+    } else {
+      title = 'Noch nichts vereinbart';
+      bits = [f.lead.stage === 'recherche' ? 'Nach dem ersten Kontakt hier den nächsten Schritt festhalten' : 'Nächsten Schritt mit Datum festhalten, damit die Firma nicht liegen bleibt'];
+    }
+    return `<section class="ui-card lf-agreed${step || date || task ? '' : ' is-empty'}" id="lfAgreed" aria-labelledby="lfAgreedK">
+      <span class="ui-small" id="lfAgreedK">Vereinbart</span><b class="lf-agreed-t">${esc(title)}</b>
+      <span class="lf-agreed-d">${bits.map(b => `<span>${b}</span>`).join('')}<button type="button" class="ui-txt" data-lf-next-edit>${step || date ? 'ändern' : 'Nächsten Schritt eintragen'}</button></span></section>`;
+  }
+
+  function chanceValue(c, lead) {
+    const p = [...c.proposals].reverse().find(x => x.net_eur != null);
+    if (p) return esc(euros(p.net_eur));
+    if (c.is_first && lead && Number(lead.estimated_budget) > 0) return 'ca. ' + esc(euros(Number(lead.estimated_budget)));
+    return '<span class="muted">–</span>';
+  }
+
+  function chanceList(list, lead) {
+    const tone = s => (s === 'gewonnen' ? ' is-done' : s === 'verloren' ? ' is-overdue' : ' is-underway');
+    const rows = list.map(c => `<div class="ui-row lf-ch-row" role="button" tabindex="0" data-lf-ch="${c.id}" aria-label="Chance ${esc(c.title)} öffnen">
+        <span class="ui-main"><b>${esc(c.title)}</b><small>${c.need_confirmed && c.confirmed_at ? 'Bedarf bestätigt am ' + esc(fmtDate(String(c.confirmed_at).slice(0, 10))) : esc(c.offer_title || 'Bedarf noch offen')}</small></span>
+        <span class="ui-cut">${c.next_step ? esc(c.next_step) : '<span class="muted">–</span>'}</span>
+        <span>${c.next_date ? (c.next_date < todayIso() ? `<span class="ui-pill is-overdue">${esc(shortDate(c.next_date))}</span>` : c.next_date === todayIso() ? '<span class="ui-pill is-attention">heute</span>' : esc(shortDate(c.next_date))) : '<span class="muted">–</span>'}</span>
+        <span><span class="ui-pill${tone(c.stage)}">${esc(c.stage_label)}</span></span><span class="ui-num">${chanceValue(c, lead)}</span><span class="ui-chev" aria-hidden="true">›</span></div>`).join('');
+    return `<div class="ui-list lf-chances" id="lfChances" aria-label="Chancen"><div class="ui-row-head"><span>Chance</span><span>Nächster Schritt</span><span>Fällig</span><span>Status</span><span class="ui-num">Wert</span><span class="ui-sr">Öffnen</span></div>
+      ${rows || '<div class="ui-empty">Noch keine Chance – sie entsteht mit dem ersten Angebot oder über „＋ Neue Chance“ im Reiter „Bedarf &amp; Angebot“. <button type="button" class="ui-txt" data-lf-tabjump="bedarf">Zu Bedarf &amp; Angebot</button></div>'}</div>`;
+  }
+
+  function needFold(need, svcs) {
+    const state = need.confirmed ? `bestätigt am ${esc(fmtDate(need.confirmed_at.slice(0, 10)))}` : `noch nicht bestätigt · ${need.talks} Gespräch${need.talks === 1 ? '' : 'e'} dokumentiert`;
+    return `<details class="ui-fold lf-need" id="lfNeed"><summary><b>Bedarf</b><span>${need.confirmed ? '<span class="sw-web ok">bestätigt</span> ' : ''}${state}</span></summary><div class="ui-fold-body">
+      ${need.confirmed ? `<small>${esc(need.note)}</small><ul class="lf-need-list">${need.needs.map(x => `<li>${esc(svcs.find(s => s.key === x.service)?.title || x.service)}${x.size ? ' · ' + esc({S: 'Basis', M: 'Standard', L: 'Umfangreich'}[x.size]) : ''}${x.qty ? ' · ' + x.qty + '×' : ''}</li>`).join('')}</ul>
+        <div class="acc-btn-group"><button type="button" class="btn btn-ghost" data-lf-quote>Angebot aus bestätigtem Bedarf</button><button type="button" class="text-button" data-lf-reopen>Bedarf neu klären</button></div>`
+      : `<small class="muted">Manuelle Freigabe: erst nach einem dokumentierten Gespräch (${need.talks} vorhanden) und mit Problem und Ziel aus der Bedarfsanalyse (Reiter „Bedarf &amp; Angebot“). Ein Angebot gilt erst danach als „beim Kunden“.</small>
+        ${file.lock ? '' : `<form id="lfNeedForm" class="lf-need-form">
+          <label class="ui-field">Bestätigt<select name="via" id="lfNeedVia"><option value="gespraech">im Telefonat</option><option value="termin">im Termin</option><option value="schriftlich">schriftlich vom Kunden</option></select></label>
+          <label class="ui-field">Was hat der Kunde bestätigt?<textarea name="note" id="lfNeedNote" rows="2" maxlength="1000" required placeholder="z. B. Website-Relaunch mit Anfrageformular bis März, Budget freigegeben"></textarea></label>
+          <div class="lf-need-rows">${needRow(svcs)}</div><button type="button" class="text-button" data-need-add>+ weitere Leistung</button>
+          <button type="submit" class="btn btn-ghost">Bedarf bestätigen</button></form>`}`}</div></details>`;
+  }
+
+  function folds(f, svcs) {
+    const n = f.next, cov = f.coverage, item = k => cov.items.find(i => i.key === k) || {detail: ''};
+    const fit = f.assessment?.fit, q = f.assessment?.qualification;
+    const fitLabel = grade => (window.gradeLabel ? window.gradeLabel(grade) : (grade || 'offen'));
+    const known = fit ? fit.criteria.filter(c => c.status !== 'unbekannt').length : 0;
+    const cd = f.company_data, cdHint = cd.suggestion || cd.state === 'vorschlag';
+    const sources = cov.items.filter(i => i.value >= 1).length;
+    return `<div class="ui-list lf-folds">
+      <details class="ui-fold${n.action ? ' ui-fold-act' : ''} lf-next${n.blocked ? ' blocked' : ''}" id="lfNext"><summary><b>Empfehlung</b><span>${esc(n.label)}${n.detail && !n.blocked ? ': ' + esc(n.detail) : ''}</span>${n.action ? `<button type="button" class="ui-txt" data-lf-go='${esc(JSON.stringify(n.action))}'>${esc(n.action.label)}</button>` : ''}</summary>
+        <div class="ui-fold-body"><p class="ui-small">Vorschlag des Programms aus dem Ablauf – nicht mit dem Kunden vereinbart.${n.blocked ? ' ' + esc(n.detail) : ''}</p>${stepBar(f.steps)}</div></details>
+      ${needFold(f.need, svcs)}
+      ${f.assessment ? `<details class="ui-fold" id="lfFit"><summary><b>Passung ${fit.grade && fit.grade !== 'X' ? esc(fit.grade) : fit.grade === 'X' ? '✕' : '?'}</b><span>${esc(fitLabel(fit.grade))} · ${known} von ${fit.criteria.length} Kriterien bekannt · Qualifizierung: ${esc(q.status_label)}</span></summary>
+        <div class="ui-fold-body">${window.renderAssessment ? window.renderAssessment(f.assessment) : ''}</div></details>` : ''}
+      <details class="ui-fold" id="lfWeb"><summary><b>Website-Bewertung</b><span>${esc(item('website').detail)}</span></summary>
+        <div class="ui-fold-body"><p class="ui-small">${f.lead.website ? `Website: <a href="${esc(f.lead.website)}" target="_blank" rel="noopener noreferrer">${esc(f.lead.website.replace(/^https?:\/\//, ''))} ↗</a> · ` : 'Noch keine Website eingetragen. '}Die vollständige Bewertung mit Kriterien und Belegen steht im Reiter „Recherche“.</p>
+          <button type="button" class="ui-txt" data-lf-jump="leadScoreResult">Zur Website-Bewertung →</button></div></details>
+      <details class="ui-fold" id="lfSrc"${cdHint ? ' open' : ''}><summary><b>Quellen &amp; Belege</b><span>${cdHint ? '<span class="ui-pill is-attention">Website bestätigen</span> ' : ''}Belegabdeckung ${cov.pct} % · ${sources} von ${cov.items.length} Bereichen belegt</span></summary>
+        <div class="ui-fold-body lf-src">${companyData(cd)}${coverage(cov)}</div></details>
+      <details class="ui-fold" id="lfSig"><summary><b>Kaufsignale</b><span>${esc(item('anlass').detail)}</span></summary>
+        <div class="ui-fold-body"><p class="ui-small">Anlässe und Hypothesen mit Quelle – im Reiter „Recherche“ prüfen und verknüpfen.</p><button type="button" class="ui-txt" data-lf-jump="leadSignals">Zu den Kaufsignalen →</button></div></details>
+      ${f.open_tasks.length ? `<details class="ui-fold" id="lfTasks"><summary><b>Offene Aufgaben</b><span>${f.open_tasks.length} offen${f.open_tasks[0].due_date ? ' · nächste ' + esc(fmtDate(f.open_tasks[0].due_date)) : ''}</span></summary>
+        <div class="ui-fold-body lf-tasks">${f.open_tasks.map(t => `<div><span>${esc(t.title)}</span><small>${t.due_date ? esc(fmtDate(t.due_date)) : 'ohne Termin'}</small><button type="button" class="text-button" data-lf-done="${t.id}">erledigt</button></div>`).join('')}</div></details>` : ''}
+    </div>`;
+  }
+
+  const PHASES = [['Recherche', ['recherche'], 'recherche'], ['Qualifiziert', ['qualifiziert', 'kontakt', 'antwort'], 'ueberblick'],
+    ['Termin', ['termin'], 'kontakt'], ['Angebot', ['angebot'], 'bedarf'], ['Auftrag', ['gewonnen'], 'bedarf']];
+
+  function side(f, lead) {
+    const perm = f.lead.permission, route = f.lead.contact_route;
+    const permTxt = (typeof permissionNames !== 'undefined' && permissionNames[perm]) || perm;
+    const routeTxt = route && route !== 'unbekannt' ? ((typeof routeNames !== 'undefined' && routeNames[route]) || route) : '';
+    const phone = lead?.business_phone || (f.assessment?.reachability?.channels || []).find(c => /telefon/i.test(c.label) && c.known)?.value || '';
+    const talk = lastTalk(f);
+    const last = lead?.last_contact || (talk ? talk.at.slice(0, 10) : '');
+    const who = [lead?.contact_name, lead?.contact_role].filter(Boolean).join(', ');
+    const cur = PHASES.findIndex(p => p[1].includes(f.lead.stage));
+    const ended = ['verloren', 'gesperrt'].includes(f.lead.stage);
+    const phases = PHASES.map(([label, , tab], i) => {
+      const done = f.lead.stage === 'gewonnen' ? true : cur > i, now = cur === i && f.lead.stage !== 'gewonnen';
+      return `<li class="qt-phase${done ? ' is-done' : ''}${now ? ' is-current' : ''}"${now ? ' aria-current="step"' : ''}><span class="qt-ico" aria-hidden="true">${done ? '✓' : i + 1}</span><button type="button" class="ui-txt" data-lf-tabjump="${tab}">${label}</button></li>`;
+    }).join('') + (ended ? `<li class="qt-phase is-bad" aria-current="step"><span class="qt-ico" aria-hidden="true">✕</span><span>${esc(stageName(f.lead.stage))}</span></li>` : '');
+    return `<aside class="ui-side" id="lfSide" aria-label="Kontext">
+      <section class="ui-card lf-ctx" aria-labelledby="lfCtxTitle"><h2 class="ui-section" id="lfCtxTitle">Kontext</h2>
+        ${f.lock ? `<div class="lf-lock" role="alert"><b>⛔ Kontaktsperre</b> Firma ist ${esc(f.lock)}. Anruf, Termin, Mail-Entwurf und Angebot sind gesperrt. Ein Widerspruch lässt sich immer dokumentieren.</div>` : ''}
+        <dl class="lf-dl">
+          <dt>Ansprechpartner</dt><dd>${who ? esc(who) : '<span class="muted">noch niemand eingetragen</span>'}</dd>
+          <dt>Letzter Kontakt</dt><dd>${last ? esc(fmtDate(last)) + (talk && talk.at.slice(0, 10) === last ? ', ' + esc(talk.kind === 'anruf' ? 'Telefon' : talk.kind === 'termin' ? 'Termin' : talk.title) : '') : '<span class="muted">noch keiner</span>'}</dd>
+          <dt>Kontaktstatus</dt><dd class="lf-perm">${f.lock ? '<span class="ui-pill is-overdue">gesperrt</span> ' : ''}${esc(permTxt)}${routeTxt ? ', ' + esc(routeTxt) : ''}${f.steps[1]?.done ? ' · <span class="sw-web ok">dokumentiert</span>' : ' · <span class="sw-web mid">Grundlage offen</span>'}
+            <button type="button" class="ui-txt" data-lf-go='${esc(JSON.stringify({focus: 'permission'}))}'>prüfen</button></dd>
+          <dt>Website</dt><dd>${f.lead.website ? `<a href="${esc(f.lead.website)}" target="_blank" rel="noopener noreferrer">${esc(f.lead.website.replace(/^https?:\/\//, '').replace(/\/$/, ''))}</a>` : '<span class="muted">–</span>'}</dd>
+          <dt>Telefon</dt><dd>${phone ? esc(phone) : '<span class="muted">–</span>'}</dd>
+        </dl></section>
+      <section class="ui-card" aria-labelledby="lfPhTitle"><h2 class="ui-section" id="lfPhTitle">Verlauf</h2><ol class="qt-phases lf-phases">${phases}</ol></section>
+    </aside>`;
+  }
+
+  function privacy(list) {
+    return (list || []).map(p => `<div class="lf-privacy ui-card"><span><span class="sw-web wait">ohne Rechtsform</span> <b>Möglicher Personenbezug.</b></span>
+          <small>Löschfrist bis ${esc(fmtDate(p.retention_until))} · ${p.art14_informed_at ? 'nach Art. 14 informiert am ' + esc(fmtDate(p.art14_informed_at)) : 'Art.-14-Hinweis spätestens beim ersten Kontakt'}</small>
+          <span class="acc-btn-group"><button type="button" class="text-button" data-dc-art14="${p.id}">Hinweistext kopieren</button>${p.art14_informed_at ? '' : `<button type="button" class="text-button" data-dc-informed="${p.id}">Als informiert vermerken</button>`}<button type="button" class="text-button" data-dc-extend="${p.id}">Frist verlängern</button></span></div>`).join('');
+  }
+
+  let keepOpen = null;
   async function render(id) {
     const box = $('#leadFile');
     try {
-      file = await api(`/leads/${id}/file`);
+      const [f, ch, svcs] = await Promise.all([api(`/leads/${id}/file`), api(`/leads/${id}/chances`).catch(() => ({chances: []})), services()]);
       if (currentLeadId !== id) return;
-      const n = file.next, need = file.need;
-      const svcs = await services();
-      head(file);
-      box.innerHTML = `<div class="lf-head"><div><span class="eyebrow">VEREINBART</span>
-          <small class="muted">${file.lead.next_step ? `Nächster Schritt: ${esc(file.lead.next_step)}${file.lead.next_date ? ' (' + esc(fmtDate(file.lead.next_date)) + ')' : ''}` : 'Kein nächster Schritt eingetragen – unter „Stammdaten“ festhalten.'}</small></div>
-        <div class="lf-next ${n.blocked ? 'blocked' : ''}"><small>${n.blocked ? 'Gesperrt' : 'Als Nächstes'}</small><b>${esc(n.label)}</b><small>${esc(n.detail || '')}</small>
-          ${n.action ? `<button type="button" class="btn btn-primary" data-lf-go='${esc(JSON.stringify(n.action))}'>${esc(n.action.label)} ▶</button>` : ''}</div></div>
-        ${file.lock ? `<div class="lf-lock" role="alert">⛔ Kontaktsperre: Firma ist ${esc(file.lock)}. Anruf, Termin, Mail-Entwurf und Angebot sind gesperrt. Ein Widerspruch lässt sich immer dokumentieren.</div>` : ''}
-        ${stepBar(file.steps)}
-        ${(file.privacy || []).map(p => `<div class="lf-privacy"><span class="sw-web wait">ohne Rechtsform</span> <b>Möglicher Personenbezug.</b>
-          <small>Löschfrist bis ${esc(fmtDate(p.retention_until))} · ${p.art14_informed_at ? 'nach Art. 14 informiert am ' + esc(fmtDate(p.art14_informed_at)) : 'Art.-14-Hinweis spätestens beim ersten Kontakt'}</small>
-          <span class="acc-btn-group"><button type="button" class="text-button" data-dc-art14="${p.id}">Hinweistext kopieren</button>${p.art14_informed_at ? '' : `<button type="button" class="text-button" data-dc-informed="${p.id}">Als informiert vermerken</button>`}<button type="button" class="text-button" data-dc-extend="${p.id}">Frist verlängern</button></span></div>`).join('')}
-        ${window.renderAssessment ? window.renderAssessment(file.assessment) : ''}
-        ${companyData(file.company_data)}
-        <div class="lf-cols">${coverage(file.coverage)}
-          <div class="lf-need" id="lfNeed"><b>Bedarf ${need.confirmed ? `bestätigt <span class="sw-web ok">am ${esc(fmtDate(need.confirmed_at.slice(0, 10)))}</span>` : '<span class="sw-web mid">noch nicht bestätigt</span>'}</b>
-            ${need.confirmed ? `<small>${esc(need.note)}</small><ul class="lf-need-list">${need.needs.map(x => `<li>${esc(svcs.find(s => s.key === x.service)?.title || x.service)}${x.size ? ' · ' + esc({S: 'Basis', M: 'Standard', L: 'Umfangreich'}[x.size]) : ''}${x.qty ? ' · ' + x.qty + '×' : ''}</li>`).join('')}</ul>
-              <div class="acc-btn-group"><button type="button" class="btn btn-primary" data-lf-quote>Angebot aus bestätigtem Bedarf</button><button type="button" class="text-button" data-lf-reopen>Bedarf neu klären</button></div>`
-            : `<small class="muted">Manuelle Freigabe: erst nach einem dokumentierten Gespräch (${need.talks} vorhanden) und mit Problem und Ziel aus der Bedarfsanalyse (Reiter „Bedarf &amp; Angebot“). Ein Angebot gilt erst danach als „beim Kunden“.</small>
-              ${file.lock ? '' : `<details class="lf-need-form"><summary>Bedarf bestätigen …</summary><form id="lfNeedForm">
-                <label>Bestätigt<select name="via"><option value="gespraech">im Telefonat</option><option value="termin">im Termin</option><option value="schriftlich">schriftlich vom Kunden</option></select></label>
-                <label>Was hat der Kunde bestätigt?<textarea name="note" rows="2" maxlength="1000" required placeholder="z. B. Website-Relaunch mit Anfrageformular bis März, Budget freigegeben"></textarea></label>
-                <div class="lf-need-rows">${needRow(svcs)}</div><button type="button" class="text-button" data-need-add>+ weitere Leistung</button>
-                <button type="submit" class="btn btn-primary">Bedarf bestätigen</button></form></details>`}`}
-          </div></div>
-        ${file.open_tasks.length ? `<div class="lf-tasks"><b>Offene Aufgaben</b>${file.open_tasks.map(t => `<div><span>${esc(t.title)}</span><small>${t.due_date ? esc(fmtDate(t.due_date)) : 'ohne Termin'}</small><button type="button" class="text-button" data-lf-done="${t.id}">erledigt</button></div>`).join('')}</div>` : ''}
-        ${timeline(file.timeline)}`;
+      file = f;
+      const lead = (typeof leads !== 'undefined' ? leads : []).find(x => x.id === id);
+      head(file, lead);
+      const open = keepOpen === id ? new Set([...box.querySelectorAll('details[open][id]')].map(d => d.id)) : null;
+      keepOpen = id;
+      window.uiKeep(box, '#lfNeedForm textarea, #lfNeedForm select[name=via]', () => {
+        box.innerHTML = `<div class="ui-with-side lf-over"><div class="lf-main">
+            ${agreed(file)}${privacy(file.privacy)}${chanceList(ch.chances || [], lead)}${folds(file, svcs)}
+          </div>${side(file, lead)}</div>`;
+        if (open) for (const d of box.querySelectorAll('details[id]')) if (open.has(d.id)) d.open = true;
+      });
+      drawTimeline();
       box.classList.remove('hidden');
       applyDataWidths(box);
       qa('.lf-need-row', box).forEach(r => syncRow(r, svcs));
       clearTimeout(cdPoll);
       if (file.company_data.state === 'laeuft') cdPoll = setTimeout(() => { if (currentLeadId === id && !$('#modal').classList.contains('hidden')) render(id).then(() => { if (file.company_data.state !== 'laeuft' && typeof reload === 'function') reload(); }); }, 3000);
-    } catch (e) { box.innerHTML = `<div class="empty">${esc(e.message)}</div>`; box.classList.remove('hidden'); }
+    } catch (e) { box.innerHTML = `<div class="ui-empty">${esc(e.message)}</div>`; box.classList.remove('hidden'); }
   }
 
-  window.loadLeadFile = function (id) { filter = ''; return render(id); };
+  window.loadLeadFile = function (id) { filter = ''; keepOpen = null; return render(id); };
   window.refreshLeadFile = function () { if (currentLeadId && !$('#modal').classList.contains('hidden')) return render(currentLeadId); };
+
+  function jumpTo(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    window.leadTabs.reveal(el);
+    el.scrollIntoView({behavior: 'smooth', block: 'start'});
+  }
 
   async function go(action) {
     if (action.view === 'quote_from_need') return quoteFromNeed();
     if (action.focus === 'permission') { setTab('stammdaten'); $('#leadForm [name=permission]')?.focus(); $('#leadForm [name=permission]')?.scrollIntoView({behavior: 'smooth', block: 'center'}); return; }
-    if (action.focus === 'need') { const d = $('#lfNeed details'); if (d) { setTab('ueberblick'); d.open = true; d.scrollIntoView({behavior: 'smooth', block: 'center'}); } else { setTab('bedarf'); $('#discoveryForm')?.scrollIntoView({behavior: 'smooth'}); } return; }
+    if (action.focus === 'need') { const d = $('#lfNeedForm')?.closest('details'); if (d) { setTab('ueberblick'); d.open = true; d.scrollIntoView({behavior: 'smooth', block: 'center'}); } else { setTab('bedarf'); $('#discoveryForm')?.scrollIntoView({behavior: 'smooth'}); } return; }
     if (action.view === 'signals' || action.view === 'accounting') { closeModal(); return switchView(action.view); }
     closeModal();
     return window.goAction(action);
@@ -184,13 +344,27 @@
     } catch (e) { toast(e.message, true); }
   }
 
+  // Zeile der Chancenliste: Reiter „Bedarf & Angebot“ mit aufgeklappter Chance
+  function openChance(cid) {
+    setTab('bedarf');
+    const d = document.querySelector(`#chList [data-ch="${cid}"]`);
+    if (d) { d.open = true; d.scrollIntoView({behavior: 'smooth', block: 'start'}); }
+  }
+
   function init() {
     initTabs();
     if (!$('#leadFile')) return;
     const box = $('#leadFile');
     box.addEventListener('click', async e => {
       const g = e.target.closest('[data-lf-go]');
-      if (g) return go(JSON.parse(g.dataset.lfGo));
+      if (g) { e.preventDefault(); return go(JSON.parse(g.dataset.lfGo)); }
+      const tj = e.target.closest('[data-lf-tabjump]');
+      if (tj) { if (tj.dataset.lfTabjump === 'ueberblick') { const d = $('#lfFit'); if (d) { d.open = true; d.scrollIntoView({behavior: 'smooth', block: 'center'}); } } else setTab(tj.dataset.lfTabjump); return; }
+      const j = e.target.closest('[data-lf-jump]');
+      if (j) return jumpTo(j.dataset.lfJump);
+      if (e.target.closest('[data-lf-next-edit]')) { setTab('stammdaten'); const i = $('#leadForm [name=next_step]'); i?.focus(); i?.scrollIntoView({behavior: 'smooth', block: 'center'}); return; }
+      const row = e.target.closest('[data-lf-ch]');
+      if (row) return openChance(row.dataset.lfCh);
       if (e.target.closest('[data-lf-quote]')) return quoteFromNeed();
       const sg = e.target.closest('[data-lf-sug]');
       if (sg) {
@@ -223,8 +397,11 @@
       const d = e.target.closest('[data-lf-done]');
       if (d) { try { await api(`/tasks/${d.dataset.lfDone}`, 'PATCH', {done: true}); render(currentLeadId); } catch (err) { toast(err.message, true); } }
     });
+    box.addEventListener('keydown', e => {
+      const row = e.target.closest?.('[data-lf-ch]');
+      if (row && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openChance(row.dataset.lfCh); }
+    });
     box.addEventListener('change', async e => {
-      if (e.target.id === 'lfFilter') { filter = e.target.value; render(currentLeadId); return; }
       if (e.target.dataset.need === 'service') syncRow(e.target.closest('.lf-need-row'), await services());
     });
     box.addEventListener('submit', async e => {

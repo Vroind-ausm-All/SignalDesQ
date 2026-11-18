@@ -145,7 +145,7 @@ def import_scan(conn, scan_id: int) -> dict:
             found=row
             break
     if found and (found['permission']=='nicht_kontaktieren' or found['stage']=='gesperrt'):
-        raise ValueError('Dieser Lead ist gesperrt. Recherche nicht übernehmen.')
+        raise ValueError('Diese Firma ist gesperrt. Recherche nicht übernehmen.')
     if not found:
         from .company_data import assert_not_suppressed
         assert_not_suppressed(conn, website=url, name=result['site']['company_label'])

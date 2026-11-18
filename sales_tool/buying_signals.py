@@ -447,7 +447,7 @@ def import_jobs(conn, data):
         lead_id = data.get('lead_id')
         if lead_id is not None:
             if isinstance(lead_id, bool) or not isinstance(lead_id, int) or not conn.execute('SELECT 1 FROM leads WHERE id=?', (lead_id,)).fetchone():
-                raise ValueError('Lead nicht gefunden.')
+                raise ValueError('Firma nicht gefunden.')
         else:
             lead_id, _ = find_duplicate(conn, website=job['source_url'] if job['source_url'] else '', name=job['company'])
         if not job['title']:
@@ -591,7 +591,7 @@ _SCAN_WORKER = {'db': None}  # 2.0.0-dev35: Datenbank des letzten Auftrags (für
 
 def enqueue_scans(conn, lead_ids, db_path):
     if not isinstance(lead_ids, list) or not 1 <= len(lead_ids) <= 20 or any(isinstance(i, bool) or not isinstance(i, int) for i in lead_ids):
-        raise ValueError('1–20 Lead-IDs angeben.')
+        raise ValueError('1–20 Firmen-IDs angeben.')
     queued, skipped = [], []
     for lid in dict.fromkeys(lead_ids):
         lead = conn.execute('SELECT website, stage, permission FROM leads WHERE id=?', (lid,)).fetchone()
@@ -768,7 +768,7 @@ def update_signal(conn, signal_id, data):
         lid = data['lead_id']
         lead = conn.execute('SELECT stage, permission FROM leads WHERE id=?', (lid,)).fetchone() if isinstance(lid, int) and not isinstance(lid, bool) else None
         if not lead:
-            raise ValueError('Lead nicht gefunden.')
+            raise ValueError('Firma nicht gefunden.')
         conn.execute('UPDATE buying_signals SET lead_id=?, suppressed=? WHERE id=?', (lid, int(lead['stage'] == 'gesperrt'), signal_id))
         ref = json.loads(row['sources_json'] or '[{}]')[0].get('ref', '')
         table, _, rid = ref.partition(':')
@@ -790,12 +790,12 @@ def promote_to_lead(conn, signal_id):
     if not row:
         raise LookupError('Signal nicht gefunden.')
     if row['status'] != 'bestaetigt' or not row['lead_id']:
-        raise ValueError('Nur bestätigte, einem Lead zugeordnete Signale übernehmen.')
+        raise ValueError('Nur bestätigte, einer Firma zugeordnete Signale übernehmen.')
     if row['polarity'] != 'pro' or row['category'] not in LEAD_SIGNAL_MAP:
         raise ValueError('Dieses Signal eignet sich nicht als Projektanlass.')
     lead = conn.execute('SELECT signal_type, signal_note FROM leads WHERE id=?', (row['lead_id'],)).fetchone()
     if lead['signal_type'] not in ('kein_signal', '') or lead['signal_note']:
-        raise ValueError('Lead hat bereits ein dokumentiertes Signal – bestehende Daten werden nicht überschrieben.')
+        raise ValueError('Die Firma hat bereits ein dokumentiertes Signal – bestehende Daten werden nicht überschrieben.')
     src = next((x.get('url') for x in json.loads(row['sources_json']) if x.get('url')), '')
     conn.execute("""UPDATE leads SET signal_type=?, signal_date=?, signal_source=?, signal_note=?, updated_at=datetime('now') WHERE id=?""",
                  (LEAD_SIGNAL_MAP[row['category']], row['published_at'] or row['found_at'], src if src.startswith('http') else '',
@@ -827,12 +827,12 @@ MISSING_DEFAULT = ['Bestätigung des Bedarfs im Gespräch (Problem, Auswirkung, 
 def correlate(conn, lead_id):
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
     if not lead:
-        raise LookupError('Lead nicht gefunden.')
+        raise LookupError('Firma nicht gefunden.')
     sigs = [signal_view(r) for r in conn.execute("SELECT * FROM buying_signals WHERE lead_id=? AND status<>'verworfen'", (lead_id,))]
     # Lead-eigenes Signalfeld und Website-Befunde als zusätzliche, unabhängige Hinweise
     extra = []
     if lead['signal_type'] and lead['signal_type'] != 'kein_signal':
-        extra.append({'id': None, 'kind': 'manual', 'category': lead['signal_type'], 'title': f"Lead-Signal: {lead['signal_type']}",
+        extra.append({'id': None, 'kind': 'manual', 'category': lead['signal_type'], 'title': f"Signal der Firma: {lead['signal_type']}",
                       'polarity': 'pro', 'areas': [], 'published_at': lead['signal_date'] or '', 'recency': recency_weight(lead['signal_date'] or ''),
                       'evidence': lead['signal_note'] or '', 'contra': [], 'questions': []})
     site = conn.execute('''SELECT s.design, s.web, s.process, s.audit_id, a.finished_at FROM website_scores s JOIN website_audits a ON a.id=s.audit_id

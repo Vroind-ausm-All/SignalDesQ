@@ -205,7 +205,7 @@ def fit(conn, lead, profile=None, lock=None):
     has_src = (lead['signal_source'] or '').startswith('http') and lead['signal_type'] not in ('', 'kein_signal')
     act = {'label': 'Kaufsignale prüfen', 'view': 'signals', 'lead_id': lid}
     if confirmed or has_src:
-        crits.append(_crit('anlass', 'Anlass mit Quelle', 20, 'passt', f'{confirmed} bestätigte Kaufsignale' if confirmed else 'Anlass mit Quelle am Lead eingetragen.'))
+        crits.append(_crit('anlass', 'Anlass mit Quelle', 20, 'passt', f'{confirmed} bestätigte Kaufsignale' if confirmed else 'Anlass mit Quelle an der Firma eingetragen.'))
     elif pro:
         crits.append(_crit('anlass', 'Anlass mit Quelle', 20, 'teilweise', f'{pro} ungeprüfte Hinweise – Quelle ansehen und bestätigen.', act))
     else:
@@ -630,7 +630,7 @@ def route(h, conn, method, path):
     if m and method == 'GET':
         lead = conn.execute('SELECT * FROM leads WHERE id=?', (int(m.group(1)),)).fetchone()
         if not lead:
-            raise ValueError('Lead existiert nicht.')
+            raise ValueError('Firma existiert nicht.')
         h._send(200, assessment(conn, lead))
         return True
     return False

@@ -82,7 +82,7 @@ def match_offers(conn, lead_id):
     from .catalog import VORLAGEN as PACKAGES
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
     if not lead:
-        raise LookupError('Lead nicht gefunden.')
+        raise LookupError('Firma nicht gefunden.')
     row = conn.execute('SELECT * FROM discovery WHERE lead_id=?', (lead_id,)).fetchone()
     disc = dict(row) if row else None
     state = discovery_state(disc)
@@ -217,7 +217,7 @@ def contact_view(row):
 def decision_map(conn, lead_id):
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
     if not lead:
-        raise LookupError('Lead nicht gefunden.')
+        raise LookupError('Firma nicht gefunden.')
     contacts = [contact_view(r) for r in conn.execute('SELECT * FROM decision_contacts WHERE lead_id=? ORDER BY id', (lead_id,))]
     topics = lead_topics(conn, lead)
     roles = []
@@ -298,7 +298,7 @@ def update_contact_roles(conn, contact_id, data):
             add_suppression(conn, 'email', channel, f"Widerspruch {c['full_name']}", c['lead_id'])
         conn.execute("""UPDATE tasks SET permission_status='abgelehnt', permission_basis='Widerspruch der Person' WHERE contact_id=? AND done=0
                         AND permission_status IN ('zu_pruefen','freigegeben')""", (contact_id,))
-        _audit(conn, 'contact', contact_id, 'widerspruch', f"Lead {c['lead_id']}: Widerspruch eingetragen")  # ohne Namen: Audit-Log ist unveränderbar
+        _audit(conn, 'contact', contact_id, 'widerspruch', f"Firma {c['lead_id']}: Widerspruch eingetragen")  # ohne Namen: Audit-Log ist unveränderbar
     conn.commit()
     return contact_view(conn.execute('SELECT * FROM decision_contacts WHERE id=?', (contact_id,)).fetchone())
 
@@ -318,7 +318,7 @@ ACTION_LABELS = {
 def suggest_actions(conn, lead_id):
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
     if not lead:
-        raise LookupError('Lead nicht gefunden.')
+        raise LookupError('Firma nicht gefunden.')
     if lead['stage'] in ('gesperrt', 'gewonnen', 'verloren') or lead['permission'] == 'nicht_kontaktieren':
         return []
     from .workday import contact_lock
@@ -432,7 +432,7 @@ def review_permission(conn, task_id, data):
         raise ValueError('Rechtsgrundlage konkret dokumentieren (z. B. „Opt-in per Formular am 03.11.2026, Umfang: Projektinfos“).')
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (t['lead_id'],)).fetchone()
     if lead['stage'] == 'gesperrt' or lead['permission'] == 'nicht_kontaktieren':
-        raise ValueError('Lead ist gesperrt – keine Kontaktaktion.')
+        raise ValueError('Firma ist gesperrt – keine Kontaktaktion.')
     from .workday import assert_contact_allowed
     assert_contact_allowed(conn, lead, 'Kontaktaktion freigeben')  # v1.18: Sperrliste greift auch hier
     perm, evidence = lead['permission'], (lead['permission_evidence'] or '').strip()

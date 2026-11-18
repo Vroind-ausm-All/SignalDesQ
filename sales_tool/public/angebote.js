@@ -153,8 +153,11 @@
     const filtered = !!(byId('qtStatus')?.value || byId('qtExpired')?.checked || byId('qtUnbilled')?.checked || byId('qtHideOld')?.checked);
     byId('qtFilterBtn')?.classList.toggle('is-active', filtered);
     byId('qtCount').textContent = shown.length === rows.length ? `${rows.length} ${rows.length === 1 ? 'Angebot' : 'Angebote'}` : `${shown.length} von ${rows.length} Angeboten`;
+    // 2.0.0-dev53: die Liste wird nach dem Laden bis zu dreimal neu gezeichnet – eine fokussierte Zeile behält den Fokus (Tastatur)
+    const focused = document.activeElement?.closest?.('#quoteHistory [data-quote-open]')?.dataset.quoteOpen;
     box.innerHTML = shown.length ? shown.map(rowHtml).join('')
       : `<div class="ui-empty">${rows.length ? 'Kein Angebot passt zu dieser Ansicht.' : 'Noch keine Angebote gespeichert. „＋ Neues Angebot“ stellt eines aus deinem Leistungskatalog zusammen.'}</div>`;
+    if (focused) box.querySelector(`[data-quote-open="${focused}"]`)?.focus({preventScroll: true});
   }
 
   // Sofort mit dem bekannten Stand zeichnen; Freigabe, Nachfassen und Auftragsstand kommen danach dazu. Der Aufrufer

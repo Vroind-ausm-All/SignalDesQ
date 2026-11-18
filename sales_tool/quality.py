@@ -216,7 +216,7 @@ def erase_expired_person(conn, record_id, data):
         removed = conn.execute('DELETE FROM decision_contacts WHERE id=?', (rec['contact_id'],)).rowcount
     conn.execute('DELETE FROM privacy_records WHERE id=?', (record_id,))
     # Nachweis der Löschung ohne Personendaten (Rechenschaftspflicht, Art. 5 Abs. 2 DSGVO)
-    _audit(conn, 'privacy', record_id, 'personendaten_geloescht', f"Lead {rec['lead_id']}, Kontakt {rec['contact_id'] or '–'}, Frist {rec['retention_until']}")
+    _audit(conn, 'privacy', record_id, 'personendaten_geloescht', f"Firma {rec['lead_id']}, Kontakt {rec['contact_id'] or '–'}, Frist {rec['retention_until']}")
     conn.commit()
     return {'deleted_contacts': removed, 'deleted_record': record_id}
 
@@ -233,17 +233,17 @@ def _erase_sole(conn, rec):
         if lead['stage'] == 'gewonnen' or conn.execute('SELECT 1 FROM invoices WHERE lead_id=? LIMIT 1', (lid,)).fetchone():
             raise ValueError('Kunde mit Rechnungen bzw. Auftrag: Aufbewahrungspflichten gehen vor. Bitte die Frist mit Grund verlängern.')
         if lead['stage'] in ('antwort', 'termin', 'angebot'):
-            raise ValueError(f"Die Firma ist in der Phase „{lead['stage']}“. Bitte die Frist mit Grund verlängern oder den Lead bewusst selbst löschen.")
+            raise ValueError(f"Die Firma ist in der Phase „{lead['stage']}“. Bitte die Frist mit Grund verlängern oder die Firma bewusst selbst löschen.")
         if lead['stage'] == 'gesperrt' or lead['permission'] == 'nicht_kontaktieren':
             from .company_data import suppress_lead
-            suppress_lead(conn, lid, 'Gesperrter Lead nach Ablauf der Löschfrist gelöscht – Sperre bleibt')
+            suppress_lead(conn, lid, 'Gesperrte Firma nach Ablauf der Löschfrist gelöscht – Sperre bleibt')
         for c in conn.execute('SELECT id FROM discovery_candidates WHERE lead_id=?', (lid,)).fetchall():
             conn.execute('DELETE FROM discovery_keys WHERE candidate_id=?', (c['id'],))
             conn.execute("""UPDATE discovery_candidates SET name='(gelöscht)', street='', website='', website_evidence='', contact_json='{}',
                             imprint_json='{}', signal_note='', external_id='', source_url='', status='verworfen', lead_id=NULL WHERE id=?""", (c['id'],))
         conn.execute('DELETE FROM leads WHERE id=?', (lid,))
     conn.execute('DELETE FROM privacy_records WHERE id=?', (rec['id'],))
-    _audit(conn, 'privacy', rec['id'], 'einzelunternehmen_geloescht', f"Lead {lid or '–'}, Frist {rec['retention_until']}")
+    _audit(conn, 'privacy', rec['id'], 'einzelunternehmen_geloescht', f"Firma {lid or '–'}, Frist {rec['retention_until']}")
     conn.commit()
     return {'deleted_lead': lid if lead else None, 'deleted_record': rec['id']}
 
@@ -309,7 +309,7 @@ def detect_website_changes(conn, threshold=10):
 REGISTER_FIELD_HINT = {'umbenennung': ('legal_name', 'Register meldet Umbenennung – offiziellen Firmennamen prüfen'),
                        'sitzverlegung': ('street', 'Register meldet Sitzverlegung/neue Anschrift – Anschrift prüfen'),
                        'gf_wechsel': ('representative', 'Register meldet Wechsel der Vertretung – Ansprechpartner und Impressum prüfen'),
-                       'aufloesung': ('legal_name', 'Register meldet Auflösung/Liquidation – Lead-Status prüfen')}
+                       'aufloesung': ('legal_name', 'Register meldet Auflösung/Liquidation – Phase der Firma prüfen')}
 
 
 def detect_register_changes(conn):
@@ -357,7 +357,7 @@ def decide_change(conn, event_id, data):
             raise ValueError('Übernehmen ist nur für Impressumsfelder möglich – sonst „erledigt“.')
         lead = conn.execute('SELECT stage FROM leads WHERE id=?', (ev['lead_id'],)).fetchone()
         if lead['stage'] == 'gesperrt':
-            raise ValueError('Lead ist gesperrt.')
+            raise ValueError('Firma ist gesperrt.')
         now = _now()
         conn.execute("UPDATE company_facts SET status='veraltet', checked_at=? WHERE lead_id=? AND field=? AND status='bestaetigt'",
                      (now, ev['lead_id'], ev['field']))
@@ -377,7 +377,7 @@ JOB_KINDS = {
     'impressum_aktualisieren': 'Impressen veralteter oder nie geprüfter Firmen erneut auslesen',
     'websites_neu_bewerten': 'Websites mit veralteter Bewertung neu bewerten',
     'karriereseiten_pruefen': 'Karriereseiten erneut auf Stellenanzeigen prüfen',
-    'lead_finder_suche': 'Gespeicherte Firmensuche (Lead-Finder) wiederholen',
+    'lead_finder_suche': 'Gespeicherte Firmensuche wiederholen',
     'datenqualitaet_pruefen': 'Änderungen erkennen und Veraltung prüfen',
 }
 LEAD_FINDER_KEYS = {'source', 'place', 'keyword', 'category', 'min_employees', 'limit', 'preset', 'days', 'legal_entities_only'}
@@ -418,7 +418,7 @@ def _validate_job(data, partial=False):
         if kind == 'lead_finder_suche' or (partial and 'source' in p):
             from .lead_finder import SEARCHERS
             if set(p) - LEAD_FINDER_KEYS or p.get('source') not in SEARCHERS:
-                raise ValueError('Lead-Finder: Quelle und Suchparameter wie in „Firmen finden“.')
+                raise ValueError('Firmensuche: Quelle und Suchparameter wie in „Firmen finden“.')
         else:
             if set(p) - {'limit'}:
                 raise ValueError('Parameter: nur limit.')
@@ -531,7 +531,7 @@ def run_job(conn, job_id, db_path, start=True):
             elif job['kind'] == 'lead_finder_suche':
                 from .lead_finder import run_search
                 r = run_search(conn, {**params, 'force': True})
-                detail = f"{r.get('result_count', len(r.get('candidates', [])))} Treffer zur Prüfung im Lead-Finder"
+                detail = f"{r.get('result_count', len(r.get('candidates', [])))} Treffer zur Prüfung unter Finden"
             else:
                 leads = candidates(conn, job['kind'], params.get('limit', 20), career_interval=job['interval_days'])
                 if not leads:

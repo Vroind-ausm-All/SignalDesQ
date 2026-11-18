@@ -205,7 +205,7 @@ def validate(fields: dict, partial=False):
 
 STATIC_FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
     "/style.css": ("style.css", "text/css"), "/theme.js": ("theme.js", "text/javascript"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/care.js": ("care.js", "text/javascript"), "/messages.js": ("messages.js", "text/javascript"), "/kurzbericht.js": ("kurzbericht.js", "text/javascript"), "/search.js": ("search.js", "text/javascript"), "/aktepage.js": ("aktepage.js", "text/javascript"), "/calendar.js": ("calendar.js", "text/javascript"), "/pilot.js": ("pilot.js", "text/javascript"), "/fachreview.js": ("fachreview.js", "text/javascript"), "/studies.js": ("studies.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/finden.js": ("finden.js", "text/javascript"), "/angebote.js": ("angebote.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/offerflow.js": ("offerflow.js", "text/javascript"), "/chances.js": ("chances.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/nav.js": ("nav.js", "text/javascript"), "/leadlist.js": ("leadlist.js", "text/javascript"), "/uikit.js": ("uikit.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/care.js": ("care.js", "text/javascript"), "/messages.js": ("messages.js", "text/javascript"), "/kurzbericht.js": ("kurzbericht.js", "text/javascript"), "/search.js": ("search.js", "text/javascript"), "/aktepage.js": ("aktepage.js", "text/javascript"), "/calendar.js": ("calendar.js", "text/javascript"), "/pilot.js": ("pilot.js", "text/javascript"), "/fachreview.js": ("fachreview.js", "text/javascript"), "/studies.js": ("studies.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/finden.js": ("finden.js", "text/javascript"), "/angebote.js": ("angebote.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/offerflow.js": ("offerflow.js", "text/javascript"), "/chances.js": ("chances.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/nav.js": ("nav.js", "text/javascript"), "/einstellungen.js": ("einstellungen.js", "text/javascript"), "/leadlist.js": ("leadlist.js", "text/javascript"), "/uikit.js": ("uikit.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
 
 LOOPBACK_HOSTS = frozenset({'127.0.0.1', 'localhost', '::1'})
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
@@ -536,7 +536,7 @@ def make_handler(db_path, allowed_hosts=None):
                 if route == '/api/workspace/calls':
                     if method=='GET':
                         lid=query.get('lead_id',[''])[0]
-                        if lid and not lid.isdigit(): return self._error('Ungültige Lead-ID.')
+                        if lid and not lid.isdigit(): return self._error('Ungültige Firmen-ID.')
                         sql='SELECT c.*,l.company FROM calls c JOIN leads l ON l.id=c.lead_id'
                         if lid: sql+=' WHERE c.lead_id=?'
                         sql+=' ORDER BY c.id DESC LIMIT 100'
@@ -651,7 +651,7 @@ def make_handler(db_path, allowed_hosts=None):
                             data["permission"] = "nicht_kontaktieren"
                         hits = check_suppressed(conn, website=data.get("website", ""), name=data["company"])
                         if hits and data.get("stage") != "gesperrt":
-                            return self._error("Diese Firma steht auf der Sperrliste (" + ", ".join(h["kind"] + " „" + h["display"] + "“" for h in hits) + "). Widerspruch bleibt bestehen – kein neuer Lead.", 409)
+                            return self._error("Diese Firma steht auf der Sperrliste (" + ", ".join(h["kind"] + " „" + h["display"] + "“" for h in hits) + "). Widerspruch bleibt bestehen – keine neue Firma.", 409)
                         cols = ", ".join(data)
                         placeholders = ", ".join("?" for _ in data)
                         cursor = conn.execute(f"INSERT INTO leads ({cols}) VALUES ({placeholders})", tuple(data.values()))
@@ -660,13 +660,13 @@ def make_handler(db_path, allowed_hosts=None):
                         row = conn.execute("SELECT * FROM leads WHERE id = ?", (cursor.lastrowid,)).fetchone()
                         conn.commit()
                         if row["website"]:  # v1.19: Firmendaten automatisch aus dem Impressum (nur leere Felder)
-                            lead_imprint.queue(conn, db_path, row["id"], "neuer Lead mit Website")
+                            lead_imprint.queue(conn, db_path, row["id"], "neue Firma mit Website")
                         return self._send(201, as_lead(row))
                 contact_list_match = re.fullmatch(r"/api/leads/(\d+)/contacts", route)
                 if contact_list_match:
                     lid = int(contact_list_match.group(1))
                     lead = conn.execute('SELECT * FROM leads WHERE id=?',(lid,)).fetchone()
-                    if not lead: return self._error('Lead nicht gefunden',404)
+                    if not lead: return self._error('Firma nicht gefunden',404)
                     if method == 'GET':
                         records = [dict(r) for r in conn.execute('SELECT * FROM decision_contacts WHERE lead_id=? ORDER BY id DESC',(lid,)).fetchall()]
                         for record in records:
@@ -702,16 +702,16 @@ def make_handler(db_path, allowed_hosts=None):
                 if public_contact_match:
                     lid = int(public_contact_match.group(1))
                     lead = conn.execute('SELECT * FROM leads WHERE id=?',(lid,)).fetchone()
-                    if not lead: return self._error('Lead nicht gefunden',404)
+                    if not lead: return self._error('Firma nicht gefunden',404)
                     if method == 'GET':
                         return self._send(200,list_contact_research(conn,lid))
                     if method == 'POST':
                         if self._body() != {'confirm_public_research':True}:
                             return self._error('Öffentliche Quellenrecherche ausdrücklich bestätigen.')
                         if not lead['website']:
-                            return self._error('Zuerst die Unternehmenswebsite im Lead speichern.')
+                            return self._error('Zuerst die Unternehmenswebsite bei der Firma speichern.')
                         if lead['permission']=='nicht_kontaktieren' or lead['stage']=='gesperrt':
-                            return self._error('Dieser Lead ist für Kontaktrecherche gesperrt.',403)
+                            return self._error('Diese Firma ist für Kontaktrecherche gesperrt.',403)
                         if conn.execute("SELECT id FROM contact_research_runs WHERE status IN ('queued','running') LIMIT 1").fetchone():
                             return self._error('Eine Kontaktrecherche läuft bereits.',409)
                         cur=conn.execute('INSERT INTO contact_research_runs (lead_id) VALUES (?)',(lid,))
@@ -731,7 +731,7 @@ def make_handler(db_path, allowed_hosts=None):
                     ident = int(analysis_match.group(1))
                     lead = conn.execute("SELECT * FROM leads WHERE id=?", (ident,)).fetchone()
                     if not lead:
-                        return self._error("Lead nicht gefunden", 404)
+                        return self._error("Firma nicht gefunden", 404)
                     if method == "GET":
                         return self._send(200, list_analyses(conn, ident))
                     if method == "POST":
@@ -743,7 +743,7 @@ def make_handler(db_path, allowed_hosts=None):
                         if provider not in ("ollama", "rules") or not isinstance(model, str) or not re.fullmatch(r"[a-zA-Z0-9_.:-]{1,80}", model):
                             return self._error("Ungültiger KI-Anbieter oder Modellname.")
                         if not lead["website"]:
-                            return self._error("Zuerst eine Website beim Lead speichern.")
+                            return self._error("Zuerst eine Website bei der Firma speichern.")
                         if conn.execute("SELECT 1 FROM analysis_runs WHERE status IN ('queued','running') LIMIT 1").fetchone():
                             return self._error("Es läuft bereits eine Analyse. Bitte anschließend erneut starten.", 409)
                         cursor = conn.execute("INSERT INTO analysis_runs(lead_id,provider,model) VALUES (?,?,?)",
@@ -770,7 +770,7 @@ def make_handler(db_path, allowed_hosts=None):
                             return self._error("Befund muss zuerst freigegeben werden.", 409)
                         lead = conn.execute("SELECT * FROM leads WHERE id=?", (f['lead_id'],)).fetchone()
                         if lead['signal_note'] or lead['signal_source']:
-                            return self._error("Lead hat bereits ein Signal. Vorhandene Daten nicht überschrieben; bitte bei Bedarf manuell übernehmen.", 409)
+                            return self._error("Die Firma hat bereits ein Signal. Vorhandene Daten nicht überschrieben; bitte bei Bedarf manuell übernehmen.", 409)
                         conn.execute("""UPDATE leads SET signal_note=?,signal_source=?,offer=?,updated_at=datetime('now') WHERE id=?""",
                                      (f['observation']+' (Hypothese: '+f['hypothesis']+')',f['source_url'],f['offer'],f['lead_id']))
                         conn.commit()
@@ -780,14 +780,14 @@ def make_handler(db_path, allowed_hosts=None):
                     ident = int(match.group(1))
                     row = conn.execute("SELECT * FROM leads WHERE id = ?", (ident,)).fetchone()
                     if not row:
-                        return self._error("Lead nicht gefunden", 404)
+                        return self._error("Firma nicht gefunden", 404)
                     if method == "GET":
                         return self._send(200, as_lead(row))
                     if method == "DELETE":
                         if conn.execute("SELECT 1 FROM invoices WHERE lead_id=? LIMIT 1", (ident,)).fetchone():
-                            return self._error("Lead hat Rechnungen. Wegen Aufbewahrungspflichten (GoBD/AO, 8–10 Jahre) nicht löschbar – stattdessen auf 'verloren' setzen bzw. sperren.", 409)
+                            return self._error("Die Firma hat Rechnungen. Wegen Aufbewahrungspflichten (GoBD/AO, 8–10 Jahre) nicht löschbar – stattdessen auf 'verloren' setzen bzw. sperren.", 409)
                         if row["stage"] == "gesperrt" or row["permission"] == "nicht_kontaktieren":
-                            suppress_lead(conn, ident, "Gesperrter Lead gelöscht – Sperre bleibt")
+                            suppress_lead(conn, ident, "Gesperrte Firma gelöscht – Sperre bleibt")
                         conn.execute("DELETE FROM leads WHERE id = ?", (ident,))
                         conn.commit()
                         return self._send(200, {"deleted": True})
@@ -820,13 +820,13 @@ def make_handler(db_path, allowed_hosts=None):
                 if brief_match and method == "GET":
                     brief = lead_brief(conn, int(brief_match.group(1)))
                     if brief is None:
-                        return self._error("Lead nicht gefunden", 404)
+                        return self._error("Firma nicht gefunden", 404)
                     return self._send(200, brief)
                 discovery_match = re.fullmatch(r"/api/leads/(\d+)/discovery", route)
                 if discovery_match:
                     ident = int(discovery_match.group(1))
                     if not conn.execute("SELECT id FROM leads WHERE id=?", (ident,)).fetchone():
-                        return self._error("Lead nicht gefunden", 404)
+                        return self._error("Firma nicht gefunden", 404)
                     from .chances import need_row
                     opp = need_row(conn, ident, (query.get("chance") or [None])[0])  # 2.0.0-dev19: Bedarfsanalyse einer weiteren Chance
                     if opp is not None:
@@ -867,7 +867,7 @@ def make_handler(db_path, allowed_hosts=None):
                         a_type = str(data.get("activity_type", "notiz"))[:80]
                         detail = str(data.get("detail", ""))[:2000]
                         if not lid or not conn.execute("SELECT id FROM leads WHERE id=?", (lid,)).fetchone():
-                            return self._error("Lead nicht gefunden", 404)
+                            return self._error("Firma nicht gefunden", 404)
                         if a_type not in ("notiz", "anfrage", "gespraech", "angebot", "einwand", "abschluss", "widerspruch"):
                             return self._error("Ungültiger Aktivitätstyp")
                         conn.execute("INSERT INTO activities (lead_id, activity_type, detail) VALUES (?, ?, ?)", (lid, a_type, detail))
@@ -888,7 +888,7 @@ def make_handler(db_path, allowed_hosts=None):
                         if due:
                             date.fromisoformat(due)
                         if lead_id is not None and not conn.execute("SELECT id FROM leads WHERE id = ?", (int(lead_id),)).fetchone():
-                            return self._error("Lead existiert nicht", 404)
+                            return self._error("Firma existiert nicht", 404)
                         cursor = conn.execute("INSERT INTO tasks (lead_id, title, due_date) VALUES (?, ?, ?)", (lead_id, title, due))
                         conn.commit()
                         return self._send(201, {"id": cursor.lastrowid})
@@ -1102,7 +1102,7 @@ def main():
         prepare_database(db)
         with connect(db) as conn:
             reset_login(conn)
-        print("Login-Pflicht ausgeschaltet. SignalDesk normal starten und unter „Einstellungen → Daten & Zugang“ Passwörter neu setzen.")
+        print("Login-Pflicht ausgeschaltet. SignalDesk normal starten und unter „Einstellungen → Sicherung & Zugang“ Passwörter neu setzen.")
         return
     if running_instance(args.port):
         url = f"http://127.0.0.1:{args.port}"

@@ -76,7 +76,13 @@ class NavigationStructureTests(unittest.TestCase):
             self.assertRegex(slug, rf"\b{view}: '[a-z/-]+'", view)
             self.assertIn(f"'{view}'", areas, view)
         tabs = set(re.findall(r'data-area-view="([a-z]+)"', HTML))
-        self.assertEqual(sorted(set(VIEW_KEYS) - tabs), ['report'])  # Bericht öffnet man aus einer Firma
+        # Bericht öffnet man aus einer Firma; 2.0.0-dev53: Einstellungen haben keine Reiter mehr, sondern eine Abschnittsliste
+        # (#esNav) – sie führt per data-settings-jump zu den Abschnitten und per data-area-view zu KI-Studio und Hilfe
+        self.assertEqual(sorted(set(VIEW_KEYS) - tabs), ['report', 'settings'])
+        es_nav = HTML[HTML.index('id="esNav"'):HTML.index('</nav>', HTML.index('id="esNav"'))]
+        self.assertEqual(len(re.findall(r'data-settings-jump="', es_nav)), 7)
+        self.assertIn('data-area-view="studio"', es_nav)
+        self.assertIn('data-area-view="playbook"', es_nav)
         # Zuordnung der bisherigen 16 Menüziele (Review, Seite 13)
         old = ['dashboard', 'tasks', 'finder', 'datacheck', 'center', 'leads', 'pipeline', 'workspace', 'quotes', 'accounting',
                'research', 'scoring', 'signals', 'quality', 'studio', 'playbook']

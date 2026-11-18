@@ -352,7 +352,7 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None, cindex=N
                 'updated_at': _now(),
                 'dup_of': possible[1] if possible and status == 'neu' else None,
                 'dup_score': (possible[2] if possible else (maybe_lead[1] if maybe_lead else None)),
-                'dup_reason': (possible[3] if possible else (f'evtl. schon als Lead: {maybe_lead[2]}' if maybe_lead else ''))[:200],
+                'dup_reason': (possible[3] if possible else (f'evtl. schon als Firma: {maybe_lead[2]}' if maybe_lead else ''))[:200],
                 'possible_lead_id': maybe_lead[0] if maybe_lead else None}
         cur = conn.execute(f"INSERT INTO discovery_candidates ({','.join(cols)}) VALUES ({','.join('?' for _ in cols)})", tuple(cols.values()))
         _add_keys(conn, cur.lastrowid, keys)
@@ -1145,15 +1145,15 @@ def review_duplicate(conn, cid, decision):
     if decision in ('lead_gleich', 'lead_verschieden'):
         lid = cand['possible_lead_id']
         if not lid:
-            raise ValueError('Für diesen Treffer ist kein möglicher Lead vermerkt.')
+            raise ValueError('Für diesen Treffer ist keine mögliche Firma vermerkt.')
         if decision == 'lead_gleich':
             conn.execute("""UPDATE discovery_candidates SET status='dublette', duplicate_lead_id=?, possible_lead_id=NULL, dup_of=NULL,
-                            dup_reason='von dir bestätigt: schon als Lead vorhanden', updated_at=? WHERE id=?""", (lid, _now(), cid))
+                            dup_reason='von dir bestätigt: schon als Firma vorhanden', updated_at=? WHERE id=?""", (lid, _now(), cid))
             conn.execute('UPDATE discovery_candidates SET dup_of=NULL, possible_lead_id=? WHERE dup_of=?', (lid, cid))
         else:
             conn.execute('INSERT OR IGNORE INTO discovery_not_same(a, b) VALUES (?,?)', (f'c{cid}', f'l{lid}'))
             conn.execute("UPDATE discovery_candidates SET possible_lead_id=NULL, dup_reason=?, updated_at=? WHERE id=?",
-                         (f'von dir: anderer Lead als #{lid}', _now(), cid))
+                         (f'von dir: andere Firma als #{lid}', _now(), cid))
         conn.commit()
         return {'status': 'dublette' if decision == 'lead_gleich' else 'neu', 'lead_id': lid}
     raise ValueError('Entscheidung: gleich, verschieden, lead_gleich oder lead_verschieden.')
@@ -1196,7 +1196,7 @@ def dedupe_candidates(conn):
             maybe = leads.possible(item)
             if maybe and (f"c{r['id']}", f'l{maybe[0]}') not in lead_ns:
                 conn.execute('UPDATE discovery_candidates SET possible_lead_id=?, dup_score=?, dup_reason=? WHERE id=?',
-                             (maybe[0], maybe[1], f'evtl. schon als Lead: {maybe[2]}'[:200], r['id']))
+                             (maybe[0], maybe[1], f'evtl. schon als Firma: {maybe[2]}'[:200], r['id']))
                 out['possible_lead'] += 1
         idx.add(r['id'], item)
         status[r['id']] = 'neu'

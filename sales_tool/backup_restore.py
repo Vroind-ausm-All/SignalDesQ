@@ -235,7 +235,7 @@ def main(argv=None):
     except (ValueError, LookupError, OSError) as exc:
         print('Fehler:', exc)
         return 1
-    print(f"Wiederhergestellt: {r['after']['leads']} Leads, {r['after']['invoices']} Rechnungen (Schema {r['schema']}).")
+    print(f"Wiederhergestellt: {r['after']['leads']} Firmen, {r['after']['invoices']} Rechnungen (Schema {r['schema']}).")
     if r['safety_backup']:
         print('Vorheriger Stand gesichert:', r['safety_backup'])
     return 0

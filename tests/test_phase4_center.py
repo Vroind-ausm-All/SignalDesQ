@@ -134,7 +134,7 @@ class JobsReviewSourcesTests(CenterBase):
         self.conn.execute("INSERT INTO decision_contacts(lead_id, full_name, job_title, source_url, verification_status) VALUES (?, 'Anna Beispiel', 'GF', 'https://musterwerk-beispiel.de/team', 'quelle_geprueft')", (lid,))
         self.conn.commit()
         mods = {s['module'] for s in rc.sources(self.conn, lid)}
-        self.assertEqual(mods, {'Lead', 'Firmendaten', 'Website-Bewertung', 'Kaufsignale', 'Entscheider'})
+        self.assertEqual(mods, {'Stammdaten', 'Firmendaten', 'Website-Bewertung', 'Kaufsignale', 'Entscheider'})  # 2.0.0-dev54: „Stammdaten“ statt „Lead“
         self.assertTrue(any(s['url'].startswith('/api/screenshots/') for s in rc.sources(self.conn, lid)))
         with self.assertRaises(LookupError):
             rc.sources(self.conn, 999)

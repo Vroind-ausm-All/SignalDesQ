@@ -31,7 +31,8 @@ CSS = (PUBLIC / 'style.css').read_text(encoding='utf-8')
 THEMES = ('klassisch', 'schiefer', 'sand', 'kontrast')
 HEX = re.compile(r'#[0-9a-fA-F]{3,8}\b')
 # 2.0.0-dev49: Maße des UI-Baukastens stehen im Grundblock, sind aber keine Farbrollen – der Dunkelmodus muss sie nicht wiederholen.
-LAYOUT_TOKENS = ('--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--row', '--ctl', '--side', '--ui-cols')  # dev50: Listenspalten
+LAYOUT_TOKENS = ('--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--row', '--ctl', '--side', '--ui-cols',  # dev50: Listenspalten
+                 '--list')  # dev53: Breite der Abschnittsliste (Maß, keine Farbe)
 
 
 def _strip(css):

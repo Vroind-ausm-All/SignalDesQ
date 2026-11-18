@@ -158,7 +158,7 @@
       if (!leadId) return toast('Erst die Firma speichern', true);
       const f = e.target, body = {};
       for (const k of ['title', 'offer', 'problem', 'desired_outcome', 'timing']) if (f.elements[k].value.trim() || k === 'title') body[k] = f.elements[k].value.trim();
-      try { await api(`/leads/${leadId}/chances`, 'POST', body); f.reset(); f.classList.add('hidden'); toast('Chance angelegt'); await load(leadId); window.reload?.(); }
+      try { await api(`/leads/${leadId}/chances`, 'POST', body); f.reset(); f.classList.add('hidden'); toast('Chance angelegt'); await load(leadId); window.refreshLeadFile?.(); window.reload?.(); }
       catch (err) { toast(err.message, true); }
     });
     document.addEventListener('change', e => {
@@ -195,7 +195,7 @@
       if (ro) {
         const reason = prompt('Warum wird der Bedarf dieser Chance neu geklärt?');
         if (!reason) return;
-        try { await api(`/leads/${leadId}/need/reopen`, 'POST', {reason, opportunity_id: Number(ro.dataset.chReopen)}); toast('Bedarf wieder offen'); await load(leadId); } catch (err) { toast(err.message, true); }
+        try { await api(`/leads/${leadId}/need/reopen`, 'POST', {reason, opportunity_id: Number(ro.dataset.chReopen)}); toast('Bedarf wieder offen'); await load(leadId); window.refreshLeadFile?.(); } catch (err) { toast(err.message, true); }
       }
     });
     document.addEventListener('toggle', e => { const b = e.target.closest?.('[data-ch-brief]'); if (b && b.open) renderBrief(b); }, true);
@@ -219,7 +219,7 @@
       if (e.target.id === 'discoveryForm' && e.target.dataset.chance) {
         e.preventDefault(); e.stopImmediatePropagation();
         const f = e.target, body = Object.fromEntries(DISC.filter(k => f.elements[k]).map(k => [k, f.elements[k].value]));
-        try { await api(`/leads/${leadId}/discovery?chance=${f.dataset.chance}`, 'PUT', body); toast('Bedarfsanalyse der Chance gespeichert'); const keep = f.dataset.chance; await load(leadId); $('#discoveryChance').value = keep; await showNeed(keep); }
+        try { await api(`/leads/${leadId}/discovery?chance=${f.dataset.chance}`, 'PUT', body); toast('Bedarfsanalyse der Chance gespeichert'); const keep = f.dataset.chance; await load(leadId); window.refreshLeadFile?.(); $('#discoveryChance').value = keep; await showNeed(keep); }
         catch (err) { toast(err.message, true); }
         return;
       }
@@ -229,7 +229,7 @@
         const opt = cf.elements.service.selectedOptions[0];
         const need = opt?.dataset.kind === 'menge' ? {service: opt.value, qty: Math.max(Number(cf.elements.qty.value) || 1, Number(opt.dataset.min) || 1)} : {service: opt?.value, size: cf.elements.size.value};
         try { await api(`/leads/${leadId}/need/confirm`, 'POST', {via: cf.elements.via.value, note: cf.elements.note.value.trim(), needs: [need], opportunity_id: Number(cf.dataset.chConfirm)});
-          toast('Bedarf der Chance bestätigt – Angebot kann erstellt werden'); await load(leadId); window.reload?.(); }
+          toast('Bedarf der Chance bestätigt – Angebot kann erstellt werden'); await load(leadId); window.refreshLeadFile?.(); window.reload?.(); }
         catch (err) { toast(err.message, true); }
         return;
       }
@@ -247,7 +247,7 @@
         body.lost_reason = f.elements.lost_reason.value; body.lost_note = f.elements.lost_note.value;
       }
       if (!Object.keys(body).length) return toast('Nichts geändert');
-      try { await api(`/chances/${c.id}`, 'PATCH', body); toast('Chance gespeichert'); await load(leadId); window.reload?.(); }
+      try { await api(`/chances/${c.id}`, 'PATCH', body); toast('Chance gespeichert'); await load(leadId); window.refreshLeadFile?.(); window.reload?.(); }
       catch (err) { toast(err.message, true); }
     }, true);
   }
