@@ -2,7 +2,7 @@
 // 2.0.0-dev40 (Produktreview M07, Variante B): Die Firmenakte ist eine eigene Seite statt eines Fensters über der Liste.
 // - Gleiches Element, gleiche Reiter, gleicher Schutz ungespeicherter Eingaben (formguard) – nur Ort und Darstellung ändern sich:
 //   Die Akte steht im Inhaltsbereich in voller Breite, die Ansicht dahinter ist ausgeblendet, die Seite scrollt normal.
-// - Adresse #/firmen/akte/ID (nav.js); „← Zurück“ schließt die Akte und führt dorthin, wo du herkamst – mit denselben Filtern.
+// - Adresse #/firmen/akte/ID (nav.js); „← Firmen“ (bzw. die Ansicht, aus der du kamst) schließt die Akte und führt dorthin, wo du herkamst – mit denselben Filtern.
 (function () {
   let scrollBefore = 0;
 
@@ -15,8 +15,11 @@
     (bar ? bar.after(modal) : main.appendChild(modal));
     modal.setAttribute('role', 'region');
     modal.removeAttribute('aria-modal');
-    const close = modal.querySelector('.lf-head-actions .icon-close, .icon-close');
-    if (close) { close.textContent = '← Zurück'; close.classList.add('akte-back'); close.setAttribute('aria-label', 'Akte schließen und zurück'); }
+    // 2.0.0-dev54: „← Firmen“ im Seitenkopf – die Beschriftung nennt die Ansicht, in die „Zurück“ führt (wie bisher dorthin, wo du herkamst)
+    const close = document.getElementById('closeModal');
+    const BACK = {leads: 'Firmen', pipeline: 'Pipeline', quality: 'Datenpflege', dashboard: 'Heute', workspace: 'Kontakt & Termine', quotes: 'Angebote',
+      orders: 'Aufträge', accounting: 'Rechnungen', finder: 'Finden', sichten: 'Finden', datacheck: 'Import', settings: 'Einstellungen'};
+    const backLabel = () => { if (close) close.textContent = '← ' + (BACK[typeof currentView !== 'undefined' ? currentView : ''] || 'Zurück'); };
 
     const plainShow = window.showModal;
     window.showModal = async function (...args) {
@@ -24,6 +27,7 @@
       if (!wasOpen) scrollBefore = window.scrollY;
       const r = await plainShow.apply(this, args);
       if (!modal.classList.contains('hidden')) {
+        backLabel();
         document.body.classList.add('akte-page');
         document.body.style.overflow = '';  // Seite scrollt normal (der Dialog sperrte das Scrollen)
         if (!wasOpen) window.scrollTo({top: 0, behavior: 'instant'});

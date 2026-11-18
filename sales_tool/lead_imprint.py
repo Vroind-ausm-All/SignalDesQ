@@ -74,7 +74,7 @@ def _job(db_path, payload, ctx):
     with connect(db_path) as conn:
         lead = conn.execute('SELECT * FROM leads WHERE id=?', (payload['lead_id'],)).fetchone()
         if not lead or not lead['website']:
-            raise jobs.Skip('Lead ohne Website.')
+            raise jobs.Skip('Firma ohne Website.')
         if check_suppressed(conn, website=lead['website'], name=lead['company']):
             raise jobs.Skip('Firma auf der Sperrliste – Website wird nicht abgerufen.')
         status, note, refs, applied = apply_for_lead(conn, db_path, lead)
@@ -120,7 +120,7 @@ def review_suggestion(conn, db_path, lead_id, decision):
     from . import sweep as sw
     s = suggestion_for(conn, lead_id)
     if not s:
-        raise ValueError('Für diesen Lead gibt es keinen offenen Website-Vorschlag.')
+        raise ValueError('Für diese Firma gibt es keinen offenen Website-Vorschlag.')
     if decision not in ('bestaetigen', 'ablehnen'):
         raise ValueError('Entscheidung: bestaetigen oder ablehnen.')
     sw.review_website(conn, s['candidate_id'], {'decision': decision})
@@ -139,7 +139,7 @@ def status(conn, lead_id):
     """Für die Firmenakte: Wurden Firmendaten übertragen? Wenn nein – warum nicht, und was hilft?"""
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
     if not lead:
-        raise LookupError('Lead nicht gefunden.')
+        raise LookupError('Firma nicht gefunden.')
     task = conn.execute("""SELECT t.status, t.last_error, t.note, t.result_json, t.next_attempt_at FROM research_tasks t
                            WHERE t.kind='lead_imprint' AND t.task_key=? ORDER BY t.id DESC LIMIT 1""", (f'imprint:{lead_id}',)).fetchone()
     item = conn.execute("""SELECT status, error, review_status, finished_at FROM batch_items WHERE lead_id=? OR duplicate_lead_id=?
@@ -192,9 +192,9 @@ def route_lead_imprint(h, conn, method, route, query, db_path):
     if what == 'company-data/read' and method == 'POST':
         lead = conn.execute('SELECT * FROM leads WHERE id=?', (lid,)).fetchone()
         if not lead:
-            raise LookupError('Lead nicht gefunden.')
+            raise LookupError('Firma nicht gefunden.')
         if not lead['website']:
-            raise ValueError('Lead hat keine Website.')
+            raise ValueError('Die Firma hat keine Website.')
         job = queue(conn, db_path, lid, 'auf Knopfdruck', force=True)
         if not job:
             raise ValueError('Für gesperrte Firmen wird die Website nicht abgerufen.')

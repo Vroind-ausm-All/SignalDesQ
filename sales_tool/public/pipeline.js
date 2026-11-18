@@ -29,7 +29,7 @@
         <button type="button" class="pc-move" data-pc-move="${l.id}" aria-label="${esc(l.company)} verschieben" title="Verschieben: antippen, dann Zielspalte anklicken">⇄</button></div>
       ${isOpen ? `<div class="pc-body">
         <small>${esc(short(l.signal_note || config.signals[l.signal_type][1], 120))}</small>
-        <div class="pipeline-card-bottom"><span>${l.next_step ? esc(short(l.next_step, 60)) + ' · ' : ''}${l.next_date ? esc(fmtDate(l.next_date)) : 'Nächsten Schritt festlegen'}</span><button type="button" data-lead="${l.id}" aria-label="Lead öffnen" title="Lead öffnen">↗</button></div>
+        <div class="pipeline-card-bottom"><span>${l.next_step ? esc(short(l.next_step, 60)) + ' · ' : ''}${l.next_date ? esc(fmtDate(l.next_date)) : 'Nächsten Schritt festlegen'}</span><button type="button" data-lead="${l.id}" aria-label="Firma öffnen" title="Firma öffnen">↗</button></div>
         ${sa && l.permission !== 'nicht_kontaktieren' ? `<button type="button" class="btn btn-primary pipeline-action" data-go-action="${esc(JSON.stringify({view: sa.view, section: sa.section, lead_id: l.id, open_latest: l.stage === 'angebot' || l.stage === 'gewonnen'}))}">${esc(sa.label)} →</button>` : ''}
         <label class="pipeline-change-label">PHASE ÄNDERN<select aria-label="Phase für ${esc(l.company)}" data-pipeline-update="${l.id}">${pipelineStages.map(st => `<option value="${st}" ${st === l.stage ? 'selected' : ''}>${stageNames[st]}</option>`).join('')}<option value="verloren">Verloren</option></select></label>
       </div>` : ''}</article>`;

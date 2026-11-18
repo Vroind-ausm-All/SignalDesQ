@@ -65,6 +65,7 @@ class AssessmentBrowserTests(unittest.TestCase):
 
                         # 3. Bewertung in der Firmenakte
                         row.click()
+                        page.locator('#lfFit > summary').click()  # 2.0.0-dev54: Bewertung in der Klappzeile „Passung“ des Überblicks
                         box = page.locator('#lfAssessment')
                         box.wait_for(timeout=15000)
                         text = box.inner_text()

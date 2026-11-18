@@ -161,7 +161,7 @@ function soleHint(p) {
         <span class="sw-dup-btns"><button type="button" class="btn btn-ghost" data-sw-dup="gleich" data-id="${c.id}">Gleiche Firma – zusammenführen</button><button type="button" class="text-button" data-sw-dup="verschieden" data-id="${c.id}">Andere Firma</button></span></div>`;
     }
     if (c.possible_lead) {
-      out += `<div class="sw-dups lead"><span class="sw-dups-head">⚠ Evtl. schon als Firma vorhanden: <button type="button" class="text-button" data-lead="${c.possible_lead.id}">${esc(c.possible_lead.company)}</button> ${esc(c.possible_lead.location || '')} – ${esc((c.dup_reason || '').replace(/^evtl\. schon als Lead: /, ''))}</span>
+      out += `<div class="sw-dups lead"><span class="sw-dups-head">⚠ Evtl. schon als Firma vorhanden: <button type="button" class="text-button" data-lead="${c.possible_lead.id}">${esc(c.possible_lead.company)}</button> ${esc(c.possible_lead.location || '')} – ${esc((c.dup_reason || '').replace(/^evtl\. schon als (Lead|Firma): /, ''))}</span>
         <span class="sw-dup-btns"><button type="button" class="btn btn-ghost" data-sw-dup="lead_gleich" data-id="${c.id}">Ist diese Firma</button><button type="button" class="text-button" data-sw-dup="lead_verschieden" data-id="${c.id}">Andere Firma</button></span></div>`;
     }
     return out;

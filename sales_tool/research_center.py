@@ -25,9 +25,9 @@ STEP_LABELS = {
     'hypotheses': 'Signale verknüpft', 'decision': 'Entscheider recherchiert', 'channel': 'Kontaktweg geklärt',
 }
 NEXT_STEPS = {
-    'website': ('Website im Lead ergänzen', 'leads'), 'imprint': ('Impressum prüfen', 'datacheck'),
+    'website': ('Website in den Stammdaten ergänzen', 'leads'), 'imprint': ('Impressum prüfen', 'datacheck'),
     'scored': ('Website bewerten', 'scoring'), 'signals': ('Karriereseite prüfen oder Bekanntmachungen importieren', 'signals'),
-    'hypotheses': ('Signale verknüpfen', 'signals'), 'decision': ('Entscheider recherchieren (Lead öffnen)', 'leads'),
+    'hypotheses': ('Signale verknüpfen', 'signals'), 'decision': ('Entscheider recherchieren (Firma öffnen)', 'leads'),
     'channel': ('Zulässigen Kontaktweg klären und dokumentieren', 'leads'),
 }
 OPEN_STAGES = ('recherche', 'qualifiziert', 'kontakt', 'antwort', 'termin', 'angebot')
@@ -116,7 +116,7 @@ def research_priority(components, ws, signal_basis, weights=None):
     value = round(sum(weights[k] * v for k, v in known.items()) / total_w)
     parts = [f"Website {components['website'] if components['website'] is not None else 'unbekannt'}",
              f"Kaufsignale {components['signal'] if components['signal'] is not None else 'unbekannt'}",
-             f"Lead-Fit {components['fit']}"]
+             f"Punktwert {components['fit']}"]
     missing = [k for k, v in components.items() if v is None]
     note = f" · ohne {', '.join({'website': 'Website', 'signal': 'Signale'}[m] for m in missing)} (Gewichte neu verteilt)" if missing else ''
     return value, f"Gewichtung {weights['website']}/{weights['signal']}/{weights['fit']}: " + ', '.join(parts) + note + (f' · {signal_basis}' if signal_basis else '')
@@ -144,7 +144,7 @@ def jobs(conn):
 
     recent = "datetime('now','-3 day')"
     for r in conn.execute(f"SELECT * FROM discovery_runs WHERE status='running' OR created_at>={recent} ORDER BY id DESC LIMIT 10"):
-        add('Lead-Finder', r['source'], r['status'], r['created_at'], 'finder', None, f"{r['result_count']} Treffer" if r['status'] == 'done' else r['error'])
+        add('Firmensuche', r['source'], r['status'], r['created_at'], 'finder', None, f"{r['result_count']} Treffer" if r['status'] == 'done' else r['error'])
     for r in conn.execute(f"SELECT * FROM batch_runs WHERE status IN ('running','paused') OR created_at>={recent} ORDER BY id DESC LIMIT 10"):
         done = conn.execute("SELECT COUNT(*) FROM batch_items WHERE run_id=? AND status NOT IN ('pending','running')", (r['id'],)).fetchone()[0]
         add('Impressumsprüfung', r['label'], r['status'], r['created_at'], 'datacheck', round(100 * done / r['total']) if r['total'] else 100, f'{done}/{r["total"]} geprüft')
@@ -181,7 +181,7 @@ def _ts(s):
 def review_queue(conn):
     q = lambda sql, *a: conn.execute(sql, a).fetchone()[0] or 0
     items = [
-        {'key': 'finder', 'label': 'Lead-Finder-Treffer prüfen', 'count': q("SELECT COUNT(*) FROM discovery_candidates WHERE status='neu'"), 'view': 'finder'},
+        {'key': 'finder', 'label': 'Treffer der Firmensuche prüfen', 'count': q("SELECT COUNT(*) FROM discovery_candidates WHERE status='neu'"), 'view': 'finder'},
         {'key': 'imprint', 'label': 'Ausgelesene Impressen übernehmen oder verwerfen', 'count': q("SELECT COUNT(*) FROM batch_items WHERE status='done' AND review_status='offen'"), 'view': 'datacheck'},
         {'key': 'signals_new', 'label': 'Neue Kaufsignale sichten', 'count': q("SELECT COUNT(*) FROM buying_signals WHERE is_new=1 AND status<>'verworfen'"), 'view': 'signals'},
         {'key': 'signals_unassigned', 'label': 'Kaufsignale einer Firma zuordnen', 'count': q("SELECT COUNT(*) FROM buying_signals WHERE lead_id IS NULL AND status<>'verworfen'"), 'view': 'signals'},
@@ -205,16 +205,16 @@ def review_queue(conn):
 def sources(conn, lead_id):
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
     if not lead:
-        raise LookupError('Lead nicht gefunden.')
+        raise LookupError('Firma nicht gefunden.')
     out = []
 
     def add(module, kind, url, excerpt='', date='', status='', note=''):
         out.append({'module': module, 'type': kind, 'url': url or '', 'excerpt': (excerpt or '')[:400], 'date': date or '', 'status': status, 'note': note})
 
     if lead['website']:
-        add('Lead', 'Website', lead['website'])
+        add('Stammdaten', 'Website', lead['website'])
     if lead['signal_source']:
-        add('Lead', 'Signal (manuell)', lead['signal_source'], lead['signal_note'], lead['signal_date'])
+        add('Stammdaten', 'Signal (manuell)', lead['signal_source'], lead['signal_note'], lead['signal_date'])
     for f in conn.execute('SELECT * FROM company_facts WHERE lead_id=? ORDER BY field', (lead_id,)):
         add('Firmendaten', f['field'], f['source_url'], f"{f['value']} – „{f['excerpt']}“" if f['excerpt'] else f['value'], f['checked_at'], f['status'], f['method'])
     a = conn.execute("SELECT * FROM website_audits WHERE lead_id=? AND status='done' ORDER BY id DESC LIMIT 1", (lead_id,)).fetchone()
@@ -241,7 +241,7 @@ def dossier(conn, lead_id):
     from .catalog import VORLAGEN as PACKAGES
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
     if not lead:
-        raise LookupError('Lead nicht gefunden.')
+        raise LookupError('Firma nicht gefunden.')
     st = lead_status(conn, as_lead(lead))
     facts = {r['field']: r for r in conn.execute("SELECT * FROM company_facts WHERE lead_id=? AND status='bestaetigt' ORDER BY id DESC", (lead_id,))}
     a = conn.execute("SELECT * FROM website_audits WHERE lead_id=? AND status='done' ORDER BY id DESC LIMIT 1", (lead_id,)).fetchone()
@@ -337,9 +337,9 @@ def handoff(conn, lead_id, data):
         raise ValueError('Übergabe ausdrücklich bestätigen.')
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
     if not lead:
-        raise LookupError('Lead nicht gefunden.')
+        raise LookupError('Firma nicht gefunden.')
     if lead['stage'] == 'gesperrt' or lead['permission'] == 'nicht_kontaktieren':
-        raise ValueError('Lead ist gesperrt – keine Übergabe zur Ansprache.')
+        raise ValueError('Firma ist gesperrt – keine Übergabe zur Ansprache.')
     st = lead_status(conn, as_lead(lead))
     d = dossier(conn, lead_id)
     stage = lead['stage']

@@ -88,7 +88,7 @@ MANUAL_SOURCES = [
      'link': 'https://www.unternehmensregister.de/'},
     {'name': 'Bekanntmachungsservice (unterschwellige Vergaben)', 'ampel': 'gruen', 'why': 'Offizielle Suche des Bundes über alle Vergaben, frei zugänglich. Eine offene Lese-API ist bislang nicht dokumentiert – daher manuell.',
      'link': 'https://www.oeffentlichevergabe.de/'},
-    {'name': 'Jobbörse der Bundesagentur für Arbeit', 'ampel': 'gelb', 'why': 'Stellenanzeigen sind starke Signale (neue Marketing-/IT-Stelle). Die oft genutzte API ist inoffiziell – nur manuell suchen, Signal mit Quelle im Lead erfassen.',
+    {'name': 'Jobbörse der Bundesagentur für Arbeit', 'ampel': 'gelb', 'why': 'Stellenanzeigen sind starke Signale (neue Marketing-/IT-Stelle). Die oft genutzte API ist inoffiziell – nur manuell suchen, Signal mit Quelle bei der Firma erfassen.',
      'link_template': 'https://www.arbeitsagentur.de/jobsuche/suche?was={keyword}&wo={place}'},
     {'name': 'North Data, Echobot, Implisense u. a.', 'ampel': 'gruen', 'why': 'Lizenzierte Anbieter: legal automatisierbar mit Vertrag/API-Key (kostenpflichtig). Für Skalierung die sauberste Option.',
      'link': 'https://www.northdata.de/'},
@@ -757,7 +757,7 @@ def review_candidate(conn, candidate_id, decision):
     from .company_data import assert_not_suppressed
     assert_not_suppressed(conn, website=cand['website'], name=cand['name'])
     if cand['status'] == 'dublette' or cand['duplicate_lead_id']:
-        raise ValueError('Firma ist bereits als Lead vorhanden – dort ergänzen statt doppelt anlegen.')
+        raise ValueError('Firma ist bereits als Firma vorhanden – dort ergänzen statt doppelt anlegen.')
     # v1.17: Identitätsregeln statt bloßem Namensvergleich – „Müller GmbH“ ist nicht „Müller GmbH & Co. KG“
     from .duplicates import find_lead
     web_ok = (cand['website_status'] if 'website_status' in cand.keys() else '') in ('', 'quelle', 'belegt', 'bestaetigt')
@@ -767,7 +767,7 @@ def review_candidate(conn, candidate_id, decision):
     if dup:
         conn.execute("UPDATE discovery_candidates SET status='dublette', duplicate_lead_id=? WHERE id=?", (dup, candidate_id))
         conn.commit()
-        raise ValueError('Firma ist inzwischen als Lead vorhanden.')
+        raise ValueError('Firma ist inzwischen als Firma vorhanden.')
     source = SOURCES[cand['source']]
     address = ', '.join(x for x in (cand['street'], ' '.join(y for y in (cand['zip'], cand['city']) if y)) if x)
     note_parts = [f"Gefunden über {source['title']} ({source['attribution']}).",
@@ -791,7 +791,7 @@ def review_candidate(conn, candidate_id, decision):
     cur = conn.execute(f'INSERT INTO leads ({cols}) VALUES ({",".join("?" for _ in lead)})', tuple(lead.values()))
     conn.execute("UPDATE discovery_candidates SET status='uebernommen', lead_id=? WHERE id=?", (cur.lastrowid, candidate_id))
     conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
-                 (cur.lastrowid, 'notiz', f"Aus Lead-Finder übernommen: {source['title']} · {cand['source_url']}"))
+                 (cur.lastrowid, 'notiz', f"Aus der Firmensuche übernommen: {source['title']} · {cand['source_url']}"))
     from .company_data import add_sole_record, is_sole
     if is_sole(cand['name'], cand['legal_form'], cand['source']):  # 2.0.0-dev10: Nachweis mit Löschfrist für möglichen Personenbezug
         add_sole_record(conn, cur.lastrowid, cand['name'][:200], cand['source_url'])

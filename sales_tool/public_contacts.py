@@ -181,7 +181,7 @@ def review_candidate(conn, candidate_id, decision):
     if r['status']!='ungeprueft':raise ValueError('Dieser Recherchekandidat wurde bereits bearbeitet.')
     lead=conn.execute('SELECT permission,stage FROM leads WHERE id=?',(r['lead_id'],)).fetchone()
     if not lead or lead['permission']=='nicht_kontaktieren' or lead['stage']=='gesperrt':
-        raise ValueError('Dieser Lead ist gesperrt. Keine Übernahme möglich.')
+        raise ValueError('Diese Firma ist gesperrt. Keine Übernahme möglich.')
     status='abgelehnt' if decision=='reject' else 'freigegeben'
     if decision=='accept':
         exists=conn.execute('SELECT id FROM decision_contacts WHERE lead_id=? AND lower(full_name)=lower(?)',(r['lead_id'],r['full_name'])).fetchone()

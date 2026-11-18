@@ -1038,3 +1038,46 @@ Schritt 5 der Etappe E. Grundsatz „keine Funktion entfällt“: jeder Block de
 
 **Selbstbewertung 4 von 5.** Abzug: die Formulare in den Abschnitten, Ausgaben, Auswertung und Steuer & Export stehen noch in ihren alten Bausteinen (nur eingebettet); „Kalender & Postfach“ ist mit 2.847 px weiter lang; Editor und geöffnete Rechnung haben keine eigene Adresse; „Spalten ▾“ und „zuletzt exportiert“ aus dem Zielbild fehlen; der Rechnungszweck steht nicht in der Liste (Server unverändert); nur in Chromium geprüft.
 
+## Arbeitspaket 53 – Firmenakte auf dem Baukasten, Begriff „Firma“ (2.0.0-dev54)
+
+Schritt 6 und Abschluss der Etappe E. Grundsatz „keine Funktion entfällt“: jede verschobene Funktion mit altem Ort, neuem Ort und Prüffall in [UI_BAUKASTEN.md](UI_BAUKASTEN.md) („Was wohin zog (Schritt 6)“). Datenmodell, Kontaktsperre, Personen-Einschränkungen, Löschfristen, Fokusführung und Eingabeschutz unverändert; `akte.js` zeichnet den Überblick neu (Vereinbart, Chancen, Klappzeilen, Kontextspalte), `index.html` hat einen neuen Kopf und Karten statt Abschnitten. Am Server nur Meldungstexte („Lead …“ → „Firma …“, rund 100 Stellen in 20 Modulen).
+
+| Prüfung | Ergebnis |
+|---|---|
+| Abnahmemaße (1280 × 720, Firma mit Gespräch und Chance) | „Vereinbart“ bei 184 px (vorher Kasten bei 252 px, Ziel ≤ 200); Kontextspalte ab 184 px, 320 px breit; erste Chance 351–407 px (vorher nur im Reiter „Bedarf & Angebot“); Kopf 82 px, Reiter 132 px wie auf allen Detailseiten; Überblick 583 statt 1.454 px; sichtbare grüne Knöpfe 1 statt 3. 390 × 844: „Vereinbart“ bei 281 px (vorher 317), kein waagerechtes Scrollen auf allen fünf Reitern |
+| Neuer Browser-Test | `test_ui_akte_browser.py`: Seitenkopf (← Firmen, Name, Phase, Ort · Branche), genau eine Hauptaktion, fünf Reiter mit Fokus auf „Überblick“, Abnahmemaße, „Vereinbart“ getrennt von „Empfehlung“, Chancenliste mit Spalten und Wert, Kontextspalte mit Kontaktstatus und Phasen, Zeile → Chance im Reiter, Hauptaktion → Protokoll, gesperrte Firma (Pille im Kopf, rote Meldung ohne Aufklappen, keine Aktion in der Empfehlung, Hauptaktion „Notiz erfassen“), „← Firmen“ mit Suchfilter, „＋ Neue Firma“ per Knopf und Strg+K, kein sichtbares „Lead“ (Text, Platzhalter, Auswahltexte, `title`, `aria-label`, alle Klappzeilen offen) in Akte (alle Reiter), neuer Firma, Firmenliste, Heute, Angebote, Abrechnen, Einstellungen, 390 × 844, keine Seitenfehler, keine Abrufe nach außen |
+| Angepasste Erwartungen | `test_akte_tabs_browser` (Phase jetzt als Pille `#modalPhase` statt „Phase …“ in `#modalMeta`, Zusatz Ort · Branche zusätzlich geprüft; „Neue Firma“ statt „Neuer Lead“), `test_akte_page_browser` („← Firmen“ statt „← Zurück“; `aria-label` mit „zurück“ zusätzlich geprüft), `test_assessment_browser` (Bewertung in der Klappzeile „Passung“ – erst aufklappen), Unit `test_phase4_center` (Quelle „Stammdaten“ statt „Lead“) – keine Prüfung abgeschwächt oder übersprungen. `test_ui_workday` blieb unverändert: die Klappzeile „Bedarf“ hat die Kennung `#lfNeed`, „Quellen & Belege“ öffnet sich bei einem Website-Vorschlag selbst |
+| Gefunden und behoben | (1) Die Hauptaktion „Gespräch notieren“ wählte die Art vor und machte das Protokoll damit „ungespeichert“ – beim Verlassen der Akte holte der Eingabeschutz die Vorwahl später als „wiederhergestellte Eingabe“ zurück und öffnete den Reiter Kontakt (vom neuen Test gefunden). Die Vorwahl gilt jetzt als Ausgangsstand, solange kein Text getippt ist. (2) Nach „Bedarf bestätigen“ zeichnete der Überblick neu und klappte alles zu – „Angebot aus bestätigtem Bedarf“ war verdeckt; offene Klappzeilen bleiben jetzt offen. (3) Der 3-Sekunden-Abruf während des Impressum-Lesens zeichnete den Überblick neu und hätte Text im Bedarfsformular ersetzt; jetzt mit `uiKeep`. (4) Klappzeile mit Aktion: das › stand auf dem Smartphone in eigener Zeile (Baukasten). (5) Spaltenbreiten der Chancenliste zuerst über `--ui-cols` – der Baukasten-Test verlangt die Variable nur einmal; jetzt eigene Spaltenregel |
+| Begriffe | grep `-i "lead"` über `sales_tool/public/*.js`, `index.html` und Zeichenketten in `sales_tool/*.py`; übrig sind interne Namen, Dateinamen, Kommentare/Docstrings und gespeicherte Alttexte (Liste in [EINSCHRAENKUNGEN.md](EINSCHRAENKUNGEN.md)). Im Browser geprüft über den sichtbaren Text von sechs Bereichen |
+| Selbst angesehen | Akte (alle Reiter, Firma mit Chance, gesperrte Firma), Neue Firma bei 1280 × 720 in Klassisch hell und Schiefer dunkel, Akte bei 390 × 844, vorher/nachher; Vergleich mit dem Zielbild `z_akte.png`/`m_akte.png` |
+| Regression | Unit 714 Tests (4 übersprungen) (Python 3.13) und 714 Tests (6 übersprungen) (Python 3.10), Browser 47 von 47 und 47 von 47 in zwei Läufen hintereinander; ein Zwischenlauf scheiterte nur an der noch nicht neu erzeugten SBOM (Versionsnummer) |
+
+**Selbstbewertung 4 von 5.** Abzug: Die Inhalte der Reiter (Chancenkarten, Bedarfsanalyse, Recherche-Blöcke, Personen, Stammdatenformular) stehen weiter in ihren alten Bausteinen, nur in Karten und Klappzeilen eingebettet; „Vereinbart“ kennt keine echte Herkunft (wann/wo zugesagt), weil SignalDesk das nicht speichert; Anruf/Termin/Mail führen weiter aus der Akte hinaus nach „Kontakt & Termine“; nur in Chromium geprüft.
+
+### Gesamtbilanz Etappe E (Schritte 1–6, dev49 bis dev54)
+
+Alle Werte bei 1280 × 720 bzw. 390 × 844 aus den Einträgen der Arbeitspakete 48–53; Ziel jeweils in Klammern.
+
+| Bereich | Messung | vorher | nachher |
+|---|---|---|---|
+| Rahmen (Schritt 1/2) | 390 px: andere Bereiche erreichbar | keiner (Seitenleiste ausgeblendet) | alle sechs über „☰ Menü“ |
+| | Kopfzeile | 82 px | 52 px |
+| Firmen (Schritt 2) | erste Firmenzeile (≤ 280) | 574 px | 221 px |
+| | Zeilen ganz sichtbar (≥ 7) | 2 | 8 |
+| | 390 px: erste Firmenzeile | 846 px (unter dem Bildrand) | 342 px |
+| Heute (Schritt 2) | „Als Nächstes“ (≤ 200) | 342 px | 184 px |
+| Finden (Schritt 3) | „Suche starten“ (≤ 140) | 1.455 px | 78 px |
+| | Sichten: erste Trefferzeile (≤ 280) / Zeilen sichtbar | 2.124 px / 0 | 221 px / 8 |
+| Angebote (Schritt 4) | erste Angebotszeile (≤ 280) / Seitenhöhe | 2.221 px / 3.550 px | 221 px / 720 px |
+| | geöffnetes Angebot: erste Position (≤ 260) | 3.939 px („Gespeichertes Angebot“) | 221 px |
+| | 390 px: erstes Angebot | 4.144 px | 330 px |
+| Einstellungen (Schritt 5) | Inhalt (≤ 200) / Seitenhöhe | 377 px / 13.728 px | 184 px / 1.026–2.847 px je Abschnitt |
+| Abrechnen (Schritt 5) | erste Rechnungszeile (≤ 280) | 436 px (nach Wechsel des inneren Reiters) | 221 px |
+| | 390 px: erste Rechnungszeile | 646 px | 374 px |
+| Firmenakte (Schritt 6) | „Vereinbart“ (≤ 200) / Überblick | 252 px / 1.454 px | 184 px / 583 px |
+| | Kontextspalte, erste Chance im ersten Bildschirm | nein / nein | ja (184 px) / ja (bis 407 px) |
+| | grüne Knöpfe im Überblick (genau 1) | 3 | 1 |
+| Begriffe | sichtbares „Lead“ in den sechs Bereichen | in Kopfzeile, Akte, Dialogen, Meldungen | keines (Browser-Test) |
+
+Über die Etappe: sechs neue Browser-Tests für die Abnahmemaße (`test_mobile_nav_browser`, `test_ui_firmen_heute_browser`, `test_ui_finden_browser`, `test_ui_angebote_browser`, `test_ui_einstellungen_abrechnen_browser`, `test_ui_akte_browser`) und `test_keep_input_browser`; Browser-Tests von 39 auf 47. Bestehende Erwartungen wurden nur an neue Orte und Texte angepasst, nie abgeschwächt. Offen nach der Etappe: die eingebetteten Altteile (Liste in [UI_BAUKASTEN.md](UI_BAUKASTEN.md) und [EINSCHRAENKUNGEN.md](EINSCHRAENKUNGEN.md)), nicht umgebaute Ansichten (Pipeline, Datenpflege, Kontakt & Termine, Kaufsignale, Recherche & Berichte, Analysen, Import), „Spalten ▾“ in Angeboten und Abrechnen; alles nur in Chromium geprüft, nicht auf echten Geräten.
+

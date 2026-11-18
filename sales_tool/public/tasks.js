@@ -25,7 +25,7 @@
     const r = REPORT[f.report] || [f.report, 'mid'];
     const btn = f.report === 'fertig' ? `<button type="button" class="btn btn-ghost" data-report-open="${f.lead_id}">Bericht öffnen</button>`
       : f.website ? `<button type="button" class="btn btn-ghost" data-tk-report="${f.lead_id}" ${['queued', 'running'].includes(f.report) ? 'disabled' : ''}>Bericht erstellen</button>`
-      : `<button type="button" class="btn btn-ghost" data-lead="${f.lead_id}" title="Ohne Website kein Bericht – Website im Lead ergänzen">Website ergänzen</button>`;
+      : `<button type="button" class="btn btn-ghost" data-lead="${f.lead_id}" title="Ohne Website kein Bericht – Website in den Stammdaten der Firma ergänzen">Website ergänzen</button>`;
     return `<div class="task-line tk-firm"><span><b>${esc(f.company)}</b>${f.steps.length ? `<small> · ${esc(f.steps[0])}${f.steps.length > 1 ? ` (+${f.steps.length - 1})` : ''}</small>` : ''}</span>
       <span class="tk-chips"><span class="sw-web ${f.website ? 'ok' : 'off'}">${f.website ? 'Website' : 'ohne Website'}</span><span class="sw-web ${r[1]}">${esc(r[0])}</span></span>${btn}</div>`;
   }

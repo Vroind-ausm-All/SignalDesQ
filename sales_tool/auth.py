@@ -18,7 +18,7 @@ from .company_data import _audit
 
 ROLES = {
     'admin': 'Administration – alles inkl. Benutzer, Einstellungen, Backups',
-    'vertrieb': 'Vertrieb & Recherche – Leads, Recherche, Angebote; Buchhaltung nur lesen',
+    'vertrieb': 'Vertrieb & Recherche – Firmen, Recherche, Angebote; Buchhaltung nur lesen',
     'buchhaltung': 'Buchhaltung – Rechnungen und Ausgaben; Vertrieb nur lesen',
     'lesen': 'Nur lesen',
 }

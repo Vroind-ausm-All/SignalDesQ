@@ -4,13 +4,15 @@ Verbindliche Grundlage für die Etappe „Visuelle Konsolidierung und Aufgabenf�
 Jede Ansicht wird aus denselben sieben Bausteinen gebaut. Die Klassen stehen in `sales_tool/public/style.css`
 (Abschnitt „UI-Baukasten“, Präfix `ui-`, damit nichts Bestehendes kollidiert).
 
-**Stand dev53:** Rahmen (Kopfzeile), Firmenliste und Heute (Schritt 2), „Finden → Sichten“ und „Finden → Neue Suche“ (Schritt 3),
-der Bereich „Angebote“ (Schritt 4) sowie Einstellungen und Abrechnen (Schritt 5) sind umgestellt. Die übrigen Ansichten sind **noch nicht**
-umgestellt – auch die Unteransichten von „Finden → Analysen“ und „Import“ haben nur die neue Reiterzeile bzw. einen neuen ersten Abschnitt;
-die Firmenakte folgt in Schritt 6. Innerhalb der Angebote stehen die Arbeitsschritte, die Nachkalkulation, die Bestandskunden und das
-Formular des Editors noch in ihren bisherigen Bausteinen – nur geordnet und eingebettet; ebenso in den Einstellungen die Formulare der
-Abschnitte (Karten mit Überschrift), im KI-Studio und Playbook der Inhalt und in Abrechnen das Rechnungsformular, Ausgaben, Auswertung und
-Steuer & Export. Neu gebaute oder umgebaute Ansichten verwenden ausschließlich diese Bausteine.
+**Stand dev54:** Alle sechs Schritte der Etappe E sind umgesetzt: Rahmen (Kopfzeile), Firmenliste und Heute (Schritt 2), „Finden → Sichten“ und
+„Finden → Neue Suche“ (Schritt 3), der Bereich „Angebote“ (Schritt 4), Einstellungen und Abrechnen (Schritt 5) und die Firmenakte (Schritt 6).
+Noch im **alten Aufbau** (nur geordnet und eingebettet, nicht neu gebaut) stehen: die Unteransichten von „Finden → Analysen“ und „Import“
+(nur neue Reiterzeile bzw. neuer erster Abschnitt); in den Angeboten die Arbeitsschritte, die Nachkalkulation, die Bestandskunden und das
+Formular des Editors; in den Einstellungen die Formulare der Abschnitte, KI-Studio und Playbook; in Abrechnen das Rechnungsformular,
+Ausgaben, Auswertung und Steuer & Export; in der Firmenakte die Karten einer Chance, Briefing, Bedarfsanalyse, Paketabgleich, Aufgabenvorschläge,
+Firmendaten, Website-Bewertung, Kaufsignale, KI-Analyse, Personenrecherche und das Stammdatenformular (in Karten bzw. Klappzeilen eingebettet).
+Pipeline, Datenpflege, Kontakt & Termine und Kaufsignale wurden in Etappe E nicht umgebaut. Neu gebaute oder umgebaute Ansichten verwenden
+ausschließlich diese Bausteine.
 
 ## Die sieben Bausteine
 
@@ -67,6 +69,15 @@ Dazu das **Kontextlayout** `.ui-with-side` mit `.ui-side`: Inhalt links, rechts 
 | Klappzeile mit Aktion | `<details class="ui-fold ui-fold-act"><summary><b>…</b><span>Kurzstand</span><button class="ui-txt">Aktion</button></summary>` | eine Textaktion rechts in der Klappzeile (z. B. „Stammdaten ergänzen“); ein Klick darauf springt, ohne die Zeile aufzuklappen |
 | Sprungziel markieren | `.es-flash` | ein Sprung zu einem Element weiter unten im Abschnitt (bisherige Element-Adresse, Treffer der Suche) öffnet die Klappzeilen darüber, scrollt dorthin und umrandet es kurz |
 | Eingabeschutz außerhalb der Akte | `window.formGuard.ask(namen)` in `formguard.js` | dieselbe Rückfrage wie in der Akte (Speichern · Weiter bearbeiten · Verwerfen); die Einstellungen fragen beim Abschnittswechsel, wenn ein Formular, das erst mit „Speichern“ gilt, Ungespeichertes enthält |
+
+### Ergänzungen seit dev54 (Schritt 6): Firmenakte
+
+| Baustein | Klassen | Regel |
+|---|---|---|
+| Vereinbarung | `.ui-card.lf-agreed` mit `.ui-small` „Vereinbart“, `b.lf-agreed-t` (Schritt) und `.lf-agreed-d` (Fälligkeit · Herkunft · Textaktion) | was mit dem Kunden vereinbart ist, steht oben und ist grün umrandet; Vorschläge des Programms stehen nie darin, sondern als Klappzeile „Empfehlung“ darunter |
+| Kontextliste | `<dl class="lf-dl">` in einer `.ui-card` der Kontextspalte | Begriff links (112 px, grau), Wert rechts; eine Sperre steht als rote Meldung (`.lf-lock`, `role="alert"`) über der Liste und als Pille im Seitenkopf – nie eingeklappt |
+| Phasen einer Firma | `.qt-phases` (wie „Ablauf“ im Angebot), jede Phase eine Textaktion zum passenden Reiter | Recherche → Qualifiziert → Termin → Angebot → Auftrag; aktuelle Phase gefüllt, verloren/gesperrt als ✕-Zeile darunter |
+| Klappzeilen behalten ihren Zustand | `details[id]` | eine Ansicht, die nach dem Speichern neu zeichnet, öffnet die zuvor offenen Klappzeilen wieder (Akte: Bedarf bestätigen → „Angebot aus bestätigtem Bedarf“ bleibt sichtbar) |
 
 ## Regeln der Anwenderlogik
 
@@ -300,4 +311,53 @@ diesem Browser gemerkt), sonst „Meine Firma“; schmal (bis 1000 px) die Absch
 | Stammdaten, Backup | Reiter „Stammdaten & Sicherung“ | Einstellungen → Meine Firma bzw. Sicherung & Zugang | `test_ui_einstellungen_abrechnen_browser` |
 | Rechnung aus der Suche (Strg+K) | wechselte nur zu Abrechnen („in der Rechnungsliste öffnen“) | öffnet die Rechnung direkt | – |
 | Begriffe | „Lead / Kunde“, „– ohne Lead –“, „Leads gewonnen / verloren“, „Zahlungen mit Lead-Zuordnung“ | „Firma / Kunde“, „– ohne Firma –“, „Firmen gewonnen / verloren“, „Firmen-Zuordnung“; interne Namen unverändert | – (Text) |
+
+## Was wohin zog (Schritt 6, dev54)
+
+Keine Funktion entfiel. Datenmodell, Server (bis auf Meldungstexte), Kontaktsperre, Personen-Einschränkungen, Löschfristen, Fokusführung
+und Eingabeschutz unverändert. Adresse der Akte weiter `#/firmen/akte/ID` (mit Listenfiltern); „Zurück“ führt wie bisher dorthin, wo du herkamst.
+
+Gemessen bei 1280 × 720 mit einer fiktiven Firma (Phase Termin, ein Gespräch, eine Chance):
+
+| Messung | dev53 | dev54 | Abnahme |
+|---|---|---|---|
+| Firmenname (Oberkante) | 104 px | 82 px (Seitenkopf bei 76 px) | wie alle Seiten |
+| Reiter (Oberkante) | 171 px | 132 px | 132 px |
+| „Vereinbart“ (Oberkante) | 252 px (Kasten „Vereinbart“ mit „Als Nächstes“ daneben) | 184 px | ≤ 200 px |
+| Kontextspalte | – (gab es nicht) | ab 184 px, 320 px breit | im ersten Bildschirm |
+| erste Chance | nur im Reiter „Bedarf & Angebot“ | Zeile ab 351 px, endet bei 407 px | im ersten Bildschirm |
+| Höhe des Überblicks | 1.454 px | 583 px | – |
+| sichtbare grüne Knöpfe im Überblick | 3 | 1 | genau 1 |
+| Reiter Kontakt & Verlauf / Bedarf & Angebot / Recherche / Stammdaten (Seitenhöhe) | 2.506 / 2.249 / 1.575 / 1.468 px | 815 / 2.116 / 1.391 / 1.487 px | – |
+| 390 × 844: „Vereinbart“ | 317 px | 281 px | kein waagerechtes Scrollen (vorher wie nachher keines) |
+
+Prüffall für alles Folgende zusätzlich: `test_ui_akte_browser`.
+
+| Funktion | Bisher | Jetzt | Prüffall |
+|---|---|---|---|
+| Kopf der Akte | Eyebrow „FIRMENAKTE“, Name, Zeile „Phase … · Passung … · Belege … %“, rechts „nächste Aktion ▶“ und „← Zurück“ | Seitenkopf: „← Firmen“ (nennt die Ansicht, in die es zurückgeht, z. B. „← Heute“), Name, Phase als Pille, bei Sperre rote Pille „Kontaktsperre“, Zusatz Ort · Branche, eine Hauptaktion; „Firmenakte“ nur für Bildschirmleser | `test_akte_tabs_browser`, `test_akte_page_browser` |
+| Passung und Belegabdeckung im Kopf | Zeile unter dem Namen | Klappzeilen „Passung“ (Note, Einordnung, bekannte Kriterien) und „Quellen & Belege“ (Belegabdeckung in %) | `test_assessment_browser` |
+| Hauptaktion | Empfehlung des Programms („Firmen-Bericht erstellen ▶“ usw.) | „Gespräch notieren“ (Protokoll im Reiter Kontakt & Verlauf, Art „Gespräch“ vorgewählt, Fokus im Text); bei Sperre oder verloren „Notiz erfassen“; nach Gewinn ohne Rechnung „Rechnung schreiben“. Die Empfehlung steht als Textaktion in der Klappzeile „Empfehlung“ | `test_ui_akte_browser` |
+| Reiter | Leiste unter dem Kopf (eigene Klassen) | `.ui-tabs` in der Werkzeugzeile, gleiche Kennungen, Tastatur und Fokus wie bisher | `test_akte_tabs_browser`, `test_formguard_browser` |
+| „Vereinbart“ | kleine Zeile „Nächster Schritt: …“ | Karte oben im Überblick: Schritt, Fälligkeit (rot überfällig, gelb heute), Herkunft (Stammdaten, letztes Gespräch bzw. offene Aufgabe), „ändern“ springt in die Stammdaten | `test_ui_akte_browser` |
+| „Als Nächstes“ (Empfehlung des Programms) und Ablauf in sieben Schritten | Kasten rechts oben mit grünem Knopf, Schrittleiste darunter | Klappzeile „Empfehlung“ mit Textaktion; aufgeklappt Hinweis „Vorschlag des Programms“ und die sieben Schritte | `test_ui_workday` |
+| Kontaktsperre | rote Zeile unter dem Kopf | rote Meldung in der Kontextspalte (sichtbar ohne Aufklappen, in jedem Fall), Pille im Seitenkopf (auf allen Reitern), „gesperrt“ beim Kontaktstatus | `test_ui_workday`, `test_ui_akte_browser` |
+| Datenschutz-Hinweis „ohne Rechtsform“ (Löschfrist, Art.-14-Hinweis) | unter der Sperre | Karte unter „Vereinbart“, immer sichtbar | `test_osm_local_browser` |
+| Bewertung (Passung, Qualifizierung, Erreichbarkeit) | großer Block im Überblick | Klappzeile „Passung“ (Inhalt unverändert) | `test_assessment_browser` |
+| Firmendaten aus dem Impressum (Website-Vorschlag bestätigen) | Block im Überblick | Klappzeile „Quellen & Belege“; liegt ein Website-Vorschlag vor, ist sie offen und zeigt „Website bestätigen“ | `test_ui_workday` |
+| Belegabdeckung | Block links | Klappzeile „Quellen & Belege“ | – |
+| Bedarf bestätigen, Angebot aus bestätigtem Bedarf, Bedarf neu klären | Block rechts, Formular als Klappkarte | Klappzeile „Bedarf“ (Formular direkt darin); bleibt nach dem Bestätigen offen | `test_ui_workday` |
+| Offene Aufgaben (erledigt) | Block | Klappzeile „Offene Aufgaben“ | – |
+| Website-Bewertung, Kaufsignale (Kurzstand) | nur im Reiter Recherche | zusätzlich Klappzeilen im Überblick mit Kurzstand und Sprung zur vollständigen Bewertung | `test_ui_akte_browser` |
+| Chancen | nur im Reiter „Bedarf & Angebot“ | zusätzlich als Liste im Überblick (Chance · nächster Schritt · fällig · Status · Wert); Klick öffnet die Chance im Reiter | `test_ui_akte_browser`, `test_chances_browser` |
+| Kontext (Ansprechpartner, letzter Kontakt, Kontaktstatus, Website, Telefon) | verteilt bzw. nur in den Stammdaten | Kontextspalte im Überblick; „prüfen“ springt zum Rechtsstatus in den Stammdaten | `test_ui_akte_browser` |
+| Phasen | Pipeline-Phase nur als Text im Kopf | „Verlauf“ in der Kontextspalte (Recherche → Qualifiziert → Termin → Angebot → Auftrag), jede Phase springt in ihren Reiter | `test_ui_akte_browser` |
+| Zeitleiste mit Filter | unten im Überblick | „Verlauf“ als Liste im Reiter Kontakt & Verlauf (Filter unverändert) | `test_ui_akte_browser` |
+| Aktivitätsprotokoll | Formular und Einträge oben im Reiter Kontakt | Knöpfe „Gespräch notieren · Anruf erfassen · Termin eintragen · Mail-Entwurf schreiben“, darunter das Formular (Karte), die Einträge in der Klappzeile „Protokoll“ | `test_formguard_browser`, `test_v2_akte_tabs` |
+| Gesprächsvorbereitung (Entwurf, kopieren, Bedarfsbriefing) | Abschnitt im Reiter Kontakt | Klappzeile „Gesprächsvorbereitung“ | – |
+| Entscheider-Recherche, Personen anlegen; Rollen, Befugnisse & Kontaktbeschränkungen | zwei Abschnitte mit englischer Eyebrow | zwei Klappzeilen mit Kurzstand (Inhalt und Beschränkungen unverändert) | – |
+| Bedarf & Angebot, Recherche | Abschnitte mit Eyebrow und Trennlinien | Karten (`.ui-card`); Aktionsknöpfe als Nebenaktion, Formular-Speichern bleibt grün | `test_chances_browser`, `test_briefing_browser` |
+| Stammdaten | Formular | dasselbe Formular in einer Karte; „Alter Lead-Fit (Punkte)“ heißt „Alter Punktwert (früher „Fit“)“ und bleibt eingeklappt | `test_akte_tabs_browser`, `test_v2_review_etappe_a` |
+| Neu anlegen | Überschrift „Neuer Lead“, „Lead speichern“ | „Neue Firma“, „Firma speichern“ (Ablauf, Pflichtfelder, Dublettenprüfung unverändert) | `test_akte_tabs_browser`, `test_ui_akte_browser` |
+| Begriffe in der ganzen Oberfläche | „Lead“ in Akte, Dialogen, Toasts, Pipeline, Datenpflege, Kontakt & Termine, Recherche, KI-Studio und in Meldungen des Servers („Lead nicht gefunden“, „Lead ist gesperrt“, „schon als Lead“, Vertriebskennzahlen …) | „Firma“ (bzw. „Firmensuche“, „Stammdaten“); interne Namen, Adressen, Kennungen, `data-`-Attribute, Spalten und API-Felder unverändert | `test_ui_akte_browser`, `test_phase4_center` |
 

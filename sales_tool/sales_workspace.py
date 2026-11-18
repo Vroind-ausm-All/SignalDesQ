@@ -85,10 +85,10 @@ def _valid_date(value):
 
 def _lead(conn, lead_id):
     if isinstance(lead_id,bool) or not str(lead_id).isdigit():
-        raise ValueError('Ungültige Lead-ID.')
+        raise ValueError('Ungültige Firmen-ID.')
     row=conn.execute('SELECT * FROM leads WHERE id=?',(int(lead_id),)).fetchone()
     if not row:
-        raise ValueError('Lead existiert nicht.')
+        raise ValueError('Firma existiert nicht.')
     return row
 
 
@@ -184,7 +184,7 @@ def quote_preview(conn, data):
 
 
 def make_proposal(conn,data):
-    if not isinstance(data,dict) or 'lead_id' not in data: raise ValueError('Lead-ID fehlt.')
+    if not isinstance(data,dict) or 'lead_id' not in data: raise ValueError('Firmen-ID fehlt.')
     lead=_lead(conn,data['lead_id'])
     from .workday import assert_contact_allowed, after_proposal, need_status
     assert_contact_allowed(conn,lead,'Angebot erstellen')

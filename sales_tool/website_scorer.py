@@ -818,7 +818,7 @@ _WORKER = {'db': None}  # 2.0.0-dev35: Datenbank des letzten Auftrags (für wait
 
 def enqueue(conn, lead_ids, db_path):
     if not isinstance(lead_ids, list) or not 1 <= len(lead_ids) <= 20 or any(isinstance(i, bool) or not isinstance(i, int) for i in lead_ids):
-        raise ValueError('1–20 Lead-IDs angeben.')
+        raise ValueError('1–20 Firmen-IDs angeben.')
     created, skipped = [], []
     for lid in dict.fromkeys(lead_ids):
         lead = conn.execute('SELECT * FROM leads WHERE id=?', (lid,)).fetchone()

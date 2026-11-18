@@ -25,10 +25,10 @@
     $('#qStaleNotice').textContent = d.notice;
     $('#qStale').innerHTML = d.leads.length ? d.leads.map(l => `<div class="sales-item"><div><strong>${esc(l.company)}</strong>
         ${l.items.map(i => `<small><span class="rc-stale">${esc(i.label)}</span> ${esc(i.detail)} (Frist ${i.limit_days} Tage)</small>`).join('')}</div>
-        <button type="button" class="btn btn-ghost" data-q-lead="${l.lead_id}">Lead öffnen</button></div>`).join('')
+        <button type="button" class="btn btn-ghost" data-q-lead="${l.lead_id}">Firma öffnen</button></div>`).join('')
       : '<div class="empty">Keine veralteten Daten.</div>';
     $('#qPrivacy').innerHTML = d.privacy_expired.length ? d.privacy_expired.map(p => `<div class="sales-item"><div><strong>${esc(p.subject)}</strong>
-        <small>${esc(p.company || 'ohne Lead')} · Frist abgelaufen am ${esc(fmtDate(p.retention_until))} · ${esc(p.purpose)}</small></div>
+        <small>${esc(p.company || 'ohne Firma')} · Frist abgelaufen am ${esc(fmtDate(p.retention_until))} · ${esc(p.purpose)}</small></div>
         ${p.kind === 'einzelunternehmen' ? `<span class="acc-btn-group"><button type="button" class="btn btn-ghost" data-dc-extend="${p.id}">Frist verlängern</button><button type="button" class="btn btn-danger" data-q-erase="${p.id}" data-sole="1">Betrieb löschen</button></span>`
           : `<button type="button" class="btn btn-danger" data-q-erase="${p.id}">Personendaten löschen</button>`}</div>`).join('')
       : '<div class="empty">Keine abgelaufenen Löschfristen.</div>';
@@ -165,7 +165,7 @@
         r = await resp.json();
         if (!resp.ok) throw Error(r.error || 'Wiederherstellung fehlgeschlagen');
       } else r = await api('/backups/restore', 'POST', {name, confirm: true, ...(password ? {password} : {})});
-      alert(`Wiederhergestellt: ${r.after.leads} Leads, ${r.after.invoices} Rechnungen.\nVorheriger Stand gesichert: ${r.safety_backup || '–'}`);
+      alert(`Wiederhergestellt: ${r.after.leads} Firmen, ${r.after.invoices} Rechnungen.\nVorheriger Stand gesichert: ${r.safety_backup || '–'}`);
       location.reload();
     } catch (e) { toast(e.message, true); }
   }
