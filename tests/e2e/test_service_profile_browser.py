@@ -34,6 +34,7 @@ class ServiceProfileBrowserTests(unittest.TestCase):
                         page.on('pageerror', lambda exc: errors.append(str(exc)))
                         page.goto(f'http://127.0.0.1:{server.server_port}')
                         page.locator('.sidebar [data-view="settings"]').click()  # 2.0.0-dev14: eigener Bereich Einstellungen
+                        page.locator('#esNav [data-settings-jump="preise"]').click()  # 2.0.0-dev53: Leistungsprofil steht unter „Leistungen & Preise“
                         campaign = page.locator('#serviceProfileThemes [data-service-theme="campaign"] [data-keywords]')
                         campaign.wait_for(timeout=15000)
                         page.locator('#serviceProfileForm input[name="name"]').fill('Agenturprofil')
@@ -47,6 +48,7 @@ class ServiceProfileBrowserTests(unittest.TestCase):
                         }""", timeout=15000)
                         page.reload()
                         page.locator('.sidebar [data-view="settings"]').click()  # 2.0.0-dev14: eigener Bereich Einstellungen
+                        page.locator('#esNav [data-settings-jump="preise"]').click()  # 2.0.0-dev53: Leistungsprofil steht unter „Leistungen & Preise“
                         campaign.wait_for(timeout=15000)
                         self.assertEqual(page.locator('#serviceProfileForm input[name="name"]').input_value(), 'Agenturprofil')
                         self.assertFalse(page.locator('#serviceProfileThemes [data-service-theme="recruiting"] [data-enabled]').is_checked())

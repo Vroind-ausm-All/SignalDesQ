@@ -1,6 +1,10 @@
 'use strict';
 // v1.0 Rechnungen & Buchhaltung: lokale Rechnungsstellung, Zahlungen, Ausgaben, UStVA-/EÜR-Vorbereitung.
 // Nutzt die Helfer aus app.js ($, $$, api, toast, escapeHTML, leads, switchView, showModal, reload, fmtDate).
+// 2.0.0-dev53 (UX Schritt 5): Abrechnen hat vier Reiter (Ansichten) statt fünf innerer Reiter – Rechnungen (accounting), Ausgaben (expenses),
+// Auswertung (revenue), Steuer & Export (tax). Rechnungen als Liste aus dem Baukasten (Suche, Ansichten, Filter; nächster Schritt nur aus
+// vorhandenen Daten); Editor und geöffnete Rechnung als eigene Ansicht mit „← Rechnungen“. Stammdaten und Backup stehen unter
+// Einstellungen → Meine Firma bzw. Sicherung & Zugang (dieselben Formulare, window.accLoadSettings). Buchhaltungsregeln unverändert.
 (function () {
   const money = c => new Intl.NumberFormat('de-DE', {style: 'currency', currency: 'EUR'}).format((Number(c) || 0) / 100);
   const esc = v => escapeHTML(String(v ?? ''));
@@ -9,7 +13,11 @@
   const statusNames = {entwurf: 'Entwurf', offen: 'Offen', teilbezahlt: 'Teilbezahlt', bezahlt: 'Bezahlt', storniert: 'Storniert'};
   const kindNames = {rechnung: 'Rechnung', abschlag: 'Abschlag', schluss: 'Schlussrechnung', storno: 'Storno'};
   const methodNames = {ueberweisung: 'Überweisung', lastschrift: 'Lastschrift', paypal: 'PayPal', bar: 'Bar', sonstiges: 'Sonstiges'};
-  let catalog = null, settings = null, currentTab = 'overview', editingId = null;
+  let catalog = null, settings = null, editingId = null, invoices = [], invView = 'alle';
+  const VIEWS = ['accounting', 'expenses', 'revenue', 'tax'];
+  const LOAD = {accounting: () => Promise.all([loadInvoices(), loadOverview()]), expenses: () => loadExpenses(),
+    revenue: () => Promise.all([loadOverview(), loadReport()]), tax: () => loadReport()};
+  const here = () => (typeof currentView !== 'undefined' && VIEWS.includes(currentView) ? currentView : 'accounting');
 
   async function loadCatalog() {
     if (catalog) return;
@@ -18,15 +26,20 @@
       .map(([k, c]) => `<option value="${esc(k)}">${esc(c.label)} (${esc(c.account)})</option>`).join('');
   }
 
-  function showTab(tab) {
-    currentTab = tab;
-    $$('#viewAccounting .acc-tab').forEach(b => { b.classList.toggle('active', b.dataset.accTab === tab); b.setAttribute('aria-selected', b.dataset.accTab === tab); });
-    $$('#viewAccounting .acc-pane').forEach(p => p.classList.toggle('hidden', p.dataset.accPane !== tab));
-    ({overview: loadOverview, invoices: loadInvoices, expenses: loadExpenses, report: loadReport, settings: loadSettings})[tab]();
+  // Rechnungen: Liste, Editor oder geöffnete Rechnung
+  function setMode(mode) {
+    $('#viewAccounting').dataset.accMode = mode;
+    $('#accList').classList.toggle('hidden', mode !== 'list');
+    $('#accEditor').classList.toggle('hidden', mode !== 'edit');
+    $('#accDetail').classList.toggle('hidden', mode !== 'detail');
+    if (mode === 'list') editingId = null;
+    window.scrollTo({top: 0, behavior: 'instant'});
   }
 
-  window.refreshAccounting = async function () {
-    try { await loadCatalog(); settings = await api('/accounting/settings'); showTab(currentTab); }
+  window.accShowList = () => { if ($('#viewAccounting').dataset.accMode !== 'list') { setMode('list'); loadInvoices(); } };
+
+  window.refreshAccounting = async function (view) {
+    try { await loadCatalog(); settings = await api('/accounting/settings'); await LOAD[view || here()](); }
     catch (e) { toast(e.message, true); }
   };
 
@@ -43,6 +56,14 @@
       $('#accQuarter').textContent = money(o.quarter.payable_cents);
       $('#accQuarterRange').textContent = `${deDate(o.quarter.from)} – ${deDate(o.quarter.to)} · Vorbereitung`;
       $('#accWarnings').innerHTML = o.warnings.map(w => `<div class="sales-banner sales-warning acc-warning">${esc(w)}</div>`).join('');
+      // 2.0.0-dev53: Stammdaten-Warnung als Klappzeile unter der Rechnungsliste, mit Sprung nach Einstellungen → Meine Firma
+      const miss = settings?.missing || [];
+      $('#accMasterFold').classList.toggle('hidden', !o.warnings.length);
+      $('#accMasterState').innerHTML = miss.length ? `<span class="ui-pill is-attention">${esc(miss.length === 1 ? miss[0] + ' fehlt' : miss.length + ' Pflichtangaben fehlen')}</span> ohne sie keine Festschreibung`
+        : o.warnings.length ? `<span class="ui-pill is-attention">prüfen</span> ${esc(o.warnings[0])}` : '';
+      $('#accMasterLink').classList.toggle('hidden', !miss.length);
+      $('#accUnbilledState').textContent = o.accepted_without_invoice.length ? `${o.accepted_without_invoice.length} angenommene${o.accepted_without_invoice.length === 1 ? 's Angebot' : ' Angebote'} noch ohne Rechnung` : 'alle angenommenen Angebote sind berechnet';
+      $('#accTaxState').textContent = `USt-Zahllast laufendes Quartal ${money(o.quarter.payable_cents)} (Vorbereitung) · EÜR, CSV-Exporte, Änderungsprotokoll`;
       $('#accOverdueList').innerHTML = o.overdue.length ? o.overdue.map(r => `<div class="sales-item"><div><strong>${esc(r.number)} · ${esc(r.buyer_name)}</strong><small>${money(r.outstanding_cents)} offen · ${r.overdue_days} Tage überfällig${r.dunning_level ? ' · Mahnstufe ' + r.dunning_level : ''}</small></div><button type="button" class="btn btn-ghost" data-acc-open="${r.id}">Öffnen</button></div>`).join('') : '<div class="empty">Keine überfälligen Rechnungen.</div>';
       $('#accUnbilled').innerHTML = o.accepted_without_invoice.length ? o.accepted_without_invoice.map(p => `<div class="sales-item"><div><strong>${esc(p.company)} · ${esc(p.project_label)}</strong><small>Angebot ${esc(p.number)} angenommen</small></div><div class="acc-btn-group"><button type="button" class="btn btn-ghost" data-acc-from-proposal="${p.id}" data-mode="abschlag">Abschlag 40 %</button><button type="button" class="btn btn-primary" data-acc-from-proposal="${p.id}" data-mode="voll">Rechnung</button></div></div>`).join('') : '<div class="empty">Alle angenommenen Angebote sind berechnet.</div>';
       const max = Math.max(1, ...o.months.flatMap(m => [m.invoiced_net_cents, m.paid_cents]));
@@ -57,7 +78,8 @@
       // 2.0.0-dev16: Abschlag laut Angebot (Kalkulationsgrundlagen), ältere Angebote 40 % – der Server liest den Wert aus dem Angebot
       const inv = await api('/accounting/invoices/from-proposal', 'POST', {proposal_id: id, mode});
       toast('Rechnungsentwurf aus Angebot erstellt – Empfängeradresse prüfen');
-      showTab('invoices');
+      if (here() !== 'accounting') switchView('accounting');
+      loadInvoices();
       openEditor(inv);
     } catch (e) { toast(e.message, true); }
   }
@@ -65,15 +87,53 @@
 
   // ------------------------------------------------------------ Rechnungen
   async function loadInvoices() {
-    try {
-      const status = $('#accInvoiceFilter').value;
-      const rows = await api('/accounting/invoices' + (status ? '?status=' + encodeURIComponent(status) : ''));
-      $('#accInvoiceRows').innerHTML = rows.length ? rows.map(r => `<tr data-acc-open="${r.id}" tabindex="0"><td><b>${esc(r.number || 'Entwurf #' + r.id)}</b><small>${esc(kindNames[r.kind] || r.kind)}</small></td><td>${esc(r.buyer_name || '–')}</td><td>${deDate(r.issue_date)}<small>${r.due_date ? 'fällig ' + deDate(r.due_date) : ''}</small></td><td>${money(r.gross_cents)}</td><td>${r.outstanding_cents ? money(r.outstanding_cents) : '–'}${r.overdue_days ? `<small class="late">${r.overdue_days} Tage überfällig</small>` : ''}</td><td><span class="pill ${r.status === 'bezahlt' ? 'won' : r.status === 'storniert' ? 'lost' : r.status === 'entwurf' ? '' : 'offer'}">${esc(statusNames[r.status])}</span></td></tr>`).join('') : '<tr><td colspan="6" class="empty">Noch keine Rechnungen. Lege Stammdaten an und erstelle die erste Rechnung – oder übernimm ein angenommenes Angebot.</td></tr>';
-    } catch (e) { toast(e.message, true); }
+    try { invoices = await api('/accounting/invoices'); renderInvoices(); }
+    catch (e) { toast(e.message, true); }
+  }
+
+  const isOpen = r => ['offen', 'teilbezahlt'].includes(r.status);
+  const IN_VIEW = {alle: () => true, offen: isOpen, ueberfaellig: r => isOpen(r) && r.overdue_days > 0, bezahlt: r => r.status === 'bezahlt', entwurf: r => r.status === 'entwurf'};
+  const short = s => s ? new Date(`${s}T12:00:00`).toLocaleDateString('de-DE', {day: 'numeric', month: 'short'}) : '–';
+  // Nächster Schritt nur aus vorhandenen Daten: Entwurf → festschreiben (oder erst Stammdaten), offen → abwarten bzw. erinnern
+  function nextStep(r) {
+    if (r.status === 'entwurf') return settings?.missing?.length ? 'Stammdaten ergänzen' : 'Prüfen und festschreiben';
+    if (!isOpen(r)) return '–';
+    if (r.overdue_days > 0) return r.dunning_level ? `Zahlung erinnern (Mahnstufe ${r.dunning_level} erstellt)` : 'Zahlung erinnern';
+    return r.status === 'teilbezahlt' ? 'Restzahlung abwarten' : 'Zahlungseingang abwarten';
+  }
+  function dueCell(r) {
+    if (!isOpen(r) || !r.due_date) return '<span class="ui-small">–</span>';
+    if (r.overdue_days > 0) return `<span class="ui-pill is-overdue">${r.overdue_days === 1 ? '1 Tag' : r.overdue_days + ' Tage'} überfällig</span>`;
+    if (r.due_date === iso(new Date())) return '<span class="ui-pill is-attention">heute</span>';
+    return `<span class="acc-date">${short(r.due_date)}</span>`;
+  }
+  function statusPill(r) {
+    if (r.kind === 'storno') return '<span class="ui-pill">Storno</span>';
+    const cls = {bezahlt: 'is-done', offen: 'is-underway', teilbezahlt: 'is-underway', entwurf: '', storniert: ''}[r.status] || '';
+    return `<span class="ui-pill ${cls}">${esc(statusNames[r.status] || r.status)}</span>`;
+  }
+  function renderInvoices() {
+    const q = $('#accQ').value.trim().toLowerCase(), st = $('#accInvoiceFilter').value;
+    const match = r => (!q || [r.number, r.buyer_name, kindNames[r.kind], 'Entwurf #' + r.id].join(' ').toLowerCase().includes(q)) && (!st || r.status === st);
+    $$('[data-acc-cnt]').forEach(c => { const n = invoices.filter(r => IN_VIEW[c.dataset.accCnt](r)).length; c.textContent = n ? String(n) : ''; });
+    $$('[data-acc-view]').forEach(b => { const on = b.dataset.accView === invView; b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', String(on)); });
+    $('#accFilterBtn').classList.toggle('is-active', !!st);
+    const rows = invoices.filter(r => IN_VIEW[invView](r) && match(r));
+    const focused = document.activeElement?.closest?.('#accInvoiceRows [data-acc-open]')?.dataset.accOpen;  // Fokus übersteht das Neuzeichnen
+    $('#accCount').textContent = rows.length === invoices.length ? `${invoices.length} ${invoices.length === 1 ? 'Rechnung' : 'Rechnungen'}` : `${rows.length} von ${invoices.length} Rechnungen`;
+    $('#accInvoiceRows').innerHTML = rows.length ? rows.map(r => `<div class="ui-row acc-row" role="listitem" tabindex="0" data-acc-open="${r.id}" aria-label="${esc(r.number || 'Entwurf #' + r.id)} öffnen">
+        <div class="ui-main"><b>${esc(r.number || 'Entwurf #' + r.id)}</b><small>${esc(r.buyer_name || '–')} · ${esc(kindNames[r.kind] || r.kind)}${r.issue_date ? ' vom ' + esc(deDate(r.issue_date)) : ''}</small></div>
+        <div class="ui-cut" title="${esc(nextStep(r))}">${esc(nextStep(r))}</div>
+        <div>${dueCell(r)}</div>
+        <div>${statusPill(r)}</div>
+        <div class="ui-num">${money(r.gross_cents)}${r.status === 'teilbezahlt' ? `<small>offen ${money(r.outstanding_cents)}</small>` : ''}</div>
+        <div class="ui-chev" aria-hidden="true">›</div></div>`).join('')
+      : `<div class="ui-empty">${invoices.length ? 'Keine Rechnung passt zu Suche, Ansicht und Filter.' : 'Noch keine Rechnungen. Ergänze die Stammdaten und erstelle die erste Rechnung – oder übernimm ein angenommenes Angebot.'}</div>`;
+    if (focused) $(`#accInvoiceRows [data-acc-open="${focused}"]`)?.focus({preventScroll: true});
   }
 
   function leadOptions(selected) {
-    return '<option value="">– ohne Lead –</option>' + leads.map(l => `<option value="${l.id}" ${String(l.id) === String(selected ?? '') ? 'selected' : ''}>${esc(l.company)}</option>`).join('');
+    return '<option value="">– ohne Firma –</option>' + leads.map(l => `<option value="${l.id}" ${String(l.id) === String(selected ?? '') ? 'selected' : ''}>${esc(l.company)}</option>`).join('');
   }
 
   function lineRow(line = {}) {
@@ -114,9 +174,8 @@
   }
 
   function openEditor(inv) {
+    setMode('edit');
     editingId = inv?.id || null;
-    $('#accDetail').classList.add('hidden');
-    $('#accEditor').classList.remove('hidden');
     const f = $('#accInvoiceForm');
     f.reset();
     $('#accLeadSelect').innerHTML = leadOptions(inv?.lead_id);
@@ -127,11 +186,10 @@
     }
     $('#accLines').innerHTML = (inv?.lines?.length ? inv.lines : [{}]).map(lineRow).join('');
     $('#accEditorTitle').textContent = inv?.id ? `Entwurf #${inv.id} bearbeiten` : 'Neue Rechnung';
-    $('#accEditorKicker').textContent = inv?.kind ? (kindNames[inv.kind] || 'Rechnung').toUpperCase() + ' · ENTWURF' : 'ENTWURF';
+    $('#accEditorKicker').textContent = inv?.kind ? `${kindNames[inv.kind] || 'Rechnung'} · Entwurf` : 'Entwurf – noch nicht gespeichert';
     ['#accDeleteDraft', '#accPreview', '#accFinalize'].forEach(s => $(s).classList.toggle('hidden', !editingId));
     $('#accChecks').innerHTML = inv?.checks?.length ? `<div class="sales-banner sales-warning"><b>Vor der Festschreibung fehlt:</b><ul>${inv.checks.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>` : (editingId ? '<div class="sales-banner">Pflichtangaben vollständig. Nach der Festschreibung ist die Rechnung unveränderbar.</div>' : '');
     updateTotals();
-    $('#accEditor').scrollIntoView({behavior: 'smooth', block: 'start'});
   }
 
   function invoicePayload() {
@@ -161,7 +219,6 @@
     try {
       const final = await api(`/accounting/invoices/${inv.id}/finalize`, 'POST', {confirm: true});
       toast(`Rechnung ${final.number} festgeschrieben – nichts wurde versendet`);
-      $('#accEditor').classList.add('hidden');
       loadInvoices();
       showDetail(final);
     } catch (err) { toast(err.message, true); }
@@ -174,27 +231,27 @@
     } catch (e) { toast(e.message, true); }
   }
 
+  window.accOpenInvoice = openInvoice;
+
   function showDetail(inv) {
-    editingId = null;
-    $('#accEditor').classList.add('hidden');
+    setMode('detail');
     const el = $('#accDetail');
-    el.classList.remove('hidden');
     const open = ['offen', 'teilbezahlt'].includes(inv.status);
     const payments = inv.payments.length ? inv.payments.map(p => `<div class="sales-item"><div><strong>${money(p.amount_cents)} · ${deDate(p.paid_on)}</strong><small>${esc(methodNames[p.method] || p.method)}${p.note ? ' · ' + esc(p.note) : ''}</small></div><button type="button" class="btn btn-ghost" data-acc-del-payment="${p.id}">Zurücknehmen</button></div>`).join('') : '<div class="empty">Noch kein Zahlungseingang.</div>';
     const dunning = inv.dunning.map(d => `<details class="acc-dunning"><summary>${esc(catalog.dunning_levels[d.level])} vom ${deDate(d.created_on)} · neue Frist ${deDate(d.new_due_date)}</summary><pre>${esc(d.text)}</pre></details>`).join('');
-    el.innerHTML = `<div class="studio-section-head"><div><span class="eyebrow">${esc((kindNames[inv.kind] || '').toUpperCase())} · ${esc(statusNames[inv.status].toUpperCase())}</span><h2>${esc(inv.number)} · ${esc(inv.buyer_name)}</h2></div><button type="button" class="text-button" data-acc-close-detail>Schließen ✕</button></div>
-      <div class="acc-detail-grid"><div><small>Rechnungsdatum</small><b>${deDate(inv.issue_date)}</b></div><div><small>Fällig</small><b>${deDate(inv.due_date)}</b></div><div><small>Brutto</small><b>${money(inv.gross_cents)}</b></div><div><small>Offen</small><b>${money(inv.outstanding_cents)}</b>${inv.overdue_days ? `<small class="late">${inv.overdue_days} Tage überfällig</small>` : ''}</div></div>
+    // 2.0.0-dev53: geöffnete Rechnung als eigene Ansicht – „← Rechnungen“, Nummer, Status, Hauptaktion Drucken / PDF
+    el.innerHTML = `<div class="ui-head"><button type="button" class="ui-back" data-acc-close-detail>← Rechnungen</button><h1>${esc(inv.number)}</h1>${statusPill(inv)}<span class="ui-meta">${esc(inv.buyer_name)} · ${esc(kindNames[inv.kind] || '')}</span><span class="ui-sp"></span><a class="btn btn-primary" href="/rechnung/${inv.id}" target="_blank" rel="noopener">Drucken / PDF ↗</a></div>
+      <div class="ui-card acc-detail"><div class="acc-detail-grid"><div><small>Rechnungsdatum</small><b>${deDate(inv.issue_date)}</b></div><div><small>Fällig</small><b>${deDate(inv.due_date)}</b></div><div><small>Brutto</small><b>${money(inv.gross_cents)}</b></div><div><small>Offen</small><b>${money(inv.outstanding_cents)}</b>${inv.overdue_days ? `<small class="late">${inv.overdue_days} Tage überfällig</small>` : ''}</div></div>
       ${inv.corrects ? `<p class="muted">Storniert Rechnung ${esc(inv.corrects.number)} vom ${deDate(inv.corrects.issue_date)}.</p>` : ''}${inv.corrected_by.length ? `<p class="muted">Storniert durch ${inv.corrected_by.map(c => `<button type="button" class="text-button" data-acc-open="${c.id}">${esc(c.number)}</button>`).join(', ')}.</p>` : ''}
-      <div class="acc-btn-group"><a class="btn btn-primary" href="/rechnung/${inv.id}" target="_blank" rel="noopener">Drucken / PDF ↗</a><a class="btn btn-ghost" href="/api/accounting/invoices/${inv.id}/xrechnung" download>E-Rechnung (XRechnung XML) ↓</a>${inv.kind !== 'storno' ? `<button type="button" class="btn btn-ghost" data-acc-duplicate="${inv.id}">Als neuen Entwurf kopieren</button>` : ''}${inv.status === 'offen' && inv.kind !== 'storno' ? `<button type="button" class="btn btn-danger" data-acc-cancel="${inv.id}">Stornieren</button>` : ''}</div>
+      <div class="acc-btn-group"><a class="btn btn-ghost" href="/api/accounting/invoices/${inv.id}/xrechnung" download>E-Rechnung (XRechnung XML) ↓</a>${inv.kind !== 'storno' ? `<button type="button" class="btn btn-ghost" data-acc-duplicate="${inv.id}">Als neuen Entwurf kopieren</button>` : ''}${inv.status === 'offen' && inv.kind !== 'storno' ? `<button type="button" class="btn btn-danger" data-acc-cancel="${inv.id}">Stornieren</button>` : ''}</div>
       <p class="muted">Die XRechnung ist die rechtlich maßgebliche E-Rechnung für Geschäftskunden; das PDF ist eine Ansichtskopie. Nichts wird automatisch versendet.</p>
       <div class="sales-cols acc-detail-cols">
         <div><div class="sales-subhead">Zahlungseingänge</div><div class="sales-list">${payments}</div>
-          ${open ? `<form class="sales-form" id="accPaymentForm"><div class="acc-row3"><label>Betrag €<input name="amount_eur" inputmode="decimal" value="${(inv.outstanding_cents / 100).toFixed(2).replace('.', ',')}"></label><label>Datum<input type="date" name="paid_on" value="${iso(new Date())}"></label><label>Art<select name="method">${catalog.payment_methods.map(m => `<option value="${m}">${esc(methodNames[m])}</option>`).join('')}</select></label></div><label>Notiz (z. B. Kontoauszug-Nr.)<input name="note" maxlength="300"></label><button type="submit" class="btn btn-primary">Zahlung erfassen</button></form>` : ''}</div>
+          ${open ? `<form class="sales-form" id="accPaymentForm"><div class="acc-row3"><label>Betrag €<input name="amount_eur" inputmode="decimal" value="${(inv.outstanding_cents / 100).toFixed(2).replace('.', ',')}"></label><label>Datum<input type="date" name="paid_on" value="${iso(new Date())}"></label><label>Art<select name="method">${catalog.payment_methods.map(m => `<option value="${m}">${esc(methodNames[m])}</option>`).join('')}</select></label></div><label>Notiz (z. B. Kontoauszug-Nr.)<input name="note" maxlength="300"></label><button type="submit" class="btn btn-ghost">Zahlung erfassen</button></form>` : ''}</div>
         <div><div class="sales-subhead">Mahnwesen</div>${dunning || '<div class="empty">Keine Mahnungen.</div>'}
           ${open && inv.overdue_days ? `<form class="sales-form" id="accDunningForm"><label>Stufe<select name="level">${Object.entries(catalog.dunning_levels).map(([k, v]) => `<option value="${k}" ${Number(k) === Math.min(3, (inv.dunning.at(-1)?.level || 0) + 1) ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></label><label class="quote-addon"><input type="checkbox" name="include_interest"><span>Verzugszinsen (§ 288 Abs. 2 BGB)<small>Basiszins + 9 Prozentpunkte, nur bei Verzug eines Geschäftskunden</small></span></label><label class="quote-addon"><input type="checkbox" name="include_fee"><span>Verzugspauschale 40 € (§ 288 Abs. 5 BGB)</span></label><button type="submit" class="btn btn-ghost">Mahnschreiben entwerfen</button></form><div id="accDunningPreview"></div>` : (open ? '<p class="muted">Noch nicht fällig.</p>' : '')}</div>
-      </div>`;
+      </div></div>`;
     el.dataset.invoiceId = inv.id;
-    el.scrollIntoView({behavior: 'smooth', block: 'start'});
   }
 
   async function submitPayment(form) {
@@ -222,6 +279,7 @@
       const [rows, docs] = await Promise.all([api('/accounting/expenses' + ($('#accShowCancelled').checked ? '?all=1' : '')), api('/accounting/documents')]);
       const f = $('#accExpenseForm');
       if (!f.elements.expense_date.value) f.elements.expense_date.value = iso(new Date());
+      $('#accExpCount').textContent = `${rows.filter(x => x.status !== 'storniert').length} erfasst${docs.length ? ` · ${docs.length} E-Rechnung${docs.length === 1 ? '' : 'en'} archiviert` : ''}`;
       $('#accExpenseList').innerHTML = rows.length ? rows.map(x => `<div class="sales-item ${x.status === 'storniert' ? 'acc-cancelled' : ''}"><div><strong>${esc(x.supplier)} · ${money(x.gross_cents)}${x.reverse_charge ? ' · §13b' : ''}</strong><small>${deDate(x.expense_date)} · ${esc(x.category_label)} (${esc(x.account_skr03)}) · ${x.vat_cents ? 'USt. ' + money(x.vat_cents) : 'ohne USt.'} · ${x.paid_on ? 'bezahlt ' + deDate(x.paid_on) : 'unbezahlt'}${x.receipt_ref ? ' · ' + esc(x.receipt_ref) : ''}${x.status === 'storniert' ? ' · STORNIERT' : ''}</small>${x.warnings.map(w => `<small class="late">${esc(w)}</small>`).join('')}</div><div class="acc-btn-group">${x.status === 'aktiv' && !x.paid_on ? `<button type="button" class="btn btn-ghost" data-acc-exp-paid="${x.id}">Heute bezahlt</button>` : ''}${x.document_id ? `<a class="btn btn-ghost" href="/api/accounting/documents/${x.document_id}/xml" download>XML</a>` : ''}${x.status === 'aktiv' ? `<button type="button" class="btn btn-ghost" data-acc-exp-cancel="${x.id}">Storno</button>` : ''}</div></div>`).join('') : '<div class="empty">Noch keine Ausgaben erfasst.</div>';
       $('#accDocuments').innerHTML = docs.length ? docs.slice(0, 15).map(d => `<div class="sales-item"><div><strong>${esc(d.supplier || '?')} · ${esc(d.number || '?')}</strong><small>${esc(d.format)} · ${esc(d.created_at)} · ${d.expense_id ? 'gebucht' : 'noch nicht gebucht'}</small></div><a class="btn btn-ghost" href="/api/accounting/documents/${d.id}/xml" download>Original ↓</a></div>`).join('') : '<div class="empty">Noch keine E-Rechnung importiert.</div>';
     } catch (e) { toast(e.message, true); }
@@ -292,14 +350,15 @@
       const eu = r.euer;
       $('#accEuer').innerHTML = `<div class="sales-internal-grid"><span>Betriebseinnahmen (netto, zugeflossen)</span><b>${money(eu.income_net_cents)}</b><span>Vereinnahmte USt.</span><b>${money(eu.income_vat_cents)}</b><span>Betriebsausgaben${r.small_business ? ' (brutto)' : ' (netto)'}</span><b>${money(eu.expenses_cents)}</b><span>Gezahlte Vorsteuer</span><b>${money(eu.input_vat_cents)}</b><span><b>Überschuss (vereinfacht)</b></span><b>${money(eu.profit_cents)}</b></div><div class="sales-subhead">Ausgaben nach Kategorie</div>${eu.by_category.length ? `<div class="sales-internal-grid">${eu.by_category.map(c => `<span>${esc(c.label)}</span><b>${money(c.cents)}</b>`).join('')}</div>` : '<div class="empty">Keine Ausgaben im Zeitraum.</div>'}<p class="muted">${esc(eu.note)}</p>`;
       const route = Object.entries(k.paid_by_contact_route_cents);
-      $('#accSalesKpis').innerHTML = `<div class="sales-internal-grid"><span>Angebote erstellt</span><b>${k.proposals_total}</b>${Object.entries(k.proposals_by_status).map(([s, n]) => `<span>· ${esc(s.replaceAll('_', ' '))}</span><b>${n}</b>`).join('')}<span>Annahmequote (angenommen / entschieden)</span><b>${k.acceptance_rate_pct === null ? '–' : k.acceptance_rate_pct + ' %'}</b><span>Ø angenommener Auftragswert netto</span><b>${k.avg_accepted_net_eur === null ? '–' : money(k.avg_accepted_net_eur * 100)}</b><span>Leads gewonnen / verloren</span><b>${k.leads_won} / ${k.leads_lost}</b></div><div class="sales-subhead">Zahlungseingang nach Kontaktweg</div>${route.length ? `<div class="sales-internal-grid">${route.map(([r, c]) => `<span>${esc(r === 'unbekannt' ? 'Kontaktweg nicht erfasst' : ((typeof routeNames !== 'undefined' && routeNames[r]) || r))}</span><b>${money(c)}</b>`).join('')}</div>` : '<div class="empty">Noch keine Zahlungen mit Lead-Zuordnung.</div>'}<p class="muted">${esc(k.note)}</p>`;
+      $('#accSalesKpis').innerHTML = `<div class="sales-internal-grid"><span>Angebote erstellt</span><b>${k.proposals_total}</b>${Object.entries(k.proposals_by_status).map(([s, n]) => `<span>· ${esc(s.replaceAll('_', ' '))}</span><b>${n}</b>`).join('')}<span>Annahmequote (angenommen / entschieden)</span><b>${k.acceptance_rate_pct === null ? '–' : k.acceptance_rate_pct + ' %'}</b><span>Ø angenommener Auftragswert netto</span><b>${k.avg_accepted_net_eur === null ? '–' : money(k.avg_accepted_net_eur * 100)}</b><span>Firmen gewonnen / verloren</span><b>${k.leads_won} / ${k.leads_lost}</b></div><div class="sales-subhead">Zahlungseingang nach Kontaktweg</div>${route.length ? `<div class="sales-internal-grid">${route.map(([r, c]) => `<span>${esc(r === 'unbekannt' ? 'Kontaktweg nicht erfasst' : ((typeof routeNames !== 'undefined' && routeNames[r]) || r))}</span><b>${money(c)}</b>`).join('')}</div>` : '<div class="empty">Noch keine Zahlungen mit Firmen-Zuordnung.</div>'}<p class="muted">${esc(k.note)}</p>`;
       $('#accExports').innerHTML = [['rechnungen', 'Rechnungsausgangsbuch'], ['ausgaben', 'Ausgaben / Belege'], ['buchungen', 'Buchungsliste (SKR03-Vorschlag)']].map(([kind, label]) => `<a class="btn btn-ghost" href="/api/accounting/export/${kind}.csv?${qs}" download>${esc(label)} ↓</a>`).join('');
       $('#accAudit').innerHTML = audit.length ? audit.slice(0, 60).map(a => `<div class="sales-item"><div><strong>${esc(a.entity)} #${esc(a.entity_id)} · ${esc(a.action.replaceAll('_', ' '))}</strong><small>${esc(a.ts)} UTC · ${esc(a.detail)}</small></div></div>`).join('') : '<div class="empty">Noch keine Einträge.</div>';
     } catch (err) { toast(err.message, true); }
   }
 
-  // ------------------------------------------------------------ Stammdaten & Backup
+  // ------------------------------------------------------------ Stammdaten & Backup (Einstellungen → Meine Firma, Sicherung & Zugang)
   async function loadSettings() {
+    if (!$('#accSettingsForm')) return;
     try {
       settings = await api('/accounting/settings');
       const f = $('#accSettingsForm');
@@ -308,9 +367,10 @@
         if (el.type === 'checkbox') el.checked = !!settings[el.name]; else el.value = settings[el.name] ?? '';
       }
       const b = await api('/backups');
-      $('#accBackupInfo').innerHTML = `<small class="muted">Ordner: ${esc(b.folder)}</small>` + (b.backups.length ? b.backups.slice(0, 8).map(x => `<div class="sales-item"><div><strong>${esc(x.name)}</strong><small>${esc(x.modified)} · ${(x.size_bytes / 1024).toFixed(0)} KB</small></div></div>`).join('') : '<div class="empty">Noch kein Backup erstellt.</div>');
+      if ($('#accBackupInfo')) $('#accBackupInfo').innerHTML = `<small class="muted">Ordner: ${esc(b.folder)}</small>` + (b.backups.length ? b.backups.slice(0, 8).map(x => `<div class="sales-item"><div><strong>${esc(x.name)}</strong><small>${esc(x.modified)} · ${(x.size_bytes / 1024).toFixed(0)} KB</small></div></div>`).join('') : '<div class="empty">Noch kein Backup erstellt.</div>');
     } catch (e) { toast(e.message, true); }
   }
+  window.accLoadSettings = loadSettings;
 
   async function saveSettings(e) {
     e.preventDefault();
@@ -324,10 +384,13 @@
   // ------------------------------------------------------------ Events
   function init() {
     if (!$('#viewAccounting')) return;
-    $$('#viewAccounting .acc-tab').forEach(b => b.addEventListener('click', () => showTab(b.dataset.accTab)));
-    $('#accInvoiceFilter').addEventListener('change', loadInvoices);
+    $('#accQ').addEventListener('input', renderInvoices);
+    $('#accInvoiceFilter').addEventListener('change', renderInvoices);
+    $('#accViews').addEventListener('click', e => { const b = e.target.closest('[data-acc-view]'); if (b) { invView = b.dataset.accView; renderInvoices(); } });
+    $('#accFilterReset').addEventListener('click', () => { $('#accInvoiceFilter').value = ''; $('#accQ').value = ''; invView = 'alle'; renderInvoices(); });
+    $('#accRefresh').addEventListener('click', () => window.refreshAccounting('accounting'));
     $('#accNewInvoice').addEventListener('click', () => openEditor(null));
-    $('#accEditorClose').addEventListener('click', () => { $('#accEditor').classList.add('hidden'); editingId = null; });
+    $('#accEditorClose').addEventListener('click', () => { setMode('list'); loadInvoices(); });
     $('#accAddLine').addEventListener('click', () => { $('#accLines').insertAdjacentHTML('beforeend', lineRow()); updateTotals(); });
     $('#accInvoiceForm').addEventListener('input', updateTotals);
     $('#accInvoiceForm').addEventListener('change', updateTotals);
@@ -336,7 +399,7 @@
     $('#accPreview').addEventListener('click', () => editingId && window.open('/rechnung/' + editingId, '_blank', 'noopener'));
     $('#accDeleteDraft').addEventListener('click', async () => {
       if (!editingId || !confirm('Entwurf löschen?')) return;
-      try { await api('/accounting/invoices/' + editingId, 'DELETE'); toast('Entwurf gelöscht'); $('#accEditor').classList.add('hidden'); editingId = null; loadInvoices(); }
+      try { await api('/accounting/invoices/' + editingId, 'DELETE'); toast('Entwurf gelöscht'); setMode('list'); loadInvoices(); }
       catch (e) { toast(e.message, true); }
     });
     $('#accLeadSelect').addEventListener('change', async e => {
@@ -353,23 +416,26 @@
     $('#accPreset').addEventListener('change', () => { applyPreset(); loadReport(); });
     $('#accReportForm').addEventListener('submit', loadReport);
     $('#accReportForm').addEventListener('input', e => { if (e.target.type === 'date') $('#accPreset').value = 'custom'; });
-    $('#accSettingsForm').addEventListener('submit', saveSettings);
-    $('#accBackup').addEventListener('click', async () => {
+    $('#accSettingsForm')?.addEventListener('submit', saveSettings);
+    $('#accBackup')?.addEventListener('click', async () => {
       try { const b = await api('/backup', 'POST', {}); toast('Backup erstellt: ' + b.path); loadSettings(); } catch (e) { toast(e.message, true); }
     });
+    // Ausgaben, Auswertung und Steuer laden beim Wechsel des Reiters (Rechnungen lädt app.js über refreshAccounting)
+    document.addEventListener('signaldesk:view', e => { if (['expenses', 'revenue', 'tax'].includes(e.detail.view)) window.refreshAccounting(e.detail.view); });
     $('#viewAccounting').addEventListener('submit', e => {
       if (e.target.id === 'accPaymentForm') { e.preventDefault(); submitPayment(e.target); }
       if (e.target.id === 'accDunningForm') { e.preventDefault(); submitDunning(e.target); }
     });
-    $('#viewAccounting').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('tr[data-acc-open]')) { e.preventDefault(); openInvoice(Number(e.target.dataset.accOpen)); } });
-    $('#viewAccounting').addEventListener('click', async e => {
+    $('#viewAccounting').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-acc-open]')) { e.preventDefault(); openInvoice(Number(e.target.dataset.accOpen)); } });
+    document.addEventListener('click', async e => {
       const t = e.target;
+      if (!t.closest('#viewAccounting, #viewExpenses, #viewRevenue, #viewTax')) return;
       const open = t.closest('[data-acc-open]');
-      if (open) { if (currentTab !== 'invoices') showTab('invoices'); return openInvoice(Number(open.dataset.accOpen)); }
+      if (open) { if (currentView !== 'accounting') switchView('accounting'); return openInvoice(Number(open.dataset.accOpen)); }
       const fp = t.closest('[data-acc-from-proposal]');
       if (fp) return fromProposal(Number(fp.dataset.accFromProposal), fp.dataset.mode);
       if (t.closest('[data-acc-del-line]')) { const rows = $$('#accLines .acc-line'); if (rows.length > 1) t.closest('tr').remove(); updateTotals(); return; }
-      if (t.closest('[data-acc-close-detail]')) { $('#accDetail').classList.add('hidden'); return; }
+      if (t.closest('[data-acc-close-detail]')) { setMode('list'); return; }
       const dup = t.closest('[data-acc-duplicate]');
       if (dup) { try { const inv = await api(`/accounting/invoices/${dup.dataset.accDuplicate}/duplicate`, 'POST', {}); toast('Kopie als Entwurf angelegt – Leistungsdatum ergänzen'); loadInvoices(); openEditor(inv); } catch (err) { toast(err.message, true); } return; }
       const cancel = t.closest('[data-acc-cancel]');

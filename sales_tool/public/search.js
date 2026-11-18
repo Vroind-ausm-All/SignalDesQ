@@ -80,7 +80,10 @@
       if (i.kind === 'befehl' && i.cmd === 'neue_firma') await showModal();
       else if (i.kind === 'firma' || i.kind === 'chance') { switchView('leads'); await showModal(i.lead_id); }
       else if (i.kind === 'angebot') { switchView('quotes'); await window.wsOpenProposal?.(i.id); $('#quoteSaved')?.scrollIntoView({block: 'start'}); }
-      else if (i.kind === 'rechnung') { switchView('accounting'); toast(`Rechnung ${i.title}: in der Rechnungsliste öffnen`); }
+      else if (i.kind === 'rechnung') {  // 2.0.0-dev53: Rechnung direkt öffnen (Entwurf im Editor, sonst die geöffnete Rechnung)
+        switchView('accounting');
+        if (window.accOpenInvoice) await window.accOpenInvoice(i.id); else toast(`Rechnung ${i.title}: in der Rechnungsliste öffnen`);
+      }
     } catch (e) { toast(e.message, true); }
   }
 

@@ -2,10 +2,16 @@
 
 Neuer Menüpunkt **„Rechnungen & Buchhaltung“** mit fünf Bereichen. Alles läuft lokal; es wird nichts versendet und nichts an ELSTER, DATEV oder Banken übertragen.
 
+> **Seit 2.0.0-dev53** heißt der Bereich „Abrechnen“ und hat vier Reiter: **Rechnungen** (`#/abrechnen`, Liste mit „＋ Neue Rechnung“,
+> Editor und geöffnete Rechnung), **Ausgaben** (`#/abrechnen/ausgaben`, Belege und E-Rechnungen), **Auswertung** (`#/abrechnen/auswertung`,
+> Forderungen, Mahnwesen, 12 Monate, Vertriebskennzahlen) und **Steuer & Export** (`#/abrechnen/steuer`, USt-Vorbereitung, EÜR, CSV-Exporte,
+> Änderungsprotokoll). Die Stammdaten stehen unter **Einstellungen → Meine Firma**, das Backup unter **Einstellungen → Sicherung & Zugang**.
+> Fehlen Pflichtangaben, zeigt die Rechnungsliste eine Klappzeile „Stammdaten“ mit „Stammdaten ergänzen“. Die Regeln unten gelten unverändert.
+
 ## Erste Schritte
 
-1. **Stammdaten & Sicherung**: Firmenname, Anschrift, Steuernummer *oder* USt-IdNr., E-Mail, Telefon, IBAN eintragen. Kleinunternehmer nur aktivieren, wenn § 19 UStG wirklich gilt. Ist- oder Soll-Versteuerung wählen.
-2. **Backup jetzt erstellen**: legt eine konsistente Kopie im Ordner `backups` neben der Datenbank an (Standard: `%USERPROFILE%\.akquise-tool\backups`). Zusätzlich extern sichern.
+1. **Stammdaten** (seit dev53: Einstellungen → Meine Firma): Firmenname, Anschrift, Steuernummer *oder* USt-IdNr., E-Mail, Telefon, IBAN eintragen. Kleinunternehmer nur aktivieren, wenn § 19 UStG wirklich gilt. Ist- oder Soll-Versteuerung wählen.
+2. **Backup jetzt erstellen** (seit dev53: Einstellungen → Sicherung & Zugang): legt eine konsistente Kopie im Ordner `backups` neben der Datenbank an (Standard: `%USERPROFILE%\.akquise-tool\backups`). Zusätzlich extern sichern.
 3. **Angebot annehmen** (Angebote & Preise → Status „angenommen“): Lead wird auf „Gewonnen“ gesetzt, eine Aktivität protokolliert. Darunter erscheinen die Knöpfe „Abschlagsrechnung 40 %“ und „Schluss-/Gesamtrechnung“ (bei Growth Care: „Monatsrechnung“).
 4. Im Rechnungsentwurf die **vollständige Kundenanschrift** und das **Leistungsdatum** ergänzen, „Entwurf speichern“, „Vorschau“ prüfen.
 5. **Festschreiben**: Erst jetzt wird die fortlaufende Nummer vergeben. Danach ist die Rechnung unveränderbar.

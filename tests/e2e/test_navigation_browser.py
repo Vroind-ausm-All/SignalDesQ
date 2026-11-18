@@ -70,7 +70,8 @@ class NavigationBrowserTests(unittest.TestCase):
                         self.assertEqual(labels, ['Heute', 'Finden', 'Firmen', 'Angebote', 'Abrechnen', 'Einstellungen'])
                         self.assertEqual(page.text_content('.sidebar [data-area="einstellungen"] .nav-dot'), '')  # KI-Status ist kein Zähler
                         # 2.0.0-dev51: Recherche, URL-Recherche, Website-Scoring und Kaufsignale stehen als Reiter unter „Finden → Analysen“
-                        tabs = page.evaluate('() => [...document.querySelectorAll("#areaBar [data-area-view], #fdAnBar [data-area-view]")].map(b => b.dataset.areaView)')
+                        # 2.0.0-dev53: KI-Studio und Hilfe stehen in der Abschnittsliste der Einstellungen (#esNav) statt als Reiter
+                        tabs = page.evaluate('() => [...document.querySelectorAll("#areaBar [data-area-view], #fdAnBar [data-area-view], #esNav [data-area-view]")].map(b => b.dataset.areaView)')
                         self.assertEqual(sorted(set(tabs) & set(OLD_VIEWS)), sorted(OLD_VIEWS))
 
                         # Bereich → Standardansicht, Reiter → weitere Ansicht; Adresse folgt
@@ -124,12 +125,15 @@ class NavigationBrowserTests(unittest.TestCase):
                         self.assertEqual(visible_view(page), 'viewSettings')
                         for section in ('darstellung', 'ownTimes', 'leistungsprofil', 'targetProfile', 'qbSettingsBox', 'gewichte', 'rtPanel', 'zugang', 'offline'):
                             self.assertEqual(page.evaluate(f'() => document.getElementById("{section}").closest(".content").id'), 'viewSettings', section)
+                        page.locator('#esNav [data-settings-jump="preise"]').click()  # 2.0.0-dev53: Abschnitt „Leistungen & Preise“
                         page.locator('#qbSettings input[name="hourly_rate"]').wait_for(timeout=15000)
                         page.locator('.sidebar [data-area="angebote"]').click()
                         page.locator('[data-settings-link="preise"]').click()
                         self.assertEqual(visible_view(page), 'viewSettings')
                         self.assertIn('abschnitt=preise', page.url)
-                        page.wait_for_function('() => Math.abs(document.getElementById("preise").getBoundingClientRect().top) < 120', timeout=5000)
+                        # 2.0.0-dev53: „preise“ ist ein eigener Abschnitt – er steht sichtbar am Beginn des Inhalts (≤ 200 px), statt
+                        # auf der langen Seite dorthin zu scrollen
+                        page.wait_for_function('() => !document.getElementById("preise").classList.contains("hidden") && document.getElementById("preise").getBoundingClientRect().top <= 200', timeout=5000)
                         if SHOTS:
                             page.screenshot(path=str(Path(SHOTS) / 'einstellungen.png'))
                         # Datenpflege bleibt unter Firmen, wiederkehrende Recherche steht unter Finden

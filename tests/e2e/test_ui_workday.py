@@ -177,6 +177,7 @@ class UiWorkdayTest(unittest.TestCase):
             self.assertIn('Jede Firma in einer Kontaktphase (Qualifiziert bis Angebot) hat einen nächsten Schritt', page.text_content('#tdCloseBody'))
             # Offline-Modus und Wiederherstellen-Liste unter „Einstellungen → Daten & Zugang“ (seit 2.0.0-dev14)
             page.evaluate("() => switchView('settings')")  # 2.0.0-dev14: Offline-Modus unter Einstellungen
+            page.click('#esNav [data-es-key="sicherung"]')  # 2.0.0-dev53: Abschnitt „Sicherung & Zugang“ der Abschnittsliste
             page.wait_for_timeout(1500)
             self.assertIn('signaldesk-', page.text_content('#qBackups'), 'Sicherung aus dem Tagesabschluss wird angeboten')
             page.check('#qOffline')

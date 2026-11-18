@@ -4,13 +4,13 @@ Verbindliche Grundlage für die Etappe „Visuelle Konsolidierung und Aufgabenf�
 Jede Ansicht wird aus denselben sieben Bausteinen gebaut. Die Klassen stehen in `sales_tool/public/style.css`
 (Abschnitt „UI-Baukasten“, Präfix `ui-`, damit nichts Bestehendes kollidiert).
 
-**Stand dev52:** Rahmen (Kopfzeile), Firmenliste und Heute (Schritt 2), „Finden → Sichten“ und „Finden → Neue Suche“ (Schritt 3)
-sowie der Bereich „Angebote“ mit Liste, Editor, geöffnetem Angebot, „Aufträge & Betreuung“ und „Auswertung“ (Schritt 4) sind umgestellt.
-Die übrigen Ansichten sind **noch nicht** umgestellt – auch die Unteransichten von „Finden → Analysen“ und „Import“ haben nur die neue
-Reiterzeile bzw. einen neuen ersten Abschnitt; Einstellungen, Abrechnen und die Firmenakte folgen in den Schritten 5 und 6. Innerhalb der
-Angebote stehen die Arbeitsschritte (Freigabe, Versand, Nachfassen, Kick-off, Übergabe), die Kartenliste der Nachkalkulation, die
-Bestandskunden und das Formular des Editors noch in ihren bisherigen Bausteinen – nur geordnet und eingebettet. Neu gebaute oder umgebaute Ansichten
-verwenden ausschließlich diese Bausteine.
+**Stand dev53:** Rahmen (Kopfzeile), Firmenliste und Heute (Schritt 2), „Finden → Sichten“ und „Finden → Neue Suche“ (Schritt 3),
+der Bereich „Angebote“ (Schritt 4) sowie Einstellungen und Abrechnen (Schritt 5) sind umgestellt. Die übrigen Ansichten sind **noch nicht**
+umgestellt – auch die Unteransichten von „Finden → Analysen“ und „Import“ haben nur die neue Reiterzeile bzw. einen neuen ersten Abschnitt;
+die Firmenakte folgt in Schritt 6. Innerhalb der Angebote stehen die Arbeitsschritte, die Nachkalkulation, die Bestandskunden und das
+Formular des Editors noch in ihren bisherigen Bausteinen – nur geordnet und eingebettet; ebenso in den Einstellungen die Formulare der
+Abschnitte (Karten mit Überschrift), im KI-Studio und Playbook der Inhalt und in Abrechnen das Rechnungsformular, Ausgaben, Auswertung und
+Steuer & Export. Neu gebaute oder umgebaute Ansichten verwenden ausschließlich diese Bausteine.
 
 ## Die sieben Bausteine
 
@@ -58,6 +58,15 @@ Dazu das **Kontextlayout** `.ui-with-side` mit `.ui-side`: Inhalt links, rechts 
 | Zeile mit Vertiefung | `<details><summary class="ui-row">…</summary><div class="ui-fold-body">…` | Listenzeile, die aufklappt statt zu öffnen (Positionen eines Angebots); das › dreht sich |
 | Prüfliste und Ablauf in der Kontextspalte | `.ui-card` mit `<ul class="qt-checks">`/`<ol class="qt-phases">`, Zeichen `.qt-ico` (✓ grün, ! rot, i gelb, Ziffer grau, aktuelle Phase gefüllt) | höchstens eine Zeile je Punkt, Zusatz 12 px darunter; jede Phase springt zu ihrem Arbeitsschritt |
 | Eingaben beim Neuzeichnen erhalten | `uiKeep(root, selector, draw)` und `uiSerial()` in `uikit.js` | jede Ansicht, die nach dem Speichern neu zeichnet, schreibt ungespeicherte Eingaben anderer Felder samt Fokus zurück und speichert der Reihe nach |
+
+### Ergänzungen seit dev53 (Schritt 5): Abschnittsliste und Klappzeile mit Aktion
+
+| Baustein | Klassen | Regel |
+|---|---|---|
+| Abschnittsliste | `.es-layout` mit `.es-nav-slot` (`nav.ui-list.es-nav`, darin `button.es-item` mit `.es-txt` = `<b>` Name + `.es-state` Kurzstand) und `.es-body` | links 240 px (`--list`), rechts der Abschnitt; Kurzstand nur aus vorhandenen Daten, eine Warnung als gelbe Pille (`.ui-pill.is-attention`), sonst grauer Text; aktiver Abschnitt `.is-active`/`aria-current`. Bis 1000 px eine Spalte: die Liste ist eine eigene Ansicht (`data-es-mode="list"`), ein Abschnitt zeigt „← Einstellungen“ (`.es-back`). Bisher nur in den Einstellungen (`einstellungen.js`) |
+| Klappzeile mit Aktion | `<details class="ui-fold ui-fold-act"><summary><b>…</b><span>Kurzstand</span><button class="ui-txt">Aktion</button></summary>` | eine Textaktion rechts in der Klappzeile (z. B. „Stammdaten ergänzen“); ein Klick darauf springt, ohne die Zeile aufzuklappen |
+| Sprungziel markieren | `.es-flash` | ein Sprung zu einem Element weiter unten im Abschnitt (bisherige Element-Adresse, Treffer der Suche) öffnet die Klappzeilen darüber, scrollt dorthin und umrandet es kurz |
+| Eingabeschutz außerhalb der Akte | `window.formGuard.ask(namen)` in `formguard.js` | dieselbe Rückfrage wie in der Akte (Speichern · Weiter bearbeiten · Verwerfen); die Einstellungen fragen beim Abschnittswechsel, wenn ein Formular, das erst mit „Speichern“ gilt, Ungespeichertes enthält |
 
 ## Regeln der Anwenderlogik
 
@@ -219,4 +228,76 @@ optionale Positionen, Nachfassen) sind unverändert; Server und Datenmodell auch
 | Lehren der Nachkalkulation (`#pkLesson`, `#pkServiceLessons`) | im Abschnitt Nachkalkulation | Angebote → Auswertung, Klappzeile „Lehren der Nachkalkulation“ | `test_ui_angebote_browser` |
 | Erlebnisstudien (`#stBox`), „Was du lernst“ (`#lnBox`) | Klappkarten auf der Angebotsseite | Angebote → Auswertung, Klappzeilen | `test_studies_browser`, `test_keep_input_browser`, `test_ui_angebote_browser` |
 | Begriffe | „Interessent / Unternehmen“ im Formular, „Lead“ in einer Statusmeldung | „Firma“; interne Namen unverändert | – (Text) |
+
+### Messwerte Einstellungen und Abrechnen (dev53)
+
+Gemessen bei 1280 × 720 (Klassisch hell und Schiefer dunkel gleich), Abrechnen mit 4 fiktiven Rechnungen (Entwurf, überfällig, offen, bezahlt):
+
+| Messung | dev52 | dev53 | Abnahme |
+|---|---|---|---|
+| Einstellungen: Oberkante des Inhalts | 377 px (erster Block „Darstellung“ unter Titel, Erklärtext und Sprungleiste) | 184 px (Abschnittsliste und Abschnitt) | ≤ 200 px |
+| Einstellungen: Seitenlänge | 13.728 px (eine Seite) | je Abschnitt 1.026 px (Datenquellen) bis 2.847 px (Kalender & Postfach); Meine Firma 1.306 px | kein Abschnitt länger als nötig |
+| Abrechnen: Oberkante der ersten Rechnungszeile | 436 px (erst nach Wechsel auf den inneren Reiter „Rechnungen“; Einstieg war die Übersicht) | 221 px (Einstieg) | ≤ 280 px |
+| Abrechnen: Zeilenhöhe | 72 px (Tabelle) | 56 px | 56 px |
+| Abrechnen: Hauptaktionen im Seitenkopf | – (kein Seitenkopf; „＋ Neue Rechnung“ grün in der Werkzeugleiste des Reiters) | genau eine („＋ Neue Rechnung“); geöffnete Rechnung: „Drucken / PDF ↗“ | genau eine |
+| 390 × 844: erste Rechnungszeile | 646 px | 374 px | kein waagerechtes Scrollen |
+
+Prüffall: `tests/e2e/test_ui_einstellungen_abrechnen_browser.py`.
+
+## Was wohin zog (Schritt 5, dev53)
+
+Keine Funktion entfiel. Server, Datenmodell und Buchhaltungsregeln (Festschreibung, Storno, E-Rechnung, Belege, Steuerexport) sind
+unverändert; geändert wurden nur drei Hinweistexte des Servers, die „Einstellungen → Daten & Zugang“ nannten (jetzt „Sicherung & Zugang“).
+Alle bisherigen Adressen gelten weiter: `#/einstellungen`, `#/einstellungen/ki-studio`, `#/einstellungen/hilfe`, `#/abrechnen` und jede
+bisherige Sprungadresse `#/einstellungen?abschnitt=<Element-ID>` (z. B. `kalender`, `datenquellen`, `preise`, `targetProfile`, `ownTimes`,
+`zugang`) – sie öffnet den Abschnitt, der das Element enthält, und scrollt dorthin, wenn es weiter unten steht. Neu sind die Abschnittsadressen
+`#/einstellungen?abschnitt=firma|preise|zielkunden|darstellung|kalender|datenquellen|sicherung|ki-werkzeuge|hilfe` sowie
+`#/abrechnen/ausgaben`, `#/abrechnen/auswertung` und `#/abrechnen/steuer`. `#/einstellungen` öffnet den zuletzt benutzten Abschnitt (in
+diesem Browser gemerkt), sonst „Meine Firma“; schmal (bis 1000 px) die Abschnittsliste.
+
+### Einstellungen: Zuordnung Block → Abschnitt
+
+| Block | Bisher | Jetzt (Abschnitt) | Prüffall |
+|---|---|---|---|
+| Sprungleiste (`data-settings-jump`) | Knopfreihe über der langen Seite | Abschnittsliste links mit Kurzstand (`#esNav`, die Knöpfe tragen weiter `data-settings-jump`) | `test_ui_einstellungen_abrechnen_browser`, `test_catalog_browser` |
+| Eyebrow, Titel „Einstellungen.“, Erklärtext | über der Seite | Seitenkopf „Einstellungen“ mit dem Abschnitt als Zusatz, Erklärtext als `title`; Werkzeugzeile mit „Einstellung suchen …“ | `test_ui_einstellungen_abrechnen_browser` |
+| Reiter „Profil & Arbeitsweise · Erweiterte Werkzeuge: KI-Studio · Hilfe & Leitfaden“ | Kopfzeile | entfallen; KI-Studio und Playbook sind die Abschnitte „KI-Werkzeuge“ und „Hilfe & Playbook“ (eigene Ansichten mit derselben Liste) | `test_navigation_browser`, `test_ui_firmen_heute_browser` |
+| Stammdaten für Rechnungen (`#accSettingsForm`) | Abrechnen → Stammdaten & Sicherung | **Meine Firma** (mit Hinweis, welche Pflichtangaben fehlen) | `test_ui_einstellungen_abrechnen_browser` |
+| Kalkulationsgrundlagen (`#qbSettingsBox`, `#qbSettings`) | Gruppe „Leistungen & Preise“, eine offene Klappkarte mit Vorlagen und Katalog | **Leistungen & Preise**, Klappzeile „Kalkulationsgrundlagen“ (offen) | `test_navigation_browser`, `test_catalog_browser` |
+| Vorlagen (`#qbVorlagen`), Leistungskatalog (`#qbCatalog`) | in derselben Klappkarte | **Leistungen & Preise**, Klappzeilen „Vorlagen“ und „Leistungskatalog“ (zu, mit Kurzstand) | `test_catalog_browser` |
+| Dein Leistungsprofil (`#leistungsprofil`) | Gruppe „Arbeitsweise“ | **Leistungen & Preise** | `test_service_profile_browser` |
+| Dein Zielkundenprofil (`#targetProfile`, Passungsstatistik) | Gruppe „Zielkunden“ | **Zielkunden** | `test_ui_einstellungen_abrechnen_browser` |
+| Gewichte & Fristen (`#gewichte`) | Gruppe „Recherche“ | **Zielkunden** | `test_v2_navigation` |
+| Theme, Hell/Dunkel, Dichte (`#darstellung`) | Gruppe „Darstellung“ | **Darstellung** | `test_appearance_browser`, `test_ui_firmen_heute_browser` |
+| Kalender-Abo, CalDAV, IMAP (`#kalender`) | Gruppe „Arbeitsweise“ | **Kalender & Postfach** | `test_calendar_browser`, `test_caldav_browser`, `test_imap_browser` |
+| Deine Zeiten (`#ownTimes`) | Gruppe „Arbeitsweise“ | **Kalender & Postfach** | `test_reach_browser` |
+| OpenStreetMap, GLEIF-Katalog, Quellen prüfen (`#datenquellen`) | Gruppe „Datenquellen“ | **Datenquellen** | `test_osm_local_browser`, `test_ui_finden_browser` |
+| Website-Abruf & Auswertung (`#rtPanel`) | Gruppe „Recherche“ | **Datenquellen** | `test_ui_einstellungen_abrechnen_browser` |
+| Zugang, Rollen, Sicherung, Wiederherstellen (`#zugang`) | Gruppe „Daten & Zugang“ | **Sicherung & Zugang** | `test_ui_workday` |
+| Offline-Modus, Impressum automatisch lesen (`#offline`) | Gruppe „Daten & Zugang“ | **Sicherung & Zugang** | `test_ui_workday` |
+| Backup der Buchhaltung (`#accBackup`, `#accBackupInfo`, Hinweis zur Aufbewahrung) | Abrechnen → Stammdaten & Sicherung | **Sicherung & Zugang**, Karte „Backup für die Aufbewahrung“ | `test_ui_einstellungen_abrechnen_browser` |
+| KI-Studio (Analyse-Labor, Website eines Leads untersuchen, Analyseverlauf) | Reiter „Erweiterte Werkzeuge: KI-Studio“ | **KI-Werkzeuge** (`#/einstellungen/ki-studio`) | `test_navigation_browser` |
+| Sales-Playbook | Reiter „Hilfe & Leitfaden“, „? Hilfe“ in der Seitenleiste | **Hilfe & Playbook** (`#/einstellungen/hilfe`), „? Hilfe“ unverändert | `test_catalog_browser`, `test_navigation_browser` |
+
+### Abrechnen
+
+| Funktion | Bisher | Jetzt | Prüffall |
+|---|---|---|---|
+| Reiter des Bereichs | keiner (eine Ansicht mit fünf inneren Reitern Übersicht · Rechnungen · Ausgaben & E-Rechnungen · Auswertung & Export · Stammdaten & Sicherung) | vier Reiter in der Kopfzeile: Rechnungen · Ausgaben · Auswertung · Steuer & Export | `test_ui_einstellungen_abrechnen_browser`, `test_ui_firmen_heute_browser` |
+| Einstieg | innerer Reiter „Übersicht“ | „Rechnungen“ (`#/abrechnen`) | `test_ui_einstellungen_abrechnen_browser` |
+| Titel „Vom Auftrag zum Zahlungseingang.“, Erklärtext, „Kein Versand · keine ELSTER-Übermittlung“ | über den Reitern | Seitenkopf „Abrechnen“ mit Anzahl; Erklärtext als `title`, Hinweis unter der Liste | – (Text) |
+| Rechnungstabelle (Nummer · Kunde · Datum/fällig · Brutto · Offen · Status) | innerer Reiter „Rechnungen“ | Liste Rechnung (Nummer, Firma · Art vom Datum) · Nächster Schritt · Fällig · Status · Betrag brutto (bei Teilzahlung „offen …“) · ›; Klick oder Enter öffnet | `test_ui_einstellungen_abrechnen_browser` |
+| Status-Auswahl | Auswahlliste neben „＋ Neue Rechnung“ | Ansichten Alle · Offen · Überfällig · Bezahlt · Entwürfe (mit Anzahl); alle Status unter „Filter ▾“ (dazu „Filter zurücksetzen“, „Aktualisieren ↻“); Suche nach Nummer oder Firma | `test_ui_einstellungen_abrechnen_browser` |
+| „＋ Neue Rechnung“ | grüner Knopf über der Tabelle | Hauptaktion im Seitenkopf | `test_ui_einstellungen_abrechnen_browser` |
+| Rechnungseditor (`#accEditor`, `#accInvoiceForm`) | unter der Tabelle, „Schließen ✕“ | eigene Ansicht mit „← Rechnungen“ (gleiche Kennung `#accEditorClose`), Formular in einer Karte; Festschreiben, Vorschau, Entwurf löschen unverändert | `test_ui_einstellungen_abrechnen_browser` |
+| Geöffnete Rechnung (`#accDetail`) | unter der Tabelle, „Schließen ✕“ | eigene Ansicht: „← Rechnungen“, Nummer, Status, Firma · Art; Hauptaktion „Drucken / PDF ↗“; E-Rechnung, Kopieren, Stornieren, Zahlungen (jetzt Nebenaktion „Zahlung erfassen“), Mahnwesen unverändert | `test_ui_einstellungen_abrechnen_browser` |
+| Warnungen (Stammdaten unvollständig, Kleinunternehmer-Grenzen, `#accWarnings`) | Reiter „Übersicht“ oben | Rechnungen, Klappzeile „Stammdaten“ mit Kurzstand und „Stammdaten ergänzen“ (→ Einstellungen → Meine Firma); nur sichtbar, wenn es eine Warnung gibt | `test_ui_einstellungen_abrechnen_browser` |
+| Angenommen, noch nicht berechnet (`#accUnbilled`) | Reiter „Übersicht“ | Rechnungen, Klappzeile „Aus Angeboten berechnen“ | – (Inhalt unverändert) |
+| Kennzahlen, Überfällige Rechnungen, 12 Monate | Reiter „Übersicht“ | Reiter „Auswertung“ | `test_ui_einstellungen_abrechnen_browser` |
+| Vertriebskennzahlen (`#accSalesKpis`) | Reiter „Auswertung & Export“ | Reiter „Auswertung“ (Zeitraum wie unter Steuer & Export) | – |
+| Zeitraum, USt-Voranmeldung, EÜR, CSV-Exporte, Änderungsprotokoll | Reiter „Auswertung & Export“ | Reiter „Steuer & Export“ | `test_ui_einstellungen_abrechnen_browser` |
+| Ausgabe buchen, E-Rechnung einlesen, erfasste Ausgaben | Reiter „Ausgaben & E-Rechnungen“ | Reiter „Ausgaben“ | `test_ui_einstellungen_abrechnen_browser` |
+| Stammdaten, Backup | Reiter „Stammdaten & Sicherung“ | Einstellungen → Meine Firma bzw. Sicherung & Zugang | `test_ui_einstellungen_abrechnen_browser` |
+| Rechnung aus der Suche (Strg+K) | wechselte nur zu Abrechnen („in der Rechnungsliste öffnen“) | öffnet die Rechnung direkt | – |
+| Begriffe | „Lead / Kunde“, „– ohne Lead –“, „Leads gewonnen / verloren“, „Zahlungen mit Lead-Zuordnung“ | „Firma / Kunde“, „– ohne Firma –“, „Firmen gewonnen / verloren“, „Firmen-Zuordnung“; interne Namen unverändert | – (Text) |
 

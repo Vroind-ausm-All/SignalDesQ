@@ -136,6 +136,7 @@
 
   function openProfile() {
     if (typeof closeModal === 'function') closeModal();
+    if (window.einstellungen) return window.einstellungen.open('targetProfile');  // 2.0.0-dev53: Abschnitt „Zielkunden“
     switchView('settings');
     setTimeout(() => $('#targetProfile')?.scrollIntoView({behavior: 'smooth'}), 50);
   }

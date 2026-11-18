@@ -53,6 +53,9 @@ class CatalogBrowserTests(unittest.TestCase):
                         page.goto(base + '/#/einstellungen')
                         page.wait_for_load_state('networkidle')
                         page.locator('[data-settings-jump="preise"]').click()
+                        # 2.0.0-dev53: Vorlagen und Leistungskatalog sind Klappzeilen im Abschnitt „Leistungen & Preise“
+                        page.locator('#qbVorlagenBox > summary').click()
+                        page.locator('#qbCatalogBox > summary').click()
 
                         # Vorlagen mit Preis und Herkunft
                         rows = page.locator('#qbVorlagen [data-qb-vorlage]')

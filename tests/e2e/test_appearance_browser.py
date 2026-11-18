@@ -54,6 +54,7 @@ class AppearanceBrowserTests(unittest.TestCase):
 
                         # 2.0.0-dev50: Hell/Dunkel nicht mehr in der Kopfzeile, sondern unter Einstellungen → Darstellung
                         page.locator('.sidebar [data-view="settings"]').click()  # 2.0.0-dev14: eigener Bereich Einstellungen
+                        page.locator('#esNav [data-settings-jump="darstellung"]').click()  # 2.0.0-dev53: Abschnitt „Darstellung“ der Abschnittsliste
                         page.locator('[data-ap-mode="dunkel"]').click()
                         page.wait_for_function('() => document.documentElement.dataset.mode === "dark"')
                         page.wait_for_load_state('networkidle')

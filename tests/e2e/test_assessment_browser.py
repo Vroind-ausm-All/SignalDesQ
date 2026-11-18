@@ -44,6 +44,7 @@ class AssessmentBrowserTests(unittest.TestCase):
 
                         # 1. Zielkundenprofil einstellen
                         page.locator('.sidebar [data-view="settings"]').click()  # 2.0.0-dev14: eigener Bereich Einstellungen
+                        page.locator('#esNav [data-settings-jump="zielkunden"]').click()  # 2.0.0-dev53: Abschnitt „Zielkunden“
                         form = page.locator('#targetProfileForm')
                         form.locator('input[name="home"]').fill('70173')
                         form.locator('summary').click()

@@ -87,8 +87,11 @@ class UiFirmenHeuteBrowserTests(unittest.TestCase):
                         for gone in ('#modeToggle', '.date-chip', '#newLeadBtn2'):
                             self.assertEqual(page.locator(gone).count(), 0, gone)
                         self.assertFalse(page.locator('.breadcrumb').is_visible())
-                        page.locator('.sidebar [data-area="abrechnen"]').click()  # Bereich mit nur einer Ansicht: keine Reiter (dev52: Angebote hat drei)
-                        self.assertFalse(page.locator('#areaBar .area-tabs[data-area="abrechnen"]').is_visible())
+                        # Bereich ohne Reiter: dev52 Angebote hat drei, dev53 Abrechnen hat vier – Einstellungen hat statt Reitern eine Abschnittsliste
+                        page.locator('.sidebar [data-area="abrechnen"]').click()
+                        self.assertTrue(page.locator('#areaBar .area-tabs[data-area="abrechnen"]').is_visible())
+                        page.locator('.sidebar [data-area="einstellungen"]').click()
+                        self.assertFalse(page.locator('#areaBar .area-tabs:not(.hidden)').count())
                         page.locator('.sidebar [data-area="firmen"]').click()
                         page.wait_for_function(f'() => {ROWS} === 9')
 
@@ -245,6 +248,7 @@ class UiFirmenHeuteBrowserTests(unittest.TestCase):
 
                         # Darstellung: Hell/Dunkel/System weiter unter Einstellungen → Darstellung
                         page.locator('.sidebar [data-area="einstellungen"]').click()
+                        page.locator('#esNav [data-settings-jump="darstellung"]').click()  # 2.0.0-dev53: Abschnitt „Darstellung“
                         page.locator('[data-ap-mode]').first.wait_for()
                         self.assertEqual(page.evaluate('() => [...document.querySelectorAll("[data-ap-mode]")].map(b => b.dataset.apMode)'), ['system', 'hell', 'dunkel'])
 

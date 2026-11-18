@@ -173,6 +173,31 @@
   });
   window.addEventListener('beforeunload', e => { if (dirty().length) { e.preventDefault(); e.returnValue = ''; } });
 
+  // 2.0.0-dev53: dieselbe Rückfrage für Formulare außerhalb der Akte (Einstellungen beim Abschnittswechsel, einstellungen.js).
+  // ask(Liste der Formularnamen) → Promise mit 'save' | 'edit' | 'discard'. Ist die Akte geschlossen, steht der Dialog solange direkt im
+  // Dokument (sonst wäre er mit der Akte ausgeblendet) und kehrt danach an seinen Platz zurück. Speichern selbst übernimmt der Aufrufer.
+  let outside = null;
+  function askOutside(labels) {
+    const box = byId('lfGuard');
+    if (!box || dialogOpen()) return Promise.resolve('edit');
+    return new Promise(resolve => {
+      const home = box.parentNode, next = box.nextSibling;
+      if (!modalOpen()) document.body.appendChild(box);
+      byId('lfGuardText').textContent = `Nicht gespeichert: ${labels.join(', ')}. Was soll damit passieren?`;
+      box.classList.remove('hidden');
+      outside = choice => {
+        outside = null;
+        hideDialog();
+        if (box.parentNode !== home) home.insertBefore(box, next);
+        resolve(choice);
+      };
+      onDecision = choice => outside && outside(choice);
+      box.querySelector('[data-guard="save"]').focus();
+    });
+  }
+
   // 2.0.0-dev19: rebase nach außen – nach dem Laden einer anderen Chance in die Bedarfsanalyse gilt dieser Stand als gespeichert
-  window.leadGuard = {remember, afterOpen, onClose, requestClose, dirty, dialogOpen, rebase, cancel: () => { hideDialog(); focusDirty(dirty()); }};
+  window.leadGuard = {remember, afterOpen, onClose, requestClose, dirty, dialogOpen, rebase,
+    cancel: () => { if (outside) return outside('edit'); hideDialog(); focusDirty(dirty()); }};
+  window.formGuard = {ask: askOutside};
 })();

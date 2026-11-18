@@ -80,6 +80,7 @@ class ReachBrowserTests(unittest.TestCase):
 
                         # 4. Eigene Zeiten speichern → Textbaustein und Terminvorschläge folgen
                         page.locator('.sidebar [data-view="settings"]').click()  # 2.0.0-dev14: eigener Bereich Einstellungen
+                        page.locator('#esNav [data-settings-jump="kalender"]').click()  # 2.0.0-dev53: „Deine Zeiten“ steht unter „Kalender & Postfach“
                         av = page.locator('#availabilityForm')
                         av.locator('input[name="callback_from"]').fill('11:00')
                         av.locator('input[name="callback_to"]').fill('12:00')

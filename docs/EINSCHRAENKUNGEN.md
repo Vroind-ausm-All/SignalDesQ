@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev52)
+# Bekannte Einschränkungen (Stand 2.0.0-dev53)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -334,4 +334,17 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - „＋ Neues Angebot“ beginnt mit einem leeren Editor – außer der Editor enthält noch Positionen, die nicht gespeichert sind; dann geht es dort weiter. Ein Neuladen im Editor (`#/angebote?neu=1`) beginnt leer; ungespeicherte Positionen gehen dabei wie bisher verloren.
 - Der Verlauf eines Angebots setzt sich aus vorhandenen Zeitpunkten zusammen (erstellt, freigegeben, versendet, Nachfassen, Entscheidung, Projektstart, Übergabe, Abnahme, Nachrichtenentwürfe mit Bezug auf das Angebot). Statuswechsel aus der Zeit vor dev17 haben kein Datum und erscheinen nicht.
 - Seit dev52 behalten Erlebnisstudie, Fachreview und Stichprobe Eingaben in anderen Feldern, wenn nach einer Auswahl neu gezeichnet wird. Geprüft mit künstlich verzögerter Antwort; ein Feld, das man nach dem Neuzeichnen ohne weitere Eingabe verlässt, speichert über ein nachgereichtes „change“.
+- Geprüft in Chromium (Playwright) bei 1280 × 720 und 390 × 844; nicht auf echten Geräten und nicht in anderen Browsern.
+
+## Einstellungen und Abrechnen im neuen Aufbau (2.0.0-dev53)
+
+- Umgestellt sind Rahmen und Aufbau: Abschnittsliste, Seitenkopf, Suche, Rechnungsliste, Reiter und Klappzeilen. Die Formulare in den Abschnitten (Stammdaten, Kalkulationsgrundlagen, Zielkundenprofil, Kalender, Sicherung …), das KI-Studio, das Playbook, der Rechnungseditor, Ausgaben, Auswertung und Steuer & Export stehen noch in ihren bisherigen Bausteinen (Karten mit Überschrift) – nur geordnet und eingebettet.
+- Die Warnung „letzte Sicherung alt“ erscheint ab 7 Tagen; diese Grenze ist eine Festlegung der Oberfläche, keine gesetzliche Frist. Gezählt wird die jüngste Datei im Sicherungsordner (auch eine automatische vor einer Wiederherstellung).
+- Den zuletzt benutzten Abschnitt merkt sich nur dieser Browser. Bis 1000 px Breite zeigt `#/einstellungen` die Abschnittsliste; der Abschnitt steht dann allein mit „← Einstellungen“ (das Zielbild nennt nur „schmal“, die Grenze 1000 px ist gewählt, weil Liste und Inhalt darunter nicht mehr nebeneinander passen).
+- Der Eingabeschutz beim Abschnittswechsel gilt für die Formulare, die erst mit „Speichern“ gelten (Stammdaten, Kalkulationsgrundlagen, Leistungsprofil, Zielkundenprofil, Gewichte & Fristen, Deine Zeiten, CalDAV, IMAP, Website-Abruf). Werte im Leistungskatalog (je Zeile „Speichern“), Benutzerverwaltung, Passwortwechsel und das Passwort der verschlüsselten Sicherung sind nicht eingeschlossen. Wer die Einstellungen ganz verlässt, verliert nichts – die Eingaben bleiben im Abschnitt stehen, gefragt wird erst beim Wechsel des Abschnitts. Ein Neuladen der Seite fragt wie bisher nur über den Browser-Dialog.
+- Die Suche durchsucht die Texte der Abschnitte (Beschriftungen, Überschriften, Platzhalter und einige Stichwörter); Werte, die erst beim Öffnen eines Abschnitts geladen werden (z. B. Themen des Leistungsprofils), findet sie erst nach dem ersten Laden.
+- „Nächster Schritt“ in der Rechnungsliste kennt nur Entwurf, offen, überfällig und teilbezahlt. Ob eine erstellte Mahnung schon verschickt wurde, weiß SignalDesk nicht („Mahnstufe n erstellt“). Die Spalte „Rechnung“ zeigt Firma · Art und Datum, nicht den Leistungszweck – die Rechnungsliste des Servers liefert die Positionen nicht mit, und der Server wurde nicht geändert.
+- Editor und geöffnete Rechnung haben keine eigene Adresse; Neuladen oder `#/abrechnen` zeigt die Liste. Ein ungespeicherter Rechnungsentwurf geht dabei wie bisher verloren.
+- „Vertriebskennzahlen“ stehen unter „Auswertung“, ihr Zeitraum wird aber unter „Steuer & Export“ gewählt (vorgewählt: aktuelles Quartal). Einige Texte des Servers sagen weiter „Lead“ (z. B. „nach letzter Lead-Änderung“ unter den Vertriebskennzahlen).
+- Kein „Spalten ▾“ in der Rechnungsliste (das Zielbild zeigt es); die Spalten sind fest. Die Klappzeile „Steuer & Export“ zeigt die USt-Zahllast des Quartals statt „zuletzt exportiert“ – Exporte werden nicht protokolliert.
 - Geprüft in Chromium (Playwright) bei 1280 × 720 und 390 × 844; nicht auf echten Geräten und nicht in anderen Browsern.
