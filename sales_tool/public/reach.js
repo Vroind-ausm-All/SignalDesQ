@@ -8,13 +8,13 @@
   let weekdays = [];
 
   function renderInbound(v, window_) {
-    $('#rcInCount').textContent = v.open.length ? `${v.open.length} offen${v.overdue ? `, ${v.overdue} überfällig` : ''}` : `Rückrufzeit ${window_}`;
+    $('#rcInCount').textContent = v.open.length ? `${v.open.length} offen${v.overdue ? `, ${v.overdue} überfällig` : ''}` : `keine offenen · Rückrufzeit ${window_}`;
     $('#rcInList').innerHTML = v.open.length ? v.open.map(i => `<div class="td-item rc-item ${i.overdue ? 'overdue' : ''}">
       <div><b>${esc(i.who)}</b>${i.company && i.company !== i.who ? ` <small>· ${esc(i.company)}</small>` : ''}
         <small>${esc(i.channel_label)} · ${esc(when(i.received_at))}${i.contact ? ' · ' + esc(i.contact) : ''}${i.note ? ' · ' + esc(i.note) : ''}</small>
         <small class="${i.overdue ? 'rc-late' : ''}">Rückruf bis ${esc(when(i.due_at))}${i.overdue ? ' – überfällig' : ''}</small></div>
       <span class="acc-btn-group">${i.lead_id ? `<button type="button" class="text-button" data-go-action='${esc(JSON.stringify({view: 'lead', lead_id: i.lead_id}))}'>Akte</button>` : ''}
-        <button type="button" class="btn btn-primary" data-rc-done="${i.id}">Erledigt</button><button type="button" class="text-button" data-rc-del="${i.id}" aria-label="Eintrag löschen">✕</button></span></div>`).join('')
+        <button type="button" class="btn btn-ghost" data-rc-done="${i.id}">Erledigt</button><button type="button" class="text-button" data-rc-del="${i.id}" aria-label="Eintrag löschen">✕</button></span></div>`).join('')
       : '<div class="empty">Kein offener Rückruf. Verpasste Anrufe und Anfragen hier sofort festhalten.</div>';
     const s = v.stats;
     $('#rcInStats').textContent = s.done ? `Letzte ${s.done} Rückmeldungen: im Mittel nach ${String(s.median_hours).replace('.', ',')} Stunden, ${s.in_time_pct} % innerhalb der Frist.` : '';
@@ -43,6 +43,7 @@
       renderInbound(r.inbound, r.callback_window);
       renderList(r.contact_list);
       renderCapacity(r.capacity, r.absent_today);
+      document.dispatchEvent(new CustomEvent('signaldesk:reach', {detail: r}));  // 2.0.0-dev50: Kurzstand auf „Heute“ (today.js)
       const sel = $('#rcInForm [name=channel]');
       if (!sel.options.length) sel.innerHTML = Object.entries(r.inbound.channels).map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join('');
       const ls = $('#rcInForm [name=lead_id]');

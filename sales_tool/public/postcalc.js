@@ -29,7 +29,7 @@
       <form class="pk-form" data-pk-form="${p.proposal_id}"><input type="date" name="work_date" aria-label="Datum" max="${new Date().toISOString().slice(0, 10)}">
         ${p.positions.length > 1 ? `<select name="position" aria-label="Position"><option value="">Auftrag allgemein</option>${p.positions.map(x => `<option value="${x.n}">Pos. ${x.n} ${esc(x.title)}</option>`).join('')}</select>` : ''}
         <input type="number" name="hours" min="0.1" max="200" step="any" placeholder="Stunden" aria-label="Stunden" required>
-        <input name="note" maxlength="300" placeholder="Was? (optional)" aria-label="Notiz"><button type="submit" class="btn btn-primary">Zeit erfassen</button></form>
+        <input name="note" maxlength="300" placeholder="Was? (optional)" aria-label="Notiz"><button type="submit" class="btn btn-ghost">Zeit erfassen</button></form>
       ${p.entries.length ? `<details class="pk-entries"><summary>${p.entries.length} ${p.entries.length === 1 ? 'Eintrag' : 'Einträge'}</summary>${p.entries.map(e => `<div><span>${esc(fmtDate(e.work_date))} · ${num(e.hours)} h${e.note ? ' · ' + esc(e.note) : ''}</span>
         <button type="button" class="text-button" data-pk-del="${e.id}" aria-label="Eintrag löschen">✕</button></div>`).join('')}</details>
         <form class="pk-form pk-close" data-pk-close="${p.proposal_id}"><input type="number" name="ext" min="0" step="0.01" placeholder="Fremdkosten tatsächlich (${num(p.estimated_external_eur)} € kalkuliert)" aria-label="Tatsächliche Fremdkosten">
@@ -89,7 +89,7 @@
       } catch (err) { toast(err.message, true); }
     });
     document.querySelectorAll('[data-go="quotes"]').forEach(b => b.addEventListener('click', refresh));
-    document.addEventListener('signaldesk:view', e => { if (e.detail.view === 'quotes') refresh(); });  // 2.0.0-dev14: Bereichsreiter
+    document.addEventListener('signaldesk:view', e => { if (['quotes', 'orders', 'insights'].includes(e.detail.view)) refresh(); });  // 2.0.0-dev14: Bereichsreiter; dev52: drei Reiter
     const orig = window.reload;
     if (typeof orig === 'function') window.reload = async function (...args) { const r = await orig.apply(this, args); await refresh(); return r; };
     refresh();

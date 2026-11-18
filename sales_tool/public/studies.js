@@ -75,19 +75,22 @@
     });
   }
 
-  async function save(el) {
-    const k = el.dataset.stK;
+  // 2.0.0-dev52: Speichern der Reihe nach; beim Neuzeichnen bleiben ungespeicherte Eingaben in anderen Feldern stehen (uiKeep).
+  // Vorher ersetzte das Neuzeichnen nach einer Auswahl den Text, den man gerade in ein anderes Feld tippte.
+  const queue = window.uiSerial ? window.uiSerial() : fn => fn();
+  function save(el) {
+    const k = el.dataset.stK, sid = el.dataset.stS;
     const body = k === 'confirmed' ? {confirmed: el.checked} : {task_id: Number(el.dataset.stT), [k]: k === 'seconds' ? (el.value === '' ? null : Number(el.value)) : el.value};
-    try {
-      const a = document.activeElement;
-      const back = a?.dataset?.stK ? `[data-st-s="${a.dataset.stS}"][data-st-k="${a.dataset.stK}"]${a.dataset.stT ? `[data-st-t="${a.dataset.stT}"]` : ''}` : null;
-      const openSessions = $$('#stDetail details[data-st-session][open]').map(d => d.dataset.stSession);
-      const y = window.scrollY;
-      render(await api(`/studien/sitzung/${el.dataset.stS}`, 'POST', body));
-      openSessions.forEach(id => { const d = $(`#stDetail details[data-st-session="${id}"]`); if (d) d.open = true; });
-      if (back) $(back)?.focus();
-      window.scrollTo(0, y);
-    } catch (e) { toast(e.message, true); }
+    return queue(async () => {
+      try {
+        const v = await api(`/studien/sitzung/${sid}`, 'POST', body);
+        const openSessions = $$('#stDetail details[data-st-session][open]').map(d => d.dataset.stSession);
+        const y = window.scrollY;
+        const draw = () => { render(v); openSessions.forEach(id => { const d = $(`#stDetail details[data-st-session="${id}"]`); if (d) d.open = true; }); };
+        if (window.uiKeep) window.uiKeep($('#stDetail'), '[data-st-s]', draw); else draw();
+        window.scrollTo(0, y);
+      } catch (e) { toast(e.message, true); }
+    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {

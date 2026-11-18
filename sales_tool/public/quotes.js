@@ -66,6 +66,7 @@
   }
 
   function changed() {
+    delete $('#quoteForm').dataset.saved;
     posLead = $('#quoteForm [name=lead_id]').value || posLead;
     renderPositions();
     clearTimeout(timer);
@@ -131,6 +132,7 @@
   window.quoteStartRevision = async function (pid) {
     try {
       const r = await api(`/workspace/proposals/${pid}/revision`);
+      window.angebote?.showEdit(true);  // 2.0.0-dev52: Überarbeitung im Editor
       const f = $('#quoteForm');
       f.elements.lead_id.value = String(r.lead_id);
       f.elements.lead_id.dispatchEvent(new Event('change', {bubbles: true}));
@@ -143,6 +145,7 @@
       $('#qbRevisionOf').textContent = `${r.number} (wird Fassung ${r.next_no})`;
       $('#qbRevision').classList.remove('hidden');
       $('#qbRevisionReason').value = '';
+      window.angebote?.editTitle();
       $('#qbRevisionReason').focus();
       f.scrollIntoView({behavior: 'smooth', block: 'start'});
       changed();
@@ -153,6 +156,7 @@
   window.quoteStartAddendum = async function (pid) {
     try {
       const r = await api(`/workspace/proposals/${pid}/zusatzauftrag`);
+      window.angebote?.showEdit(true);  // 2.0.0-dev52: Zusatzauftrag im Editor
       window.quoteEndRevision();
       const f = $('#quoteForm');
       f.elements.lead_id.value = String(r.lead_id);
@@ -166,6 +170,7 @@
       $('#qbAddendumOf').textContent = `${r.next_no} zu ${r.number}${r.project_label ? ' („' + r.project_label + '“)' : ''}`;
       $('#qbAddendum').classList.remove('hidden');
       $('#qbAddendumReason').value = '';
+      window.angebote?.editTitle();
       $('#qbAddendumReason').focus();
       f.scrollIntoView({behavior: 'smooth', block: 'start'});
       changed();
@@ -175,10 +180,24 @@
   window.quoteEndAddendum = function () {
     delete $('#quoteForm').dataset.addendumOf;
     $('#qbAddendum').classList.add('hidden');
+    window.angebote?.editTitle();
   };
   window.quoteEndRevision = function () {
     delete $('#quoteForm').dataset.revisionOf;
     $('#qbRevision').classList.add('hidden');
+    window.angebote?.editTitle();
+  };
+  // 2.0.0-dev52: „＋ Neues Angebot“ beginnt leer, wenn der Editor nichts Ungespeichertes enthält (siehe angebote.js)
+  window.quoteHasUnsaved = () => positions.length > 0 && $('#quoteForm').dataset.saved !== '1';
+  window.quoteReset = function () {
+    const f = $('#quoteForm');
+    positions = []; last = null; posLead = null;
+    f.reset();
+    delete f.dataset.saved;
+    window.quoteEndRevision(); window.quoteEndAddendum();
+    renderPositions();
+    $('#quoteCustomer').innerHTML = '<p class="muted">Positionen hinzufügen und „Festpreise berechnen“.</p>';
+    $('#quoteInternal').innerHTML = '<p class="muted">Erscheint nach der Berechnung: Aufwand × Stundensatz + Puffer + enthaltene Fremdkosten = Festpreis, dazu dein effektiver Stundenlohn.</p>';
   };
 
   window.quoteApplyTemplate = function (pkg, list) {
@@ -303,6 +322,7 @@
         const saved = await api('/workspace/proposals', 'POST', {lead_id: leadId, ...payload(), ...link});
         if (rev) window.quoteEndRevision();
         if (addOf) window.quoteEndAddendum();
+        $('#quoteForm').dataset.saved = '1';
         toast('Angebotsentwurf gespeichert – noch nicht versendet');
         await window.refreshSalesQuotes();
         await window.wsOpenProposal(saved.id);

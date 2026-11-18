@@ -2,7 +2,7 @@
 // v1.5 Kaufsignale: Import, Signal-Feed, Zuordnung, Korrelation – alles mit Belegen, nichts automatisch übernommen.
 (function () {
   const esc = v => escapeHTML(String(v ?? ''));
-  const KIND = {register: 'Register', job: 'Stelle', manual: 'Lead-Signal', website: 'Website'};
+  const KIND = {register: 'Register', job: 'Stelle', manual: 'Signal aus der Firma', website: 'Website'};
   const POL = {pro: 'Pro-Hinweis', contra: 'Gegenhinweis', neutral: 'neutral'};
   const STRENGTH = {'mehrere unabhängige Hinweise': 'stark', 'einzelner Hinweis': 'einzeln', schwach: 'schwach'};
   let csv = {reg: '', job: ''}, careerSel = new Set(), currentLead = null, scanPoll = null;
@@ -11,7 +11,7 @@
 
   function signalCard(s, opts = {}) {
     const src = s.sources.map(x => x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.type)}</a>` : esc(x.type)).join(' · ');
-    const assign = !s.lead_id && !opts.compact ? `<label class="dc-inline">Lead zuordnen <select data-sg-assign="${s.id}"><option value="">–</option>${leads.filter(l => l.stage !== 'gesperrt').map(l => `<option value="${l.id}">${esc(l.company)}</option>`).join('')}</select></label>` : '';
+    const assign = !s.lead_id && !opts.compact ? `<label class="dc-inline">Firma zuordnen <select data-sg-assign="${s.id}"><option value="">–</option>${leads.filter(l => l.stage !== 'gesperrt').map(l => `<option value="${l.id}">${esc(l.company)}</option>`).join('')}</select></label>` : '';
     return `<article class="sg-card ${s.polarity === 'contra' ? 'sg-contra' : ''} ${s.is_new ? 'sg-new' : ''}">
       <div class="dc-item-head"><div><span class="sg-kind ${esc(s.kind)}">${esc(KIND[s.kind] || s.kind)}</span> <b>${esc(s.title)}</b>${s.is_new ? ' <span class="nav-new">NEU</span>' : ''}
         <small>${esc(s.lead_company || s.company || 'nicht zugeordnet')} · veröffentlicht ${esc(date(s.published_at))} · gefunden ${esc(date(s.found_at))}${s.old ? ' · <b class="late">älter als 1 Jahr</b>' : ''}${s.suppressed ? ' · <b class="late">Sperrliste</b>' : ''}</small></div>
@@ -19,7 +19,7 @@
       <p class="sg-evidence">„${esc(s.evidence)}“</p>
       ${opts.compact ? '' : `<div class="sg-two"><div><b>Mögliche Relevanz</b><ul>${s.pro.map(x => `<li>${esc(x)}</li>`).join('') || '<li>–</li>'}</ul></div><div><b>Gegenargumente</b><ul>${s.contra.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div></div>
       ${s.questions.length ? `<p><b>Gesprächsfrage:</b> ${esc(s.questions.join(' · '))}</p>` : ''}${s.uncertainties.length ? `<small class="muted">Unsicher: ${esc(s.uncertainties.join(' · '))}</small>` : ''}`}
-      <div class="acc-btn-group"><small class="muted">Quelle(n): ${src}</small><select data-sg-status="${s.id}" aria-label="Prüfstatus">${['ungeprueft', 'bestaetigt', 'verworfen'].map(x => `<option value="${x}" ${x === s.status ? 'selected' : ''}>${{ungeprueft: 'ungeprüft', bestaetigt: 'bestätigt', verworfen: 'verworfen'}[x]}</option>`).join('')}</select>${s.status === 'bestaetigt' && s.lead_id && s.polarity === 'pro' ? `<button type="button" class="btn btn-ghost" data-sg-promote="${s.id}">Als Projektanlass im Lead übernehmen</button>` : ''}${assign}</div></article>`;
+      <div class="acc-btn-group"><small class="muted">Quelle(n): ${src}</small><select data-sg-status="${s.id}" aria-label="Prüfstatus">${['ungeprueft', 'bestaetigt', 'verworfen'].map(x => `<option value="${x}" ${x === s.status ? 'selected' : ''}>${{ungeprueft: 'ungeprüft', bestaetigt: 'bestätigt', verworfen: 'verworfen'}[x]}</option>`).join('')}</select>${s.status === 'bestaetigt' && s.lead_id && s.polarity === 'pro' ? `<button type="button" class="btn btn-ghost" data-sg-promote="${s.id}">Als Projektanlass bei der Firma übernehmen</button>` : ''}${assign}</div></article>`;
   }
 
   function hypothesisCard(h, showContra = true) {
@@ -56,7 +56,7 @@
   function renderCareerPicker() {
     const q = ($('#sgCareerSearch').value || '').toLowerCase();
     const list = leads.filter(l => l.website && l.stage !== 'gesperrt' && (!q || l.company.toLowerCase().includes(q))).slice(0, 60);
-    $('#sgCareerPicker').innerHTML = list.length ? list.map(l => `<label class="sc-pick"><input type="checkbox" data-sg-career="${l.id}" ${careerSel.has(l.id) ? 'checked' : ''}> <span>${esc(l.company)}<small>${esc(l.website)}</small></span></label>`).join('') : '<div class="empty">Keine Leads mit Website.</div>';
+    $('#sgCareerPicker').innerHTML = list.length ? list.map(l => `<label class="sc-pick"><input type="checkbox" data-sg-career="${l.id}" ${careerSel.has(l.id) ? 'checked' : ''}> <span>${esc(l.company)}<small>${esc(l.website)}</small></span></label>`).join('') : '<div class="empty">Keine Firmen mit Website.</div>';
     $('#sgCareerStart').disabled = !careerSel.size;
   }
 
@@ -92,7 +92,7 @@
       e.preventDefault();
       const body = {text: e.target.elements.text.value, source_url: e.target.elements.source_url.value};
       if (csv.reg) body.csv = csv.reg;
-      try { const r = await api('/signals/register-import', 'POST', body); csv.reg = ''; e.target.reset(); toast(`${r.imported} Ereignis(se) importiert · ${r.duplicates} Dublette(n) · ${r.unassigned} ohne Lead${r.suppressed ? ` · ${r.suppressed} auf Sperrliste` : ''}`); window.refreshSignals(); }
+      try { const r = await api('/signals/register-import', 'POST', body); csv.reg = ''; e.target.reset(); toast(`${r.imported} Ereignis(se) importiert · ${r.duplicates} Dublette(n) · ${r.unassigned} ohne Firma${r.suppressed ? ` · ${r.suppressed} auf Sperrliste` : ''}`); window.refreshSignals(); }
       catch (err) { toast(err.message, true); }
     });
     $('#sgJobForm').addEventListener('submit', async e => {
@@ -113,7 +113,7 @@
     document.body.addEventListener('change', async e => {
       if (e.target.matches('[data-sg-career]')) {
         const id = Number(e.target.dataset.sgCareer);
-        if (e.target.checked) { if (careerSel.size >= 20) { e.target.checked = false; return toast('Höchstens 20 Leads', true); } careerSel.add(id); } else careerSel.delete(id);
+        if (e.target.checked) { if (careerSel.size >= 20) { e.target.checked = false; return toast('Höchstens 20 Firmen', true); } careerSel.add(id); } else careerSel.delete(id);
         return renderCareerPicker();
       }
       const st = e.target.closest('[data-sg-status]');
@@ -125,7 +125,7 @@
       const c = e.target.closest('[data-sg-corr]');
       if (c) { currentLead = Number(c.dataset.sgCorr); await correlate(currentLead, '#sgCorrelation'); $('#sgCorrelation').scrollIntoView({behavior: 'smooth', block: 'start'}); return; }
       const p = e.target.closest('[data-sg-promote]');
-      if (p) { try { await api(`/signals/${p.dataset.sgPromote}/promote`, 'POST', {}); toast('Als Projektanlass im Lead gespeichert'); await reload(); } catch (err) { toast(err.message, true); } }
+      if (p) { try { await api(`/signals/${p.dataset.sgPromote}/promote`, 'POST', {}); toast('Als Projektanlass bei der Firma gespeichert'); await reload(); } catch (err) { toast(err.message, true); } }
     });
   }
   init();

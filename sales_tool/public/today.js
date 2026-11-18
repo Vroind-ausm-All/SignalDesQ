@@ -13,7 +13,15 @@
     termin: {label: 'Bedarf klären', view: 'lead'}, angebot: {label: 'Angebot öffnen', view: 'quotes'}, gewonnen: {label: 'Rechnung schreiben', view: 'quotes'},
   };
   window.leadStageAction = LEAD_ACTION;
-  let data = null, stageActions = {};
+  let data = null, stageActions = {}, focusData = null, onbData = null, reachData = null;
+  // 2.0.0-dev50: Klappzeilen – ein Sprung in einen eingeklappten Abschnitt klappt ihn auf
+  function reveal(el) {
+    if (!el) return null;
+    if (el.tagName === 'DETAILS') el.open = true;
+    for (let d = el.parentElement?.closest('details'); d; d = d.parentElement?.closest('details')) d.open = true;
+    return el;
+  }
+  window.revealSection = reveal;
 
   const enc = o => esc(JSON.stringify(o));
 
@@ -33,7 +41,7 @@
     const lead = a.lead_id ? Number(a.lead_id) : null;
     if (a.view === 'new_lead') return showModal();  // 2.0.0-dev15: geführter Einstieg
     if (a.view === 'lead') return lead ? showModal(lead) : switchView('leads');
-    if (a.view === 'today') { switchView('dashboard'); return $('#' + (a.anchor || 'wiedervorlage'))?.scrollIntoView({behavior: 'smooth'}); }
+    if (a.view === 'today') { switchView('dashboard'); return reveal($('#' + (a.anchor || 'wiedervorlage')))?.scrollIntoView({behavior: 'smooth'}); }
     if (a.view === 'leads') {
       if (lead) return showModal(lead);
       switchView('leads');
@@ -66,28 +74,29 @@
       if (lead) setTimeout(() => $(`[data-rc-open="${lead}"]`)?.click(), 900);
       return;
     }
-    switchView(a.view);
+    switchView(a.view === 'finder' && window.areaEntry ? window.areaEntry('finder') : a.view);  // 2.0.0-dev51: offene Treffer → Sichten
     // 2.0.0-dev14: Sprungziel innerhalb der Ansicht, z. B. Einstellungen → Zielkundenprofil
-    if (a.anchor) setTimeout(() => $('#' + a.anchor)?.scrollIntoView({behavior: 'smooth', block: 'start'}), 80);
+    if (a.anchor) setTimeout(() => reveal($('#' + a.anchor))?.scrollIntoView({behavior: 'smooth', block: 'start'}), 80);
   };
 
   // ------------------------------------------------------------ Rendern
   function renderPlan(p) {
     // 2.0.0-dev13: nur zählen, was wirklich offen ist – ein leerer Schritt ist nicht „erledigt“
     const open = p.steps.filter(s => !s.done).length;
-    $('#tdPlanState').textContent = open ? `${open} von ${p.steps.length} Schritten mit offenen Punkten` : 'Nichts offen';
     $('#tdSteps').innerHTML = p.steps.map((s, i) => `<li class="td-step ${s.state === 'erledigt' ? 'done' : s.done ? 'quiet' : ''} ${s.key === p.next_key ? 'next' : ''}">
       <span class="td-num" title="${s.state === 'erledigt' ? 'erledigt' : s.done ? 'nichts offen' : 'offen'}">${s.state === 'erledigt' ? '✓' : s.done ? '–' : i + 1}</span>
       <div><b>${esc(s.title)}</b><small>${s.done && s.state !== 'erledigt' ? 'Nichts offen. ' : ''}${esc(s.why)}</small></div>
       <span class="td-count">${s.count || ''}</span>
-      <button type="button" class="btn ${s.key === p.next_key ? 'btn-primary' : 'btn-ghost'}" data-go-action="${enc({view: s.view, section: s.section, anchor: s.anchor})}">${s.done ? 'Ansehen' : 'Los →'}</button></li>`).join('');
+      <button type="button" class="btn btn-ghost${s.key === p.next_key ? ' td-step-next' : ''}" data-go-action="${enc({view: s.view, section: s.section, anchor: s.anchor})}">${s.done ? 'Ansehen' : 'Los →'}</button></li>`).join('');
     const nxt = p.steps.find(s => s.key === p.next_key);
     $('#tdNext').dataset.goAction = JSON.stringify(nxt ? {view: nxt.view, section: nxt.section, anchor: nxt.anchor} : {view: 'finder'});
     $('#tdNext').textContent = nxt ? `Weiter: ${nxt.title.split(' (')[0]} →` : 'Nichts offen – neue Firmen finden →';  // nicht „alles erledigt“, wenn nichts zu tun war
+    $('#tdPlanState').textContent = open ? `${open} von ${p.steps.length} Schritten offen` : 'nichts offen';
   }
 
   function renderWv(items, total) {
-    $('#tdWvCount').textContent = total ? `${total} offen` : '';
+    const late = items.filter(i => i.overdue).length;
+    $('#tdWvCount').textContent = total ? `${total} offen${late ? `, ${late} überfällig` : ''}` : 'nichts fällig';
     $('#tdWv').innerHTML = items.length ? items.map(i => `<div class="td-item ${i.overdue ? 'overdue' : ''}">
       <span class="td-kind ${esc(i.kind)}">${esc(KIND[i.kind] || i.kind)}</span>
       <div><b>${esc(i.title)}</b><small>${esc(i.company)}${i.due ? ' · ' + esc(fmtDate(i.due)) : ''}${i.overdue ? ' · <span class="late">überfällig</span>' : ''}${i.detail ? ' · ' + esc(i.detail) : ''}</small></div>
@@ -98,36 +107,100 @@
   }
 
   // 2.0.0-dev15 (Review M08): drei nächste Schritte mit Grund und Frist – Zugesagtes vor neuer Akquise
+  // 2.0.0-dev50: als Liste aus dem Baukasten – Schritt (+ Firma) · Warum jetzt · Fällig · Phase · Aktion · ›.
+  // Die Zeile öffnet die Akte (ohne Firma: das Ziel des Schritts). „Erledigt“ gibt es nur, wo SignalDesk wirklich abhaken kann
+  // (Aufgabe, Eingang/Rückruf); sonst steht dort das besondere Ziel des Schritts (z. B. „Angebot öffnen“), wenn es nicht die Akte ist.
   const BUCKET = {zusage_ueberfaellig: ['überfällig', 'bad'], termin: ['Termin', 'wait'], zusage_heute: ['zugesagt', 'mid'], angebot_frist: ['Frist', 'mid'],
     nachfassen: ['nachfassen', 'wait'], angebot_entwurf: ['Entwurf', 'wait'], bedarfsanalyse: ['Bedarf', 'wait'], recherche: ['Recherche', 'off'], akquise: ['neuer Kontakt', 'off']};
+  const todayIso = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+  const shortDate = d => new Intl.DateTimeFormat('de-DE', {day: 'numeric', month: 'short'}).format(new Date(`${d}T12:00:00`));
+
+  // Was lässt sich direkt abhaken? Aufgaben über /tasks/ID, Eingänge über /inbound/ID/done – beides vorhandene Schnittstellen.
+  function doneTarget(i) {
+    const a = i.action || {};
+    if (a.view === 'tasks' && i.lead_id !== undefined && typeof tasks !== 'undefined') {
+      const t = tasks.find(t => !t.done && t.title === i.title && (t.lead_id || null) === (i.lead_id || null) && (t.due_date || '') === (i.due || '')
+        && !['zu_pruefen', 'abgelehnt'].includes(t.permission_status));
+      if (t) return 'task:' + t.id;
+    }
+    if (a.view === 'today' && a.anchor === 'erreichbarkeit' && reachData) {
+      const r = reachData.inbound.open.find(r => `Zurückmelden: ${r.who}` === i.title && (r.due_at || '').slice(0, 10) === (i.due || ''));
+      if (r) return 'inbound:' + r.id;
+    }
+    return '';
+  }
+
+  function dueCell(i) {
+    const t = todayIso();
+    if (!i.due) return '<span class="muted">–</span>';
+    if (i.overdue || i.due < t) return `<span class="ui-pill is-overdue">überfällig</span><small>seit ${esc(shortDate(i.due))}</small>`;
+    if (i.due === t) return '<span class="ui-pill is-attention">heute</span>';
+    return `<span>${esc(shortDate(i.due))}</span>`;
+  }
+
+  function stageCell(leadId) {
+    const l = leadId && typeof leads !== 'undefined' ? leads.find(x => x.id === leadId) : null;
+    if (!l) return '<span class="muted">–</span>';
+    const tone = l.stage === 'gewonnen' ? ' is-done' : ['verloren', 'gesperrt'].includes(l.stage) ? ' is-overdue' : l.stage === 'angebot' ? ' is-underway' : '';
+    return `<span class="ui-pill${tone}">${esc(stageNames[l.stage] || l.stage)}</span>`;
+  }
+
   function renderFocus(f) {
-    $('#tdFocusList').innerHTML = f.items.length ? f.items.map((i, n) => {
-      const [label, tone] = BUCKET[i.bucket] || [i.bucket, 'off'];
-      return `<li class="td-focus-item ${i.overdue ? 'overdue' : ''}"><span class="td-focus-num" aria-hidden="true">${n + 1}</span>
-        <div><span class="sw-web ${tone}">${esc(label)}</span> <b>${esc(i.title)}</b><small>${esc(i.company)}${i.due ? ' · Frist ' + esc(fmtDate(i.due)) : ''}</small>
-          ${i.why ? `<small class="td-focus-why">Warum jetzt: ${esc(i.why)}</small>` : ''}</div>
-        <button type="button" class="btn ${n === 0 ? 'btn-primary' : 'btn-ghost'}" data-go-action="${enc(i.action)}">${esc(i.action.label)}</button></li>`;
+    focusData = f;
+    $('#tdFocusList').innerHTML = f.items.length ? f.items.map(i => {
+      const [label] = BUCKET[i.bucket] || [i.bucket];
+      const open = i.lead_id ? {view: 'lead', lead_id: i.lead_id} : i.action;
+      const done = doneTarget(i);
+      const other = !done && (!i.lead_id || i.action.view !== 'lead') && !(i.lead_id && i.action.view === 'leads');
+      const act = done ? `<button type="button" class="ui-txt td-done" data-td-done="${esc(done)}" aria-label="${esc(i.title)} als erledigt abhaken">Erledigt</button>`
+        : other && i.lead_id ? `<button type="button" class="ui-txt" data-go-action="${enc(i.action)}">${esc(i.action.label)}</button>` : '';
+      return `<li class="ui-row td-focus-item ${i.overdue ? 'overdue' : ''}" tabindex="0" data-go-action="${enc(open)}" title="${i.lead_id ? 'Akte öffnen' : esc(i.action.label)}">
+        <div class="ui-main"><b>${esc(i.title)}</b><small>${esc(i.company)}</small></div>
+        <div class="ui-cut td-focus-why">${esc(i.why || label)}</div><div>${dueCell(i)}</div><div>${stageCell(i.lead_id)}</div><div>${act}</div><span class="ui-chev" aria-hidden="true">›</span></li>`;
     }).join('')
-      : `<li class="td-focus-empty"><span>Nichts fällig, nichts zugesagt.</span> <button type="button" class="btn btn-primary" data-go-action="${enc({view: 'finder'})}">Neue Firmen finden</button></li>`;
-    $('#tdFocusMore').textContent = f.more ? `+ ${f.more} weitere in der Wiedervorlage` : '';
+      : `<li class="ui-empty td-focus-empty"><span>Nichts fällig, nichts zugesagt.</span> <button type="button" class="ui-txt" data-go-action="${enc({view: 'finder'})}">Neue Firmen finden</button></li>`;
+    $('#tdFocusMore').textContent = f.more ? `+ ${f.more} weitere in der Wiedervorlage.` : '';
     $('#tdFocusNote').textContent = f.notice;
+    renderStrip();
+  }
+
+  // Statuszeile: Kurzstand des Tages; Einrichtung nur, wenn etwas offen ist
+  const CAP = {frei: 'frei für Akquise', luft: 'Platz für Aufträge', gut: 'gut ausgelastet', voll: 'voll'};
+  function renderStrip() {
+    const strip = $('#tdStrip');
+    if (!strip || !focusData) return;
+    const n = focusData.items.length, wv = data ? data.wiedervorlage_total : null;
+    const parts = [`<b>${n}</b> als Nächstes`];
+    if (wv !== null) parts.push(`<b>${wv}</b> in der Wiedervorlage`);
+    if (reachData) parts.push(`Kapazität: <b>${esc(CAP[reachData.capacity.level] || reachData.capacity.level)}</b>`);
+    if (onbData && onbData.show) {
+      const left = onbData.total - onbData.done;
+      parts.push(`Einrichtung: <button type="button" class="ui-txt" data-td-onb>${left} ${left === 1 ? 'Punkt' : 'Punkte'} offen</button>`);
+    }
+    strip.innerHTML = parts.join(' · ');
+    if (reachData && data) {
+      const p = data.potential;
+      $('#tdPotState').textContent = `${CAP[reachData.capacity.level] || reachData.capacity.level} · ${p.offers.length} Angebot(e) offen${p.offers_sum ? ' über ' + euros(p.offers_sum) : ''}`;
+    }
   }
 
   // 2.0.0-dev15 (Review M11): geführter Einstieg – jeder Schritt mit echter Prüfung
   function renderOnboarding(o) {
+    onbData = o;
     const box = $('#tdOnboarding');
     box.classList.toggle('hidden', !o.show);
+    renderStrip();
     if (!o.show) return;
     $('#tdOnbState').textContent = `${o.done} von ${o.total} erledigt`;
     $('#tdOnbList').innerHTML = o.steps.map((s, n) => `<li class="td-onb-step ${s.done ? 'done' : ''}"><span class="td-num">${s.done ? '✓' : n + 1}</span>
       <div><b>${esc(s.label)}</b><small>${esc(s.detail)}</small></div>
-      ${s.done ? '<span class="sw-web ok">erledigt</span>' : `<button type="button" class="btn btn-ghost" data-go-action="${enc(s.action)}">${esc(s.action.label)}</button>`}</li>`).join('');
+      ${s.done ? '<span class="ui-pill is-done">erledigt</span>' : `<button type="button" class="ui-txt" data-go-action="${enc(s.action)}">${esc(s.action.label)}</button>`}</li>`).join('');
   }
 
   function renderPotential(p) {
     $('#tdPotKpis').innerHTML = `<div><small>Offene Angebote</small><b>${euros(p.offers_sum)}</b><span>${p.offers.length} Angebot(e), davon ${euros(p.sent_sum)} beim Kunden</span></div>
       <div><small>Angenommen, noch nicht abgerechnet</small><b>${euros(p.accepted_sum)}</b><span>${p.accepted.length} Angebot(e)</span></div>
-      <div><small>Nur geschätzt, ohne Angebot</small><b>${euros(p.estimates_sum)}</b><span>${p.estimates_count} Lead(s)</span></div>`;
+      <div><small>Nur geschätzt, ohne Angebot</small><b>${euros(p.estimates_sum)}</b><span>${p.estimates_count} ${p.estimates_count === 1 ? 'Firma' : 'Firmen'}</span></div>`;
     const offers = [...p.accepted.map(o => ({...o, accepted: true})), ...p.offers].slice(0, 8).map(o => `<div class="td-item">
       <span class="td-kind ${o.accepted ? 'won' : 'offer'}">${esc(o.accepted ? 'angenommen' : STATUS[o.status] || o.status)}</span>
       <div><b>${esc(o.company)} · ${euros(o.net_eur)}</b><small>${esc(o.number)} · ${esc(o.project_label)}${o.valid_until ? ' · gültig bis ' + esc(fmtDate(o.valid_until)) : ''}</small></div>
@@ -166,24 +239,49 @@
       data = d;
       renderFocus(f.focus);
       renderOnboarding(f.onboarding);
-      const h = new Date().getHours();
-      $('#tdGreeting').textContent = (h < 11 ? 'GUTEN MORGEN' : h < 17 ? 'GUTEN TAG' : 'GUTEN ABEND') + ' · ' + new Intl.DateTimeFormat('de-DE', {weekday: 'long', day: '2-digit', month: 'long'}).format(new Date()).toUpperCase();
       renderPlan(data.plan);
       renderWv(data.wiedervorlage, data.wiedervorlage_total);
       renderPotential(data.potential);
       renderStages(data.pipeline);
+      renderStrip();
     } catch (e) { if (e.message !== 'Bitte anmelden.') toast(e.message, true); }
   };
 
   function init() {
     if (!$('#tdSteps')) return;
-    document.body.addEventListener('click', e => {
+    document.body.addEventListener('click', async e => {
+      // „Erledigt“ zuerst: der Knopf liegt in einer Zeile, die selbst öffnet – er darf sie nicht mit auslösen
+      const done = e.target.closest('[data-td-done]');
+      if (done) {
+        e.preventDefault();
+        e.stopPropagation();
+        done.disabled = true;
+        const [kind, id] = done.dataset.tdDone.split(':');
+        try {
+          if (kind === 'task') await api(`/tasks/${id}`, 'PATCH', {done: true});
+          else await api(`/inbound/${id}/done`, 'POST', {result: ''});
+          toast('Erledigt');
+          if (typeof reload === 'function') await reload(); else await window.refreshToday();
+        } catch (err) { done.disabled = false; toast(err.message, true); }
+        return;
+      }
+      if (e.target.closest('[data-td-onb]')) { reveal($('#tdOnboarding'))?.scrollIntoView({behavior: 'smooth', block: 'start'}); return; }
+      if (e.target.closest('#tdNewInbound')) {
+        reveal($('#erreichbarkeit'))?.scrollIntoView({behavior: 'smooth', block: 'start'});
+        setTimeout(() => $('#rcInForm [name=who]')?.focus(), 50);
+        return;
+      }
       const b = e.target.closest('[data-go-action]');
       if (!b) return;
       e.preventDefault();
       try { window.goAction(JSON.parse(b.dataset.goAction)); } catch (err) { toast(err.message, true); }
     });
     $('.td-status')?.addEventListener('toggle', e => { if (e.target.open) renderStatus(); });
+    // Tastatur: Enter oder Leertaste auf einer Zeile „Als Nächstes“ öffnet wie ein Klick
+    $('#tdFocusList')?.addEventListener('keydown', e => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.td-focus-item[data-go-action]')) { e.preventDefault(); e.target.click(); }
+    });
+    document.addEventListener('signaldesk:reach', e => { reachData = e.detail; if (focusData) renderFocus(focusData); else renderStrip(); });
     $('#tdOnbHide')?.addEventListener('click', async () => {
       try { renderOnboarding(await api('/onboarding', 'PUT', {dismissed: true})); toast('Erste Schritte ausgeblendet – die Einstellungen findest du jederzeit unter „Einstellungen“.'); }
       catch (err) { toast(err.message, true); }

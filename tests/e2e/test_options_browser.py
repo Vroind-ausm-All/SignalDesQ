@@ -42,6 +42,7 @@ class OptionsBrowserTests(unittest.TestCase):
                         page.on('pageerror', lambda exc: errors.append(str(exc)))
                         page.goto(base + '/#/angebote')
                         page.wait_for_load_state('networkidle')
+                        page.locator('#qtNew').click()  # 2.0.0-dev52: der Editor öffnet über „＋ Neues Angebot“
                         page.select_option('#quoteForm [name=lead_id]', str(lead['id']))
                         page.select_option('#quotePackage', 'conversion')
                         page.locator('#qbTemplate').click()

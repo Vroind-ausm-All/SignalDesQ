@@ -10,7 +10,7 @@
         <span class="sw-web ${k.status === 'laufend' ? 'ok' : 'wait'}">${esc(k.status_label)}</span>
         <small>${esc(k.positions.join(' · '))} · seit ${esc(fmtDate(k.start_date))}${k.note ? ' · ' + esc(k.note) : ''}</small></div>
       ${k.due_months.length ? `<p class="rc-late">Nicht abgerechnet: ${esc(k.due_labels.join(', '))}</p>
-        <button type="button" class="btn btn-primary" data-quote-invoice="${k.proposal_id}" data-mode="monat">Monatsrechnung ${esc(k.due_labels[0])} erstellen</button>` : '<p class="muted">Alle Monate bis heute abgerechnet.</p>'}
+        <button type="button" class="btn btn-ghost" data-quote-invoice="${k.proposal_id}" data-mode="monat">Monatsrechnung ${esc(k.due_labels[0])} erstellen</button>` : '<p class="muted">Alle Monate bis heute abgerechnet.</p>'}
       <form class="sales-row cr-term" data-cr-term="${k.proposal_id}"><label>Beginn<input type="date" name="start_date" value="${esc(k.start_date)}" required></label>
         <label>Ende (optional)<input type="date" name="end_date" value="${esc(k.end_date)}"></label>
         <label>Notiz<input name="note" maxlength="300" value="${esc(k.note)}" placeholder="z. B. Kündigung per Mail vom …"></label>
@@ -56,7 +56,7 @@
         await refresh();
       } catch (err) { toast(err.message, true); }
     }, true);
-    document.addEventListener('signaldesk:view', e => { if (e.detail.view === 'quotes') refresh(); });
+    document.addEventListener('signaldesk:view', e => { if (['quotes', 'orders'].includes(e.detail.view)) refresh(); });  // dev52: Reiter „Aufträge & Betreuung“
     const orig = window.reload;
     if (typeof orig === 'function') window.reload = async function (...args) { const r = await orig.apply(this, args); await refresh(); return r; };
     refresh();

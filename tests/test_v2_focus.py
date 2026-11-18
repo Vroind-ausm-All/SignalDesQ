@@ -181,8 +181,8 @@ class HttpTests(Base):
 class FrontendTests(unittest.TestCase):
     def test_markup_and_hooks(self):
         html = (PUBLIC / 'index.html').read_text(encoding='utf-8')
-        for needle in ('id="tdFocus"', 'id="tdOnboarding"', 'id="tdOnbHide"', '<details class="panel td-plan" id="tdPlanBox">',
-                       '<details class="panel td-close" id="tagesabschluss">', 'id="leadViews"', 'id="leadFilterInfo"', 'id="leadHead"',
+        for needle in ('id="tdFocus"', 'id="tdOnboarding"', 'id="tdOnbHide"', '<details class="ui-fold td-plan" id="tagesabschluss">',
+                       'id="tdPlanBox"', 'id="tdCloseBox"', 'id="leadViews"', 'id="leadFilterInfo"', 'id="leadHead"',
                        'data-ll-col="signal"', 'data-ll-col="offer"', '<script src="/leadlist.js" defer></script>'):
             self.assertIn(needle, html)
         self.assertLess(html.index('id="tdFocus"'), html.index('id="erreichbarkeit"'))  # Fokus steht oben

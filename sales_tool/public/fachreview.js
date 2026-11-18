@@ -53,18 +53,20 @@
     });
   }
 
-  async function save(el) {
-    const key = el.dataset.frKey;
+  // 2.0.0-dev52: Speichern der Reihe nach; beim Neuzeichnen bleiben ungespeicherte Eingaben in anderen Feldern (auch die
+  // Gesamtnotiz) samt Fokus stehen (uiKeep in uikit.js).
+  const queue = window.uiSerial ? window.uiSerial() : fn => fn();
+  function save(el) {
+    const key = el.dataset.frKey, item = el.dataset.frItem;
     const value = key === 'included' ? el.checked : el.value;
-    try {
-      const v = await api(`/fachreview/rubrik/${el.dataset.frItem}`, 'POST', {[key]: value});
-      const y = window.scrollY;
-      const a = document.activeElement;  // Fokus ist evtl. schon im nächsten Feld – nach dem Neuaufbau dorthin zurück
-      const back = a?.dataset?.frItem ? `[data-fr-item="${a.dataset.frItem}"][data-fr-key="${a.dataset.frKey}"]` : null;
-      render(v);
-      if (back) $(back)?.focus();
-      window.scrollTo(0, y);
-    } catch (e) { toast(e.message, true); }
+    return queue(async () => {
+      try {
+        const v = await api(`/fachreview/rubrik/${item}`, 'POST', {[key]: value});
+        const y = window.scrollY;
+        if (window.uiKeep) window.uiKeep($('#frReview'), '[data-fr-item], #frNote', () => render(v)); else render(v);
+        window.scrollTo(0, y);
+      } catch (e) { toast(e.message, true); }
+    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {

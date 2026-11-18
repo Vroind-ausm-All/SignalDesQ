@@ -1,9 +1,26 @@
 'use strict';
 // 2.0.0-dev34 (Roadmap M10): Globale Suche – Firma, Chance, Angebot, Rechnungsnummer. Strg+K bzw. ⌘K öffnet, Pfeiltasten und
 // Enter wählen, Escape schließt; der Fokus kehrt an die vorherige Stelle zurück. Nur lesend.
+// 2.0.0-dev50: dazu Befehle – „Neue Firma anlegen“ öffnet das vorhandene Anlegen (der globale Knopf in der Kopfzeile entfiel).
 (function () {
   const esc = v => escapeHTML(String(v ?? ''));
   let items = [], active = -1, back = null, timer = null, seq = 0;
+  const COMMANDS = [{kind: 'befehl', cmd: 'neue_firma', title: 'Neue Firma anlegen', detail: 'Firma oder Anfrage erfassen', words: 'neue neu firma anlegen erfassen hinzufügen lead kunde anfrage'}];
+  const NOTE = 'Mindestens zwei Zeichen. Personen werden nicht durchsucht.';
+  // Befehl passt, wenn jedes eingegebene Wort am Anfang eines seiner Stichwörter steht („neu fi“, „firma anl“)
+  const fits = (c, q) => q.toLowerCase().split(/\s+/).filter(Boolean).every(w => c.words.split(' ').some(k => k.startsWith(w)));
+  function option(i) {
+    const n = items.push(i) - 1;
+    return `<li role="option" id="gs-opt-${n}" data-gs="${n}" data-gs-kind="${esc(i.kind)}" aria-selected="false">${esc(i.title)}${i.detail ? `<small>${esc(i.detail)}</small>` : ''}</li>`;
+  }
+  const commandGroup = list => (list.length ? '<li class="gs-group" role="presentation">Befehle</li>' + list.map(option).join('') : '');
+  function showCommands() {
+    items = [];
+    $('#gsResults').innerHTML = commandGroup(COMMANDS);
+    $('#gsNotice').textContent = NOTE;
+    active = -1;
+    select(0);
+  }
 
   function build() {
     document.body.insertAdjacentHTML('beforeend', `<div class="gs-backdrop hidden" id="gsBackdrop"><div class="gs-dialog" role="dialog" aria-modal="true" aria-label="Suchen">
@@ -30,15 +47,13 @@
 
   async function run() {
     const q = $('#gsInput').value.trim(), mine = ++seq;
-    if (q.length < 2) { items = []; $('#gsResults').innerHTML = ''; $('#gsNotice').textContent = 'Mindestens zwei Zeichen. Personen werden nicht durchsucht.'; return; }
+    if (q.length < 2) { showCommands(); return; }
     try {
       const r = await api('/suche?q=' + encodeURIComponent(q));
       if (mine !== seq) return;  // veraltete Antwort
       items = [];
-      $('#gsResults').innerHTML = r.groups.map(g => `<li class="gs-group" role="presentation">${esc(g.label)}</li>` + g.items.map(i => {
-        const n = items.push(i) - 1;
-        return `<li role="option" id="gs-opt-${n}" data-gs="${n}" data-gs-kind="${esc(i.kind)}" aria-selected="false">${esc(i.title)}${i.detail ? `<small>${esc(i.detail)}</small>` : ''}</li>`;
-      }).join('')).join('');
+      const cmds = COMMANDS.filter(c => fits(c, q));
+      $('#gsResults').innerHTML = r.groups.map(g => `<li class="gs-group" role="presentation">${esc(g.label)}</li>` + g.items.map(option).join('')).join('') + commandGroup(cmds);
       $('#gsNotice').textContent = r.notice || `${r.total} Treffer – Enter öffnet, Escape schließt.`;
       active = -1;
       if (items.length) select(0);
@@ -50,8 +65,7 @@
     back = document.activeElement;
     $('#gsBackdrop').classList.remove('hidden');
     $('#gsInput').value = '';
-    $('#gsResults').innerHTML = '';
-    items = [];
+    showCommands();
     $('#gsInput').focus();
   }
 
@@ -63,7 +77,8 @@
   async function go(i) {
     close(true);
     try {
-      if (i.kind === 'firma' || i.kind === 'chance') { switchView('leads'); await showModal(i.lead_id); }
+      if (i.kind === 'befehl' && i.cmd === 'neue_firma') await showModal();
+      else if (i.kind === 'firma' || i.kind === 'chance') { switchView('leads'); await showModal(i.lead_id); }
       else if (i.kind === 'angebot') { switchView('quotes'); await window.wsOpenProposal?.(i.id); $('#quoteSaved')?.scrollIntoView({block: 'start'}); }
       else if (i.kind === 'rechnung') { switchView('accounting'); toast(`Rechnung ${i.title}: in der Rechnungsliste öffnen`); }
     } catch (e) { toast(e.message, true); }

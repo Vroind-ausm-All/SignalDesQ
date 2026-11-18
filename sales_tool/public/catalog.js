@@ -1,9 +1,9 @@
 'use strict';
 // v1.17 (Masterplan 2.0, Sprint 4): großer GLEIF-Firmenkatalog offline – Datei laden (Streaming, als Hintergrund-Auftrag),
-// durchsuchen und Ausgewählte in die Sichtung übernehmen. Nichts wird automatisch Lead; Dubletten werden dort abgeglichen.
+// durchsuchen und Ausgewählte in die Sichtung übernehmen. Nichts wird automatisch eine Firma; Dubletten werden dort abgeglichen.
 (function () {
   const esc = v => escapeHTML(String(v ?? ''));
-  const KNOWN = {neu: 'schon in der Sichtung', uebernommen: 'schon Lead', dublette: 'schon Lead', verworfen: 'verworfen', gesperrt: 'Sperrliste', zusammengefuehrt: 'schon in der Sichtung'};
+  const KNOWN = {neu: 'schon in der Sichtung', uebernommen: 'schon Firma', dublette: 'schon Firma', verworfen: 'verworfen', gesperrt: 'Sperrliste', zusammengefuehrt: 'schon in der Sichtung'};
   const num = n => Number(n || 0).toLocaleString('de-DE');
   let results = [], chosen = new Set(), poll = null;
 
@@ -52,6 +52,7 @@
   function init() {
     if (!$('#catBox')) return;
     $('#catBox').addEventListener('toggle', () => { if ($('#catBox').open) { loadStatus(); if (window.refreshJobs) window.refreshJobs(); } });
+    document.addEventListener('signaldesk:view', e => { if (e.detail.view === 'settings') loadStatus(); });  // 2.0.0-dev51: Kurzstand unter Einstellungen → Datenquellen
     $('#catFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) upload(f); });
     $('#catSearch').addEventListener('submit', async e => {
       e.preventDefault();

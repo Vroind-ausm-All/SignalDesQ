@@ -75,7 +75,7 @@ class FocusLeadListBrowserTests(unittest.TestCase):
                         self.assertIn('Heute Fiktiv OHG', page.locator('#tdFocusList .td-focus-item').nth(1).inner_text())
                         if SHOTS:
                             page.locator('#tdFocus').screenshot(path=str(Path(SHOTS) / 'fokus.png'))
-                        first.locator('button').click()
+                        first.click()  # 2.0.0-dev50: die Zeile selbst öffnet die Akte (vorher ein Knopf „Lead öffnen“)
                         page.locator('#leadTabs').wait_for(state='visible')
                         self.assertEqual(page.text_content('#modalTitle'), 'Zusage Fiktiv e.K.')
                         page.locator('#closeModal').click()
@@ -85,6 +85,7 @@ class FocusLeadListBrowserTests(unittest.TestCase):
                         onb = page.locator('#tdOnboarding')
                         self.assertTrue(onb.is_visible())
                         self.assertIn('1 von 4 erledigt', page.text_content('#tdOnbState'))  # Firmen sind schon da
+                        page.locator('#tdOnboarding > summary').click()  # 2.0.0-dev50: Klappzeile mit Kurzstand
                         page.locator('#tdOnbHide').click()
                         onb.wait_for(state='hidden')
                         page.reload()
@@ -113,6 +114,7 @@ class FocusLeadListBrowserTests(unittest.TestCase):
                         page.locator('[data-ll-preset="heute"]').click()
                         page.fill('#leadSearch', 'Zusage')
                         page.once('dialog', lambda d: d.accept('Meine Zusagen'))
+                        page.locator('#leadMore > summary').click()  # 2.0.0-dev50: „Ansicht speichern“ unter „Weitere ▾“
                         page.locator('[data-ll-save]').click()
                         saved = page.locator('[data-ll-view]', has_text='Meine Zusagen')
                         saved.wait_for()
@@ -127,6 +129,7 @@ class FocusLeadListBrowserTests(unittest.TestCase):
                         if SHOTS:
                             page.screenshot(path=str(Path(SHOTS) / 'firmenliste.png'))
                         page.once('dialog', lambda d: d.accept())
+                        page.locator('#leadMore > summary').click()  # 2.0.0-dev50: Löschen eigener Ansichten unter „Weitere ▾“
                         page.locator('[data-ll-del="0"]').click()
                         page.locator('[data-ll-view]').first.wait_for(state='detached')
 
@@ -135,6 +138,7 @@ class FocusLeadListBrowserTests(unittest.TestCase):
                         self.assertIn('Keine Firma passt zu diesen Filtern.', page.text_content('#leadRows'))
                         page.locator('#leadRows [data-ll-reset]').click()
                         self.assertEqual(page.locator('#leadRows tr').count(), 4)
+                        page.locator('#leadColsMenu > summary').click()  # 2.0.0-dev50: zuschaltbare Spalten unter „Spalten ▾“
                         page.check('[data-ll-col="signal"]')
                         self.assertIn('KAUFSIGNAL', page.text_content('#leadHead'))
                         page.reload()

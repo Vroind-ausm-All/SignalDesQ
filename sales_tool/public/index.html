@@ -20,45 +20,53 @@
   </aside>
   <div class="nav-scrim" id="navScrim" aria-hidden="true"></div>
   <main class="main">
-    <header class="topbar"><button type="button" class="btn btn-ghost nav-menu" id="navMenuBtn" aria-controls="sideNav" aria-expanded="false">☰ Menü</button><div class="breadcrumb"><span id="areaCrumb">Heute</span> <span>/</span> <span id="sectionBreadcrumb">Übersicht</span></div><div class="top-actions"><button type="button" class="btn btn-ghost gs-open" id="gsOpen" aria-label="Suchen" aria-keyshortcuts="Control+K" title="Firma, Chance, Angebots- oder Rechnungsnummer suchen">⌕<span class="gs-label"> Suchen</span> <kbd>Strg K</kbd></button><div class="date-chip" id="today"></div><button type="button" class="btn btn-ghost mode-toggle" id="modeToggle">☾ Dunkel</button><button class="btn btn-primary" id="newLeadBtn" aria-label="Neuer Lead">＋<span class="top-label">Neuer Lead</span></button></div></header>
+    <!-- 2.0.0-dev50: eine Kopfzeile (52 px) – links die Reiter des Bereichs, rechts die Suche; Brotkrumen nur schmal als Bereichsname -->
+    <header class="topbar"><button type="button" class="btn btn-ghost nav-menu" id="navMenuBtn" aria-controls="sideNav" aria-expanded="false">☰ Menü</button><div class="breadcrumb"><span id="areaCrumb">Heute</span> <span>/</span> <span id="sectionBreadcrumb">Übersicht</span></div>
     <div class="area-bar" id="areaBar">
       <nav class="area-tabs" data-area="heute" aria-label="Heute"><button type="button" class="area-tab" data-area-view="dashboard">Übersicht</button><button type="button" class="area-tab" data-area-view="tasks">Aufgaben <small id="dueBadge"></small></button><button type="button" class="area-tab" data-area-view="workspace">Kontakt &amp; Termine</button></nav>
-      <nav class="area-tabs hidden" data-area="finden" aria-label="Finden"><button type="button" class="area-tab" data-area-view="finder">Suche &amp; Sichtung</button><button type="button" class="area-tab" data-area-view="datacheck">Import &amp; Prüfung</button><button type="button" class="area-tab" data-area-view="center">Recherche &amp; Berichte <small class="nav-new" id="rcNavBadge"></small></button><button type="button" class="area-tab" data-area-view="research">URL-Recherche</button><button type="button" class="area-tab" data-area-view="scoring">Website-Scoring</button><button type="button" class="area-tab" data-area-view="signals">Kaufsignale <small class="nav-new" id="sgNavBadge"></small></button></nav>
+      <nav class="area-tabs hidden" data-area="finden" aria-label="Finden"><button type="button" class="area-tab" data-area-view="sichten">Sichten</button><button type="button" class="area-tab" data-area-view="finder">Neue Suche</button><button type="button" class="area-tab" data-area-view="datacheck">Import</button><button type="button" class="area-tab" data-area-view="center" data-area-group="analysen">Analysen <small class="nav-new" id="rcNavBadge"></small></button></nav>
       <nav class="area-tabs hidden" data-area="firmen" aria-label="Firmen"><button type="button" class="area-tab" data-area-view="leads">Firmenliste</button><button type="button" class="area-tab" data-area-view="pipeline">Pipeline</button><button type="button" class="area-tab" data-area-view="quality">Datenpflege <small class="nav-new" id="qNavBadge"></small></button></nav>
-      <nav class="area-tabs hidden" data-area="angebote" aria-label="Angebote"><button type="button" class="area-tab" data-area-view="quotes">Angebote &amp; Nachkalkulation</button></nav>
+      <nav class="area-tabs hidden" data-area="angebote" aria-label="Angebote"><button type="button" class="area-tab" data-area-view="quotes">Angebote</button><button type="button" class="area-tab" data-area-view="orders">Aufträge &amp; Betreuung</button><button type="button" class="area-tab" data-area-view="insights">Auswertung</button></nav>
       <nav class="area-tabs hidden" data-area="abrechnen" aria-label="Abrechnen"><button type="button" class="area-tab" data-area-view="accounting">Rechnungen &amp; Buchhaltung</button></nav>
       <nav class="area-tabs hidden" data-area="einstellungen" aria-label="Einstellungen"><button type="button" class="area-tab" data-area-view="settings">Profil &amp; Arbeitsweise</button><button type="button" class="area-tab" data-area-view="studio">Erweiterte Werkzeuge: KI-Studio <small class="nav-cap" id="aiNavBadge"></small></button><button type="button" class="area-tab" data-area-view="playbook">Hilfe &amp; Leitfaden</button></nav>
     </div>
-    <div class="content" id="viewDashboard">
-      <div class="eyebrow" id="tdGreeting">DEIN ARBEITSTAG</div>
-      <div class="page-title td-title"><div><h1>Heute.</h1><p>Oben die drei nächsten Schritte mit Grund und Frist – Zugesagtes und Termine vor neuer Akquise. Darunter Eingang, Wiedervorlage und Potenzial; Tagesplan und Tagesabschluss zum Aufklappen.</p></div><button class="btn btn-primary" id="tdNext">Nächster Schritt →</button></div>
-      <section class="panel td-focus" id="tdFocus" aria-labelledby="tdFocusTitle"><div class="panel-header"><h3 id="tdFocusTitle">Als Nächstes</h3><span class="muted" id="tdFocusMore"></span></div>
-        <ol class="td-focus-list" id="tdFocusList"><li class="empty">Wird geladen …</li></ol><p class="muted td-note" id="tdFocusNote"></p></section>
-      <section class="panel td-onb hidden" id="tdOnboarding" aria-labelledby="tdOnbTitle"><div class="panel-header"><h3 id="tdOnbTitle">Erste Schritte</h3><span class="muted" id="tdOnbState"></span></div>
-        <ol class="td-onb-list" id="tdOnbList"></ol><div class="td-onb-foot"><span class="muted">Die Schritte verschwinden von selbst, sobald alles eingerichtet ist.</span><button type="button" class="text-button" id="tdOnbHide">Ausblenden</button></div></section>
-      <div class="td-cols" id="erreichbarkeit">
-        <section class="panel" aria-labelledby="rcInTitle"><div class="panel-header"><h3 id="rcInTitle">Eingang &amp; Rückrufe</h3><span class="muted" id="rcInCount"></span></div>
-          <form id="rcInForm" class="sales-form rc-in-form"><input name="who" maxlength="120" placeholder="Wer hat sich gemeldet?" aria-label="Wer hat sich gemeldet?">
-            <select name="channel" aria-label="Eingangsweg"></select><input name="contact" maxlength="120" placeholder="Rückrufnummer / E-Mail" aria-label="Rückrufnummer oder E-Mail">
-            <select name="lead_id" aria-label="Bekannte Firma"><option value="">– keine bekannte Firma –</option></select>
-            <input name="note" maxlength="1000" placeholder="Worum ging es?" aria-label="Worum ging es?"><button type="submit" class="btn btn-primary">Festhalten</button></form>
-          <div class="td-list" id="rcInList"></div><p class="muted td-note" id="rcInStats"></p></section>
-        <section class="panel" aria-labelledby="rcListTitle"><div class="panel-header"><h3 id="rcListTitle">Als Nächstes kontaktieren</h3><span class="muted" id="rcListCount"></span></div>
-          <div class="td-list" id="rcList"></div><p class="muted td-note" id="rcListNote"></p></section>
+    <div class="top-actions"><button type="button" class="btn btn-ghost gs-open" id="gsOpen" aria-label="Suchen" aria-keyshortcuts="Control+K" title="Firma, Chance, Angebots- oder Rechnungsnummer suchen – oder „Neue Firma anlegen“">⌕<span class="gs-label"> Suchen</span> <kbd>Strg K</kbd></button></div></header>
+    <!-- 2.0.0-dev50: Heute aus dem UI-Baukasten – Seitenkopf, Statuszeile, „Als Nächstes“ als Liste, alles Weitere als Klappzeilen mit Kurzstand -->
+    <div class="content ui-page" id="viewDashboard">
+      <div class="ui-head"><h1>Heute</h1><span class="ui-meta" id="today"></span><span class="ui-sp"></span><button type="button" class="btn btn-primary" id="tdNewInbound" title="Verpassten Anruf oder Anfrage festhalten – mit Rückruffrist">＋ Neuer Eingang</button></div>
+      <div class="ui-tool"><p class="ui-strip" id="tdStrip" role="status" aria-live="polite">Wird geladen …</p></div>
+      <section class="ui-list td-focus" id="tdFocus" aria-labelledby="tdFocusTitle">
+        <div class="ui-row-head" aria-hidden="true"><span id="tdFocusTitle">Als Nächstes</span><span>Warum jetzt</span><span>Fällig</span><span>Phase</span><span></span><span></span></div>
+        <ol class="ui-rows" id="tdFocusList"><li class="ui-empty">Wird geladen …</li></ol></section>
+      <p class="ui-small td-focus-foot"><span id="tdFocusMore"></span> <span id="tdFocusNote"></span></p>
+      <div class="ui-list td-folds">
+        <details class="ui-fold td-onb hidden" id="tdOnboarding"><summary><b id="tdOnbTitle">Erste Schritte</b><span id="tdOnbState"></span></summary><div class="ui-fold-body">
+          <ol class="td-onb-list" id="tdOnbList"></ol><div class="td-onb-foot"><span class="muted">Die Schritte verschwinden von selbst, sobald alles eingerichtet ist.</span><button type="button" class="ui-txt" id="tdOnbHide">Ausblenden</button></div></div></details>
+        <details class="ui-fold" id="erreichbarkeit"><summary><b>Eingang &amp; Rückrufe</b><span id="rcInCount"></span></summary><div class="ui-fold-body td-cols">
+          <section aria-labelledby="rcInTitle"><h3 class="ui-section" id="rcInTitle">Eingang &amp; Rückrufe</h3>
+            <form id="rcInForm" class="sales-form rc-in-form"><input name="who" maxlength="120" placeholder="Wer hat sich gemeldet?" aria-label="Wer hat sich gemeldet?">
+              <select name="channel" aria-label="Eingangsweg"></select><input name="contact" maxlength="120" placeholder="Rückrufnummer / E-Mail" aria-label="Rückrufnummer oder E-Mail">
+              <select name="lead_id" aria-label="Bekannte Firma"><option value="">– keine bekannte Firma –</option></select>
+              <input name="note" maxlength="1000" placeholder="Worum ging es?" aria-label="Worum ging es?"><button type="submit" class="btn btn-ghost">Festhalten</button></form>
+            <div class="td-list" id="rcInList"></div><p class="muted td-note" id="rcInStats"></p></section>
+          <section aria-labelledby="rcListTitle"><h3 class="ui-section" id="rcListTitle">Als Nächstes kontaktieren <span class="muted" id="rcListCount"></span></h3>
+            <div class="td-list" id="rcList"></div><p class="muted td-note" id="rcListNote"></p></section>
+        </div></details>
+        <details class="ui-fold" id="wiedervorlage"><summary><b id="tdWvTitle">Wiedervorlage</b><span id="tdWvCount"></span></summary><div class="ui-fold-body"><div class="td-list" id="tdWv"></div></div></details>
+        <details class="ui-fold" id="tdPotBox"><summary><b id="tdPotTitle">Kapazität &amp; Potenzial</b><span id="tdPotState"></span></summary><div class="ui-fold-body">
+          <div class="rc-cap" id="rcCap"></div>
+          <div class="td-pot-head"><h3 class="ui-section">Offenes Potenzial</h3><button type="button" class="ui-txt" data-go="quotes">Angebote ↗</button></div>
+          <div class="td-pot-kpis" id="tdPotKpis"></div><div class="td-list" id="tdPot"></div><p class="muted td-note" id="tdPotNote"></p>
+          <div class="td-pot-head"><h3 class="ui-section">Pipeline – was steht an?</h3><button type="button" class="ui-txt" data-go="pipeline">Pipeline öffnen ↗</button></div>
+          <div class="td-stages" id="tdStages"></div></div></details>
+        <details class="ui-fold td-plan" id="tagesabschluss"><summary><b id="tdPlanTitle">Tagesplan &amp; Tagesabschluss</b><span><span id="tdPlanState"></span> <span id="tdCloseState"></span></span></summary><div class="ui-fold-body">
+          <div id="tdPlanBox"><div class="td-pot-head"><h3 class="ui-section">Tagesplan</h3><button type="button" class="btn btn-ghost" id="tdNext">Nächster Schritt →</button></div><ol class="td-steps" id="tdSteps"></ol></div>
+          <div class="td-close" id="tdCloseBox"><h3 class="ui-section" id="tdCloseTitle">Tagesabschluss</h3>
+            <p class="muted">Was heute erledigt wurde, was morgen ansteht – und welche Firmen ohne nächsten Schritt liegen bleiben würden.</p>
+            <div id="tdCloseBody"></div></div></div></details>
+        <details class="ui-fold td-status" id="tdStatusBox"><summary><b>Systemstatus</b><span id="tdStatusSummary"></span></summary><div class="ui-fold-body"><div class="td-list" id="tdStatus"></div></div></details>
       </div>
-      <div class="panel rc-cap" id="rcCap"></div>
-      <div class="td-cols">
-        <section class="panel" id="wiedervorlage" aria-labelledby="tdWvTitle"><div class="panel-header"><h3 id="tdWvTitle">Wiedervorlage</h3><span class="muted" id="tdWvCount"></span></div><div class="td-list" id="tdWv"></div></section>
-        <section class="panel" aria-labelledby="tdPotTitle"><div class="panel-header"><h3 id="tdPotTitle">Offenes Potenzial</h3><button class="text-button" data-go="quotes">Angebote ↗</button></div>
-          <div class="td-pot-kpis" id="tdPotKpis"></div><div class="td-list" id="tdPot"></div><p class="muted td-note" id="tdPotNote"></p></section>
-      </div>
-      <details class="panel td-plan" id="tdPlanBox"><summary class="panel-header"><h3 id="tdPlanTitle">Tagesplan</h3><span class="muted" id="tdPlanState"></span></summary><ol class="td-steps" id="tdSteps"></ol></details>
-      <details class="panel td-close" id="tagesabschluss"><summary class="panel-header"><h3 id="tdCloseTitle">Tagesabschluss</h3><span class="muted" id="tdCloseState"></span></summary>
-        <p class="muted">Was heute erledigt wurde, was morgen ansteht – und welche Firmen ohne nächsten Schritt liegen bleiben würden.</p>
-        <div id="tdCloseBody"></div></details>
-      <div class="section-heading"><div><span class="eyebrow">DEAL FLOW · KLICKBAR</span><h2>Pipeline – was steht an?</h2></div><button class="text-button" data-go="pipeline">Pipeline öffnen ↗</button></div>
-      <div class="td-stages" id="tdStages"></div>
-      <details class="panel td-status"><summary><b>Was funktioniert gerade?</b> <span class="muted" id="tdStatusSummary"></span></summary><div class="td-list" id="tdStatus"></div></details>
+      <p class="ui-small">So liest du „Heute“: oben die drei nächsten Schritte mit Grund und Frist – Zugesagtes und Termine vor neuer Akquise. Ein Klick auf die Zeile öffnet die Akte, „Erledigt“ hakt eine Aufgabe oder einen Rückruf ab. Eingang, Wiedervorlage, Kapazität, Tagesplan und Tagesabschluss stehen darunter zum Aufklappen.</p>
       <div class="legal-foot"><b>Wichtig:</b> Scores und Prioritäten sind nachvollziehbare Arbeitshilfen, keine Kaufwahrscheinlichkeit. Ein öffentlich sichtbares Signal ist keine Einwilligung zur Werbeansprache – jede Kontaktaktion braucht eine eigene Freigabe.</div>
     </div>
 
@@ -88,7 +96,25 @@
       <section class="panel research-report" id="researchReport" aria-live="polite"><div class="research-welcome"><div class="research-welcome-icon">◎</div><h2>Dein Recherchebericht erscheint hier</h2><p>Die Ergebnisse zeigen nur öffentlich belegte Daten. Aussagen über Kaufinteresse, Budget oder unbeobachtete Schwachstellen werden nicht erfunden.</p></div></section>
       <section class="panel research-history"><div class="studio-section-head"><div><span class="eyebrow">VERLAUF</span><h2>Gespeicherte Recherchen</h2></div><button type="button" class="text-button" id="researchRefresh">Aktualisieren ↻</button></div><div id="researchHistory" class="research-history-list"><span class="muted">Noch keine Recherchen.</span></div></section>
     </div>
-    <div class="content hidden" id="viewLeads"><div class="eyebrow">FIRMEN · ARBEITSLISTE</div><div class="page-title"><div><h1>Firmen.</h1><p>Deine Arbeitsmenge: nächster Schritt, Phase, Passung und letzter Kontakt auf einen Blick. Arbeitsansichten filtern, eigene Ansichten speichern – Unbekanntes bleibt sichtbar unbekannt.</p></div><button class="btn btn-primary" id="newLeadBtn2">＋ Lead hinzufügen</button></div><div class="toolbar"><input id="leadSearch" class="search" placeholder="⌕   Firma, Signal oder Notiz suchen…"><select id="stageFilter" aria-label="Status filtern"><option value="">Alle Phasen</option></select><button id="resetFilter" class="btn btn-ghost">Zurücksetzen</button><label class="import-label btn btn-ghost">CSV importieren<input type="file" id="csvImport" accept=".csv,text/csv" hidden></label></div><div class="ll-views" id="leadViews" role="group" aria-label="Arbeitsansichten"></div><div class="ll-bar"><div class="ll-info" id="leadFilterInfo" role="status" aria-live="polite"></div><div class="ll-cols">Weitere Spalten: <label><input type="checkbox" data-ll-col="signal"> Kaufsignal</label> <label><input type="checkbox" data-ll-col="offer"> Leistung</label></div></div><div class="panel table-wrap"><table><thead id="leadHead"><tr><th>FIRMA</th><th>NÄCHSTER SCHRITT</th><th>PHASE</th><th>PASSUNG</th><th>LETZTER KONTAKT</th><th> </th></tr></thead><tbody id="leadRows"></tbody></table></div><div class="inline-info">Reihenfolge nach Passung zum Zielkundenprofil (A vor B, Unbekanntes vor „passt kaum“). Unbekannte Angaben zählen nicht als schlecht. Die Passung ist keine Kaufwahrscheinlichkeit.</div></div>
+    <!-- 2.0.0-dev50: Firmenliste aus dem UI-Baukasten – Seitenkopf mit einer Hauptaktion, Werkzeugzeile (Suche · Ansichten · Filter · Spalten), Liste mit 56-px-Zeilen -->
+    <div class="content ui-page hidden" id="viewLeads">
+      <div class="ui-head"><h1 title="Deine Arbeitsmenge: nächster Schritt, Fälligkeit, Phase und Passung auf einen Blick">Firmen</h1><span class="ui-meta ll-info" id="leadFilterInfo" role="status" aria-live="polite"></span><span class="ui-sp"></span><button type="button" class="btn btn-primary" id="newLeadBtn">＋ Neue Firma</button></div>
+      <div class="ui-tool">
+        <input id="leadSearch" class="ui-search" type="search" placeholder="⌕ Firma, Signal oder Notiz suchen …" aria-label="Firmen durchsuchen">
+        <div class="ui-tabs" id="leadViews" role="group" aria-label="Arbeitsansichten"></div>
+        <details class="ui-menu" id="leadMore"><summary class="btn btn-ghost" id="leadMoreBtn">Weitere ▾</summary><div class="ui-menu-body" id="leadMoreBody" role="group" aria-label="Weitere Ansichten"></div></details>
+        <details class="ui-menu" id="leadFilterMenu"><summary class="btn btn-ghost">Filter ▾</summary><div class="ui-menu-body" role="group" aria-label="Filter">
+          <label class="ui-menu-field">Phase<select id="stageFilter" aria-label="Phase filtern"><option value="">Alle Phasen</option></select></label>
+          <button type="button" id="resetFilter" class="ui-menu-item">Zurücksetzen</button>
+          <label class="ui-menu-item import-label">CSV importieren …<input type="file" id="csvImport" accept=".csv,text/csv" hidden></label></div></details>
+        <details class="ui-menu" id="leadColsMenu"><summary class="btn btn-ghost">Spalten ▾</summary><div class="ui-menu-body ll-cols" role="group" aria-label="Weitere Spalten">
+          <label class="ui-menu-item"><input type="checkbox" data-ll-col="last"> Letzter Kontakt</label>
+          <label class="ui-menu-item"><input type="checkbox" data-ll-col="signal"> Kaufsignal</label>
+          <label class="ui-menu-item"><input type="checkbox" data-ll-col="offer"> Leistung</label></div></details>
+      </div>
+      <div class="ui-list"><table class="ui-table" id="leadTable"><thead id="leadHead"><tr class="ui-row-head"><th>FIRMA</th><th>NÄCHSTER SCHRITT</th><th>FÄLLIG</th><th>PHASE</th><th>PASSUNG</th><th><span class="ui-sr">Öffnen</span></th></tr></thead><tbody id="leadRows"></tbody></table></div>
+      <p class="ui-small">Deine Arbeitsmenge: nächster Schritt, Fälligkeit, Phase und Passung auf einen Blick. Häufige Arbeitsansichten stehen als Reiter oben, weitere und eigene Ansichten unter „Weitere“; Phase, Zurücksetzen und CSV-Import unter „Filter“, zusätzliche Spalten unter „Spalten“. Reihenfolge nach Passung zum Zielkundenprofil (A vor B, Unbekanntes vor „passt kaum“). Unbekannte Angaben zählen nicht als schlecht. Die Passung ist keine Kaufwahrscheinlichkeit.</p>
+    </div>
     <div class="content hidden" id="viewPipeline">
       <div class="eyebrow">VON DER ERSTEN IDEE ZUM ERSTEN AUFTRAG</div>
       <div class="page-title"><div><h1>Deal-Pipeline</h1><p>Jede Firma hat einen Status. Verschiebe sie bewusst und halte den nächsten Schritt fest.</p></div><button class="btn btn-primary" id="pipelineNewLead">＋ Lead anlegen</button></div>
@@ -163,10 +189,35 @@
   </div>
   <section class="panel sales-section"><span class="eyebrow">PROTOKOLL</span><h2>Letzte Anruf-Ergebnisse</h2><div id="wsRecentCalls" class="sales-list"></div></section>
 </div>
-<div class="content hidden" id="viewQuotes">
-  <div class="eyebrow">3 · VERKAUFEN · NACHVOLLZIEHBARE FESTPREISE</div><div class="page-title"><div><h1>Angebote & Preise.</h1><p>Stelle dein Angebot aus deinem Leistungskatalog zusammen. Jede Position hat einen Festpreis, der sich nachvollziehbar aus Aufwand, Stundensatz, Puffer und enthaltenen Fremdkosten ergibt. Anreise und Tagespauschale kommen als eigene Positionen dazu.</p></div><span class="pill" id="qbRatePill">66 €/h</span></div>
-  <div class="sales-cols quote-grid">
-   <section class="panel sales-section"><span class="eyebrow">01 / ANGEBOT ZUSAMMENSTELLEN</span><h2>Positionen</h2>
+<!-- 2.0.0-dev52 (UX Schritt 4): Angebote als Liste, Editor und Arbeitsplatz. #qtList ist der Einstieg (#/angebote), „＋ Neues Angebot“
+     öffnet den Editor (#/angebote?neu=1), ein Angebot öffnet den Arbeitsplatz (#/angebote?angebot=ID) mit Reitern Positionen · Kundenvorschau ·
+     Interne Kalkulation · Verlauf und der Kontextspalte Prüfung vor Freigabe · Ablauf. #quoteCustomer/#quoteInternal wandern zwischen Editor und
+     Arbeitsplatz (angebote.js). Aufträge & Betreuung und Auswertung sind eigene Reiter (#viewOrders, #viewInsights). -->
+<div class="content ui-page hidden" id="viewQuotes" data-qt-mode="list">
+ <section class="qt-pane" id="qtList" aria-labelledby="qtListTitle">
+  <div class="ui-head"><h1 id="qtListTitle">Angebote</h1><span class="ui-meta" id="qtCount" role="status" aria-live="polite"></span><span class="ui-sp"></span><button type="button" class="btn btn-primary" id="qtNew">＋ Neues Angebot</button></div>
+  <div class="ui-tool">
+   <input type="search" id="qtQ" class="ui-search" placeholder="⌕ Projekt, Firma oder Nummer suchen …" aria-label="Angebote durchsuchen">
+   <div class="ui-tabs" id="qtViews" role="group" aria-label="Ansichten"><button type="button" class="ui-tab is-active" data-qt-view="alle" aria-pressed="true">Alle <span class="ui-count" data-qt-cnt="alle"></span></button><button type="button" class="ui-tab" data-qt-view="offen" aria-pressed="false">Offen <span class="ui-count" data-qt-cnt="offen"></span></button><button type="button" class="ui-tab" data-qt-view="angenommen" aria-pressed="false">Angenommen <span class="ui-count" data-qt-cnt="angenommen"></span></button></div>
+   <details class="ui-menu" id="qtFilterMenu"><summary class="btn btn-ghost" id="qtFilterBtn">Filter ▾</summary><div class="ui-menu-body" role="group" aria-label="Filter">
+    <label class="ui-menu-field">Status<select id="qtStatus" aria-label="Status"><option value="">alle Status</option><option value="entwurf">Entwurf (nicht freigegeben)</option><option value="freigegeben">freigegeben, nicht gesendet</option><option value="gesendet">gesendet</option><option value="angenommen">angenommen</option><option value="abgelehnt">abgelehnt</option><option value="ersetzt">ersetzt (ältere Fassung)</option></select></label>
+    <label class="ui-menu-item"><input type="checkbox" id="qtExpired"> nur mit abgelaufener Bindefrist</label>
+    <label class="ui-menu-item"><input type="checkbox" id="qtUnbilled"> angenommen, noch nicht berechnet</label>
+    <label class="ui-menu-item"><input type="checkbox" id="qtHideOld"> ersetzte Fassungen ausblenden</label>
+    <button type="button" class="ui-menu-item" id="qtReset">Filter zurücksetzen</button>
+    <button type="button" class="ui-menu-item" id="quoteRefresh">Aktualisieren ↻</button></div></details>
+  </div>
+  <div class="ui-list qt-list">
+   <div class="ui-row-head" aria-hidden="true"><span>Angebot</span><span>Nächster Schritt</span><span>Fällig</span><span>Status</span><span class="ui-num">Betrag netto</span><span></span></div>
+   <div id="quoteHistory" role="list" aria-label="Angebote"></div>
+  </div>
+  <p class="ui-small">Stundensatz, Mindestverdienst, Tagespauschale, Anreise und Katalogwerte pflegst du zentral unter <button type="button" class="ui-txt" data-settings-link="preise">Einstellungen → Leistungen &amp; Preise</button>. Keine versteckten Aufschläge: Stunden und Kalkulation erscheinen nie im Kundendokument.</p>
+ </section>
+
+ <section class="qt-pane hidden" id="qtEdit" aria-labelledby="qtEditTitle">
+  <div class="ui-head"><button type="button" class="ui-back" data-qt-back>← Angebote</button><h1 id="qtEditTitle">Neues Angebot</h1><span class="ui-meta" id="qtEditMeta">Entwurf – noch nicht gespeichert</span><span class="ui-pill" id="qbRatePill">66 €/h</span></div>
+  <div class="qt-edit-grid">
+   <section class="ui-card qt-edit-form" aria-label="Angebot zusammenstellen"><h2 class="ui-section">Positionen</h2>
      <form id="quoteForm" class="sales-form">
        <div id="qbRevision" class="qb-revision hidden" role="status"><b>Überarbeitung von <span id="qbRevisionOf"></span></b>
          <label>Grund der Überarbeitung (steht im Angebot)<input id="qbRevisionReason" maxlength="300" placeholder="z. B. Umfang auf Wunsch reduziert"></label>
@@ -175,13 +226,13 @@
          <p class="muted">Der angenommene Auftrag bleibt unverändert. Hier nur die zusätzlichen Leistungen erfassen.</p>
          <label>Anlass des Zusatzauftrags (steht im Angebot)<input id="qbAddendumReason" maxlength="300" placeholder="z. B. Kundenwunsch: zusätzliche Sprachversion"></label>
          <button type="button" class="text-button" id="qbAddendumCancel">Zusatzauftrag abbrechen</button></div>
-       <label>Interessent / Unternehmen<select name="lead_id" class="sales-lead-select" required></select></label>
+       <label>Firma<select name="lead_id" class="sales-lead-select" required></select></label>
        <label>Chance<select name="opportunity_id" data-ch-select="angebot"><option value="">neue Chance (aus dem Projekttitel)</option></select></label>
        <div class="sales-row"><label>Vorlage (optional)<select id="quotePackage" name="package"></select></label><button type="button" class="btn btn-ghost qb-tpl" id="qbTemplate">Vorlage laden</button></div>
        <label>Projekttitel<input name="project_label" maxlength="140" placeholder="z. B. Neuer Webauftritt mit Shop-Anbindung"></label>
        <label>Ergebnis / Kundenziel<textarea name="customer_goal" rows="2" maxlength="500" placeholder="Konkretes, realistisch erreichbares Ergebnis"></textarea></label>
        <div class="qb-add"><b>Leistung hinzufügen</b>
-         <div class="qb-add-row"><select id="qbService" aria-label="Leistung"></select><select id="qbSize" aria-label="Umfang"></select><input id="qbQty" type="number" min="1" step="1" value="1" aria-label="Menge"><button type="button" class="btn btn-primary" id="qbAdd">＋ Hinzufügen</button></div>
+         <div class="qb-add-row"><select id="qbService" aria-label="Leistung"></select><select id="qbSize" aria-label="Umfang"></select><input id="qbQty" type="number" min="1" step="1" value="1" aria-label="Menge"><button type="button" class="btn btn-ghost" id="qbAdd">＋ Hinzufügen</button></div>
          <small class="muted" id="qbHint"></small>
          <div class="acc-btn-group"><button type="button" class="btn btn-ghost" data-qb-quick="anreise">＋ Anreise</button><button type="button" class="btn btn-ghost" data-qb-quick="tagessatz">＋ Tagespauschale</button><button type="button" class="btn btn-ghost" data-qb-quick="aufwand">＋ Nach Aufwand</button></div>
        </div>
@@ -190,21 +241,63 @@
        <button type="button" class="text-button" id="qbBriefing">Voraussetzungen aus dem Briefing der Chance übernehmen</button>
        <label>Umsatzsteuerstatus<select name="tax_mode"><option value="offen">Noch offen – Entwurf, nicht versenden</option><option value="regel_19">Regulär mit 19 % USt.</option><option value="kleinunternehmer">§ 19 UStG (nur falls wirklich anwendbar)</option></select></label>
        <div id="quoteAddons" class="hidden"></div>
-       <div class="acc-btn-group"><button class="btn btn-primary" type="button" id="quoteCalculate">Festpreise berechnen</button><button class="btn btn-ghost" type="submit">Angebot als Entwurf speichern</button></div>
+       <div class="acc-btn-group"><button class="btn btn-ghost" type="button" id="quoteCalculate">Festpreise berechnen</button><button class="btn btn-primary" type="submit">Angebot als Entwurf speichern</button></div>
      </form>
    </section>
-   <section class="panel sales-section"><span class="eyebrow">02 / KUNDENVORSCHAU</span><h2>Was dein Kunde sieht</h2><div id="quoteCustomer" class="quote-preview"><p class="muted">Positionen hinzufügen und „Festpreise berechnen“.</p></div></section>
+   <section class="ui-card" aria-label="Kundenvorschau"><h2 class="ui-section">Kundenvorschau <span class="ui-small">– was dein Kunde sieht</span></h2><div id="qtSlotEditCustomer"><div id="quoteCustomer" class="quote-preview"><p class="muted">Positionen hinzufügen und „Festpreise berechnen“.</p></div></div></section>
   </div>
-  <section class="panel sales-section"><span class="eyebrow">03 / NUR FÜR DICH</span><h2>So setzt sich der Preis zusammen</h2><div id="quoteInternal" class="quote-internal"><p class="muted">Erscheint nach der Berechnung: Aufwand × Stundensatz + Puffer + enthaltene Fremdkosten = Festpreis, dazu dein effektiver Stundenlohn.</p></div>
-   <div class="legal-foot"><b>Grundsatz:</b> Keine versteckten Aufschläge. Laufende Kosten Dritter (Hosting, Lizenzen, Werbebudget, KI-/Telefonminuten) stehen im Angebot ausdrücklich als „nicht im Festpreis“. Stunden und Kalkulation erscheinen nie im Kundendokument.</div></section>
- <div class="panel sales-section settings-link"><span class="eyebrow">KALKULATIONSGRUNDLAGEN</span><p>Stundensatz, Mindestverdienst, Tagespauschale, Anreise und Katalogwerte pflegst du zentral unter <button type="button" class="text-button" data-settings-link="preise">Einstellungen → Leistungen &amp; Preise</button>.</p></div>
- <section class="panel sales-section" id="bestand"><div class="studio-section-head"><div><span class="eyebrow">NACH DER ZUSAGE</span><h2>Bestandskunden &amp; Betreuung</h2></div><span class="muted" id="crCount"></span></div>
-  <p class="muted">Betreuung (monatlich, mit Laufzeit), Projekte und neue Chancen je Firma getrennt. Je Monat gibt es genau eine Monatsrechnung mit Leistungszeitraum.</p>
-  <div id="crList" class="cr-list-wrap"></div></section>
- <section class="panel sales-section" id="nachkalkulation"><div class="studio-section-head"><div><span class="eyebrow">NACH DEM AUFTRAG · NUR FÜR DICH</span><h2>Nachkalkulation</h2></div><span class="muted" id="pkCount"></span></div>
-  <p class="muted">Trag ein, wie lange du wirklich gebraucht hast. So siehst du, ob sich ein Festpreis gelohnt hat, und die Auslastung auf „Heute“ rechnet mit dem, was noch offen ist.</p>
-  <p id="pkLesson" class="pk-lesson"></p><div id="pkServiceLessons" class="pk-service-lessons"></div><div id="pkList" class="pk-list"></div><p class="muted td-note" id="pkNotice"></p></section>
- <section class="panel sales-section" id="studien"><details id="stBox"><summary><b>Erlebnisstudien</b> <small class="muted">– echte Testpersonen lösen Aufgaben auf einer Website, z. B. vor und nach einem Relaunch</small></summary>
+  <section class="ui-card" aria-label="Interne Kalkulation"><h2 class="ui-section">Interne Kalkulation <span class="ui-small">– nur für dich</span></h2><div id="qtSlotEditInternal"><div id="quoteInternal" class="quote-internal"><p class="muted">Erscheint nach der Berechnung: Aufwand × Stundensatz + Puffer + enthaltene Fremdkosten = Festpreis, dazu dein effektiver Stundenlohn.</p></div></div>
+   <p class="ui-small"><b>Grundsatz:</b> Keine versteckten Aufschläge. Laufende Kosten Dritter (Hosting, Lizenzen, Werbebudget, KI-/Telefonminuten) stehen im Angebot ausdrücklich als „nicht im Festpreis“. Stunden und Kalkulation erscheinen nie im Kundendokument.</p></section>
+ </section>
+
+ <section class="qt-pane hidden" id="qtOffer" aria-labelledby="qtTitle">
+  <div class="ui-head"><button type="button" class="ui-back" data-qt-back>← Angebote</button><h1 id="qtTitle">Angebot</h1><span class="ui-pill" id="qtPill"></span><span class="ui-meta" id="qtMeta"></span><span class="ui-sp"></span><button type="button" class="btn btn-primary hidden" id="qtMain"></button></div>
+  <div class="ui-tool"><div class="ui-tabs" id="qtTabs" role="tablist" aria-label="Angebot"><button type="button" class="ui-tab" role="tab" data-qt-tab="positionen" aria-selected="true">Positionen</button><button type="button" class="ui-tab" role="tab" data-qt-tab="kunde" aria-selected="false">Kundenvorschau</button><button type="button" class="ui-tab" role="tab" data-qt-tab="intern" aria-selected="false">Interne Kalkulation</button><button type="button" class="ui-tab" role="tab" data-qt-tab="verlauf" aria-selected="false">Verlauf</button></div></div>
+  <div class="ui-with-side qt-work">
+   <div class="qt-main">
+    <div class="qt-panel" data-qt-panel="positionen" role="tabpanel">
+     <div class="ui-list qt-pos-list" id="qtPositions"></div>
+     <div class="ui-list qt-terms" id="qtTerms"></div>
+    </div>
+    <div class="qt-panel ui-card hidden" data-qt-panel="kunde" role="tabpanel" id="qtSlotCustomer"></div>
+    <div class="qt-panel ui-card hidden" data-qt-panel="intern" role="tabpanel" id="qtSlotInternal"></div>
+    <div class="qt-panel hidden" data-qt-panel="verlauf" role="tabpanel"><div class="ui-list" id="qtHistory"></div><div id="qtHistVersions" data-of-history></div></div>
+    <section class="ui-card qt-flow" id="quoteSaved" aria-label="Arbeitsschritte"></section>
+   </div>
+   <aside class="ui-side" aria-label="Kontext">
+    <section class="ui-card qt-side" id="qtChecks"><h2 class="ui-section">Prüfung vor Freigabe</h2><ul class="qt-checks" id="qtCheckList"></ul></section>
+    <section class="ui-card qt-side" id="qtFlowCard"><h2 class="ui-section">Ablauf</h2><ol class="qt-phases" id="qtPhases"></ol></section>
+   </aside>
+  </div>
+ </section>
+</div>
+<!-- 2.0.0-dev52: Angebote → Aufträge & Betreuung (#/angebote/auftraege): angenommene Angebote mit Kick-off und Abnahme, Nachkalkulation mit
+     Zeiterfassung, Bestandskunden & Betreuung. -->
+<div class="content ui-page hidden" id="viewOrders">
+ <div class="ui-head"><h1>Aufträge &amp; Betreuung</h1><span class="ui-meta" id="odCount" role="status" aria-live="polite"></span></div>
+ <div class="ui-tool"><p class="ui-strip" id="odStrip">Angenommene Angebote mit Kick-off, Übergabe und Zeiten. Ein Klick öffnet den Auftrag.</p></div>
+ <div class="ui-list od-list">
+  <div class="ui-row-head" aria-hidden="true"><span>Auftrag</span><span>Nächster Schritt</span><span>Kick-off</span><span>Abnahme</span><span class="ui-num">Betrag netto</span><span></span></div>
+  <div id="odRows" role="list" aria-label="Aufträge"></div>
+ </div>
+ <div class="ui-list">
+  <details class="ui-fold" id="nachkalkulation" open><summary><b>Nachkalkulation &amp; Zeiterfassung</b><span id="pkCount"></span></summary><div class="ui-fold-body">
+   <p class="ui-small">Trag ein, wie lange du wirklich gebraucht hast. So siehst du, ob sich ein Festpreis gelohnt hat, und die Auslastung auf „Heute“ rechnet mit dem, was noch offen ist. Nur für dich.</p>
+   <div id="pkList" class="pk-list"></div><p class="muted td-note" id="pkNotice"></p></div></details>
+  <details class="ui-fold" id="bestand" open><summary><b>Bestandskunden &amp; Betreuung</b><span id="crCount"></span></summary><div class="ui-fold-body">
+   <p class="ui-small">Betreuung (monatlich, mit Laufzeit), Projekte und neue Chancen je Firma getrennt. Je Monat gibt es genau eine Monatsrechnung mit Leistungszeitraum.</p>
+   <div id="crList" class="cr-list-wrap"></div></div></details>
+ </div>
+</div>
+<!-- 2.0.0-dev52: Angebote → Auswertung (#/angebote/auswertung): Lehren der Nachkalkulation, Erlebnisstudien, „Was du lernst“. -->
+<div class="content ui-page hidden" id="viewInsights">
+ <div class="ui-head"><h1>Auswertung</h1><span class="ui-meta">Nur für dich – Aufwand, Wirkung und Grenzen der Aussagen</span></div>
+ <div class="ui-tool"><p class="ui-strip">Aussagen erst ab genügend Fällen – die Grenzen stehen unter „Was du lernst“.</p></div>
+ <div class="ui-list">
+  <details class="ui-fold" id="lessonBox" open><summary><b>Lehren der Nachkalkulation</b><span id="pkLessonState">gesamt und je Leistung, aus abgeschlossenen Aufträgen</span></summary><div class="ui-fold-body">
+   <p id="pkLesson" class="pk-lesson"></p><div id="pkServiceLessons" class="pk-service-lessons"></div>
+   <p class="ui-small">Die Lehren entstehen aus abgeschlossenen Aufträgen mit erfassten Zeiten (Aufträge &amp; Betreuung → Nachkalkulation).</p></div></details>
+   <details class="ui-fold" id="stBox"><summary><b>Erlebnisstudien</b><span id="stState">echte Testpersonen lösen Aufgaben auf einer Website, z. B. vor und nach einem Relaunch</span></summary><div class="ui-fold-body st-body">
   <p class="muted" id="stNotice"></p>
   <form id="stCreate" class="sales-form st-create"><label>Firma<select name="lead_id" id="stLead"></select></label><label>Titel<input name="title" maxlength="120" required placeholder="z. B. Website vor dem Relaunch"></label>
    <label>Website<input name="url" type="url" maxlength="300" placeholder="https://"></label>
@@ -212,86 +305,58 @@
    <label>Methode<select name="method"><option value="moderiert">moderiert (du bist dabei)</option><option value="unmoderiert">unmoderiert</option></select></label>
    <label class="st-wide">Aufgaben (eine je Zeile)<textarea name="tasks" rows="3" required placeholder="Finden Sie die Telefonnummer.&#10;Fragen Sie einen Termin an."></textarea></label>
    <label class="st-wide">Fragen (optional, eine je Zeile)<textarea name="questions" rows="2" placeholder="Was hat Sie gestört?"></textarea></label>
-   <button class="btn btn-primary" type="submit">Studie anlegen</button></form>
-  <div id="stList" class="sales-list"></div><div id="stDetail"></div></details></section>
- <section class="panel sales-section" id="lernen"><details id="lnBox"><summary><b>Was du lernst</b> <small class="muted">– Aufwand nach Projektart, Ergebnisse nach Methode, Wirkung vorher/nachher</small></summary>
+   <button class="btn btn-ghost" type="submit">Studie anlegen</button></form>
+  <div id="stList" class="sales-list"></div><div id="stDetail"></div></div></details>
+   <details class="ui-fold" id="lnBox"><summary><b>Was du lernst</b><span>Aufwand nach Projektart, Ergebnisse nach Methode, Wirkung vorher/nachher</span></summary><div class="ui-fold-body ln-body">
   <h4>Aufwand nach Projektart</h4><div id="lnEffort"></div>
   <h4>Ergebnisse nach Methode (Erlebnisstudien)</h4><div id="lnMethods"></div>
   <h4>Wirkung vorher/nachher</h4><div id="lnBeforeAfter"></div>
-  <h4>Grenzen</h4><ul class="muted" id="lnLimits"></ul></details></section>
- <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">05 / ANGEBOTSVERLAUF</span><h2>Gespeicherte Angebote</h2></div><button type="button" class="text-button" id="quoteRefresh">Aktualisieren ↻</button></div><div id="quoteHistory" class="sales-list"></div><div id="quoteSaved" class="quote-preview"></div></section>
+  <h4>Grenzen</h4><ul class="muted" id="lnLimits"></ul></div></details>
+ </div>
 </div>
-<div class="content hidden" id="viewFinder">
- <div class="eyebrow">NEUE KUNDEN FINDEN · OFFENE QUELLEN</div>
- <div class="page-title"><div><h1>Firmen finden, die passen.</h1><p>Durchsuche offen lizenzierte Quellen nach Unternehmen und Ausschreibungen in deiner Region. Treffer prüfst du einzeln und übernimmst sie bewusst ins CRM – ohne Kontaktversand. Personenbezug nur, wo der Firmenname selbst ein Name ist: gekennzeichnet und mit Löschfrist.</p></div><span class="pill">Fund ≠ Kontakterlaubnis</span></div>
- <section class="panel sw-start" aria-labelledby="swTitle">
-  <div class="studio-section-head"><div><span class="eyebrow">ARBEITSTAG STARTEN · ALLE QUELLEN AUF EINMAL</span><h2 id="swTitle">Wo und wen suchst du heute?</h2></div><span class="audit-chip">GLEIF · Wikidata · OpenStreetMap · TED</span></div>
-  <div class="sw-profiles" id="swProfiles"><label>Suchprofil<select id="swProfile" aria-label="Suchprofil"><option value="">– ohne Profil –</option></select></label>
-    <button type="button" class="btn btn-primary" id="swProfileStart" disabled>▶ Profil starten</button>
-    <button type="button" class="text-button" id="swProfileSave">Aktuelle Suche als Profil speichern</button><button type="button" class="text-button hidden" id="swProfileDel">Profil löschen</button>
-    <small class="muted" id="swProfileInfo">Ein Profil speichert Gebiet, Branchen, Quellen und das Budget je Lauf.</small></div>
-  <form id="swForm" class="sw-form">
-    <div class="sw-row">
-      <label>Ort oder PLZ<input name="place" required maxlength="80" placeholder="z. B. 70173 oder Stuttgart" autocomplete="postal-code"></label>
-      <label>Umkreis<select name="radius_km"><option value="0">nur dieser Ort</option><option value="5">5 km</option><option value="10">10 km</option><option value="20">20 km</option><option value="30" selected>30 km</option><option value="50">50 km</option><option value="75">75 km</option></select></label>
-      <label class="sw-kw">Eigene Schlagwörter (optional, durch Komma)<input name="keywords" maxlength="400" placeholder="z. B. Manufaktur, Weingut, Präzision"></label>
-    </div>
-    <div class="sw-ind"><div class="sw-ind-head"><b>Branchen</b> <span class="muted" id="swIndCount">alle Branchen</span><input type="search" id="swIndSearch" placeholder="Branche suchen …" aria-label="Branche suchen"><button type="button" class="text-button" id="swIndClear">Auswahl leeren</button></div>
-      <div id="swIndustries" class="sw-ind-groups"></div><p class="muted" id="swIndNotice"></p></div>
-    <div class="sw-row sw-opts">
-      <fieldset><legend>Quellen</legend><label><input type="checkbox" name="src" value="gleif" checked> GLEIF (amtl. Firmendaten)</label><label><input type="checkbox" name="src" value="wikidata" checked> Wikidata</label><label title="Nutzt den lokal eingelesenen Auszug – offline und ohne Wartezeit"><input type="checkbox" name="src" value="osm" checked> OpenStreetMap (lokaler Bestand)</label><label class="sw-sub" title="Öffentliche Server – oft überlastet"><input type="checkbox" name="osm_online"> OpenStreetMap jetzt online abfragen</label><label title="Öffentliche Ausschreibungen von Auftraggebern im Suchgebiet"><input type="checkbox" name="src" value="ted" checked> Ausschreibungen im Suchgebiet (TED)</label><label class="sw-sub"><input type="checkbox" name="ted_nationwide"> Ausschreibungen bundesweit statt nur im Suchgebiet</label></fieldset>
-      <fieldset><legend>Wen suchst du?</legend><label><input type="checkbox" name="org" value="unternehmen" checked> Unternehmen</label><label><input type="checkbox" name="org" value="verein"> Vereine, Verbände &amp; Stiftungen</label><label><input type="checkbox" name="org" value="oeffentlich"> Öffentliche Einrichtungen (Kammern, Kirchengemeinden …)</label></fieldset>
-      <fieldset class="sw-budget"><legend>Budget je Lauf</legend><label>höchstens<input type="number" name="max_companies" min="1" max="5000" value="300" aria-label="höchstens neue Firmen"> neue Firmen</label><label>höchstens<input type="number" name="max_websites" min="0" max="500" value="100" aria-label="höchstens Website-Suchen"> Website-Suchen</label><label>höchstens<input type="number" name="max_minutes" min="1" max="240" value="30" aria-label="höchstens Minuten"> Minuten</label><small class="muted">KI-Analysen nur auf Klick · keine externen Kosten (nur kostenlose offene Quellen)</small></fieldset>
-      <fieldset><legend>Filter</legend><label><input type="checkbox" name="operative" checked> Nur operative Firmen (ohne Holding, Verwaltung, Fonds)</label><label title="In der Trefferliste als „ohne Rechtsform“ gekennzeichnet. Der Firmenname kann ein Personenname sein."><input type="checkbox" name="include_sole" checked> Auch Betriebe ohne Rechtsform im Namen (gekennzeichnet)</label><label><input type="checkbox" name="find_websites" checked> Websites danach automatisch suchen (Nachweis per Impressum)</label></fieldset>
-    </div>
-    <div class="sw-actions"><button type="submit" class="btn btn-primary sw-go" id="swGo">▶ Arbeitstag starten – alle Quellen abfragen</button>
-      <label class="btn btn-ghost sw-import">⇪ Firmenliste / GLEIF-Export importieren<input type="file" id="swFile" accept=".csv,text/csv" hidden></label>
-      <span class="muted">Große Dateien (bis 60 MB) möglich. Dubletten werden automatisch zusammengeführt.</span></div>
-  </form>
-  <div id="swProgress" class="sw-progress hidden" role="status" aria-live="polite"></div>
-  <details class="sw-check" id="osmBox"><summary><b>OpenStreetMap nutzbar machen</b> <span class="muted">Läuft manuell: einmal eine Datei einlesen, danach offline suchen. Die öffentlichen Server sind meist überlastet.</span></summary>
-   <div id="osmState" class="osm-state"></div><div class="muted" id="osmJob"></div>
-   <div class="sw-check-head"><label class="btn btn-primary">⇪ Datei einlesen (.osm.pbf, .json, .geojson)<input type="file" id="osmFile" accept=".pbf,.json,.geojson,application/octet-stream,application/json" hidden></label>
-    <a class="btn btn-ghost hidden" id="osmTurbo" target="_blank" rel="noopener noreferrer" href="#">Abfrage in Overpass Turbo öffnen ↗</a>
-    <button type="button" class="text-button hidden" id="osmClear">Lokalen Bestand löschen</button></div>
-   <div id="osmHowto"></div><p class="muted" id="osmNotice"></p></details>
-  <details class="sw-check" id="swCheckBox"><summary><b>Quellen prüfen</b> <span class="muted">Sind GLEIF, Wikidata, OpenStreetMap und TED gerade erreichbar? Eine winzige Testanfrage je Quelle.</span></summary>
-   <div class="sw-check-head"><button type="button" class="btn btn-ghost" id="swCheck">Jetzt prüfen</button><span class="muted" id="swCheckNote"></span></div>
-   <div id="swCheckRows" class="sw-check-rows"></div></details>
-  <details class="sw-check" id="plBox"><summary><b>Messung: Stichprobe von Hand prüfen</b> <span class="muted">Wie gut ist die Firmensuche wirklich? Zufällige Firmen aus deinen Treffern prüfen, SignalDesk rechnet die Quoten.</span></summary>
-   <p class="muted" id="plNotice"></p>
-   <form id="plDraw" class="sales-row"><label>Größe <select id="plSize"><option value="20">20</option><option value="50" selected>50</option><option value="75">75</option><option value="100">100</option></select></label>
-    <label>Quelle <select id="plSource"><option value="">alle Quellen</option></select></label><button class="btn btn-primary" type="submit">Neue Stichprobe ziehen</button></form>
-   <div id="plList" class="sales-list"></div><div id="plSample"></div></details>
-  <details class="sw-check" id="catBox"><summary><b>Großer Firmenkatalog (GLEIF, offline)</b> <span class="muted" id="catSummary">Alle deutschen Firmen mit LEI lokal durchsuchen – auch wenn die GLEIF-Schnittstelle ausfällt.</span></summary>
-   <p class="muted">Datei bei GLEIF laden: <i>gleif.org → LEI-Daten → Golden Copy</i>, Format <b>LEI-CDF, CSV</b> (ZIP direkt verwenden). „Vollbestand“ ersetzt den Stand, „Delta“ ergänzt nur Änderungen. Lizenz CC0 1.0. Die Datei wird zeilenweise gelesen – auch mehrere GB, ohne den Arbeitsspeicher zu füllen. Aus dem Katalog wird nichts automatisch Lead: Übernahmen gehen in die Sichtung, mit Dubletten-Abgleich.</p>
-   <div class="cat-up"><select id="catKind" aria-label="Art der Datei"><option value="golden">Vollbestand (Golden Copy)</option><option value="delta">Änderungen (Delta)</option></select>
-    <label class="btn btn-ghost">⇪ GLEIF-Datei laden (CSV oder ZIP)<input type="file" id="catFile" accept=".csv,.zip,text/csv,application/zip" hidden></label><span class="muted" id="catUpNote"></span></div>
-   <div class="jb-panel" data-jobs-panel="catalog_import"></div>
-   <div id="catImports" class="cat-imports"></div>
-   <form id="catSearch" class="cat-search"><input name="q" placeholder="Firmenname (Umlaute egal)" aria-label="Firmenname"><input name="zip" placeholder="PLZ-Anfang, z. B. 70" inputmode="numeric" maxlength="5" aria-label="PLZ-Anfang"><input name="city" placeholder="Ort" aria-label="Ort"><button type="submit" class="btn btn-ghost">Im Katalog suchen</button></form>
-   <div id="catResults" class="cat-results"></div></details>
-</section>
-<section class="panel sw-review" id="swReview" aria-labelledby="swReviewTitle">
-  <div class="studio-section-head"><div><span class="eyebrow">SICHTEN · DURCHKLICKEN</span><h2 id="swReviewTitle">Gefundene Firmen</h2></div><span class="muted" id="swCounts"></span></div>
-  <div class="sw-toolbar">
-    <select id="swStatus" aria-label="Status"><option value="neu">Neu zu sichten</option><option value="uebernommen">Übernommen</option><option value="verworfen">Verworfen</option><option value="dups">Mögliche Dubletten prüfen</option><option value="dublette">Schon als Lead vorhanden</option><option value="zusammengefuehrt">Zusammengeführt</option><option value="alle">Alle</option></select>
-    <select id="swSweep" aria-label="Suchlauf"><option value="">Alle Suchläufe & Importe</option></select>
-    <select id="swWeb" aria-label="Website"><option value="">mit & ohne Website</option><option value="1">nur mit Website</option><option value="0">nur ohne Website</option></select>
-    <select id="swSort" aria-label="Sortierung"><option value="distanz">Nach Entfernung</option><option value="quellen">Mehrere Quellen zuerst</option><option value="website">Mit Website zuerst</option><option value="name">Nach Name</option></select>
-    <select id="swCity" aria-label="Ort"><option value="">alle Orte</option></select>
-    <select id="swKm" aria-label="Höchstentfernung"><option value="">jede Entfernung</option><option value="0.5">nur im Ort (≤ 0,5 km)</option><option value="5">bis 5 km</option><option value="10">bis 10 km</option><option value="20">bis 20 km</option><option value="30">bis 30 km</option></select>
-    <label class="sw-toggle"><input type="checkbox" id="swNoTed"> ohne Ausschreibungen</label>
-    <input type="search" id="swQ" placeholder="Name, Ort, PLZ …" aria-label="Suche">
+<!-- 2.0.0-dev51 (UX Schritt 3): Finden → Neue Suche. Seitenkopf mit „Suche starten“, Statuszeile der Datenquellen, oben Ort · Umkreis ·
+     Branchen und „Wen suchst du?“ (Voreinstellungen), alles Weitere als Klappzeilen mit Kurzstand. Datenquellen stehen unter Einstellungen. -->
+<div class="content ui-page hidden" id="viewFinder">
+ <div class="ui-head"><h1 title="Durchsuche offen lizenzierte Quellen nach Firmen in deiner Region. Treffer prüfst du unter „Sichten“ und übernimmst sie bewusst – ohne Kontaktversand.">Finden</h1><span class="ui-meta">Neue Suche</span><span class="ui-sp"></span><button type="submit" form="swForm" class="btn btn-primary sw-go" id="swGo">Suche starten</button></div>
+ <div class="ui-tool"><p class="ui-strip" id="fdSources" role="status" aria-live="polite">Datenquellen: Stand wird geladen …</p></div>
+ <form id="swForm" class="sw-form fd-form">
+  <div class="ui-card fd-card">
+   <div class="fd-where">
+    <label class="ui-field">Wo?<input name="place" required maxlength="80" placeholder="Ort oder PLZ, z. B. 70173" autocomplete="postal-code"></label>
+    <label class="ui-field">Umkreis<select name="radius_km"><option value="0">nur dieser Ort</option><option value="5">5 km</option><option value="10">10 km</option><option value="20">20 km</option><option value="30" selected>30 km</option><option value="50">50 km</option><option value="75">75 km</option></select></label>
+    <div class="ui-field fd-ind-wrap"><span id="swIndLabel">Branchen</span>
+     <details class="ui-menu fd-ind" id="swIndMenu"><summary class="fd-ind-field" aria-labelledby="swIndLabel swIndCount"><span class="fd-chips" id="swIndChips"></span><span class="fd-ind-add" id="swIndCount">alle Branchen</span></summary>
+      <div class="ui-menu-body fd-ind-body" role="group" aria-label="Branchen wählen">
+       <div class="fd-ind-tools"><input type="search" id="swIndSearch" placeholder="Branche suchen …" aria-label="Branche suchen"><button type="button" class="ui-txt" id="swIndClear">Auswahl leeren</button></div>
+       <div id="swIndustries" class="sw-ind-groups"></div><p class="ui-small" id="swIndNotice"></p></div></details></div>
+   </div>
+   <div class="fd-who"><span class="fd-label" id="fdWhoLabel">Wen suchst du?</span>
+    <div class="ui-seg" id="fdPresets" role="group" aria-labelledby="fdWhoLabel"><button type="button" data-fd-preset="handwerk" aria-pressed="false">Handwerk &amp; lokale Betriebe</button><button type="button" data-fd-preset="gross" aria-pressed="false">Größere Firmen</button><button type="button" data-fd-preset="oeffentlich" aria-pressed="false">Öffentliche Aufträge</button><button type="button" data-fd-preset="alles" aria-pressed="false">Alles</button></div>
+    <span class="ui-small" id="fdPresetState" role="status" aria-live="polite"></span></div>
   </div>
-  <div class="sw-bulk"><label><input type="checkbox" id="swAll"> alle auf dieser Seite</label><button type="button" class="btn btn-ghost" data-sw-bulk="websites">Websites suchen (Nachweis per Impressum)</button><button type="button" class="btn btn-primary" data-sw-bulk="uebernehmen">Ausgewählte übernehmen</button><button type="button" class="btn btn-primary" data-sw-bulk="bericht">Übernehmen & Bericht erstellen</button><button type="button" class="btn btn-ghost" data-sw-bulk="verwerfen">Ausgewählte verwerfen</button><button type="button" class="btn btn-ghost" id="swTakeAll" title="Alle offenen Treffer des aktuellen Filters übernehmen – auch über mehrere Seiten">Alle Treffer übernehmen …</button><button type="button" class="text-button" id="swDedupe" title="Alle Treffer erneut auf Dubletten prüfen: sicher gleiche Firmen zusammenführen, mögliche zur Prüfung markieren">Dubletten prüfen</button>
-    <span class="muted sw-keys">Tastatur: ↑/↓ bzw. j/k · <b>o</b> Website öffnen · <b>b</b> übernehmen · <b>v</b> verwerfen</span></div>
-  <div id="swList" class="sw-list" tabindex="0"></div>
-  <div class="sw-pager"><button type="button" class="btn btn-ghost" id="swPrev">← zurück</button><span id="swPage" class="muted"></span><button type="button" class="btn btn-ghost" id="swNext">weiter →</button></div>
-  <div class="sales-subhead">Recherche-Aufträge</div><div class="jb-panel" data-jobs-panel=""></div>
-  <div class="sales-subhead">Deine Gebiete & Suchläufe</div><div id="swHistory" class="sales-list"></div>
-</section>
-<details class="panel lf-expert"><summary><b>Einzelne Quelle gezielt abfragen</b> <span class="muted">für Fortgeschrittene</span></summary>
+  <div class="ui-list fd-folds">
+   <details class="ui-fold" id="fdSrcFold"><summary><b>Quellen &amp; Budget</b><span id="fdSrcState"></span></summary><div class="ui-fold-body sw-opts fd-opts">
+    <fieldset><legend>Quellen</legend><label><input type="checkbox" name="src" value="gleif" checked> GLEIF (amtl. Firmendaten)</label><label><input type="checkbox" name="src" value="wikidata" checked> Wikidata</label><label title="Nutzt den lokal eingelesenen Auszug – offline und ohne Wartezeit"><input type="checkbox" name="src" value="osm" checked> OpenStreetMap (lokaler Bestand)</label><label class="sw-sub" title="Öffentliche Server – oft überlastet"><input type="checkbox" name="osm_online"> OpenStreetMap jetzt online abfragen</label><label title="Öffentliche Ausschreibungen von Auftraggebern im Suchgebiet"><input type="checkbox" name="src" value="ted" checked> Ausschreibungen im Suchgebiet (TED)</label></fieldset>
+    <fieldset class="sw-budget"><legend>Budget je Lauf</legend><label>höchstens<input type="number" name="max_companies" min="1" max="5000" value="300" aria-label="höchstens neue Firmen"> neue Firmen</label><label>höchstens<input type="number" name="max_websites" min="0" max="500" value="100" aria-label="höchstens Website-Suchen"> Website-Suchen</label><label>höchstens<input type="number" name="max_minutes" min="1" max="240" value="30" aria-label="höchstens Minuten"> Minuten</label><small class="muted">KI-Analysen nur auf Klick · keine externen Kosten (nur kostenlose offene Quellen)</small></fieldset></div></details>
+   <details class="ui-fold" id="fdOptFold"><summary><b>Optionen</b><span id="fdOptState"></span></summary><div class="ui-fold-body sw-opts fd-opts">
+    <fieldset><legend>Filter</legend><label><input type="checkbox" name="operative" checked> Nur operative Firmen (ohne Holding, Verwaltung, Fonds)</label><label title="In der Trefferliste als „ohne Rechtsform“ gekennzeichnet. Der Firmenname kann ein Personenname sein."><input type="checkbox" name="include_sole" checked> Auch Betriebe ohne Rechtsform im Namen (gekennzeichnet)</label><label><input type="checkbox" name="find_websites" checked> Websites danach automatisch suchen (Nachweis per Impressum)</label></fieldset>
+    <fieldset><legend>Organisationsarten</legend><label><input type="checkbox" name="org" value="unternehmen" checked> Unternehmen</label><label><input type="checkbox" name="org" value="verein"> Vereine, Verbände &amp; Stiftungen</label><label><input type="checkbox" name="org" value="oeffentlich"> Öffentliche Einrichtungen (Kammern, Kirchengemeinden …)</label></fieldset>
+    <fieldset><legend>Ausschreibungen</legend><label><input type="checkbox" name="ted_nationwide"> Ausschreibungen bundesweit statt nur im Suchgebiet</label></fieldset>
+    <label class="ui-field fd-kw">Eigene Stichwörter (optional, durch Komma)<input name="keywords" maxlength="400" placeholder="z. B. Manufaktur, Weingut, Präzision"></label></div></details>
+   <details class="ui-fold" id="fdProfFold"><summary><b>Suchprofile</b><span id="fdProfState"></span></summary><div class="ui-fold-body">
+    <div class="sw-profiles" id="swProfiles"><label>Suchprofil<select id="swProfile" aria-label="Suchprofil"><option value="">– ohne Profil –</option></select></label>
+     <button type="button" class="btn btn-ghost" id="swProfileStart" disabled>▶ Profil starten</button>
+     <button type="button" class="text-button" id="swProfileSave">Aktuelle Suche als Profil speichern</button><button type="button" class="text-button hidden" id="swProfileDel">Profil löschen</button>
+     <small class="muted" id="swProfileInfo">Ein Profil speichert Gebiet, Branchen, Quellen und das Budget je Lauf.</small></div></div></details>
+  </div>
+ </form>
+ <div id="swProgress" class="sw-progress fd-progress hidden" role="status" aria-live="polite"></div>
+ <section class="ui-list fd-hist" id="fdHist" aria-labelledby="fdHistTitle">
+  <div class="ui-row-head" aria-hidden="true"><span id="fdHistTitle">Letzte Suchen</span><span>Ergebnis</span><span>Wann</span><span>Status</span><span></span><span></span></div>
+  <div id="swHistory"></div></section>
+ <div class="ui-list fd-more-folds">
+  <details class="ui-fold" id="fdJobsFold"><summary><b>Recherche-Aufträge</b><span>Website-Suchen, Berichte und Importe im Hintergrund</span></summary><div class="ui-fold-body"><div class="jb-panel" data-jobs-panel=""></div></div></details>
+  <details class="ui-fold lf-expert" id="lfExpert"><summary><b>Einzelne Quelle gezielt abfragen</b><span>für Fortgeschrittene: eine Quelle, eigene Treffertabelle, manuelle Quellen</span></summary><div class="ui-fold-body">
 <div class="lf-sources" id="lfSources"></div>
  <div class="sales-cols lf-grid">
   <section class="panel sales-section"><span class="eyebrow">01 / SUCHEN</span><h2 id="lfFormTitle">Quelle wählen</h2>
@@ -305,7 +370,7 @@
     <div class="lf-field" data-for="ted"><label>Veröffentlicht in den letzten … Tagen<input name="days" type="number" min="1" max="180" value="30"></label></div>
     <div class="lf-field" data-for="wikidata osm"><label class="quote-addon"><input type="checkbox" name="legal_entities_only" checked><span>Nur Firmen mit Rechtsform (GmbH, AG, KG …)<small>Filtert Einzelunternehmen heraus, deren Name oft eine Person ist – datensparsam nach DSGVO.</small></span></label></div>
     <div class="lf-field" data-for="wikidata osm gleif ted"><label>Max. Treffer<input name="limit" type="number" min="1" max="200" value="50"></label></div>
-    <button type="submit" class="btn btn-primary" id="lfSubmit" disabled>Suche starten ↗</button>
+    <button type="submit" class="btn btn-ghost" id="lfSubmit" disabled>Suche starten ↗</button>
    </form>
    <div id="lfStatus" class="audit-status" role="status" aria-live="polite">Wähle oben eine Quelle.</div>
   </section>
@@ -322,10 +387,49 @@
   <section class="panel sales-section"><span class="eyebrow">VERLAUF</span><h2>Letzte Suchläufe</h2><div id="lfRuns" class="sales-list"></div></section>
   <section class="panel sales-section"><span class="eyebrow">NUR MANUELL</span><h2>Weitere Quellen – bewusst nicht automatisiert</h2><p class="muted">Diese Quellen sind wertvoll, dürfen aber nicht oder nur eingeschränkt automatisch ausgelesen werden. Links öffnen sich mit deinem Ort/Stichwort.</p><div id="lfManual" class="sales-list"></div></section>
  </div>
-</details>
+  </div></details>
+ </div>
+ <p class="ui-small">Personenbezug nur, wo der Firmenname selbst ein Name ist: gekennzeichnet und mit Löschfrist. Fund ≠ Kontakterlaubnis.</p>
  <div class="legal-foot"><b>Rechtlicher Rahmen (keine Rechtsberatung):</b> Öffentliche Auffindbarkeit ist keine Einwilligung. § 7 UWG: Werbe-E-Mails brauchen vorherige ausdrückliche Einwilligung – auch B2B; Telefonwerbung gegenüber Unternehmen nur bei mutmaßlicher Einwilligung; Briefwerbung ist grundsätzlich zulässig, solange kein Widerspruch vorliegt. Sobald du Personendaten ergänzt, gelten Art. 6 Abs. 1 lit. f und die Informationspflicht nach Art. 14 DSGVO. Details: docs/LEADQUELLEN_V11.md.</div>
 </div>
+<!-- 2.0.0-dev51 (UX Schritt 3): Finden → Sichten. Gefundene Firmen als Liste: Firma · Website · Entfernung · Quelle · Übernehmen · ›.
+     Ein Klick auf die Zeile klappt Adresse, Website-Nachweis, Quellen, Dubletten-Hinweise und alle weiteren Aktionen auf. -->
+<div class="content ui-page hidden" id="viewSichten">
+ <div class="ui-head"><h1>Finden</h1><span class="ui-meta" id="swCounts" role="status" aria-live="polite"></span><span class="ui-sp"></span><button type="button" class="btn btn-primary" id="fdNewSearch">＋ Neue Suche</button></div>
+ <div class="ui-tool">
+  <input type="search" id="swQ" class="ui-search" placeholder="⌕ In Treffern suchen (Name, Ort, PLZ) …" aria-label="In Treffern suchen">
+  <div class="ui-tabs" id="swViews" role="group" aria-label="Ansichten"><button type="button" class="ui-tab" data-sw-view="offen">Offen <span class="ui-count" id="swCntOpen"></span></button><button type="button" class="ui-tab" data-sw-view="website">Mit Website <span class="ui-count" id="swCntWeb"></span></button><button type="button" class="ui-tab" data-sw-view="uebernommen">Übernommen <span class="ui-count" id="swCntTaken"></span></button></div>
+  <details class="ui-menu" id="swFilterMenu"><summary class="btn btn-ghost" id="swFilterBtn">Filter ▾</summary><div class="ui-menu-body" role="group" aria-label="Filter">
+   <label class="ui-menu-field">Status<select id="swStatus" aria-label="Status"><option value="neu">Neu zu sichten</option><option value="uebernommen">Übernommen</option><option value="verworfen">Verworfen</option><option value="dups">Mögliche Dubletten prüfen</option><option value="dublette">Schon als Firma vorhanden</option><option value="zusammengefuehrt">Zusammengeführt</option><option value="alle">Alle</option></select></label>
+   <label class="ui-menu-field">Suche oder Import<select id="swSweep" aria-label="Suchlauf"><option value="">Alle Suchläufe &amp; Importe</option></select></label>
+   <label class="ui-menu-field">Website<select id="swWeb" aria-label="Website"><option value="">mit &amp; ohne Website</option><option value="1">nur mit Website</option><option value="0">nur ohne Website</option></select></label>
+   <label class="ui-menu-field">Ort<select id="swCity" aria-label="Ort"><option value="">alle Orte</option></select></label>
+   <label class="ui-menu-field">Entfernung<select id="swKm" aria-label="Höchstentfernung"><option value="">jede Entfernung</option><option value="0.5">nur im Ort (≤ 0,5 km)</option><option value="5">bis 5 km</option><option value="10">bis 10 km</option><option value="20">bis 20 km</option><option value="30">bis 30 km</option></select></label>
+   <label class="ui-menu-field">Sortierung<select id="swSort" aria-label="Sortierung"><option value="distanz">Nach Entfernung</option><option value="quellen">Mehrere Quellen zuerst</option><option value="website">Mit Website zuerst</option><option value="name">Nach Name</option></select></label>
+   <label class="ui-menu-item"><input type="checkbox" id="swNoTed"> ohne Ausschreibungen</label>
+   <div class="ui-menu-sep">Prüfen</div>
+   <button type="button" class="ui-menu-item" id="swDedupe" title="Alle Treffer erneut auf Dubletten prüfen: sicher gleiche Firmen zusammenführen, mögliche zur Prüfung markieren">Dubletten prüfen</button>
+   <button type="button" class="ui-menu-item" id="swFilterReset">Filter zurücksetzen</button></div></details>
+  <details class="ui-menu" id="swBulkMenu"><summary class="btn btn-ghost" id="swBulkBtn">Auswahl ▾</summary><div class="ui-menu-body" role="group" aria-label="Aktionen für mehrere Treffer">
+   <div class="ui-menu-sep" id="swSelInfo">Ausgewählte (0)</div>
+   <button type="button" class="ui-menu-item" data-sw-bulk="uebernehmen">Ausgewählte übernehmen</button>
+   <button type="button" class="ui-menu-item" data-sw-bulk="bericht">Übernehmen &amp; Bericht erstellen</button>
+   <button type="button" class="ui-menu-item" data-sw-bulk="verwerfen">Ausgewählte verwerfen</button>
+   <button type="button" class="ui-menu-item" data-sw-bulk="websites">Websites suchen (Nachweis per Impressum)</button>
+   <div class="ui-menu-sep">Ganzer Filter</div>
+   <button type="button" class="ui-menu-item" id="swTakeAll" title="Alle offenen Treffer des aktuellen Filters übernehmen – auch über mehrere Seiten">Alle Treffer übernehmen …</button></div></details>
+ </div>
+ <section class="ui-list fd-list" id="swReview" aria-label="Gefundene Firmen">
+  <div class="ui-row-head"><span><label class="fd-all"><input type="checkbox" id="swAll" aria-label="alle auf dieser Seite auswählen"> Firma</label></span><span>Website</span><span>Entfernung</span><span>Quelle</span><span></span><span><span class="ui-sr">Aufklappen</span></span></div>
+  <div id="swList" class="sw-list" tabindex="0" aria-label="Treffer"></div>
+ </section>
+ <div class="sw-pager"><button type="button" class="btn btn-ghost" id="swPrev">← zurück</button><span id="swPage" class="muted"></span><button type="button" class="btn btn-ghost" id="swNext">weiter →</button></div>
+ <p class="ui-small"><span id="swCountsAll"></span> <span class="sw-keys">Klick auf eine Zeile zeigt Adresse, Website-Nachweis, Quellen und alle Aktionen. Tastatur: ↑/↓ bzw. j/k · Enter aufklappen · <b>o</b> Website öffnen · <b>b</b> übernehmen · <b>v</b> verwerfen</span></p>
+</div>
 <div class="content hidden" id="viewDatacheck">
+ <section class="panel sales-section fd-import" id="fdImport" aria-labelledby="fdImportTitle"><div class="studio-section-head"><div><span class="eyebrow">FIRMENLISTE IMPORTIEREN</span><h2 id="fdImportTitle">Firmenliste oder GLEIF-Export zum Sichten</h2></div>
+  <label class="btn btn-ghost sw-import">⇪ Datei wählen (CSV, bis 60 MB)<input type="file" id="swFile" accept=".csv,text/csv" hidden></label></div>
+  <p class="muted">Die Firmen landen unter „Finden → Sichten“; Dubletten werden automatisch zusammengeführt. Es gelten die Optionen der neuen Suche (nur operative Firmen, Betriebe ohne Rechtsform, Branchen, Stichwörter, PLZ).</p></section>
  <div class="eyebrow">DATENBASIS · IMPRESSUM · SPERRLISTE</div>
  <div class="page-title"><div><h1>Saubere Firmendaten. Mit Beleg.</h1><p>Prüfe bis zu 100 Firmenwebsites auf einmal: SignalDesk liest das Impressum, zeigt jeden Wert mit wörtlichem Beleg und übernimmt nur, was du bestätigst. Gesperrte Firmen werden gar nicht erst abgerufen.</p></div><span class="pill">Fund ≠ Kontakterlaubnis</span></div>
  <div class="sales-cols">
@@ -345,7 +449,7 @@
  <section class="panel sales-section" id="dcRunPanel"><div class="studio-section-head"><div><span class="eyebrow">03 / PRÜFWARTESCHLANGE</span><h2 id="dcRunTitle">Kein Auftrag ausgewählt</h2></div><div class="acc-btn-group" id="dcRunActions"></div></div>
   <div id="dcProgress"></div><div id="dcItems" class="dc-items"><div class="empty">Starte eine Prüfung oder öffne einen Auftrag.</div></div></section>
  <div class="sales-cols">
-  <section class="panel sales-section"><span class="eyebrow">SPERRLISTE</span><h2>Widersprüche & Sperren</h2><p class="muted">Gilt für alle Importwege (CSV, Lead-Finder, URL-Recherche, Impressumsprüfung) und bleibt bestehen, auch wenn ein Lead gelöscht wird. Gesperrte Leads werden automatisch eingetragen.</p>
+  <section class="panel sales-section"><span class="eyebrow">SPERRLISTE</span><h2>Widersprüche & Sperren</h2><p class="muted">Gilt für alle Importwege (CSV, Firmensuche, URL-Recherche, Impressumsprüfung) und bleibt bestehen, auch wenn eine Firma gelöscht wird. Gesperrte Firmen werden automatisch eingetragen.</p>
    <form id="dcSupForm" class="sales-form"><div class="acc-row3"><label>Art<select name="kind"><option value="domain">Domain</option><option value="name">Firmenname</option><option value="email">E-Mail</option></select></label><label>Wert<input name="value" maxlength="200" required placeholder="firma.de"></label><label>Grund<input name="reason" maxlength="300" placeholder="Widerspruch per Brief vom …"></label></div><button type="submit" class="btn btn-ghost">Sperre hinzufügen</button></form>
    <div id="dcSuppression" class="sales-list"></div></section>
   <section class="panel sales-section"><span class="eyebrow">DATENSCHUTZ</span><h2>Nachweise zu Personen</h2><p class="muted">Pro übernommener Person: Zweck, Rechtsgrundlage, Quelle und Löschfrist. Spätestens beim ersten Kontakt bzw. binnen eines Monats nach Art. 14 DSGVO informieren – der Textbaustein hilft dabei.</p><div id="dcPrivacy" class="sales-list"></div></section>
@@ -356,7 +460,7 @@
  <div class="page-title"><div><h1>Wo lohnt sich ein Gespräch?</h1><p>SignalDesk rendert die Website wie ein Browser (Desktop und Smartphone), misst Ladezeit, prüft Links und bewertet jede Rubrik mit Beleg. Fehlt ein Beleg, steht dort „unbekannt“ – nicht „schlecht“.</p></div><span class="pill">Keine Aussage über Kaufbereitschaft</span></div>
  <div id="scRenderer"></div>
  <div class="sales-cols">
-  <section class="panel sales-section"><span class="eyebrow">01 / BEWERTEN</span><h2>Leads auswählen</h2><p class="muted">Bis zu 20 Leads mit Website. Pro Firma werden Startseite und bis zu drei Unterseiten gelesen, nacheinander und schonend.</p>
+  <section class="panel sales-section"><span class="eyebrow">01 / BEWERTEN</span><h2>Firmen auswählen</h2><p class="muted">Bis zu 20 Firmen mit Website. Pro Firma werden Startseite und bis zu drei Unterseiten gelesen, nacheinander und schonend.</p>
    <input class="search" id="scLeadSearch" placeholder="⌕  Firma suchen…"><div id="scLeadPicker" class="sc-picker"></div>
    <button type="button" class="btn btn-primary" id="scStart" disabled>Ausgewählte bewerten ↗</button></section>
   <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">02 / WARTESCHLANGE</span><h2>Laufende Bewertungen</h2></div><button type="button" class="text-button" id="scRefresh">Aktualisieren ↻</button></div><div id="scQueue" class="sales-list"></div></section>
@@ -379,23 +483,24 @@
 <div class="content hidden" id="viewSignals">
  <div class="eyebrow">BUYING SIGNALS · REGISTER · STELLEN · KORRELATION</div>
  <div class="page-title"><div><h1>Was verändert sich gerade?</h1><p>Registerbekanntmachungen, Stellenanzeigen und Website-Befunde werden zu belegten Signalen pro Firma – mit Pro- und Contra-Deutung. Erst mehrere unabhängige Hinweise ergeben eine Hypothese fürs Gespräch.</p></div><span class="pill">Korrelation ≠ Kausalität</span></div>
- <div class="kpi-grid sg-kpis"><div class="kpi"><span>SIGNALE</span><strong id="sgTotal">–</strong><small>ohne verworfene</small></div><div class="kpi"><span>NEU</span><strong id="sgNew">–</strong><small>noch nicht gesichtet</small></div><div class="kpi"><span>NICHT ZUGEORDNET</span><strong id="sgUnassigned">–</strong><small>keinem Lead zugeordnet</small></div><div class="kpi"><span>FIRMEN MIT SIGNALEN</span><strong id="sgLeads">–</strong><small>für Hypothesen bereit</small></div></div>
+ <div class="kpi-grid sg-kpis"><div class="kpi"><span>SIGNALE</span><strong id="sgTotal">–</strong><small>ohne verworfene</small></div><div class="kpi"><span>NEU</span><strong id="sgNew">–</strong><small>noch nicht gesichtet</small></div><div class="kpi"><span>NICHT ZUGEORDNET</span><strong id="sgUnassigned">–</strong><small>keiner Firma zugeordnet</small></div><div class="kpi"><span>FIRMEN MIT SIGNALEN</span><strong id="sgLeads">–</strong><small>für Hypothesen bereit</small></div></div>
  <div class="acc-tabs" role="tablist"><button type="button" class="acc-tab active" data-sg-tab="register">Registerbekanntmachungen</button><button type="button" class="acc-tab" data-sg-tab="jobs">Stellenanzeigen</button><button type="button" class="acc-tab" data-sg-tab="career">Karriereseiten prüfen</button></div>
  <section class="panel sales-section sg-pane" data-sg-pane="register"><span class="eyebrow">MANUELLER IMPORT · KEIN REGISTER-SCRAPER</span><h2>Bekanntmachungen einfügen</h2><p class="muted">Kopiere Bekanntmachungen aus dem Registerportal (Registerbekanntmachungen) oder dem Unternehmensregister hier hinein – mehrere durch Leerzeilen getrennt – oder lade eine CSV (Spalten: datum, gericht, registernummer, firma, text, url). Geburtsdaten werden beim Import entfernt. Doppelte Bekanntmachungen werden erkannt.</p>
   <form id="sgRegForm" class="sales-form"><label>Bekanntmachungstext<textarea name="text" rows="7" maxlength="2000000" placeholder="Amtsgericht … HRB …&#10;Bekannt gemacht am: …&#10;Veränderungen …"></textarea></label><label>Quelle/URL (optional)<input name="source_url" maxlength="500" placeholder="https://www.handelsregister.de/…"></label><div class="acc-btn-group"><label class="btn btn-ghost import-label">CSV wählen<input type="file" id="sgRegCsv" accept=".csv,text/csv" hidden></label><button type="submit" class="btn btn-primary">Importieren & auswerten</button><a class="btn btn-ghost" href="https://www.handelsregister.de/rp_web/normalesuche/welcome.xhtml" target="_blank" rel="noopener noreferrer">Registerportal öffnen ↗</a></div></form></section>
  <section class="panel sales-section sg-pane hidden" data-sg-pane="jobs"><span class="eyebrow">MANUELLER IMPORT · KEINE PORTAL-SCRAPER</span><h2>Stellenanzeige erfassen</h2><p class="muted">Erste Zeile = Stellentitel, darunter optional der Anzeigentext. Oder CSV mit Spalten firma, titel, url, datum, text. Kontaktdaten aus Anzeigentexten werden nicht gespeichert.</p>
-  <form id="sgJobForm" class="sales-form"><div class="sales-row"><label>Firma (Lead)<select name="lead_id" id="sgJobLead"></select></label><label>Veröffentlicht am<input type="date" name="published_at"></label></div><label>Quelle/URL<input name="source_url" maxlength="500" placeholder="https://firma.de/karriere/…"></label><label>Titel und Text<textarea name="text" rows="5" placeholder="Online-Marketing Manager (m/w/d)&#10;Ihre Aufgaben: …"></textarea></label><div class="acc-btn-group"><label class="btn btn-ghost import-label">CSV wählen<input type="file" id="sgJobCsv" accept=".csv,text/csv" hidden></label><button type="submit" class="btn btn-primary">Erfassen & auswerten</button></div></form></section>
- <section class="panel sales-section sg-pane hidden" data-sg-pane="career"><span class="eyebrow">EIGENE DOMAIN & OFFIZIELLE FEEDS</span><h2>Karriereseiten der Leads prüfen</h2><p class="muted">Liest die Karriereseite der Firma (inkl. strukturierter schema.org-Stellendaten) bzw. den offiziellen Personio-Feed. Fremde Jobportale werden nicht ausgelesen. Max. 20 Leads pro Durchgang.</p>
+  <form id="sgJobForm" class="sales-form"><div class="sales-row"><label>Firma<select name="lead_id" id="sgJobLead"></select></label><label>Veröffentlicht am<input type="date" name="published_at"></label></div><label>Quelle/URL<input name="source_url" maxlength="500" placeholder="https://firma.de/karriere/…"></label><label>Titel und Text<textarea name="text" rows="5" placeholder="Online-Marketing Manager (m/w/d)&#10;Ihre Aufgaben: …"></textarea></label><div class="acc-btn-group"><label class="btn btn-ghost import-label">CSV wählen<input type="file" id="sgJobCsv" accept=".csv,text/csv" hidden></label><button type="submit" class="btn btn-primary">Erfassen & auswerten</button></div></form></section>
+ <section class="panel sales-section sg-pane hidden" data-sg-pane="career"><span class="eyebrow">EIGENE DOMAIN & OFFIZIELLE FEEDS</span><h2>Karriereseiten der Firmen prüfen</h2><p class="muted">Liest die Karriereseite der Firma (inkl. strukturierter schema.org-Stellendaten) bzw. den offiziellen Personio-Feed. Fremde Jobportale werden nicht ausgelesen. Max. 20 Firmen pro Durchgang.</p>
   <input class="search" id="sgCareerSearch" placeholder="⌕  Firma suchen…"><div id="sgCareerPicker" class="sc-picker"></div><button type="button" class="btn btn-primary" id="sgCareerStart" disabled>Karriereseiten prüfen ↗</button><div id="sgScans" class="sales-list"></div></section>
  <div class="sales-cols sg-cols">
   <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">SIGNALE</span><h2>Signal-Feed</h2></div><div class="acc-btn-group"><select id="sgFilter" aria-label="Filter"><option value="">Alle</option><option value="new">Nur neue</option><option value="unassigned">Nicht zugeordnet</option><option value="register">Register</option><option value="job">Stellen</option><option value="bestaetigt">Bestätigt</option></select></div></div><div id="sgFeed" class="sg-feed"></div></section>
-  <section class="panel sales-section"><span class="eyebrow">KORRELATION</span><h2>Hypothesen je Firma</h2><p class="muted">Verbindet Register-, Stellen-, Lead- und Website-Signale. Zeigt Gegenhinweise, Widersprüche und was zur Bestätigung fehlt.</p><div id="sgLeadList" class="sales-list"></div><div id="sgCorrelation"></div></section>
+  <section class="panel sales-section"><span class="eyebrow">KORRELATION</span><h2>Hypothesen je Firma</h2><p class="muted">Verbindet Register-, Stellen-, Firmen- und Website-Signale. Zeigt Gegenhinweise, Widersprüche und was zur Bestätigung fehlt.</p><div id="sgLeadList" class="sales-list"></div><div id="sgCorrelation"></div></section>
  </div>
 </div>
 <div class="content hidden" id="viewCenter">
+ <div class="ui-tool fd-an" id="fdAnBar"><nav class="ui-tabs" aria-label="Analysen"><button type="button" class="ui-tab" data-area-view="center">Recherche &amp; Berichte</button><button type="button" class="ui-tab" data-area-view="research">URL-Recherche</button><button type="button" class="ui-tab" data-area-view="scoring">Website-Scoring</button><button type="button" class="ui-tab" data-area-view="signals">Kaufsignale <small class="nav-new" id="sgNavBadge"></small></button></nav></div>
  <div class="eyebrow">2 · RECHERCHIEREN</div>
  <div class="page-title"><div><h1>Ein Klick, ein Firmen-Bericht.</h1><p>Impressum, Website-Bewertung, Website-Inhalte mit Ansprechpartnern, Karriereseite und Kaufsignale – in einem Auftrag, zusammengefasst in einem Bericht. Danach bewusst an CRM und Angebot übergeben.</p></div><span class="pill">Fund ≠ Kontakterlaubnis</span></div>
- <form class="panel rp-start" id="rpUrlForm"><label>Website einer Firma<input name="url" type="url" required maxlength="300" placeholder="https://firma.de" inputmode="url"></label><button type="submit" class="btn btn-primary">Bericht erstellen ▶</button><span class="muted">Ist die Firma noch kein Lead, wird sie angelegt (Phase Recherche, Rechtsstatus „unbekannt“). Für viele Firmen: unten auswählen → „Berichte erstellen“.</span></form>
+ <form class="panel rp-start" id="rpUrlForm"><label>Website einer Firma<input name="url" type="url" required maxlength="300" placeholder="https://firma.de" inputmode="url"></label><button type="submit" class="btn btn-primary">Bericht erstellen ▶</button><span class="muted">Ist die Firma noch nicht in deiner Firmenliste, wird sie angelegt (Phase Recherche, Rechtsstatus „unbekannt“). Für viele Firmen: unten auswählen → „Berichte erstellen“.</span></form>
  <div class="rp-recent panel hidden" id="rpRecent"><b>Laufende & letzte Berichte</b><div id="rpRecentList" class="rp-recent-list"></div></div>
  <section class="panel jb-section"><b>Recherche-Aufträge</b><div class="jb-panel" data-jobs-panel="report"></div></section>
  <div class="rc-funnel" id="rcFunnel"></div>
@@ -560,7 +665,7 @@
 </div>
 <div class="content hidden" id="viewQuality">
  <div class="eyebrow">FIRMEN · DATENPFLEGE</div>
- <div class="page-title"><div><h1>Daten aktuell halten.</h1><p>Veraltete Daten erkennen, Änderungen prüfen, Dubletten zusammenführen und abgelaufene Löschfristen abarbeiten. Wiederkehrende Recherchen stehen unter „Finden“, Einstellungen unter „Einstellungen“. Nichts wird ohne deine Bestätigung überschrieben oder gelöscht.</p></div><span class="pill">Prüfen statt überschreiben</span></div>
+ <div class="page-title"><div><h1>Daten aktuell halten.</h1><p>Veraltete Daten erkennen, Änderungen prüfen, Dubletten zusammenführen und abgelaufene Löschfristen abarbeiten. Wiederkehrende Recherchen stehen unter „Finden → Analysen“, Datenquellen unter „Einstellungen“. Unten: Messung der Firmensuche per Stichprobe. Nichts wird ohne deine Bestätigung überschrieben oder gelöscht.</p></div><span class="pill">Prüfen statt überschreiben</span></div>
  <div class="sales-metrics q-metrics" id="qMetrics"></div>
  <div class="sales-cols">
   <section class="panel sales-section"><div class="studio-section-head"><div><span class="eyebrow">ÄNDERUNGSERKENNUNG</span><h2>Erkannte Änderungen</h2></div><button type="button" class="btn btn-ghost" id="qDetect">Jetzt prüfen ↻</button></div>
@@ -572,11 +677,16 @@
    <p class="muted" id="qDupsNotice">Gleiche LEI/Registernummer, eigene Website oder gleicher Name am gleichen Ort. Andere Rechtsform (GmbH ≠ GmbH &amp; Co. KG), andere Registernummer oder anderer Ort gelten nie als Dublette.</p>
    <div id="qDups" class="sales-list"></div></section>
  </div>
+ <details class="panel sales-section sw-check" id="plBox"><summary><b>Messung: Stichprobe von Hand prüfen</b> <span class="muted">Wie gut ist die Firmensuche wirklich? Zufällige Firmen aus deinen Treffern prüfen, SignalDesk rechnet die Quoten.</span></summary>
+   <p class="muted" id="plNotice"></p>
+   <form id="plDraw" class="sales-row"><label>Größe <select id="plSize"><option value="20">20</option><option value="50" selected>50</option><option value="75">75</option><option value="100">100</option></select></label>
+    <label>Quelle <select id="plSource"><option value="">alle Quellen</option></select></label><button class="btn btn-primary" type="submit">Neue Stichprobe ziehen</button></form>
+   <div id="plList" class="sales-list"></div><div id="plSample"></div></details>
 </div>
 <div class="content hidden" id="viewSettings">
  <div class="eyebrow">EINSTELLUNGEN · PROFIL &amp; ARBEITSWEISE</div>
  <div class="page-title"><div><h1>Einstellungen.</h1><p>Alles, was festlegt, wie SignalDesk für dich arbeitet – an einem Ort. Änderungen gelten erst nach „Speichern“; nur die Darstellung wird sofort übernommen.</p></div></div>
- <nav class="settings-jump" aria-label="Abschnitte der Einstellungen"><button type="button" data-settings-jump="darstellung">Darstellung</button><button type="button" data-settings-jump="ownTimes">Zeiten &amp; Erreichbarkeit</button><button type="button" data-settings-jump="leistungsprofil">Leistungsprofil</button><button type="button" data-settings-jump="targetProfile">Zielkunden</button><button type="button" data-settings-jump="preise">Leistungen &amp; Preise</button><button type="button" data-settings-jump="gewichte">Recherche</button><button type="button" data-settings-jump="kalender">Kalender &amp; Postfach</button><button type="button" data-settings-jump="zugang">Daten &amp; Zugang</button></nav>
+ <nav class="settings-jump" aria-label="Abschnitte der Einstellungen"><button type="button" data-settings-jump="darstellung">Darstellung</button><button type="button" data-settings-jump="ownTimes">Zeiten &amp; Erreichbarkeit</button><button type="button" data-settings-jump="leistungsprofil">Leistungsprofil</button><button type="button" data-settings-jump="targetProfile">Zielkunden</button><button type="button" data-settings-jump="preise">Leistungen &amp; Preise</button><button type="button" data-settings-jump="gewichte">Recherche</button><button type="button" data-settings-jump="kalender">Kalender &amp; Postfach</button><button type="button" data-settings-jump="datenquellen">Datenquellen</button><button type="button" data-settings-jump="zugang">Daten &amp; Zugang</button></nav>
  <h2 class="settings-group">Darstellung</h2>
  <section class="panel ap-panel" id="darstellung"><span class="eyebrow">DARSTELLUNG</span><h2>Theme, Hell/Dunkel und Dichte</h2>
   <div id="apPanel"><p class="muted">Darstellung wird geladen …</p></div></section>
@@ -657,6 +767,29 @@
     <label>Browser-Rückfall<select name="browser_fallback"><option value="true">An – nur bei Seiten ohne Text</option><option value="false">Aus</option></select></label>
    </div><button type="submit" class="btn btn-primary">Speichern</button> <span class="muted" id="rtStatus"></span></form></section>
  </div>
+ <h2 class="settings-group">Datenquellen</h2>
+ <section class="panel sales-section fd-sources" id="datenquellen" aria-labelledby="fdSrcTitle"><span class="eyebrow">DATENQUELLEN · FÜR DIE FIRMENSUCHE</span><h2 id="fdSrcTitle">OpenStreetMap-Auszug, GLEIF-Katalog, Erreichbarkeit</h2>
+  <p class="muted">Läuft manuell: einmal eine Datei einlesen, danach sucht „Finden → Neue Suche“ offline darin. Die öffentlichen Server sind meist überlastet.</p>
+  <div class="ui-list">
+  <details class="ui-fold sw-check" id="osmBox"><summary><b>OpenStreetMap nutzbar machen</b><span id="osmSummary">Auszug einlesen, Stand, Anleitung</span></summary><div class="ui-fold-body">
+   <label class="ui-field fd-osm-place">Ort oder PLZ für die Overpass-Turbo-Abfrage (Umkreis wie in der neuen Suche)<input id="osmPlace" maxlength="80" placeholder="z. B. 70173 oder Stuttgart" autocomplete="postal-code"></label>
+   <div id="osmState" class="osm-state"></div><div class="muted" id="osmJob"></div>
+   <div class="sw-check-head"><label class="btn btn-ghost">⇪ Datei einlesen (.osm.pbf, .json, .geojson)<input type="file" id="osmFile" accept=".pbf,.json,.geojson,application/octet-stream,application/json" hidden></label>
+    <a class="btn btn-ghost hidden" id="osmTurbo" target="_blank" rel="noopener noreferrer" href="#">Abfrage in Overpass Turbo öffnen ↗</a>
+    <button type="button" class="text-button hidden" id="osmClear">Lokalen Bestand löschen</button></div>
+   <div id="osmHowto"></div><p class="muted" id="osmNotice"></p></div></details>
+  <details class="ui-fold sw-check" id="catBox"><summary><b>Großer Firmenkatalog (GLEIF, offline)</b><span id="catSummary">Alle deutschen Firmen mit LEI lokal durchsuchen – auch wenn die GLEIF-Schnittstelle ausfällt.</span></summary><div class="ui-fold-body">
+   <p class="muted">Datei bei GLEIF laden: <i>gleif.org → LEI-Daten → Golden Copy</i>, Format <b>LEI-CDF, CSV</b> (ZIP direkt verwenden). „Vollbestand“ ersetzt den Stand, „Delta“ ergänzt nur Änderungen. Lizenz CC0 1.0. Die Datei wird zeilenweise gelesen – auch mehrere GB, ohne den Arbeitsspeicher zu füllen. Aus dem Katalog wird nichts automatisch Lead: Übernahmen gehen in die Sichtung, mit Dubletten-Abgleich.</p>
+   <div class="cat-up"><select id="catKind" aria-label="Art der Datei"><option value="golden">Vollbestand (Golden Copy)</option><option value="delta">Änderungen (Delta)</option></select>
+    <label class="btn btn-ghost">⇪ GLEIF-Datei laden (CSV oder ZIP)<input type="file" id="catFile" accept=".csv,.zip,text/csv,application/zip" hidden></label><span class="muted" id="catUpNote"></span></div>
+   <div class="jb-panel" data-jobs-panel="catalog_import"></div>
+   <div id="catImports" class="cat-imports"></div>
+   <form id="catSearch" class="cat-search"><input name="q" placeholder="Firmenname (Umlaute egal)" aria-label="Firmenname"><input name="zip" placeholder="PLZ-Anfang, z. B. 70" inputmode="numeric" maxlength="5" aria-label="PLZ-Anfang"><input name="city" placeholder="Ort" aria-label="Ort"><button type="submit" class="btn btn-ghost">Im Katalog suchen</button></form>
+   <div id="catResults" class="cat-results"></div></div></details>
+  <details class="ui-fold sw-check" id="swCheckBox"><summary><b>Quellen prüfen</b><span id="swCheckSummary">Sind GLEIF, Wikidata, OpenStreetMap und TED gerade erreichbar? Eine winzige Testanfrage je Quelle.</span></summary><div class="ui-fold-body">
+   <div class="sw-check-head"><button type="button" class="btn btn-ghost" id="swCheck">Jetzt prüfen</button><span class="muted" id="swCheckNote"></span></div>
+   <div id="swCheckRows" class="sw-check-rows"></div></div></details>
+  </div></section>
  <h2 class="settings-group">Daten &amp; Zugang</h2>
  <div class="sales-cols">
   <section class="panel sales-section" id="zugang"><span class="eyebrow">TEAM & SICHERHEIT</span><h2>Zugang, Rollen, Backups</h2>
@@ -805,6 +938,7 @@
 <script src="/report.js" defer></script>
 <script src="/quotes.js" defer></script>
 <script src="/offerflow.js" defer></script>
+<script src="/angebote.js" defer></script>
 <script src="/chances.js" defer></script>
 <script src="/tasks.js" defer></script>
 <script src="/pipeline.js" defer></script>
@@ -818,10 +952,12 @@
 <script src="/kurzbericht.js" defer></script>
 <script src="/search.js" defer></script>
 <script src="/osmlocal.js" defer></script>
+<script src="/finden.js" defer></script>
 <script src="/akte.js" defer></script>
 <script src="/formguard.js" defer></script>
 <script src="/workday.js" defer></script>
 <script src="/leadlist.js" defer></script>
+<script src="/uikit.js" defer></script>
 <script src="/aktepage.js" defer></script>
 <script src="/calendar.js" defer></script>
 <script src="/pilot.js" defer></script>

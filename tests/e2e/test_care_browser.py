@@ -62,7 +62,7 @@ class CareBrowserTests(unittest.TestCase):
                         errors, outside = [], []
                         page.on('pageerror', lambda exc: errors.append(str(exc)))
                         page.on('request', lambda r: outside.append(r.url) if '127.0.0.1' not in r.url else None)
-                        page.goto(base + '/#/angebote')
+                        page.goto(base + '/#/angebote/auftraege')  # 2.0.0-dev52: Angebote → Aufträge & Betreuung
                         page.wait_for_load_state('networkidle')
                         firm = page.locator(f'[data-cr-firm="{lead["id"]}"]')
                         firm.wait_for()
@@ -76,7 +76,7 @@ class CareBrowserTests(unittest.TestCase):
                                 break
                             page.wait_for_timeout(100)
                         self.assertEqual(len(invs), 1)
-                        page.goto(base + '/#/angebote')
+                        page.goto(base + '/#/angebote/auftraege')  # 2.0.0-dev52: Angebote → Aufträge & Betreuung
                         page.wait_for_load_state('networkidle')
                         firm = page.locator(f'[data-cr-firm="{lead["id"]}"]')
                         firm.locator('.cr-care', has_text='Alle Monate bis heute abgerechnet').wait_for()

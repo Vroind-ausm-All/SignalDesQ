@@ -40,9 +40,15 @@ class OsmFilterReasonBrowserTests(unittest.TestCase):
                         page.locator('[data-view="finder"]').click()
                         page.locator('#swForm input[name="place"]').fill('70191')
                         page.locator('#swForm select[name="radius_km"]').select_option('0')
+                        # 2.0.0-dev51: Datei einlesen unter Einstellungen → Datenquellen; Quellen und Optionen als Klappzeilen der neuen Suche
+                        page.locator('#fdSources [data-settings-link="datenquellen"]').click()
                         page.locator('#osmBox > summary').click()
                         page.locator('#osmFile').set_input_files(str(PBF))
                         page.locator('#osmState', has_text='6 Betriebe').wait_for(timeout=30000)
+                        page.locator('.sidebar [data-area="finden"]').click()
+                        page.locator('#areaBar [data-area-view="finder"]').click()
+                        page.locator('#fdSrcFold > summary').click()
+                        page.locator('#fdOptFold > summary').click()
                         for src in ('gleif', 'wikidata', 'ted'):
                             page.locator(f'#swForm input[name="src"][value="{src}"]').uncheck()
                         page.locator('#swForm input[name="include_sole"]').uncheck()

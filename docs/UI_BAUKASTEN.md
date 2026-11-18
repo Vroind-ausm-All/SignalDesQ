@@ -4,8 +4,13 @@ Verbindliche Grundlage für die Etappe „Visuelle Konsolidierung und Aufgabenf�
 Jede Ansicht wird aus denselben sieben Bausteinen gebaut. Die Klassen stehen in `sales_tool/public/style.css`
 (Abschnitt „UI-Baukasten“, Präfix `ui-`, damit nichts Bestehendes kollidiert).
 
-**Stand dev49:** Die Klassen und Maße stehen bereit; die vorhandenen Ansichten sind **noch nicht** umgestellt. Das geschieht
-schrittweise ab Schritt 2 (Firmen und Heute). Neu gebaute oder umgebaute Ansichten verwenden ausschließlich diese Bausteine.
+**Stand dev52:** Rahmen (Kopfzeile), Firmenliste und Heute (Schritt 2), „Finden → Sichten“ und „Finden → Neue Suche“ (Schritt 3)
+sowie der Bereich „Angebote“ mit Liste, Editor, geöffnetem Angebot, „Aufträge & Betreuung“ und „Auswertung“ (Schritt 4) sind umgestellt.
+Die übrigen Ansichten sind **noch nicht** umgestellt – auch die Unteransichten von „Finden → Analysen“ und „Import“ haben nur die neue
+Reiterzeile bzw. einen neuen ersten Abschnitt; Einstellungen, Abrechnen und die Firmenakte folgen in den Schritten 5 und 6. Innerhalb der
+Angebote stehen die Arbeitsschritte (Freigabe, Versand, Nachfassen, Kick-off, Übergabe), die Kartenliste der Nachkalkulation, die
+Bestandskunden und das Formular des Editors noch in ihren bisherigen Bausteinen – nur geordnet und eingebettet. Neu gebaute oder umgebaute Ansichten
+verwenden ausschließlich diese Bausteine.
 
 ## Die sieben Bausteine
 
@@ -20,7 +25,39 @@ schrittweise ab Schritt 2 (Firmen und Heute). Neu gebaute oder umgebaute Ansicht
 | 7 | Abstände und Schrift | `--s1`…`--s6`, `--row`, `--ctl`, `--side`; `.ui-section`, `.ui-small` | Abstände 4/8/12/16/24/32; Schrift Titel 26 · Abschnitt 16 · Inhalt 14 · Zusatz 12 |
 
 Dazu das **Kontextlayout** `.ui-with-side` mit `.ui-side`: Inhalt links, rechts eine 320 px breite Kontextspalte
-(`--side`); unter 1081 px Breite untereinander. `.ui-page` stapelt Kopf, Werkzeugzeile und Inhalt mit 16 px Abstand.
+(`--side`); unter 1081 px Breite untereinander. `.ui-page` stapelt Kopf, Werkzeugzeile und Inhalt mit 16 px Abstand und setzt den Seitenrand
+(oben 24, seitlich 32 px; schmal 16 px).
+
+### Ergänzungen seit dev50 (Schritt 2)
+
+| Baustein | Klassen | Regel |
+|---|---|---|
+| Menü in der Werkzeugzeile | `<details class="ui-menu"><summary class="btn btn-ghost">Filter ▾</summary><div class="ui-menu-body">…`, darin `.ui-menu-item`, `.ui-menu-field`, `.ui-menu-sep`, `.ui-menu-split` | für „Weitere ▾“, „Filter ▾“, „Spalten ▾“; höchstens ein Menü offen, Klick daneben oder Escape schließt, ein Knopf im Menü schließt es, Häkchen nicht; das Menü bleibt im Fenster (`uikit.js`) |
+| Liste als Tabelle | `<table class="ui-table">` mit `<tr class="ui-row-head">` und `<tr class="ui-row">` | gleiche Maße wie `.ui-list`/`.ui-row`, wenn Tests oder Tastaturführung an Tabellenzeilen hängen (Firmenliste) |
+| Liste als Aufzählung | `<ol class="ui-rows">` mit `<li class="ui-row">` | ohne Aufzählungszeichen und Einzug (Heute → Als Nächstes) |
+| Leerzustand | `.ui-empty` | eine Zeile über die volle Breite, z. B. „Keine Firma passt zu diesen Filtern.“ |
+| Spalten einer Liste | `--ui-cols` (Grundwert: Was · nächster Schritt · fällig · Status · Wert · ›) | eine Liste mit zuschaltbaren Spalten setzt `--ui-cols` per CSSOM an der Liste (die CSP erlaubt keine `style`-Attribute) |
+| Nur für Bildschirmleser | `.ui-sr` | z. B. Spaltenkopf „Öffnen“ über dem › |
+
+**Schmal (bis 520 px)** zeigt jede Liste nur die erste Spalte (Was), die dritte (fällig) und das ›.
+
+### Ergänzungen seit dev51 (Schritt 3): Formular-Bausteine
+
+| Baustein | Klassen | Regel |
+|---|---|---|
+| Karte | `.ui-card` | ein Block zusammengehöriger Eingaben (z. B. Ort · Umkreis · Branchen · „Wen suchst du?“), 16 px Innenabstand; keine Karten in Karten |
+| Feld | `<label class="ui-field">Beschriftung<input …></label>` | Beschriftung 12 px darüber, Feld 36 px hoch |
+| Auswahlgruppe | `.ui-seg` mit `<button aria-pressed>`; aktiv `.is-active` | eine Wahl aus wenigen Voreinstellungen; keine aktiv heißt „eigene Auswahl“ |
+| Marke | `.ui-chip` mit `<button>×</button>` | gewählter Wert in einem Feld (z. B. Branche), × entfernt ihn |
+
+### Ergänzungen seit dev52 (Schritt 4): Detailseite und Eingaben
+
+| Baustein | Klassen | Regel |
+|---|---|---|
+| Reiter einer Detailseite | `.ui-tabs` mit `role="tablist"`, `.ui-tab` mit `role="tab"`/`aria-selected`, Inhalte mit `role="tabpanel"` | in der Werkzeugzeile der Detailseite; Pfeiltasten wechseln den Reiter |
+| Zeile mit Vertiefung | `<details><summary class="ui-row">…</summary><div class="ui-fold-body">…` | Listenzeile, die aufklappt statt zu öffnen (Positionen eines Angebots); das › dreht sich |
+| Prüfliste und Ablauf in der Kontextspalte | `.ui-card` mit `<ul class="qt-checks">`/`<ol class="qt-phases">`, Zeichen `.qt-ico` (✓ grün, ! rot, i gelb, Ziffer grau, aktuelle Phase gefüllt) | höchstens eine Zeile je Punkt, Zusatz 12 px darunter; jede Phase springt zu ihrem Arbeitsschritt |
+| Eingaben beim Neuzeichnen erhalten | `uiKeep(root, selector, draw)` und `uiSerial()` in `uikit.js` | jede Ansicht, die nach dem Speichern neu zeichnet, schreibt ungespeicherte Eingaben anderer Felder samt Fokus zurück und speichert der Reihe nach |
 
 ## Regeln der Anwenderlogik
 
@@ -49,5 +86,137 @@ Gemessen am Prototyp bei 1280 × 720 px (Oberkante des Bausteins im Fenster, auf
 | Inhalt | 184 px |
 
 Weitere Zielwerte: Listenzeile 56 px, Knöpfe und Felder 36 px, Kontextspalte 320 px, Abschnittsliste 240 px.
-Diese Werte gelten als Abnahme für die umgebauten Ansichten ab Schritt 2; die heutigen Ansichten erreichen sie noch nicht
-(die Kopfzeile der App ist z. B. 82 px hoch statt 52 px wie im Prototyp).
+Diese Werte gelten als Abnahme für die umgebauten Ansichten ab Schritt 2. Seit dev50 ist die Kopfzeile der App 52 px hoch
+(vorher 82 px); Firmen und Heute erreichen die Werte (gemessen bei 1280 × 720 mit 9 fiktiven Firmen):
+
+| Messung | dev49 | dev50 | Abnahme |
+|---|---|---|---|
+| Firmen: Oberkante der ersten Firmenzeile | 574 px | 221 px | ≤ 280 px |
+| Firmen: Zeilen ganz sichtbar | 2 | 8 | ≥ 7 |
+| Firmen: Zeilenhöhe / Inhaltsschrift | 73 px / 12 px | 56 px / 14 px | 56 px, nicht kleiner |
+| Heute: Oberkante der Liste „Als Nächstes“ | 342 px | 184 px | ≤ 200 px |
+| 390 × 844: Firmen, erste Firmenzeile | 846 px (unter dem Bildrand) | 342 px | kein waagerechtes Scrollen |
+
+Prüffall: `tests/e2e/test_ui_firmen_heute_browser.py`.
+
+## Was wohin zog (Schritt 2, dev50)
+
+Keine Funktion entfiel. Je verschobener Funktion: bisheriger Ort, neuer Ort, Prüffall.
+
+| Funktion | Bisher | Jetzt | Prüffall |
+|---|---|---|---|
+| Reiter des Bereichs (z. B. Firmenliste · Pipeline · Datenpflege) | eigene Leiste unter der Kopfzeile | links in der Kopfzeile; Bereiche mit nur einer Ansicht (Angebote, Abrechnen) ohne Reiter; schmal als zweite Zeile der Kopfzeile | `test_ui_firmen_heute_browser`, `test_navigation_browser`, `test_mobile_nav_browser` |
+| Brotkrumen „Bereich / Ansicht“ | Kopfzeile | entfällt breit (die Reiter zeigen die Ansicht); schmal steht der Bereich neben „☰ Menü“ | `test_mobile_nav_browser` |
+| Datum | Kopfzeile | Zusatz im Seitenkopf von „Heute“ („Montag, 16. November“) | `test_ui_firmen_heute_browser` |
+| Hell/Dunkel-Umschalter | Kopfzeile | Einstellungen → Darstellung (Wie System · Hell · Dunkel) | `test_appearance_browser`, `test_ui_firmen_heute_browser` |
+| „＋ Neuer Lead“ | Kopfzeile, auf jeder Seite | „＋ Neue Firma“ als Hauptaktion der Firmenliste und Befehl „Neue Firma anlegen“ in Strg+K | `test_ui_firmen_heute_browser`, `test_akte_tabs_browser`, `test_formguard_browser` |
+| Erklärtext der Firmenliste und Eyebrow | über der Liste | Hinweis unter der Liste und `title` der Überschrift | – (Text) |
+| Trefferzahl und aktive Filter | Leiste über der Tabelle | Zusatz im Seitenkopf („2 von 9 Firmen · Phase Angebot · Filter zurücksetzen“) | `test_focus_leadlist_browser`, `test_ui_firmen_heute_browser` |
+| Arbeitsansichten Alle · Heute fällig · Ohne nächsten Schritt | Chips über der Tabelle | Reiter in der Werkzeugzeile | `test_focus_leadlist_browser` |
+| Angebote nachfassen · Recherche prüfen · Passung A/B · Bestandskunden | Chips | „Weitere ▾“ (gewählte Ansicht steht dann auf dem Knopf) | `test_ui_firmen_heute_browser` |
+| Eigene Ansichten | Chips mit ✕ | als Reiter (★ Name); „Ansicht speichern“ und Löschen unter „Weitere ▾“ | `test_focus_leadlist_browser` |
+| Phase, Zurücksetzen, CSV importieren | Werkzeugleiste | „Filter ▾“ | `test_ui_firmen_heute_browser` |
+| Spalten Kaufsignal, Leistung | Häkchen „Weitere Spalten“ | „Spalten ▾“ | `test_focus_leadlist_browser`, `test_formguard_browser` |
+| Spalte Letzter Kontakt | Standardspalte | zuschaltbar unter „Spalten ▾“ | `test_ui_firmen_heute_browser` |
+| Fälligkeit des nächsten Schritts | kleine Zeile unter dem Schritt | eigene Spalte „Fällig“ als Status-Pille (überfällig rot, heute gelb) | `test_ui_firmen_heute_browser` |
+| Heute: Begrüßung, Erklärtext | über „Als Nächstes“ | Begrüßung entfällt (Datum im Seitenkopf); Erklärtext als Hinweis unter den Klappzeilen | – (Text) |
+| Heute: „Weiter: … →“ (nächster Schritt des Tagesplans) | grüner Knopf oben rechts | im Tagesplan (Klappzeile „Tagesplan & Tagesabschluss“), gleiche Kennung `#tdNext`; Hauptaktion ist jetzt „＋ Neuer Eingang“ | `test_ui_firmen_heute_browser` |
+| Heute: Knopf je Schritt („Lead öffnen“) | Knopf in jeder Zeile von „Als Nächstes“ | Klick auf die Zeile (oder Enter) öffnet die Akte; „Erledigt“ für Aufgaben und Rückrufe; besonderes Ziel („Angebot öffnen“) als Textaktion | `test_focus_leadlist_browser`, `test_ui_firmen_heute_browser` |
+| Heute: Erste Schritte | Karte unter „Als Nächstes“ | Hinweis „Einrichtung: n Punkte offen“ in der Statuszeile, springt in die Klappzeile „Erste Schritte“ | `test_focus_leadlist_browser`, `test_ui_firmen_heute_browser` |
+| Heute: Eingang & Rückrufe, Als Nächstes kontaktieren | zwei Karten nebeneinander | Klappzeile „Eingang & Rückrufe“ (beide wie bisher darin) | `test_reach_browser` |
+| Heute: Wiedervorlage | Karte | Klappzeile „Wiedervorlage“ | `test_ui_firmen_heute_browser` |
+| Heute: Auslastung, Offenes Potenzial, Pipeline | Karte, Karte, Kachelreihe | Klappzeile „Kapazität & Potenzial“ | `test_reach_browser`, `test_postcalc_browser` |
+| Heute: Tagesplan, Tagesabschluss | zwei Klappkarten | eine Klappzeile „Tagesplan & Tagesabschluss“ (`#tagesabschluss`) | `test_ui_workday` |
+| Heute: „Was funktioniert gerade?“ | Klappkarte | Klappzeile „Systemstatus“ | `test_ui_firmen_heute_browser` |
+
+### Messwerte Finden (dev51)
+
+Gemessen bei 1280 × 720 mit 11 fiktiven Treffern (Schiefer dunkel und Klassisch hell gleich):
+
+| Messung | dev50 | dev51 | Abnahme |
+|---|---|---|---|
+| Neue Suche: Oberkante „Suche starten“ | 1.455 px (unter dem Bildrand) | 78 px | ≤ 140 px |
+| Neue Suche: Unterkante Ort · Umkreis · Branchen / „Wen suchst du?“ | Ort 558 px, Branchen 977 px; „Wen suchst du?“ gab es nicht | 260 px / 336 px | im ersten Bildschirm (≤ 720 px) |
+| Sichten: Oberkante der ersten Trefferzeile | 2.124 px | 221 px | ≤ 280 px |
+| Sichten: Trefferzeilen ganz sichtbar | 0 (Zeile 117 px hoch) | 8 (Zeile 56 px) | ≥ 7 |
+| 390 × 844: „Suche starten“ / erste Trefferzeile | 2.179 px / 3.573 px | 111 px / 374 px | kein waagerechtes Scrollen |
+| Seitenlänge der Finden-Seite | 4.346 px (Suche und Sichtung auf einer Seite) | Neue Suche 1.022 px, Sichten 947 px | – |
+
+Prüffall: `tests/e2e/test_ui_finden_browser.py`.
+
+### Messwerte Angebote (dev52)
+
+Gemessen bei 1280 × 720 mit 5 fiktiven Angeboten (Entwurf, gesendet mit Nachfassen, angenommen, abgelehnt, zweiter Entwurf);
+Klassisch hell und Schiefer dunkel gleich:
+
+| Messung | dev51 | dev52 | Abnahme |
+|---|---|---|---|
+| Liste: Oberkante der ersten Angebotszeile | 2.221 px (unter Formular, Vorschau, Kalkulation, Betreuung, Nachkalkulation, Studien) | 221 px | ≤ 280 px |
+| Liste: Seitenlänge | 3.550 px | 720 px (eine Bildschirmseite) | – |
+| Geöffnetes Angebot: Titel / Reiter / erste Position | Titel und Status gab es nicht; Arbeitsschritte („Gespeichertes Angebot“) bei 3.939 px | 82 px / 132 px / 221 px (Kopf der Positionen 184 px) | Positionen ≤ 260 px |
+| Geöffnetes Angebot: Hauptaktion | keine (Freigabe, Versand, Zusage als Knöpfe in den Schritten) | eine, je Phase („Zur Freigabe prüfen“ … „Kick-off vorbereiten“) | genau eine |
+| 390 × 844: erste Angebotszeile | 4.144 px | 330 px | kein waagerechtes Scrollen (390 px) |
+
+Prüffall: `tests/e2e/test_ui_angebote_browser.py`.
+
+## Was wohin zog (Schritt 3, dev51)
+
+Keine Funktion entfiel. Alle bisherigen Adressen gelten weiter (`#/finden`, `#/finden/import`, `#/finden/recherche`, `#/finden/url-recherche`,
+`#/finden/website-scoring`, `#/finden/kaufsignale`, `#/finden/bericht`); neu sind `#/finden/sichten` und `#/finden/neue-suche`.
+`#/finden`, „Finden“ in der Seitenleiste und „Neue Firmen finden“ öffnen „Sichten“, solange offene Treffer warten, sonst „Neue Suche“.
+
+| Funktion | Bisher | Jetzt | Prüffall |
+|---|---|---|---|
+| Reiter des Bereichs | sieben: Suche & Sichtung · Import & Prüfung · Recherche & Berichte · URL-Recherche · Website-Scoring · Kaufsignale (Bericht ohne Reiter) | vier: Sichten · Neue Suche · Import · Analysen; „Analysen“ hat eine eigene Reiterzeile (Recherche & Berichte · URL-Recherche · Website-Scoring · Kaufsignale, der Bericht gehört zu „Recherche & Berichte“) | `test_ui_finden_browser`, `test_navigation_browser` |
+| Suchformular | obere Hälfte der Finden-Seite | „Finden → Neue Suche“ | `test_ui_finden_browser`, `test_osm_local_browser` |
+| „▶ Arbeitstag starten – alle Quellen abfragen“ | Knopf unter dem Formular (1.455 px) | Hauptaktion „Suche starten“ im Seitenkopf (`#swGo`) | `test_ui_finden_browser` |
+| Branchen | alle Gruppen mit Kästchen offen sichtbar, Suchfeld, „Auswahl leeren“ | Feld mit den gewählten Branchen als Marken (× entfernt); Klick klappt die Auswahl mit Suchfeld, allen Gruppen und „Auswahl leeren“ auf | `test_ui_finden_browser` |
+| Quellen (GLEIF, Wikidata, OpenStreetMap, online abfragen, TED), Budget je Lauf | Kästchen unter dem Formular | Klappzeile „Quellen & Budget“ mit Kurzstand; zusätzlich Voreinstellungen unter „Wen suchst du?“ | `test_ui_finden_browser`, `test_osm_local_browser`, `test_ui_workday` |
+| „Wen suchst du?“ (Unternehmen, Vereine, öffentliche Einrichtungen) | eigener Kasten | Klappzeile „Optionen“ als „Organisationsarten“; „Wen suchst du?“ heißt jetzt die Wahl der Voreinstellung (Handwerk & lokale Betriebe · Größere Firmen · Öffentliche Aufträge · Alles) | `test_ui_finden_browser` |
+| Filter (nur operative, ohne Rechtsform, Websites automatisch suchen), TED bundesweit, eigene Schlagwörter | Kasten „Filter“, Quellen-Kasten, Formularzeile | Klappzeile „Optionen“ mit Kurzstand | `test_ui_finden_browser`, `test_osm_filter_reasons_browser` |
+| Suchprofile | Zeile über dem Formular | Klappzeile „Suchprofile“ („▶ Profil starten“ ist Nebenaktion) | `test_ui_workday`, `test_ui_finden_browser` |
+| Fortschritt der laufenden Suche (mit Gründen für „ausgefiltert“) | unter dem Formular | unter den Klappzeilen der neuen Suche, mit Zugang „n Treffer sichten →“ | `test_osm_filter_reasons_browser`, `test_ui_workday` |
+| „Deine Gebiete & Suchläufe“ (Sichten, Erneut suchen) | Liste unter den Treffern | Liste „Letzte Suchen“ in „Neue Suche“; Klick auf die Zeile öffnet „Sichten“ für diese Suche | `test_ui_finden_browser` |
+| Recherche-Aufträge | unter den Treffern | Klappzeile „Recherche-Aufträge“ in „Neue Suche“ | – (Anzeige der Auftragsliste, unverändert) |
+| Einzelne Quelle gezielt abfragen (Lead-Finder, manuelle Quellen) | Klappkarte unter den Treffern | Klappzeile in „Neue Suche“ | – (unverändert) |
+| Firmenliste / GLEIF-Export importieren (`#swFile`) | Knopf neben „Arbeitstag starten“ | „Finden → Import“, erster Abschnitt; Ergebnis öffnet „Sichten“ | `test_ui_finden_browser` |
+| Gefundene Firmen | Karten mit allen Angaben und Knöpfen, untere Hälfte der Finden-Seite | „Finden → Sichten“: Liste Firma · Website · Entfernung · Quelle · „Übernehmen“ · ›; Klick oder Enter klappt Adresse, Website-Nachweis, Kontakt, Quellen, Dubletten und alle Aktionen auf | `test_ui_finden_browser`, `test_osm_local_browser` |
+| Verwerfen, Website suchen, Website eintragen, ✓ Website passt / ✕ passt nicht, Dubletten (Gleiche Firma / Andere Firma / Ist diese Firma), Firma öffnen | Knöpfe je Karte | in der aufgeklappten Zeile; bis 520 px dort auch „Übernehmen“ | `test_ui_finden_browser` |
+| Status-Auswahl Neu/Übernommen/… | Auswahlliste | Ansichten Offen · Mit Website · Übernommen (mit Anzahl) in der Werkzeugzeile; alle Status unter „Filter ▾“ | `test_ui_finden_browser` |
+| Suchlauf, Website, Sortierung, Ort, Entfernung, ohne Ausschreibungen, Dubletten prüfen | Werkzeugleiste | „Filter ▾“ (dazu „Filter zurücksetzen“) | `test_ui_finden_browser`, `test_ui_workday` |
+| Ausgewählte übernehmen / verwerfen, Übernehmen & Bericht, Websites suchen, Alle Treffer übernehmen | Knopfleiste über den Treffern | „Auswahl ▾“ in der Werkzeugzeile; Auswahl über die Kästchen vor dem Namen, „alle auf dieser Seite“ im Spaltenkopf | `test_osm_local_browser`, `test_ui_finden_browser` |
+| Zählerzeile (neu · übernommen · verworfen · schon als Firma · mögliche Dubletten · ohne Website) | über den Treffern | Zusatz im Seitenkopf (Suche · n offen · Dubletten/ohne Website als Sprung), Summen unter der Liste | `test_ui_finden_browser` |
+| OpenStreetMap nutzbar machen (Auszug einlesen, Stand, Anleitung, Overpass-Turbo-Abfrage, Bestand löschen) | Klappkasten auf der Finden-Seite | Einstellungen → Datenquellen (`#/einstellungen?abschnitt=datenquellen`); eigenes Ortsfeld für die Overpass-Abfrage, vorbelegt mit dem Ort der neuen Suche; „Neue Suche“ zeigt den Stand in der Statuszeile mit Verweis | `test_osm_local_browser`, `test_osm_filter_reasons_browser`, `test_ui_finden_browser` |
+| Großer Firmenkatalog (GLEIF, offline) | Klappkasten auf der Finden-Seite | Einstellungen → Datenquellen | `test_ui_finden_browser` |
+| Quellen prüfen | Klappkasten auf der Finden-Seite | Einstellungen → Datenquellen | `test_ui_finden_browser` |
+| Messung: Stichprobe von Hand prüfen | Klappkasten auf der Finden-Seite | Firmen → Datenpflege (`#/firmen/datenpflege`) | `test_pilot_browser`, `test_ui_finden_browser` |
+| Erklärtext, Hinweis „Fund ≠ Kontakterlaubnis“ | über dem Formular | `title` der Überschrift „Finden“ und Hinweis unter den Klappzeilen; rechtlicher Rahmen unverändert am Ende | – (Text) |
+| Begriffe | „Lead“ in Treffern, Import, Analysen | sichtbar „Firma“ („Als Firma übernommen“, „schon Firma“, „Firma öffnen“, „Firmen auswählen“); interne Namen unverändert | `test_ui_finden_browser` |
+
+## Was wohin zog (Schritt 4, dev52)
+
+Keine Funktion entfiel. Fachliche Regeln (Bedarfsprüfung, Freigabe, Fassungen, Sperren, Statusfolge, Mindestverdienst, Zusatzaufträge,
+optionale Positionen, Nachfassen) sind unverändert; Server und Datenmodell auch. Alle bisherigen Adressen gelten weiter (`#/angebote`,
+`#/angebote?angebot=ID`); neu sind `#/angebote?neu=1` (Editor), `#/angebote/auftraege` und `#/angebote/auswertung`.
+
+| Funktion | Bisher | Jetzt | Prüffall |
+|---|---|---|---|
+| Reiter des Bereichs | keiner (eine Ansicht „Angebote & Nachkalkulation“) | drei: Angebote · Aufträge & Betreuung · Auswertung | `test_ui_angebote_browser`, `test_ui_firmen_heute_browser` (Bereich ohne Reiter ist jetzt „Abrechnen“) |
+| Gespeicherte Angebote (`#quoteHistory`, `[data-quote-open]`) | Abschnitt „05 / Angebotsverlauf“ am Seitenende (2.221 px) | Einstieg der Seite: Liste Angebot · Nächster Schritt · Fällig · Status · Betrag netto · ›, Klick oder Enter öffnet | `test_ui_angebote_browser`, alle Angebots-Tests |
+| Nummer, Status, „gültig bis“, „Bindefrist abgelaufen“, „berechnet“ | Textzeile je Angebot | Zusatz unter dem Projekt, Status-Pille, Spalte „Fällig“ (Bindefrist bzw. Nachfassen), rote Pille bei abgelaufener Bindefrist; „noch nicht berechnet“ unter „Filter ▾“ | `test_ui_angebote_browser` |
+| „Aktualisieren ↻“ (`#quoteRefresh`) | Kopf des Angebotsverlaufs | „Filter ▾“ | – (Knopf unverändert) |
+| Angebotsformular (`#quoteForm`, Positionen, Vorlage, Steuer, Überarbeitung, Zusatzauftrag) | immer sichtbar oben auf der Seite | Editor als eigene Ansicht über „＋ Neues Angebot“ (`#/angebote?neu=1`); öffnet sich auch, wenn „Heute“, Recherche, Empfehlung oder „Überarbeiten“/„Zusatzauftrag erstellen“ eine Firma vorbelegen; „＋ Neues Angebot“ beginnt leer, außer der Editor enthält noch Ungespeichertes | `test_ui_angebote_browser`, `test_briefing_browser`, `test_catalog_browser`, `test_chances_browser`, `test_options_browser`, `test_revision_browser`, `test_addendum_browser` |
+| „Festpreise berechnen“ / „Angebot als Entwurf speichern“ | grün / Nebenaktion | Nebenaktion / grün (die eine Hauptaktion des Editors); „＋ Hinzufügen“ Nebenaktion | `test_ui_angebote_browser` |
+| Kundenvorschau (`#quoteCustomer`), Interne Kalkulation (`#quoteInternal`) | Karten „02“ und „03“ neben bzw. unter dem Formular | im Editor rechts bzw. darunter; im geöffneten Angebot als Reiter „Kundenvorschau“ und „Interne Kalkulation“ (dieselben Elemente wandern) | `test_catalog_browser`, `test_options_browser`, `test_ui_angebote_browser` |
+| Grundsatz „Keine versteckten Aufschläge“, Verweis auf Einstellungen → Leistungen & Preise | Fußnote und eigene Karte | Hinweis unter der Liste und unter der Kalkulation im Editor | `test_navigation_browser` |
+| Geöffnetes Angebot | „Gespeichertes Angebot …“ unter dem Angebotsverlauf, Positionen nur in der Kundenvorschau oben | Arbeitsplatz: „← Angebote“, Projekt als Titel, Status-Pille, Firma · Nummer, eine Hauptaktion je Phase; Reiter Positionen (Liste Leistung · Umfang · Art · Betrag, aufklappbar; Summe und Zahlung & Bedingungen als Klappzeilen) · Kundenvorschau · Interne Kalkulation · Verlauf | `test_ui_angebote_browser`, `test_offer_address_browser` |
+| Freigabe, Versand, Nachfassen, Zusage/Absage, Projektstart, Kick-off/Projektkompass, Übergabe & Abnahme, Export, Rechnung, Überarbeiten, Zusatzauftrag, Grundlage je Position, Auftragsumfang (`#ofPanel`, `#ofStart`, `#ofKickoff`, `#ofHandover`, `#ofFollow`, `.of-basis`, `.of-scope`) | Liste unter „Gespeichertes Angebot“ | Karte „Arbeitsschritte“ unter dem Reiterinhalt (`#quoteSaved`, immer sichtbar); Versand und Entscheidung vor der Freigabe als eingeklappte Vorschau; Kick-off und Übergabe als Klappzeilen (offen, solange sie laufen); Knöpfe in den Schritten sind Nebenaktionen, die Hauptaktion im Kopf springt zum passenden Schritt | `test_offer_flow_browser`, `test_followup_browser`, `test_kickoff_browser`, `test_handover_browser`, `test_offer_basis_browser`, `test_addendum_browser`, `test_ui_angebote_browser` |
+| Fassungen (`.of-history`) | unter den Arbeitsschritten | Reiter „Verlauf“, dazu eine Zeitleiste (erstellt, freigegeben, versendet, Nachfassen, Zusage/Absage, Projektstart, Übergabe, Abnahme, Nachrichtenentwürfe zu diesem Angebot) | `test_revision_browser`, `test_ui_angebote_browser` |
+| Prüfpunkte der Freigabe | nur im Schritt „Versandfassung freigeben“ | zusätzlich rechts „Prüfung vor Freigabe“ (Prüfpunkte, Mindestverdienst, Zahl der Hinweise); nach der Freigabe Datum, Stand und nur noch Abweichungen | `test_ui_angebote_browser` |
+| Ablauf | – | rechts „Ablauf“: Bedarf → Entwurf → Freigabe → Versand → Annahme, aktuelle Phase hervorgehoben, nach Annahme „Auftrag“ | `test_ui_angebote_browser` |
+| Bestandskunden & Betreuung (`#crList`, `[data-cr-firm]`) | Abschnitt unter der Kalkulation | Angebote → Aufträge & Betreuung, Klappzeile (offen) | `test_care_browser` |
+| Nachkalkulation mit Zeiterfassung (`#pkList`, `.pk-card`) | Abschnitt unter Bestandskunden | Angebote → Aufträge & Betreuung, Klappzeile „Nachkalkulation & Zeiterfassung“ (offen); darüber die Liste der angenommenen Aufträge mit Kick-off- und Abnahmestand | `test_postcalc_browser`, `test_service_times_browser`, `test_ui_angebote_browser` |
+| Lehren der Nachkalkulation (`#pkLesson`, `#pkServiceLessons`) | im Abschnitt Nachkalkulation | Angebote → Auswertung, Klappzeile „Lehren der Nachkalkulation“ | `test_ui_angebote_browser` |
+| Erlebnisstudien (`#stBox`), „Was du lernst“ (`#lnBox`) | Klappkarten auf der Angebotsseite | Angebote → Auswertung, Klappzeilen | `test_studies_browser`, `test_keep_input_browser`, `test_ui_angebote_browser` |
+| Begriffe | „Interessent / Unternehmen“ im Formular, „Lead“ in einer Statusmeldung | „Firma“; interne Namen unverändert | – (Text) |
+

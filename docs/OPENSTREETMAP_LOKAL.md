@@ -8,7 +8,7 @@ Stand 2.0.0-dev9. Hintergrund: Im Praxistest ([`PRAXISTEST_70191.md`](PRAXISTEST
 - **Mit eingelesener Datei** nutzt jede Suche den lokalen Bestand: offline, sofort, ohne Fehlversuche.
 - **Ohne Datei** meldet die Suche bei OpenStreetMap „läuft manuell“ und zeigt, was zu tun ist.
 
-Alles dazu steht unter „Firmen finden → OpenStreetMap nutzbar machen“.
+Alles dazu steht unter „Einstellungen → Datenquellen → OpenStreetMap nutzbar machen“ (seit 2.0.0-dev51; vorher auf der Seite „Firmen finden“). Den Stand siehst du in „Finden → Neue Suche“ in der Statuszeile.
 
 ## Drei Wege, nach Aufwand
 

@@ -18,10 +18,12 @@ NAV = (PUBLIC / 'nav.js').read_text(encoding='utf-8')
 DOC = (ROOT / 'docs' / 'UI_BAUKASTEN.md').read_text(encoding='utf-8')
 
 LAYOUT = {'--s1': '4px', '--s2': '8px', '--s3': '12px', '--s4': '16px', '--s5': '24px', '--s6': '32px',
-          '--row': '56px', '--ctl': '36px', '--side': '320px'}
+          '--row': '56px', '--ctl': '36px', '--side': '320px',
+          '--ui-cols': 'minmax(0,2fr) minmax(0,1.5fr) 104px 124px 104px 12px'}  # 2.0.0-dev50
 CLASSES = ('ui-page', 'ui-head', 'ui-meta', 'ui-back', 'ui-tool', 'ui-search', 'ui-tabs', 'ui-tab', 'ui-list', 'ui-row', 'ui-row-head',
            'ui-main', 'ui-num', 'ui-chev', 'ui-fold', 'ui-fold-body', 'ui-pill', 'is-overdue', 'is-attention', 'is-done', 'is-underway',
-           'ui-txt', 'ui-with-side', 'ui-side')
+           'ui-txt', 'ui-with-side', 'ui-side',
+           'ui-menu', 'ui-menu-body', 'ui-menu-item', 'ui-table', 'ui-rows', 'ui-empty', 'ui-sr')  # 2.0.0-dev50
 BLOCKS = ('Seitenkopf', 'Werkzeugzeile', 'Liste', 'Klappzeile', 'Status', 'Knöpfe', 'Abstände und Schrift')
 HEX = re.compile(r'#[0-9a-fA-F]{3,8}\b')
 
@@ -63,7 +65,7 @@ class UiBaukastenTests(unittest.TestCase):
                 self.assertTrue(part.startswith('.ui-'), part)
 
     def test_new_rules_use_theme_variables_only(self):
-        for marker in ('/* ===== 2.0.0-dev49: UI-Baukasten', '/* ===== 2.0.0-dev49: Hauptnavigation'):
+        for marker in ('/* ===== 2.0.0-dev49: UI-Baukasten', '/* ===== 2.0.0-dev49: Hauptnavigation', '/* ===== 2.0.0-dev50: Rahmen'):
             section = _strip(_section(marker))
             self.assertIsNone(HEX.search(section), marker)
             self.assertIsNone(re.search(r':\s*(white|black)\b|rgba?\(', section), marker)

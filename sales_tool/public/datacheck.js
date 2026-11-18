@@ -77,7 +77,7 @@
     const missing = Object.entries(r.fields).filter(([, v]) => !v).map(([k]) => FIELD_LABELS[k] || k);
     const entities = r.entities.length > 1 ? `<div class="dc-entities"><b>Gesellschaften auf dieser Domain:</b>${r.entities.map((e, n) => `<label><input type="radio" name="dc-ent-${i.id}" value="${n}" ${n === 0 ? 'checked' : ''} ${open ? '' : 'disabled'}> ${esc(e.name)}${e.role ? ` <small>(${esc(e.role)})</small>` : ''}${e.register ? ` <small>· ${esc(e.register)}</small>` : ''}</label>`).join('')}</div>` : '';
     const persons = r.representatives.length ? `<div class="dc-persons"><b>Vertretungsberechtigt laut Impressum:</b> ${r.representatives.map(p => `${esc(p.name)} <small>(${esc(p.role)})</small>`).join(', ')}${open ? `<label class="dc-inline"><input type="checkbox" data-dc-persons checked> als Kontakte übernehmen (mit Datenschutz-Nachweis)</label>` : ''}</div>` : '';
-    const actions = open ? `<div class="acc-btn-group">${i.duplicate_lead_id ? `<button type="button" class="btn btn-primary" data-dc-review="${i.id}" data-decision="ergaenzen">Lead #${i.duplicate_lead_id} ergänzen</button>` : `<button type="button" class="btn btn-primary" data-dc-review="${i.id}" data-decision="neu">Als neuen Lead übernehmen</button>`}<label class="dc-inline"><input type="checkbox" data-dc-overwrite> bestehende Werte überschreiben</label><button type="button" class="btn btn-ghost" data-dc-review="${i.id}" data-decision="verwerfen">Verwerfen</button><a class="btn btn-ghost" href="${esc(r.imprint_url)}" target="_blank" rel="noopener noreferrer">Impressum öffnen ↗</a></div>` : (i.lead_id ? `<button type="button" class="text-button" data-dc-lead="${i.lead_id}">Lead öffnen ↗</button>` : '');
+    const actions = open ? `<div class="acc-btn-group">${i.duplicate_lead_id ? `<button type="button" class="btn btn-primary" data-dc-review="${i.id}" data-decision="ergaenzen">Firma #${i.duplicate_lead_id} ergänzen</button>` : `<button type="button" class="btn btn-primary" data-dc-review="${i.id}" data-decision="neu">Als neue Firma übernehmen</button>`}<label class="dc-inline"><input type="checkbox" data-dc-overwrite> bestehende Werte überschreiben</label><button type="button" class="btn btn-ghost" data-dc-review="${i.id}" data-decision="verwerfen">Verwerfen</button><a class="btn btn-ghost" href="${esc(r.imprint_url)}" target="_blank" rel="noopener noreferrer">Impressum öffnen ↗</a></div>` : (i.lead_id ? `<button type="button" class="text-button" data-dc-lead="${i.lead_id}">Firma öffnen ↗</button>` : '');
     return `<article class="dc-item" data-dc-item="${i.id}">${head}${r.warnings.map(w => `<div class="sales-banner sales-warning">${esc(w)}</div>`).join('')}${entities}<div class="table-wrap"><table class="acc-table dc-table"><thead><tr><th></th><th>Feld</th><th>Wert</th><th>Beleg (wörtlich)</th><th>Qualität</th></tr></thead><tbody>${rows || '<tr><td colspan="5" class="empty">Keine Felder erkannt.</td></tr>'}</tbody></table></div>${missing.length ? `<small class="muted">Nicht gefunden (bleibt leer): ${esc(missing.join(', '))}</small>` : ''}${persons}${actions}</article>`;
   }
 
@@ -94,7 +94,7 @@
     }
     try {
       const res = await api(`/imprint/items/${id}/review`, 'POST', body);
-      toast(decision === 'verwerfen' ? 'Verworfen' : `Übernommen in Lead #${res.lead_id}: ${res.applied.length} Feld(er)${res.kept_existing.length ? `, ${res.kept_existing.length} bestehende Werte behalten` : ''}${res.persons_added ? `, ${res.persons_added} Person(en)` : ''}`);
+      toast(decision === 'verwerfen' ? 'Verworfen' : `Übernommen in Firma #${res.lead_id}: ${res.applied.length} Feld(er)${res.kept_existing.length ? `, ${res.kept_existing.length} bestehende Werte behalten` : ''}${res.persons_added ? `, ${res.persons_added} Person(en)` : ''}`);
       await reload(); openRun(currentRun, true); loadRuns(); loadPrivacy();
     } catch (err) { toast(err.message, true); }
   }
@@ -108,7 +108,7 @@
 
   async function loadPrivacy() {
     const rows = await api('/privacy');
-    $('#dcPrivacy').innerHTML = rows.length ? rows.slice(0, 50).map(r => `<div class="sales-item"><div><strong>${r.kind === 'einzelunternehmen' ? '<span class="sw-web wait">ohne Rechtsform</span> ' : ''}${esc(r.subject)}${r.kind === 'einzelunternehmen' ? '' : ' · ' + esc(r.company || 'Lead gelöscht')}</strong><small>${esc(r.data_categories)} · Löschfrist ${esc(fmtDate(r.retention_until))} · ${r.art14_informed_at ? 'informiert am ' + esc(fmtDate(r.art14_informed_at)) : (r.overdue_art14 ? '<b class="late">Art.-14-Information überfällig</b>' : 'noch nicht informiert')}</small></div><div class="acc-btn-group"><button type="button" class="btn btn-ghost" data-dc-art14="${r.id}">Hinweistext</button>${r.art14_informed_at ? '' : `<button type="button" class="btn btn-ghost" data-dc-informed="${r.id}">Informiert</button>`}<button type="button" class="btn btn-ghost" data-dc-extend="${r.id}">Frist verlängern</button></div></div>`).join('') : '<div class="empty">Noch keine Personen oder Betriebe ohne Rechtsform übernommen.</div>';
+    $('#dcPrivacy').innerHTML = rows.length ? rows.slice(0, 50).map(r => `<div class="sales-item"><div><strong>${r.kind === 'einzelunternehmen' ? '<span class="sw-web wait">ohne Rechtsform</span> ' : ''}${esc(r.subject)}${r.kind === 'einzelunternehmen' ? '' : ' · ' + esc(r.company || 'Firma gelöscht')}</strong><small>${esc(r.data_categories)} · Löschfrist ${esc(fmtDate(r.retention_until))} · ${r.art14_informed_at ? 'informiert am ' + esc(fmtDate(r.art14_informed_at)) : (r.overdue_art14 ? '<b class="late">Art.-14-Information überfällig</b>' : 'noch nicht informiert')}</small></div><div class="acc-btn-group"><button type="button" class="btn btn-ghost" data-dc-art14="${r.id}">Hinweistext</button>${r.art14_informed_at ? '' : `<button type="button" class="btn btn-ghost" data-dc-informed="${r.id}">Informiert</button>`}<button type="button" class="btn btn-ghost" data-dc-extend="${r.id}">Frist verlängern</button></div></div>`).join('') : '<div class="empty">Noch keine Personen oder Betriebe ohne Rechtsform übernommen.</div>';
   }
 
   // ------------------------------------------------------------ Lead-Dialog
@@ -135,7 +135,7 @@
       const head = await file.slice(0, 2000).text();
       if (/"?LEI"?[,;]"?Entity\.LegalName/.test(head) || file.size > 300000) {
         // GLEIF-Export oder große Firmenliste: als Firmenliste importieren (Sichtung unter „Firmen finden“)
-        toast('Große Firmenliste erkannt – wird unter „Finden → Suche & Sichtung“ zum Sichten importiert');
+        toast('Große Firmenliste erkannt – wird unter „Finden → Sichten“ zum Sichten importiert');
         return window.importCompanyFile ? window.importCompanyFile(file) : toast('Import nicht verfügbar', true);
       }
       csvText = await file.text();

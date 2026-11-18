@@ -80,9 +80,9 @@
   function renderPicker() {
     const q = ($('#scLeadSearch').value || '').toLowerCase();
     const list = leads.filter(l => l.website && l.stage !== 'gesperrt' && (!q || l.company.toLowerCase().includes(q))).slice(0, 60);
-    $('#scLeadPicker').innerHTML = list.length ? list.map(l => `<label class="sc-pick"><input type="checkbox" data-sc-lead="${l.id}" ${selected.has(l.id) ? 'checked' : ''}> <span>${esc(l.company)}<small>${esc(l.website)}</small></span></label>`).join('') : '<div class="empty">Keine Leads mit Website.</div>';
+    $('#scLeadPicker').innerHTML = list.length ? list.map(l => `<label class="sc-pick"><input type="checkbox" data-sc-lead="${l.id}" ${selected.has(l.id) ? 'checked' : ''}> <span>${esc(l.company)}<small>${esc(l.website)}</small></span></label>`).join('') : '<div class="empty">Keine Firmen mit Website.</div>';
     $('#scStart').disabled = !selected.size;
-    $('#scStart').textContent = selected.size ? `${selected.size} Lead(s) bewerten ↗` : 'Ausgewählte bewerten ↗';
+    $('#scStart').textContent = selected.size ? `${selected.size} Firma/Firmen bewerten ↗` : 'Ausgewählte bewerten ↗';
   }
 
   async function openAudit(id) {
@@ -147,7 +147,7 @@
     document.body.addEventListener('change', async e => {
       if (e.target.matches('[data-sc-lead]')) {
         const id = Number(e.target.dataset.scLead);
-        if (e.target.checked) { if (selected.size >= 20) { e.target.checked = false; return toast('Höchstens 20 Leads pro Durchgang', true); } selected.add(id); } else selected.delete(id);
+        if (e.target.checked) { if (selected.size >= 20) { e.target.checked = false; return toast('Höchstens 20 Firmen pro Durchgang', true); } selected.add(id); } else selected.delete(id);
         renderPicker();
       }
       if (e.target.matches('[data-sc-finding]')) {

@@ -56,6 +56,12 @@ class RetryBrowserTests(unittest.TestCase):
                                 if api(f'/leads/{lead["id"]}')['next_step'].startswith(expect):
                                     break
                                 page.wait_for_timeout(100)
+                            else:  # nicht still weiterlaufen: sonst fällt ein verlorener Versuch erst später auf
+                                now = api('/leads/' + str(lead['id']))['next_step']
+                                self.fail(f'Versuch nicht gespeichert, erwartet „{expect}“, Stand: {now}')
+                            # 2.0.0-dev52: Nach dem Speichern baut die Ansicht die Firmenauswahl neu auf. Erst weitermachen, wenn der neue
+                            # Stand sichtbar ist – sonst setzt der Neuaufbau die Auswahl des nächsten Versuchs mitten im Ausfüllen zurück.
+                            page.wait_for_function('t => document.body.textContent.includes(t)', arg=expect, timeout=10000)
                             page.wait_for_load_state('networkidle')
 
                         missed('vormittag', 'Erneut anrufen (2. Versuch)')

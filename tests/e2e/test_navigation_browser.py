@@ -69,7 +69,8 @@ class NavigationBrowserTests(unittest.TestCase):
                         labels = page.evaluate('() => [...document.querySelectorAll(".sidebar .nav[data-area]")].map(b => [...b.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join("").trim())')
                         self.assertEqual(labels, ['Heute', 'Finden', 'Firmen', 'Angebote', 'Abrechnen', 'Einstellungen'])
                         self.assertEqual(page.text_content('.sidebar [data-area="einstellungen"] .nav-dot'), '')  # KI-Status ist kein Zähler
-                        tabs = page.evaluate('() => [...document.querySelectorAll("#areaBar [data-area-view]")].map(b => b.dataset.areaView)')
+                        # 2.0.0-dev51: Recherche, URL-Recherche, Website-Scoring und Kaufsignale stehen als Reiter unter „Finden → Analysen“
+                        tabs = page.evaluate('() => [...document.querySelectorAll("#areaBar [data-area-view], #fdAnBar [data-area-view]")].map(b => b.dataset.areaView)')
                         self.assertEqual(sorted(set(tabs) & set(OLD_VIEWS)), sorted(OLD_VIEWS))
 
                         # Bereich → Standardansicht, Reiter → weitere Ansicht; Adresse folgt

@@ -33,12 +33,12 @@
     }
     const imp = d.imprint;
     const st = imp && imp.structured && imp.structured.evidence && imp.structured.evidence.length ? imp.structured : null;
-    const impBody = imp ? `<div class="rp-grid">${Object.entries(imp.fields).map(([k, v]) => `<div title="${esc(v.excerpt || '')}"><small>${esc(FIELD[k] || k)}</small><b>${esc(v.value)}</b>${lead[k] && lead[k] !== v.value ? `<small class="late">im Lead: ${esc(lead[k])}</small>` : ''}<small class="rp-ev">Beleg: „${esc((v.excerpt || '').slice(0, 70))}“</small></div>`).join('')}</div>
+    const impBody = imp ? `<div class="rp-grid">${Object.entries(imp.fields).map(([k, v]) => `<div title="${esc(v.excerpt || '')}"><small>${esc(FIELD[k] || k)}</small><b>${esc(v.value)}</b>${lead[k] && lead[k] !== v.value ? `<small class="late">bei der Firma: ${esc(lead[k])}</small>` : ''}<small class="rp-ev">Beleg: „${esc((v.excerpt || '').slice(0, 70))}“</small></div>`).join('')}</div>
         ${st ? `<div class="sales-subhead">Strukturierte Angaben der Website (ungeprüft)</div><div class="rp-grid">${st.evidence.map(e => `<div><small>${esc(FIELD[e.field] || e.field)} · ${esc(e.method === 'jsonld' ? 'JSON-LD' : 'Microdata')}</small><b>${esc(e.value)}</b>${imp.fields[e.field] && imp.fields[e.field].value !== e.value ? '<small class="late">weicht vom Impressum ab</small>' : ''}</div>`).join('')}</div>
           <p class="muted">Diese Angaben hat die Firma selbst für Suchmaschinen hinterlegt. Sie stehen als ungeprüfte Belege in den Firmendaten – maßgeblich ist das Impressum.</p>` : ''}
         ${imp.representatives.length ? `<p class="muted">Vertretungsberechtigt laut Impressum: ${imp.representatives.map(esc).join(', ')}</p>` : ''}
         <p class="muted">Fundstelle: ${link(imp.url, 'Impressum')} ${imp.warnings.map(esc).join(' · ')}</p>
-        ${imp.review_status === 'offen' && imp.status === 'done' ? `<div class="acc-btn-group"><button type="button" class="btn btn-primary" data-rp-imprint="${imp.item_id}">Firmendaten in den Lead übernehmen</button><span class="muted">Bestätigte Werte werden nicht überschrieben.</span></div>` : imp.review_status === 'uebernommen' ? `<p class="rp-auto">✓ Automatisch in leere Lead-Felder übernommen. Vorhandene oder bestätigte Werte wurden nicht überschrieben; Personen werden nicht automatisch angelegt.</p>`
+        ${imp.review_status === 'offen' && imp.status === 'done' ? `<div class="acc-btn-group"><button type="button" class="btn btn-primary" data-rp-imprint="${imp.item_id}">Firmendaten in die Firma übernehmen</button><span class="muted">Bestätigte Werte werden nicht überschrieben.</span></div>` : imp.review_status === 'uebernommen' ? `<p class="rp-auto">✓ Automatisch in leere Felder der Firma übernommen. Vorhandene oder bestätigte Werte wurden nicht überschrieben; Personen werden nicht automatisch angelegt.</p>`
           : `<p class="muted">Status: ${esc(imp.review_status === 'offen' ? 'noch nicht übernommen' : imp.review_status)}</p>`}`
       : '<div class="empty">Kein Impressum ausgelesen.</div>';
     const w = d.website;
@@ -69,7 +69,7 @@
       + section('Kaufsignale', '5 · SIGNALE', sig + hyp) + `</div>`
       + `<div class="rp-cols">` + section('Fragen fürs Erstgespräch', '6 · GESPRÄCH', qs.length ? `<ol class="rp-list">${qs.map(q => `<li>${esc(q)}</li>`).join('')}</ol>` : '<div class="empty">–</div>')
       + section('Passende Pakete', '7 · ANGEBOT (UNVERBINDLICH)', offers, `<button type="button" class="btn btn-ghost" data-rc-offer="${d.lead_id}">Angebot vorbereiten</button>`) + `</div>`
-      + `<div class="panel rp-sec rp-next"><div><b>Nächster Schritt:</b> ${esc(ds.next_step || '')}</div><div class="acc-btn-group"><button type="button" class="btn btn-primary" data-rc-handoff="${d.lead_id}">An CRM übergeben</button><button type="button" class="btn btn-ghost" data-rc-lead="${d.lead_id}">Kontaktweg im Lead klären</button></div></div>`
+      + `<div class="panel rp-sec rp-next"><div><b>Nächster Schritt:</b> ${esc(ds.next_step || '')}</div><div class="acc-btn-group"><button type="button" class="btn btn-primary" data-rc-handoff="${d.lead_id}">An CRM übergeben</button><button type="button" class="btn btn-ghost" data-rc-lead="${d.lead_id}">Kontaktweg bei der Firma klären</button></div></div>`
       + `<div class="legal-foot">${esc(d.notice)}</div>`;
   }
 

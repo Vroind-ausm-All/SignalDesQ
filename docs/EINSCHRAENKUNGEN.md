@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev49)
+# Bekannte Einschränkungen (Stand 2.0.0-dev52)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -301,3 +301,37 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Die Schublade mit den sechs Bereichen gibt es nur bis 520 px Breite. Zwischen 521 und 790 px bleibt die schmale Seitenleiste mit Symbolen wie bisher.
 - Bei schmaler Breite zeigt die Kopfzeile nur den Bereich (nicht die Ansicht) und „Neuer Lead“ nur als „＋“; die Ansicht steht in den Reitern darunter.
 - Geprüft in Chromium (Playwright) bei 390 × 844 und 1280 × 720; auf echten Smartphones und anderen Browsern nicht getestet.
+
+## Firmen und Heute im neuen Aufbau (2.0.0-dev50)
+
+- Nur Rahmen, Firmenliste und Heute sind auf den Baukasten umgestellt. Finden, Pipeline, Datenpflege, Aufgaben, Kontakt & Termine, Angebote, Abrechnen, Einstellungen und die Firmenakte haben noch den alten Aufbau (Schritte 3–6) und dort steht weiter „Lead“ (z. B. „Neuer Lead“ als Titel des Anlegens in der Akte, „Lead gespeichert“).
+- „Erledigt“ in „Als Nächstes“ gibt es nur für Aufgaben und Eingänge/Rückrufe – nur dafür hat SignalDesk ein Abhaken. Nächste Schritte einer Firma, Termine und Angebote erledigst du wie bisher in der Akte bzw. im Angebot; dort steht in der Zeile das Ziel („Angebot öffnen“, „Anruf dokumentieren“) oder nichts, wenn die Zeile ohnehin die Akte öffnet.
+- „Letzter Kontakt“ ist in der Firmenliste keine Standardspalte mehr, sondern unter „Spalten ▾“ zuschaltbar (gemerkt in diesem Browser).
+- Bis 520 px Breite zeigen beide Listen nur Was · Fällig · ›; nächster Schritt, Phase, Passung und „Erledigt“ stehen dann in der Akte bzw. unter „Heute → Aufgaben“.
+- Die Klappzeilen auf „Heute“ sind nach jedem Neuladen zu; welche du offen hattest, merkt sich SignalDesk nicht.
+- Hell/Dunkel wechselst du nur noch unter Einstellungen → Darstellung (der Umschalter in der Kopfzeile entfiel).
+- Geprüft in Chromium (Playwright) bei 1280 × 720 und 390 × 844; nicht auf echten Geräten und nicht in anderen Browsern.
+
+## Finden im neuen Aufbau (2.0.0-dev51)
+
+- Umgestellt sind „Sichten“ und „Neue Suche“. Die Unteransichten von „Analysen“ (Recherche & Berichte, URL-Recherche, Website-Scoring, Kaufsignale, Bericht) und „Import“ haben noch den alten Aufbau; neu ist dort nur die Reiterzeile bzw. der Abschnitt „Firmenliste importieren“. Auch „Einstellungen → Datenquellen“ steht im alten Aufbau der Einstellungen (Umbau in Schritt 5).
+- „Sichten“ hat kein „Spalten ▾“ (das Zielbild zeigt es); Adresse, Kontakt und Quellen-Links stehen in der aufgeklappten Zeile. Welche Zeilen aufgeklappt waren, merkt sich SignalDesk nicht über ein Neuladen hinaus.
+- Bis 520 px zeigt „Sichten“ nur Firma · Entfernung · ›; Website-Status, Quelle und „Übernehmen“ stehen dann in der aufgeklappten Zeile.
+- Die Voreinstellung unter „Wen suchst du?“ wird nicht eigens gespeichert, sondern aus Quellen, „ohne Rechtsform“, Website-Suche und Budget abgelesen. Seit dev51 merkt sich der Browser bei einer gestarteten Suche auch Quellen, „ohne Rechtsform“ und „nur operative“; nach dem Neuladen gelten also die Quellen der letzten Suche, nicht mehr immer alle vier.
+- Ob „Finden“ in der Seitenleiste „Sichten“ oder „Neue Suche“ öffnet, entscheidet die zuletzt geladene Zahl offener Treffer (sie wird bei jedem Laden der Treffer und beim Start aktualisiert); `#/finden` fragt jedes Mal neu.
+- Der Zähler am Reiter „Analysen“ zählt wie bisher alle Punkte der Prüfliste aus „Recherche & Berichte“ – dazu gehören auch offene Treffer der Firmensuche, die unter „Sichten“ stehen.
+- Einige Meldungen des Servers sagen weiter „Lead“ (z. B. Fehlermeldungen beim Übernehmen, „Lead-Finder-Treffer prüfen“ in der Prüfliste); die Oberfläche von Finden sagt „Firma“.
+- Geprüft in Chromium (Playwright) bei 1280 × 720 und 390 × 844; nicht auf echten Geräten und nicht in anderen Browsern.
+
+
+## Angebote im neuen Aufbau (2.0.0-dev52)
+
+- Umgestellt sind die Angebotsliste, der Seitenkopf und die Reiter des geöffneten Angebots, die Kontextspalte sowie die Seiten „Aufträge & Betreuung“ und „Auswertung“. Die Arbeitsschritte im geöffneten Angebot (Freigabe, Versand, Nachfassen, Entscheidung, Projektstart, Kick-off, Übergabe), das Formular des Editors, die Karten der Nachkalkulation und die Bestandskunden stehen noch in ihren bisherigen Bausteinen – nur geordnet und eingebettet.
+- „Nächster Schritt“ und „Fällig“ in der Liste werden aus vorhandenen Daten abgeleitet: Freigabe und Prüfpunkte (je offenem Entwurf eine Abfrage), das früheste offene Nachfassen, Kick-off- und Abnahmestand, Betreuung und „berechnet“. Für angenommene Angebote steht keine Fälligkeit, weil der Kick-off keine eigene Frist hat. „Rechnung erstellen“ erscheint, solange zu einem abgenommenen Auftrag gar keine Rechnung existiert – ob alle Teilrechnungen geschrieben sind, prüft die Liste nicht.
+- Die Liste zeigt wie bisher die letzten 100 Angebote. Die Liste hat kein „Spalten ▾“ (das Zielbild zeigt es); Spalten sind fest.
+- Die Hauptaktion im Kopf des geöffneten Angebots springt nur zum passenden Arbeitsschritt (und setzt den Fokus dorthin); freigeben, versenden oder dokumentieren musst du dort wie bisher selbst. Nach der Annahme wechselt sie zwischen Projektstart, Kick-off, Übergabe, Abnahme und Rechnung.
+- „Ablauf“ zeigt „Freigabe“ als aktuelle Phase, sobald alle Prüfpunkte erfüllt sind, sonst „Entwurf“ (bzw. „Bedarf“, solange der Bedarf nicht bestätigt ist).
+- „＋ Neues Angebot“ beginnt mit einem leeren Editor – außer der Editor enthält noch Positionen, die nicht gespeichert sind; dann geht es dort weiter. Ein Neuladen im Editor (`#/angebote?neu=1`) beginnt leer; ungespeicherte Positionen gehen dabei wie bisher verloren.
+- Der Verlauf eines Angebots setzt sich aus vorhandenen Zeitpunkten zusammen (erstellt, freigegeben, versendet, Nachfassen, Entscheidung, Projektstart, Übergabe, Abnahme, Nachrichtenentwürfe mit Bezug auf das Angebot). Statuswechsel aus der Zeit vor dev17 haben kein Datum und erscheinen nicht.
+- Seit dev52 behalten Erlebnisstudie, Fachreview und Stichprobe Eingaben in anderen Feldern, wenn nach einer Auswahl neu gezeichnet wird. Geprüft mit künstlich verzögerter Antwort; ein Feld, das man nach dem Neuzeichnen ohne weitere Eingabe verlässt, speichert über ein nachgereichtes „change“.
+- Geprüft in Chromium (Playwright) bei 1280 × 720 und 390 × 844; nicht auf echten Geräten und nicht in anderen Browsern.

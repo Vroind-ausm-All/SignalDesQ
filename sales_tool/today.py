@@ -73,7 +73,7 @@ def wiedervorlage(conn, today=None):
             continue
         if any(i['lead_id'] == r['id'] and i['title'] == r['next_step'] for i in items):
             continue  # 2.0.0-dev23: derselbe Schritt steht schon als fällige Aufgabe da (z. B. Nachfassen eines Angebots)
-        add('naechster_schritt', r['next_step'], r['company'], r['id'], r['next_date'], 'Lead öffnen', 'lead', r['id'])
+        add('naechster_schritt', r['next_step'], r['company'], r['id'], r['next_date'], 'Firma öffnen', 'lead', r['id'])
     if research:
         add('recherche', f'{research} Firma(en) mit fälligem Recherche-Schritt', 'Recherche', None, t, 'Gesammelt ansehen', 'tasks',
             detail='Am schnellsten: Firmen-Berichte für alle auf einmal erstellen')
@@ -111,7 +111,7 @@ def wiedervorlage(conn, today=None):
                              WHERE l.stage IN ('kontakt','antwort','termin','angebot','qualifiziert')"""):
         answered = sum(bool((r[f] or '').strip()) for f in ('problem', 'impact', 'desired_outcome', 'timing', 'decision_process'))
         if 0 < answered < 5:
-            add('bedarfsanalyse', 'Begonnene Bedarfsanalyse vervollständigen', r['company'], r['lead_id'], '', 'Lead öffnen', 'lead', r['lead_id'],
+            add('bedarfsanalyse', 'Begonnene Bedarfsanalyse vervollständigen', r['company'], r['lead_id'], '', 'Firma öffnen', 'lead', r['lead_id'],
                 f'{answered} von 5 Kernfragen beantwortet')
     # 2.0.0-dev3: eingegangene Anrufe/Anfragen mit fälliger Rückruffrist gehören zum Zugesagten
     for r in conn.execute("SELECT i.*, l.company FROM inbound i LEFT JOIN leads l ON l.id=i.lead_id WHERE i.status='offen' AND substr(i.due_at,1,10)<=? ORDER BY i.due_at", (t,)):
@@ -272,7 +272,7 @@ def capabilities(conn, check_ollama=True):
     ai = ollama_health(timeout=0.6) if check_ollama else {'online': False, 'message': 'nicht geprüft'}
     browser = playwright_available()
     items = [
-        {'key': 'crm', 'label': 'Leads, Pipeline, Aufgaben, Angebote, Rechnungen', 'ok': True, 'detail': 'Funktioniert vollständig offline.'},
+        {'key': 'crm', 'label': 'Firmen, Pipeline, Aufgaben, Angebote, Rechnungen', 'ok': True, 'detail': 'Funktioniert vollständig offline.'},
         {'key': 'crawler', 'label': 'Website-Prüfung mit Browser (Scoring, Screenshots)', 'ok': browser,
          'detail': 'Chromium/Playwright installiert.' if browser else 'Ohne Playwright nur eingeschränkt (HTML ohne Screenshots). Einmalig: Startdatei mit --reinstall ausführen.'},
         {'key': 'ai', 'label': 'Lokale KI (Ollama) für KI-Studio und URL-Recherche', 'ok': bool(ai.get('online')),

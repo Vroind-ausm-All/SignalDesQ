@@ -41,7 +41,7 @@ class PilotBrowserTests(unittest.TestCase):
                         errors, outside = [], []
                         page.on('pageerror', lambda exc: errors.append(str(exc)))
                         page.on('request', lambda r: outside.append(r.url) if '127.0.0.1' not in r.url else None)
-                        page.goto(base + '/#/finden')
+                        page.goto(base + '/#/firmen/datenpflege')  # 2.0.0-dev51: Messung steht unter Firmen → Datenpflege
                         page.wait_for_load_state('networkidle')
                         page.locator('#plBox > summary').click()
                         page.locator('#plSource option[value="osm"]').wait_for(state='attached')

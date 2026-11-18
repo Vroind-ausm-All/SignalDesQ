@@ -3,7 +3,7 @@
 // (Erledigtes, Morgen, Sackgassen ohne nächsten Schritt, Sicherung). Nichts wird versendet.
 (function () {
   const esc = v => escapeHTML(String(v ?? ''));
-  const DONE = {neue_leads: 'neue Leads', gesichtet: 'Treffer gesichtet', berichte: 'Firmen-Berichte', telefonate: 'Telefonate dokumentiert',
+  const DONE = {neue_leads: 'neue Firmen', gesichtet: 'Treffer gesichtet', berichte: 'Firmen-Berichte', telefonate: 'Telefonate dokumentiert',
     termine_eingetragen: 'Termine eingetragen', bedarf_bestaetigt: 'Bedarfe bestätigt', angebote: 'Angebote erstellt', aufgaben_erledigt: 'Aufgaben erledigt'};
   const STAGE = {qualifiziert: 'Qualifiziert', kontakt: 'Kontakt geprüft', antwort: 'Rückmeldung', termin: 'Termin', angebot: 'Angebot'};
   let profiles = [];
@@ -47,7 +47,7 @@
             <input type="date" value="${plusDays(1)}" aria-label="Datum für ${esc(d.company)}" data-dead-date></div>`).join('')}</div>` : '<div class="td-dead ok">✓ Jede Firma in einer Kontaktphase (Qualifiziert bis Angebot) hat einen nächsten Schritt mit Datum. Firmen in Recherche sind ausgenommen.</div>'}
         <div class="td-close-actions"><label><input type="checkbox" id="tdCloseBackup" ${s.backup_today ? '' : 'checked'}> Datensicherung erstellen</label>
           <input type="text" id="tdCloseNote" maxlength="1000" placeholder="Notiz zum Tag (optional)" value="${esc(s.closed?.note || '')}">
-          <button type="button" class="btn btn-primary" id="tdCloseBtn">Tag abschließen</button></div>`;
+          <button type="button" class="btn btn-ghost" id="tdCloseBtn">Tag abschließen</button></div>`;
     } catch (e) { box.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
   }
   window.refreshDayClose = loadClose;

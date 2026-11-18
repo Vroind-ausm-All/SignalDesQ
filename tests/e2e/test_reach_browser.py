@@ -46,6 +46,10 @@ class ReachBrowserTests(unittest.TestCase):
                         page.on('pageerror', lambda exc: errors.append(str(exc)))
                         page.on('console', lambda m: errors.append(m.text) if m.type == 'error' else None)
                         page.goto(f'http://127.0.0.1:{server.server_port}')
+                        page.wait_for_load_state('networkidle')
+                        # 2.0.0-dev50: Eingang, Kontaktliste und Kapazität stehen auf „Heute“ in Klappzeilen
+                        page.locator('#erreichbarkeit > summary').click()
+                        page.locator('#tdPotBox > summary').click()
 
                         # 1. Kontaktliste: A-Firma ja, C-Firma nein; Auslastung genannt
                         page.locator('#rcList .td-item', has_text='Elektro Fiktiv').wait_for(timeout=15000)

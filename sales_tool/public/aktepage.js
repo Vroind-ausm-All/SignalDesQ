@@ -10,7 +10,8 @@
     const modal = document.getElementById('modal'), main = document.querySelector('.main');
     if (!modal || !main || modal.dataset.page) return;
     modal.dataset.page = '1';
-    const bar = document.getElementById('areaBar');
+    // 2.0.0-dev50: die Reiter stehen jetzt in der Kopfzeile – die Akte folgt daher direkt auf die Kopfzeile
+    const bar = main.querySelector(':scope > .topbar') || document.getElementById('areaBar');
     (bar ? bar.after(modal) : main.appendChild(modal));
     modal.setAttribute('role', 'region');
     modal.removeAttribute('aria-modal');

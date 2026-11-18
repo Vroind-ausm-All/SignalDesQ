@@ -52,9 +52,15 @@ class OfferAddressBrowserTests(unittest.TestCase):
                         page.locator('#quoteSaved h3', has_text=p1['number']).wait_for()
                         page.goto(base + f'/#/angebote?angebot={p2["id"]}')
                         page.locator('#quoteSaved h3', has_text=p2['number']).wait_for()
+                        # 2.0.0-dev52: die Liste steht nicht mehr unter dem geöffneten Angebot – „← Angebote“ führt zu ihr (eigener Verlaufseintrag)
+                        page.locator('#qtOffer [data-qt-back]').click()
+                        page.wait_for_function('() => location.hash === "#/angebote"')
                         page.locator(f'[data-quote-open="{p1["id"]}"]').first.click()
                         page.wait_for_function(f'() => location.hash === "#/angebote?angebot={p1["id"]}"')  # Eintrag entsteht nach dem Aufbau
-                        page.go_back()
+                        page.go_back()  # zurück zur Liste …
+                        page.locator('#qtList').wait_for()
+                        self.assertTrue(page.locator('#qtOffer').is_hidden())
+                        page.go_back()  # … und davor das zweite Angebot
                         page.locator('#quoteSaved h3', has_text=p2['number']).wait_for()
                         self.assertEqual(errors, [])
                     finally:
