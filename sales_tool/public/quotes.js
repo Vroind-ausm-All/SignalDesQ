@@ -189,6 +189,9 @@
   };
   // 2.0.0-dev52: „＋ Neues Angebot“ beginnt leer, wenn der Editor nichts Ungespeichertes enthält (siehe angebote.js)
   window.quoteHasUnsaved = () => positions.length > 0 && $('#quoteForm').dataset.saved !== '1';
+  // SDQ-003 (Audit B2): Neuladen oder Schließen des Fensters fragt, solange ein Angebot ungespeicherte Positionen hat
+  // (innerhalb von SignalDesk bleiben sie ohnehin im Arbeitsspeicher und kommen mit „＋ Neues Angebot“ zurück).
+  window.addEventListener('beforeunload', e => { if (window.quoteHasUnsaved()) { e.preventDefault(); e.returnValue = ''; } });
   window.quoteReset = function () {
     const f = $('#quoteForm');
     positions = []; last = null; posLead = null;

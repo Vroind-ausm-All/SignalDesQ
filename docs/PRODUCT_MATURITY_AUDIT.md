@@ -51,7 +51,7 @@ Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
 | Befund (Audit) | Prüfung | Stand dev54 | Priorität |
 |---|---|---|---|
 | **B1** Navigation aus offener Firmenakte: URL zeigt neuen Bereich, Akte bleibt sichtbar | Browser-Nachstellung: Akte `#/firmen/akte/1` öffnen, in der Seitenleiste „Abrechnen“ klicken | **besteht weiter.** Adresse `#/abrechnen`, Reiter „Rechnungen“ und Seitenleiste „Abrechnen“ aktiv, sichtbar ist aber weiter die Firmenakte (`#modal` offen, `body.akte-page`). Bei ungespeicherten Eingaben erscheint keine Rückfrage. | **P0** → SDQ-002 ✓ |
-| **B2** Ungespeicherter Rechnungsentwurf geht beim Verlassen verloren | Code: `formguard.js` schützt Akte-Formulare, `einstellungen.js` die Einstellungen; `accounting.js` hat keinen Eingabeschutz und kein `beforeunload`. Browser: interner Wechsel behält die Eingaben im (versteckten) Editor, Neuladen/Schließen verwirft sie ohne Warnung. | **besteht teilweise** (kein Schutz bei Neuladen/Schließen, keine Rückfrage) | **P0** → SDQ-003 |
+| **B2** Ungespeicherter Rechnungsentwurf geht beim Verlassen verloren | Code: `formguard.js` schützt Akte-Formulare, `einstellungen.js` die Einstellungen; `accounting.js` hat keinen Eingabeschutz und kein `beforeunload`. Browser: interner Wechsel behält die Eingaben im (versteckten) Editor, Neuladen/Schließen verwirft sie ohne Warnung. | **besteht teilweise** (kein Schutz bei Neuladen/Schließen, keine Rückfrage) | **P0** → SDQ-003 ✓ |
 | **B3** Zugangsdaten (IMAP/CalDAV) bei „merken“ im Klartext | `sales_tool/credentials.py`: `zugangsdaten.json` neben der Datenbank, JSON im Klartext, Dateirechte 600 (unter Windows wirkungslos) | **besteht weiter** | **P0** → SDQ-004 |
 | **B4** Angebot mit Abschlagsrechnung erscheint vollständig abgerechnet | Code: `accepted_without_invoice`, `today.potential`, `proposal_rows`, `workday._steps` werteten **jede** Rechnung (auch Entwurf, auch 40-%-Abschlag) als „berechnet“ | **bestand – behoben in SDQ-001** | **P0** ✓ |
 | Fehlendes gestaltetes Angebots-PDF | `sales_workspace.py` exportiert Markdown; kein PDF | besteht | P1 |
@@ -96,7 +96,7 @@ Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
 |---|---|---|---|---|
 | SDQ-001 | P0 | Abrechnungsstand je Angebot: Teilabrechnung, Entwurf, Storno, Zahlung getrennt | – | **implementiert** (PR, siehe unten) |
 | SDQ-002 | P0 | Routing: Seitenleiste/Reiter schließen die Firmenakte; URL und sichtbare Ansicht immer gleich | – | **implementiert** |
-| SDQ-003 | P0 | Eingabeschutz für Rechnungs- und Angebotseditor (Wechsel, Neuladen, Schließen) | SDQ-002 (gleiche Navigationsstelle) | offen |
+| SDQ-003 | P0 | Eingabeschutz für Rechnungs- und Angebotseditor (Wechsel, Neuladen, Schließen) | SDQ-002 (gleiche Navigationsstelle) | **implementiert** |
 | SDQ-004 | P0 | Zugangsdaten ohne Klartext: OS-Schlüsselbund optional, Migration der Altdatei, keine Geheimnisse in Logs/Exporten | – | offen |
 | SDQ-005 | P1 | Volle Browser-Suite in CI | – | offen |
 | SDQ-006 | P1 | Recherche-Benchmark: Referenzliste, Messgrößen, Auswerteskript (Ergebnisse erst mit echten Prüfern) | – | offen |
@@ -110,7 +110,7 @@ Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
 | Gate | Stand |
 |---|---|
 | Keine offenen kritischen Sicherheitsbefunde | **offen** (B3) |
-| Kein bekannter Datenverlust in Kernfunktionen | **offen** (B2) |
+| Kein bekannter Datenverlust in Kernfunktionen | B2 behoben (SDQ-003); Angebotseditor nur beforeunload, kein Browser-Test mit Positionen |
 | Nachweisbare Mandantentrennung | **offen** (nicht vorhanden) |
 | Backup und Restore geprüft | lokal ja (T15); Cloud offen |
 | Release-Tests | lokal ja; volle Browser-Suite nicht in CI |
@@ -155,3 +155,18 @@ Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
   bestehenden Navigationstest abgedeckt.
 - **Reifeauswirkung:** Dimension 4 (CRM) und 7 (UX) nannten diesen Fehler als Abzug. Vorschlag 7: 62 → 64, 4: 72 → 73 (Konfidenz M,
   ohne Nutzertest). Gesamtindex 47,8 → 48,1 (genau 47,81 → 48,06).
+
+### SDQ-003 – Eingabeschutz im Rechnungseditor (P0, Audit B2)
+
+- **Ausgangsproblem:** Der Rechnungseditor hatte keinen Eingabeschutz. Beim Neuladen/Schließen gingen Eingaben ohne Warnung verloren;
+  Zurück/Vor auf `#/abrechnen` schaltete auf die Liste (`accShowList`) und verwarf den Editorinhalt still. Der Angebotseditor hielt
+  Positionen nur im Arbeitsspeicher, ebenfalls ohne Warnung beim Neuladen.
+- **Änderung:** `accounting.js` merkt den gespeicherten Stand des Editors; bei Änderungen fragen Bereichswechsel, „← Rechnungen“,
+  „＋ Neue Rechnung“, das Öffnen einer anderen Rechnung und Sprünge aus „Heute“ über den vorhandenen Dialog (`formGuard.ask`).
+  „Speichern“ legt einen Entwurf ab (nie Festschreibung), „Verwerfen“ lädt den gespeicherten Stand. `beforeunload` für Rechnungs- und
+  Angebotseditor; `accShowList` lässt einen geänderten Entwurf offen.
+- **Tests:** `tests/e2e/test_sdq003_invoice_guard_browser.py`, gegen den alten Stand rot.
+- **Restrisiko:** Angebotseditor ohne Browser-Test mit echten Positionen; Formularfelder ohne Positionen zählen dort nicht als ungespeichert.
+  Kein gemeinsamer Eingabeschutz für alle Formulare – drei Umsetzungen (Akte, Einstellungen, Rechnung) mit demselben Dialog.
+- **Reifeauswirkung:** Abzug „ungeschützter Rechnungsentwurf“ in Dimension 6 behoben: 54 → 56; Dimension 7 (UX) 64 → 65.
+  Gesamtindex 48,06 → 48,24 (≈ 48,2).

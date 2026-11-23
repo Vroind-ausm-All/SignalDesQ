@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0-dev55 – Abschlagsrechnung heißt nicht „abgerechnet“, Bereichswechsel schließt die Firmenakte (SDQ-001, SDQ-002)
+## 2.0.0-dev55 – Abschlagsrechnung heißt nicht „abgerechnet“, Akte und Rechnungsentwurf gehen beim Wechseln nicht verloren (SDQ-001 bis SDQ-003)
 
 Erstes Arbeitspaket der Welle „Kritische Fehler und Sicherheitsgrundlagen“; neuer technischer Ausgangsstand in [PRODUCT_MATURITY_AUDIT.md](docs/PRODUCT_MATURITY_AUDIT.md).
 
@@ -12,6 +12,9 @@ Erstes Arbeitspaket der Welle „Kritische Fehler und Sicherheitsgrundlagen“; 
 - **Fehlerbehebung – Akte blieb stehen (SDQ-002):** Wer in einer geöffneten Firmenakte in der Seitenleiste z. B. „Abrechnen“ wählte, sah in der Adresse, der Seitenleiste und den Reitern schon „Abrechnen“ – auf dem Bildschirm aber weiter die Akte. Jetzt schließt jeder Wechsel des Bereichs (Seitenleiste, Reiter, Sprünge aus „Heute“ oder in die Einstellungen) die Akte; Adresse und sichtbarer Bereich stimmen immer überein. „Zurück“ öffnet die Akte wieder, „Vor“ führt wieder in den Bereich.
 - **Eingabeschutz beim Bereichswechsel:** Hast du in der Akte etwas geändert und nicht gespeichert, fragt SignalDesk vorher: Speichern · Weiter bearbeiten · Verwerfen. „Weiter bearbeiten“ bricht den Wechsel ab, die Adresse bleibt bei der Akte. Wechselt ein Programmteil die Ansicht von selbst, bleiben ungespeicherte Eingaben wie bisher im Arbeitsspeicher und kommen beim nächsten Öffnen der Firma zurück.
 - Test: neu `e2e/test_sdq002_akte_navigation_browser.py` (alle sechs Bereiche, Reiter, Zurück/Vor, Direktlink, die drei Antworten der Rückfrage); gegen den alten Stand rot.
+- **Eingabeschutz im Rechnungseditor (SDQ-003):** Hast du einen Rechnungsentwurf geändert und nicht gespeichert, fragt SignalDesk vor dem Wechsel des Bereichs, bei „← Rechnungen“, beim Öffnen einer anderen Rechnung und bei „＋ Neue Rechnung“: Speichern · Weiter bearbeiten · Verwerfen. „Speichern“ legt nur einen Entwurf ab und schreibt nie fest; „Verwerfen“ stellt den gespeicherten Stand wieder her. Beim Neuladen oder Schließen des Fensters fragt der Browser nach. Zurück/Vor auf „Abrechnen“ schließt einen geänderten Entwurf nicht mehr stillschweigend.
+- **Angebotseditor:** Neuladen oder Schließen des Fensters fragt nach, solange ein Angebot ungespeicherte Positionen hat. Innerhalb von SignalDesk bleiben sie wie bisher im Arbeitsspeicher.
+- Test: neu `e2e/test_sdq003_invoice_guard_browser.py` (alle drei Antworten, „← Rechnungen“, unveränderter Editor ohne Rückfrage, beforeunload); gegen den alten Stand rot.
 
 ## 2.0.0-dev54 – Firmenakte als Detailseite, überall „Firma“ statt „Lead“
 

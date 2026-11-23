@@ -49,7 +49,8 @@
     window.scrollTo({top: 0, behavior: 'instant'});
   }
 
-  window.accShowList = () => { if ($('#viewAccounting').dataset.accMode !== 'list') { setMode('list'); loadInvoices(); } };
+  // SDQ-003: Zurück/Vor auf #/abrechnen zeigt die Liste – ein Entwurf mit ungespeicherten Eingaben bleibt aber offen
+  window.accShowList = () => { if ($('#viewAccounting').dataset.accMode !== 'list' && !editorDirty()) { setMode('list'); loadInvoices(); } };
 
   window.refreshAccounting = async function (view) {
     try { await loadCatalog(); settings = await api('/accounting/settings'); await LOAD[view || here()](); }
@@ -205,7 +206,36 @@
     ['#accDeleteDraft', '#accPreview', '#accFinalize'].forEach(s => $(s).classList.toggle('hidden', !editingId));
     $('#accChecks').innerHTML = inv?.checks?.length ? `<div class="sales-banner sales-warning"><b>Vor der Festschreibung fehlt:</b><ul>${inv.checks.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>` : (editingId ? '<div class="sales-banner">Pflichtangaben vollständig. Nach der Festschreibung ist die Rechnung unveränderbar.</div>' : '');
     updateTotals();
+    editorBase = editorSnap();
   }
+
+  // ---- SDQ-003 (Audit B2): Eingabeschutz für den Rechnungsentwurf
+  // Ungespeicherte Eingaben im Editor gehen weder beim Wechsel des Bereichs, beim Schließen des Editors, beim Öffnen einer anderen
+  // Rechnung noch beim Neuladen/Schließen des Fensters still verloren. Rückfrage wie in Akte und Einstellungen (formguard.js):
+  // Speichern (als Entwurf – nie festschreiben) · Weiter bearbeiten (nichts passiert) · Verwerfen.
+  let editorBase = null;
+  const editorSnap = () => JSON.stringify([...$('#accInvoiceForm').querySelectorAll('input, select, textarea')]
+    .filter(el => !['submit', 'button', 'reset', 'file'].includes(el.type)).map(el => (el.type === 'checkbox' || el.type === 'radio' ? el.checked : el.value)));
+  const editorDirty = () => $('#viewAccounting')?.dataset.accMode === 'edit' && editorBase !== null && editorSnap() !== editorBase;
+  window.accEditorDirty = editorDirty;
+  const LEAVE = '.sidebar .nav, .nav-help, [data-go], [data-area-view], [data-view-link], [data-settings-jump], [data-settings-link], '
+    + '[data-go-action], #accEditorClose, #accNewInvoice, [data-acc-open], [data-acc-from-proposal], [data-acc-close-detail]';
+  let replaying = false;
+  async function guardLeave(e) {
+    if (replaying || !editorDirty() || !window.formGuard) return;
+    const target = e.target.closest && e.target.closest(LEAVE);
+    if (!target || (target.closest('#accEditor') && !target.matches('#accEditorClose'))) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    const choice = await window.formGuard.ask(['Rechnungsentwurf']);
+    if (choice === 'edit') { $('#accInvoiceForm [name=buyer_name]')?.focus(); return; }
+    if (choice === 'save' && !(await saveDraft())) return;  // Fehler: Eingaben bleiben stehen, Meldung kam vom Speichern
+    if (choice === 'discard') { if (editingId) await openInvoice(editingId); else setMode('list'); }  // gespeicherten Stand wiederherstellen
+    replaying = true;
+    try { target.click(); } finally { replaying = false; }
+  }
+  window.addEventListener('click', guardLeave, true);  // vor den Klick-Verteilern von nav.js und app.js
+  window.addEventListener('beforeunload', e => { if (editorDirty()) { e.preventDefault(); e.returnValue = ''; } });
 
   function invoicePayload() {
     const f = $('#accInvoiceForm'), d = Object.fromEntries(new FormData(f).entries());
