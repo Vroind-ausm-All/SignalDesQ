@@ -25,8 +25,22 @@
     try { await api('/kalender', 'POST', body); toast(msg); await load(); } catch (e) { toast(e.message, true); }
   }
 
+  // SDQ-004: „merken“ nur im Passwortspeicher des Betriebssystems; ohne ihn gilt das Passwort bis zum Neustart.
+  // Ein Klartext-Altbestand aus früheren Versionen wird angezeigt, bis das Passwort neu eingegeben oder vergessen wurde.
+  function pwLabel(v) {
+    if (!v.password.stored) return 'nicht hinterlegt';
+    return v.password.remembered ? `hinterlegt (gemerkt im ${v.password_store?.store_name || 'Passwortspeicher'})` : 'hinterlegt (bis zum Neustart)';
+  }
+  function rememberHtml(pre, v) {
+    const s = v.password_store || {};
+    const legacy = s.legacy_plaintext ? `<p class="sales-banner sales-warning" data-cred-legacy="${pre}">Eine frühere Version hat dieses Passwort unverschlüsselt in <code>zugangsdaten.json</code> gemerkt. Bitte das Passwort neu eingeben (oder „Passwort vergessen“) – danach wird der Eintrag aus der Datei entfernt.</p>` : '';
+    return s.secure_store
+      ? `<label class="check"><input type="checkbox" id="${pre}Remember" ${v.password.remembered ? 'checked' : ''}> im ${esc(s.store_name)} merken (nie im Klartext, nicht in der Datenbank)</label>${legacy}`
+      : `<p class="muted" data-cred-nostore="${pre}"><input type="checkbox" id="${pre}Remember" hidden disabled>${esc(s.notice || 'Kein sicherer Passwortspeicher verfügbar – das Passwort gilt bis zum Neustart.')}</p>${legacy}`;
+  }
+
   function renderCaldav(v) {
-    const pw = v.password.stored ? (v.password.remembered ? 'hinterlegt (auf diesem Rechner gemerkt)' : 'hinterlegt (bis zum Neustart)') : 'nicht hinterlegt';
+    const pw = pwLabel(v);
     $('#calCaldav').innerHTML = `
       <div class="sales-subhead">2 · Kalender-Abgleich (CalDAV, beide Richtungen)</div>
       <p class="muted">Termine aus SignalDesk erscheinen in deinem Kalender (nur Titel, Firma, Zeit, Ort). Aus dem Kalender liest SignalDesk nur „belegt von … bis …“ der nächsten 60 Tage – für Konfliktwarnungen und freie Vorschläge. Fremde Einträge werden nie geändert.</p>
@@ -34,7 +48,7 @@
         <label>Kalender-Adresse (HTTPS)<input name="url" id="cdUrl" type="url" placeholder="https://dav.anbieter.de/calendars/name/kalender/" value="${esc(v.url)}"></label>
         <label>Benutzername<input name="username" id="cdUser" value="${esc(v.username)}" autocomplete="off"></label>
         <label>Passwort (am besten App-Passwort)<input name="password" id="cdPass" type="password" autocomplete="new-password" placeholder="${v.password.stored ? '•••••• hinterlegt' : ''}"></label>
-        <label class="check"><input type="checkbox" id="cdRemember" ${v.password.remembered ? 'checked' : ''}> auf diesem Rechner merken (eigene Datei, nicht in der Datenbank)</label>
+        ${rememberHtml('cd', v)}
         <div class="sales-row"><button class="btn" type="submit">Speichern</button>
           <button class="btn btn-ghost" type="button" id="cdTest" ${v.configured ? '' : 'disabled'}>Verbindung prüfen</button>
           <button class="btn btn-ghost" type="button" id="cdSync" ${v.configured ? '' : 'disabled'}>Jetzt abgleichen</button>
@@ -62,7 +76,7 @@
   }
 
   function renderImap(v) {
-    const pw = v.password.stored ? (v.password.remembered ? 'hinterlegt (auf diesem Rechner gemerkt)' : 'hinterlegt (bis zum Neustart)') : 'nicht hinterlegt';
+    const pw = pwLabel(v);
     $('#calImap').innerHTML = `
       <div class="sales-subhead">3 · Postfach (IMAP, nur Entwürfe)</div>
       <p class="muted">SignalDesk legt einen fertigen Entwurf in den Entwürfe-Ordner deines Postfachs. Du prüfst ihn im Mailprogramm und versendest selbst. SignalDesk versendet nie und liest keine Nachrichten.</p>
@@ -72,7 +86,7 @@
         <label>Benutzername<input name="username" id="imUser" value="${esc(v.username)}" autocomplete="off"></label>
         <label>Absender (deine Adresse)<input name="sender" id="imSender" type="email" placeholder="hallo@deine-agentur.de" value="${esc(v.sender)}"></label>
         <label>Passwort (am besten App-Passwort)<input name="password" id="imPass" type="password" autocomplete="new-password" placeholder="${v.password.stored ? '•••••• hinterlegt' : ''}"></label>
-        <label class="check"><input type="checkbox" id="imRemember" ${v.password.remembered ? 'checked' : ''}> auf diesem Rechner merken (eigene Datei, nicht in der Datenbank)</label>
+        ${rememberHtml('im', v)}
         <div class="sales-row"><button class="btn" type="submit">Speichern</button>
           <button class="btn btn-ghost" type="button" id="imTest" ${v.configured ? '' : 'disabled'}>Verbindung prüfen</button>
           ${v.password.stored ? '<button class="btn btn-ghost" type="button" id="imForget">Passwort vergessen</button>' : ''}</div>

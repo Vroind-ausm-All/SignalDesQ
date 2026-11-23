@@ -52,7 +52,7 @@ Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
 |---|---|---|---|
 | **B1** Navigation aus offener Firmenakte: URL zeigt neuen Bereich, Akte bleibt sichtbar | Browser-Nachstellung: Akte `#/firmen/akte/1` öffnen, in der Seitenleiste „Abrechnen“ klicken | **besteht weiter.** Adresse `#/abrechnen`, Reiter „Rechnungen“ und Seitenleiste „Abrechnen“ aktiv, sichtbar ist aber weiter die Firmenakte (`#modal` offen, `body.akte-page`). Bei ungespeicherten Eingaben erscheint keine Rückfrage. | **P0** → SDQ-002 ✓ |
 | **B2** Ungespeicherter Rechnungsentwurf geht beim Verlassen verloren | Code: `formguard.js` schützt Akte-Formulare, `einstellungen.js` die Einstellungen; `accounting.js` hat keinen Eingabeschutz und kein `beforeunload`. Browser: interner Wechsel behält die Eingaben im (versteckten) Editor, Neuladen/Schließen verwirft sie ohne Warnung. | **besteht teilweise** (kein Schutz bei Neuladen/Schließen, keine Rückfrage) | **P0** → SDQ-003 ✓ |
-| **B3** Zugangsdaten (IMAP/CalDAV) bei „merken“ im Klartext | `sales_tool/credentials.py`: `zugangsdaten.json` neben der Datenbank, JSON im Klartext, Dateirechte 600 (unter Windows wirkungslos) | **besteht weiter** | **P0** → SDQ-004 |
+| **B3** Zugangsdaten (IMAP/CalDAV) bei „merken“ im Klartext | `sales_tool/credentials.py`: `zugangsdaten.json` neben der Datenbank, JSON im Klartext, Dateirechte 600 (unter Windows wirkungslos) | **besteht weiter** | **P0** → SDQ-004 ✓ |
 | **B4** Angebot mit Abschlagsrechnung erscheint vollständig abgerechnet | Code: `accepted_without_invoice`, `today.potential`, `proposal_rows`, `workday._steps` werteten **jede** Rechnung (auch Entwurf, auch 40-%-Abschlag) als „berechnet“ | **bestand – behoben in SDQ-001** | **P0** ✓ |
 | Fehlendes gestaltetes Angebots-PDF | `sales_workspace.py` exportiert Markdown; kein PDF | besteht | P1 |
 | Keine externe KoSIT-Abnahme der XRechnung | `einvoice.py` verweist selbst auf den Validator; kein Prüfprotokoll im Repo | besteht | P1 (vor Bewerbung der Rechnungsfunktion: Gate) |
@@ -97,7 +97,7 @@ Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
 | SDQ-001 | P0 | Abrechnungsstand je Angebot: Teilabrechnung, Entwurf, Storno, Zahlung getrennt | – | **implementiert** (PR, siehe unten) |
 | SDQ-002 | P0 | Routing: Seitenleiste/Reiter schließen die Firmenakte; URL und sichtbare Ansicht immer gleich | – | **implementiert** |
 | SDQ-003 | P0 | Eingabeschutz für Rechnungs- und Angebotseditor (Wechsel, Neuladen, Schließen) | SDQ-002 (gleiche Navigationsstelle) | **implementiert** |
-| SDQ-004 | P0 | Zugangsdaten ohne Klartext: OS-Schlüsselbund optional, Migration der Altdatei, keine Geheimnisse in Logs/Exporten | – | offen |
+| SDQ-004 | P0 | Zugangsdaten ohne Klartext: OS-Schlüsselbund optional, Migration der Altdatei, keine Geheimnisse in Logs/Exporten | – | **implementiert** |
 | SDQ-005 | P1 | Volle Browser-Suite in CI | – | offen |
 | SDQ-006 | P1 | Recherche-Benchmark: Referenzliste, Messgrößen, Auswerteskript (Ergebnisse erst mit echten Prüfern) | – | offen |
 | SDQ-007 | P1 | Identitätsstufen (bestätigt … keine Zuordnung) mit harten Gegenbelegen und Regressionen | SDQ-006 | offen |
@@ -109,7 +109,7 @@ Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
 
 | Gate | Stand |
 |---|---|
-| Keine offenen kritischen Sicherheitsbefunde | **offen** (B3) |
+| Keine offenen kritischen Sicherheitsbefunde | B3 behoben (SDQ-004); externes Security Assessment fehlt – Gate bleibt **offen** |
 | Kein bekannter Datenverlust in Kernfunktionen | B2 behoben (SDQ-003); Angebotseditor nur beforeunload, kein Browser-Test mit Positionen |
 | Nachweisbare Mandantentrennung | **offen** (nicht vorhanden) |
 | Backup und Restore geprüft | lokal ja (T15); Cloud offen |
@@ -170,3 +170,18 @@ Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
   Kein gemeinsamer Eingabeschutz für alle Formulare – drei Umsetzungen (Akte, Einstellungen, Rechnung) mit demselben Dialog.
 - **Reifeauswirkung:** Abzug „ungeschützter Rechnungsentwurf“ in Dimension 6 behoben: 54 → 56; Dimension 7 (UX) 64 → 65.
   Gesamtindex 48,06 → 48,24 (≈ 48,2).
+
+### SDQ-004 – Zugangsdaten nie im Klartext (P0, Audit B3)
+
+- **Ausgangsproblem:** „Merken“ schrieb IMAP-/CalDAV-Passwörter als JSON im Klartext neben die Datenbank (Rechte 600 nur unter
+  POSIX). Jede Kopie des Datenordners trug das Passwort mit.
+- **Änderung (`credentials.py`, Schnittstelle unverändert):** Speicher-Abstraktion mit `keyring` (falls installiert), Windows-DPAPI
+  (stdlib, `ctypes`), Linux-`secret-tool` (Passwort über stdin). Ohne sicheren Speicher nur Arbeitsspeicher. Je Installation eigener
+  Schlüssel (Hash des Datenbankpfads). Altbestand: Übernahme + Entfernen; ohne sicheren Speicher nur lesen, Abbau bei Neu-Eingabe oder
+  „vergessen“ (keine Löschung ohne Nutzerhandlung). Oberfläche nennt den Speicher und zeigt den Altbestand an.
+- **Tests:** `tests/test_sdq004_credentials.py` (9, davon 1 nur Windows), `tests/e2e/test_sdq004_credentials_browser.py`;
+  `test_v2_caldav.py` von „Klartext-Datei erwartet“ auf „keine Klartext-Datei“ umgestellt.
+- **Nicht geprüft:** echter macOS-Schlüsselbund und echter Secret-Service-Dienst (kein Desktop in CI); DPAPI nur in der Windows-CI.
+  Für SaaS braucht es ein serverseitiges Secret Management (Welle 4/5) – dieses Paket betrifft die lokale Installation.
+- **Reifeauswirkung:** Dimension 9 (Sicherheit) nannte diesen Befund als Hauptabzug: 33 → 38 (Konfidenz M, ohne externe Prüfung).
+  Gesamtindex 48,24 → 48,74 (≈ 48,7).

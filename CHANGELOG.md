@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0-dev55 – Abschlagsrechnung heißt nicht „abgerechnet“, Akte und Rechnungsentwurf gehen beim Wechseln nicht verloren (SDQ-001 bis SDQ-003)
+## 2.0.0-dev55 – Welle 1: Teilabrechnung, Akte und Rechnungsentwurf beim Wechseln, Passwörter nie im Klartext (SDQ-001 bis SDQ-004)
 
 Erstes Arbeitspaket der Welle „Kritische Fehler und Sicherheitsgrundlagen“; neuer technischer Ausgangsstand in [PRODUCT_MATURITY_AUDIT.md](docs/PRODUCT_MATURITY_AUDIT.md).
 
@@ -15,6 +15,9 @@ Erstes Arbeitspaket der Welle „Kritische Fehler und Sicherheitsgrundlagen“; 
 - **Eingabeschutz im Rechnungseditor (SDQ-003):** Hast du einen Rechnungsentwurf geändert und nicht gespeichert, fragt SignalDesk vor dem Wechsel des Bereichs, bei „← Rechnungen“, beim Öffnen einer anderen Rechnung und bei „＋ Neue Rechnung“: Speichern · Weiter bearbeiten · Verwerfen. „Speichern“ legt nur einen Entwurf ab und schreibt nie fest; „Verwerfen“ stellt den gespeicherten Stand wieder her. Beim Neuladen oder Schließen des Fensters fragt der Browser nach. Zurück/Vor auf „Abrechnen“ schließt einen geänderten Entwurf nicht mehr stillschweigend.
 - **Angebotseditor:** Neuladen oder Schließen des Fensters fragt nach, solange ein Angebot ungespeicherte Positionen hat. Innerhalb von SignalDesk bleiben sie wie bisher im Arbeitsspeicher.
 - Test: neu `e2e/test_sdq003_invoice_guard_browser.py` (alle drei Antworten, „← Rechnungen“, unveränderter Editor ohne Rückfrage, beforeunload); gegen den alten Stand rot.
+- **Sicherheit – Passwörter nie mehr im Klartext (SDQ-004):** „Merken“ legte Kalender- und Postfach-Passwörter bisher unverschlüsselt in `zugangsdaten.json` ab. Jetzt nur noch im Passwortspeicher des Betriebssystems (Paket `keyring`, falls installiert; sonst Windows-DPAPI bzw. Linux-`secret-tool`, Passwort über die Standardeingabe). Gibt es keinen, steht statt des Häkchens „gilt bis zum Neustart“ – geschrieben wird dann nichts.
+- **Altbestand:** Ein Eintrag aus `zugangsdaten.json` wird beim ersten Lesen in den sicheren Speicher übernommen und aus der Datei entfernt (leere Datei wird gelöscht). Ohne sicheren Speicher funktioniert er weiter, die Einstellungen zeigen aber einen gelben Hinweis; sobald du das Passwort neu eingibst oder „Passwort vergessen“ wählst, verschwindet der Klartext-Eintrag. Neues Passwort ersetzt das alte überall, „vergessen“ löscht es aus allen Speichern.
+- Tests: neu `test_sdq004_credentials.py` (u. a. „kein Klartext irgendwo im Datenordner“, Übernahme des Altbestands, Speicher verweigert, Passwort nicht auf der Befehlszeile, DPAPI-Rundlauf unter Windows in der CI) und `e2e/test_sdq004_credentials_browser.py`. `test_v2_caldav.py` erwartete bisher die Klartext-Datei; jetzt prüft er das Gegenteil. Tests nutzen einen Ersatz-Speicher (`tests/cred_fake.py`) und berühren nie den echten Schlüsselbund.
 
 ## 2.0.0-dev54 – Firmenakte als Detailseite, überall „Firma“ statt „Lead“
 

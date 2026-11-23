@@ -92,11 +92,11 @@ def _check_host(host, port):
 
 
 def view(conn, db_path):
-    from .credentials import status
+    from .credentials import status, store_info
     s = _settings(conn)
     return {'host': s['host'], 'port': s['port'], 'username': s['username'], 'sender': s['sender'], 'folder': s['folder'],
             'folder_label': decode_mutf7(s['folder']) if s['folder'] else '', 'configured': bool(s['host'] and s['username']),
-            'password': status(db_path, 'imap'), 'last_result': s['last_result'],
+            'password': status(db_path, 'imap'), 'password_store': store_info(db_path, 'imap'), 'last_result': s['last_result'],
             'notice': 'SignalDesk legt nur Entwürfe in den Entwürfe-Ordner und versendet nie. Am besten ein App-Passwort verwenden.'}
 
 

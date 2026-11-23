@@ -4,7 +4,7 @@ Gegen einen nachgebauten CalDAV-Server auf 127.0.0.1 (PROPFIND, PUT, DELETE, REP
 - Termine werden geschrieben (nur Titel, Firma, Zeit, Ort – keine Notizen), unveränderte nicht erneut, gelöschte entfernt.
 - Fremde Einträge bleiben unangetastet; nur „belegt“ wird gelesen (eigene, abgesagte und „frei“ markierte zählen nicht).
 - Konfliktwarnung beim Anlegen, freie Vorschläge sparen belegte Zeiten aus.
-- Passwort nie in der Datenbank; „merken“ nur in zugangsdaten.json (Rechte 600); falsches Passwort → klare Meldung.
+- Passwort nie in der Datenbank; „merken“ nur im Passwortspeicher des Betriebssystems (SDQ-004, vorher Klartext-JSON); falsches Passwort → klare Meldung.
 - Nur HTTPS außer auf diesem Rechner; im Offline-Modus kein Abgleich.
 Alle Firmen sind fiktiv.
 """
@@ -23,6 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from tmpclean import cleanup_tmp  # noqa: E402
 
+from cred_fake import FakeStore  # noqa: E402
 from sales_tool import caldav, credentials, netpolicy  # noqa: E402
 from sales_tool.model import connect  # noqa: E402
 from sales_tool.server import make_handler, prepare_database  # noqa: E402
@@ -99,6 +100,8 @@ def _x(s):
 class CalDavTests(unittest.TestCase):
     def setUp(self):
         netpolicy.STATE.update(stored=False, forced=False)
+        self.store = FakeStore()
+        credentials.set_backend(self.store)  # SDQ-004: nie den echten Schlüsselbund des Rechners benutzen
         self.tmp = tempfile.TemporaryDirectory()
         self.db = str(Path(self.tmp.name) / 'c.sqlite3')
         prepare_database(self.db)
@@ -119,6 +122,7 @@ class CalDavTests(unittest.TestCase):
         self.dav.server_close()
         self.conn.close()
         credentials._MEMORY.clear()
+        credentials.set_backend('auto')
         netpolicy.STATE.update(stored=False, forced=False)
         cleanup_tmp(self.tmp)
 
@@ -202,9 +206,12 @@ class CalDavTests(unittest.TestCase):
         f = Path(self.tmp.name) / 'zugangsdaten.json'
         self.assertFalse(f.exists(), 'ohne „merken“ nur im Arbeitsspeicher')
         self.configure(remember=True)
-        self.assertEqual(json.loads(f.read_text()), {'caldav': PASS})
-        if os.name == 'posix':
-            self.assertEqual(f.stat().st_mode & 0o777, 0o600)
+        # SDQ-004: „merken“ schreibt nie mehr Klartext auf den Datenträger, sondern in den Passwortspeicher des Betriebssystems
+        self.assertFalse(f.exists(), 'keine Klartext-Datei mehr')
+        self.assertEqual(list(self.store.data.values()), [PASS])
+        for name in os.listdir(self.tmp.name):
+            if (Path(self.tmp.name) / name).is_file():
+                self.assertNotIn(PASS.encode(), (Path(self.tmp.name) / name).read_bytes(), name)
         self.conn.commit()
         self.conn.execute('PRAGMA wal_checkpoint(FULL)')
         for name in os.listdir(self.tmp.name):

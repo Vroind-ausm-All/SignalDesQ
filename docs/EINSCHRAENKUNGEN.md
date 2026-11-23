@@ -256,7 +256,7 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Aus dem Kalender werden nur belegte Zeiten der nächsten 60 Tage gelesen. Wiederkehrende Termine (RRULE) zählen nur mit ihrem Eintrag, den der Server liefert – Server, die Wiederholungen nicht auflösen, melden nur das erste Vorkommen.
 - Zeitzonen: Angaben mit Zeitzone werden als Ortszeit dieses Rechners verstanden (passend für Termine in Deutschland), UTC-Angaben werden umgerechnet.
 - Termine, die im Kalender verschoben werden, kommen nicht in SignalDesk zurück; beim nächsten Abgleich gilt wieder der Stand aus SignalDesk.
-- „Auf diesem Rechner merken“ legt das Passwort unverschlüsselt in `zugangsdaten.json` neben der Datenbank ab (nur für dein Benutzerkonto lesbar, unter Windows über das Benutzerprofil geschützt). Ohne „merken“ ist es nach einem Neustart weg.
+- „Merken“ (seit 2.0.0-dev55, SDQ-004) legt das Passwort nur im Passwortspeicher des Betriebssystems ab: Paket `keyring`, falls installiert; sonst unter Windows DPAPI (verschlüsselt, an dein Windows-Konto gebunden, Datei `zugangsdaten.dpapi.json`), unter Linux `secret-tool`. Auf macOS ohne `keyring` und auf Linux ohne Schlüsselbund gibt es kein „merken“ – das Passwort gilt dann bis zum Neustart. Ein Klartext-Eintrag in `zugangsdaten.json` aus früheren Versionen wird in den sicheren Speicher übernommen; ohne sicheren Speicher wird er weiter gelesen, aber nie neu geschrieben, und verschwindet, sobald du das Passwort neu eingibst oder „vergessen“ wählst. Der Windows- und der Linux-Weg sind automatisch getestet (Windows in der CI), der macOS-Schlüsselbund über `keyring` nicht.
 
 ## Entwürfe ins Postfach über IMAP (2.0.0-dev43)
 
