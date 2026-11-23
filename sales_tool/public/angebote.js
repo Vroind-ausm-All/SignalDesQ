@@ -102,6 +102,9 @@
       if (care && !pr) return {step: care.due_months.length ? `Monatsrechnung ${care.due_labels[0]} offen` : 'Betreuung läuft', due: '', key: 'angenommen', monthly: care.monthly_net_eur};
       if (pr && pr.kickoff.status !== 'gestartet') return {step: `Kick-off: ${pr.kickoff.label}`, due: '', key: 'angenommen'};
       if (pr && pr.handover.status !== 'abgenommen') return {step: `Übergabe & Abnahme: ${pr.handover.label}`, due: '', key: 'angenommen'};
+      // SDQ-001: Abschlag oder Entwurf heißt noch nicht abgerechnet
+      if (!r.invoiced && r.billing?.state === 'teilweise') return {step: `Schlussrechnung: ${money(r.billing.remaining_net_cents / 100)} netto offen`, due: '', key: 'angenommen'};
+      if (!r.invoiced && r.billing?.state === 'entwurf') return {step: 'Rechnungsentwurf festschreiben', due: '', key: 'angenommen'};
       if (!r.invoiced) return {step: 'Rechnung erstellen', due: '', key: 'angenommen'};
       return {step: '–', due: '', key: 'angenommen'};
     }

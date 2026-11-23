@@ -7,6 +7,19 @@
 // Einstellungen → Meine Firma bzw. Sicherung & Zugang (dieselben Formulare, window.accLoadSettings). Buchhaltungsregeln unverändert.
 (function () {
   const money = c => new Intl.NumberFormat('de-DE', {style: 'currency', currency: 'EUR'}).format((Number(c) || 0) / 100);
+  // SDQ-001: Eintrag „Angenommen, noch nicht abgerechnet“ je nach Rechnungsstand
+  function unbilledItem(p) {
+    const b = p.billing || {state: 'offen'}, pct = p.deposit_pct ?? 40;
+    const note = {offen: 'noch nicht abgerechnet', storniert: 'Rechnung storniert – neu abrechnen',
+      entwurf: `Rechnungsentwurf vorhanden, noch nicht festgeschrieben${b.remaining_net_cents ? ` · ${money(b.remaining_net_cents)} netto` : ''}`,
+      teilweise: `teilweise abgerechnet: ${money(b.invoiced_net_cents)} von ${money(b.target_net_cents)} netto · <b>${money(b.remaining_net_cents)} netto noch abzurechnen</b>${b.draft_count ? ' · Entwurf vorhanden' : ''}`,
+      monatlich: 'monatliche Leistung, noch keine Monatsrechnung'}[b.state] || esc(b.state_label || '');
+    let buttons;
+    if (b.draft_count) buttons = `<button type="button" class="btn btn-primary" data-acc-open="${b.draft_ids[0]}">Entwurf öffnen</button>`;
+    else if (b.state === 'teilweise') buttons = `<button type="button" class="btn btn-primary" data-acc-from-proposal="${p.id}" data-mode="schluss">Schlussrechnung über den Rest</button>`;
+    else buttons = `${!p.monthly && pct ? `<button type="button" class="btn btn-ghost" data-acc-from-proposal="${p.id}" data-mode="abschlag">Abschlag ${esc(pct)} %</button>` : ''}<button type="button" class="btn btn-primary" data-acc-from-proposal="${p.id}" data-mode="voll">Rechnung</button>`;
+    return `<div class="sales-item" data-billing-state="${esc(b.state)}"><div><strong>${esc(p.company)} · ${esc(p.project_label)}</strong><small>Angebot ${esc(p.number)} angenommen · ${note}</small></div><div class="acc-btn-group">${buttons}</div></div>`;
+  }
   const esc = v => escapeHTML(String(v ?? ''));
   const deDate = s => s ? new Intl.DateTimeFormat('de-DE').format(new Date(`${s}T12:00:00`)) : '–';
   const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -62,10 +75,12 @@
       $('#accMasterState').innerHTML = miss.length ? `<span class="ui-pill is-attention">${esc(miss.length === 1 ? miss[0] + ' fehlt' : miss.length + ' Pflichtangaben fehlen')}</span> ohne sie keine Festschreibung`
         : o.warnings.length ? `<span class="ui-pill is-attention">prüfen</span> ${esc(o.warnings[0])}` : '';
       $('#accMasterLink').classList.toggle('hidden', !miss.length);
-      $('#accUnbilledState').textContent = o.accepted_without_invoice.length ? `${o.accepted_without_invoice.length} angenommene${o.accepted_without_invoice.length === 1 ? 's Angebot' : ' Angebote'} noch ohne Rechnung` : 'alle angenommenen Angebote sind berechnet';
+      // SDQ-001: angenommen, aber noch nicht vollständig abgerechnet – mit Restbetrag (Abschlag ≠ abgerechnet, Entwurf ≠ abgerechnet)
+      const unbilled = o.accepted_without_invoice, rest = unbilled.reduce((sum, p) => sum + (p.billing?.remaining_net_cents || 0), 0);
+      $('#accUnbilledState').textContent = unbilled.length ? `${unbilled.length} angenommene${unbilled.length === 1 ? 's Angebot' : ' Angebote'} noch nicht vollständig abgerechnet${rest ? ` · ${money(rest)} netto offen` : ''}` : 'alle angenommenen Angebote sind vollständig abgerechnet';
       $('#accTaxState').textContent = `USt-Zahllast laufendes Quartal ${money(o.quarter.payable_cents)} (Vorbereitung) · EÜR, CSV-Exporte, Änderungsprotokoll`;
       $('#accOverdueList').innerHTML = o.overdue.length ? o.overdue.map(r => `<div class="sales-item"><div><strong>${esc(r.number)} · ${esc(r.buyer_name)}</strong><small>${money(r.outstanding_cents)} offen · ${r.overdue_days} Tage überfällig${r.dunning_level ? ' · Mahnstufe ' + r.dunning_level : ''}</small></div><button type="button" class="btn btn-ghost" data-acc-open="${r.id}">Öffnen</button></div>`).join('') : '<div class="empty">Keine überfälligen Rechnungen.</div>';
-      $('#accUnbilled').innerHTML = o.accepted_without_invoice.length ? o.accepted_without_invoice.map(p => `<div class="sales-item"><div><strong>${esc(p.company)} · ${esc(p.project_label)}</strong><small>Angebot ${esc(p.number)} angenommen</small></div><div class="acc-btn-group"><button type="button" class="btn btn-ghost" data-acc-from-proposal="${p.id}" data-mode="abschlag">Abschlag 40 %</button><button type="button" class="btn btn-primary" data-acc-from-proposal="${p.id}" data-mode="voll">Rechnung</button></div></div>`).join('') : '<div class="empty">Alle angenommenen Angebote sind berechnet.</div>';
+      $('#accUnbilled').innerHTML = unbilled.length ? unbilled.map(unbilledItem).join('') : '<div class="empty">Alle angenommenen Angebote sind vollständig abgerechnet.</div>';
       const max = Math.max(1, ...o.months.flatMap(m => [m.invoiced_net_cents, m.paid_cents]));
       $('#accMonths').innerHTML = o.months.map(m => `<div class="acc-bar-col" title="${esc(m.month)}: berechnet ${money(m.invoiced_net_cents)}, bezahlt ${money(m.paid_cents)}"><div class="acc-bar-pair"><i class="inv" data-h="${Math.round(100 * m.invoiced_net_cents / max)}"></i><i class="paid" data-h="${Math.round(100 * m.paid_cents / max)}"></i></div><small>${esc(m.month.slice(5))}/${esc(m.month.slice(2, 4))}</small></div>`).join('');
       // CSP: keine style-Attribute im HTML – Höhen per CSSOM setzen.

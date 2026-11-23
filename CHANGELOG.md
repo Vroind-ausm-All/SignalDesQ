@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev55 – Abschlagsrechnung heißt nicht „abgerechnet“ (SDQ-001)
+
+Erstes Arbeitspaket der Welle „Kritische Fehler und Sicherheitsgrundlagen“; neuer technischer Ausgangsstand in [PRODUCT_MATURITY_AUDIT.md](docs/PRODUCT_MATURITY_AUDIT.md).
+
+- **Fehlerbehebung – der Rest eines Auftrags verschwand:** Ein angenommenes Angebot galt als berechnet, sobald irgendeine Rechnung daran hing – auch ein noch nicht festgeschriebener Entwurf oder eine Abschlagsrechnung über 40 %. Die übrigen 60 % fehlten dann unter „Abrechnen → Aus Angeboten berechnen“, im Potenzial auf „Heute“, in der Angebotsliste und im Abschluss-Schritt der Firmenakte.
+- **Jetzt getrennt:** noch nicht abgerechnet · Rechnungsentwurf vorhanden · teilweise abgerechnet · vollständig abgerechnet · Rechnung storniert, und davon unabhängig Zahlung ausstehend · teilweise bezahlt · bezahlt. Nur festgeschriebene Rechnungen zählen; Entwürfe, Stornorechnungen und stornierte Rechnungen nicht. Vollständig ist ein Angebot nach einer festgeschriebenen Gesamt- oder Schlussrechnung oder wenn die Abschläge den Angebotsbetrag erreichen. Monatliche Leistungen laufen wie bisher über „Betreuung“.
+- **Was du siehst:** Unter „Aus Angeboten berechnen“ steht z. B. „teilweise abgerechnet: 4.000,00 € von 10.000,00 € netto · 6.000,00 € netto noch abzurechnen“ mit dem Knopf „Schlussrechnung über den Rest“; liegt schon ein Entwurf vor, „Entwurf öffnen“. „Heute“ zählt beim Potenzial nur den Rest. Die Angebotsliste nennt als nächsten Schritt „Schlussrechnung: … netto offen“, die Akte „teilweise abgerechnet, … € netto offen“.
+- Rein lesend: kein Schemawechsel, keine Änderung an Rechnungen, Festschreibung, Storno oder E-Rechnung.
+- Tests: neu `test_sdq001_billing_state.py` (10 Fälle) und `e2e/test_sdq001_billing_state_browser.py`; `test_accounting.py` prüft jetzt, dass eine nur als Entwurf angelegte Schlussrechnung den Rest nicht ausblendet.
+
 ## 2.0.0-dev54 – Firmenakte als Detailseite, überall „Firma“ statt „Lead“
 
 Schritt 6 und damit Abschluss der Etappe „Visuelle Konsolidierung und Aufgabenführung“ (siehe [ROADMAP](docs/ROADMAP.md)). Keine Funktion entfällt – was umgezogen ist, steht in [UI_BAUKASTEN.md, Abschnitt „Was wohin zog (Schritt 6)“](docs/UI_BAUKASTEN.md). Datenmodell, Kontaktsperre, Personen-Einschränkungen, Löschfristen, Fokusführung und Eingabeschutz arbeiten unverändert; am Server wurden nur Meldungstexte geändert.

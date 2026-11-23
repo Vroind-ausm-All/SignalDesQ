@@ -220,18 +220,25 @@ def m_title(r):
 
 
 def potential(conn, today=None):
+    from .accounting import proposal_billing, needs_billing  # SDQ-001: Rechnungsstand je Angebot
     today = (today or dt.date.today()).isoformat()
     offers, accepted = [], []
     for r in conn.execute("""SELECT p.*, l.company, l.stage FROM proposals p JOIN leads l ON l.id=p.lead_id
                              WHERE l.stage NOT IN ('gesperrt','verloren') AND p.superseded_by IS NULL ORDER BY p.id DESC"""):
-        invoiced = conn.execute("SELECT 1 FROM invoices WHERE proposal_id=? AND kind<>'storno' AND status<>'storniert' LIMIT 1", (r['id'],)).fetchone()
         entry = {'proposal_id': r['id'], 'lead_id': r['lead_id'], 'company': r['company'], 'number': r['number'] or f"#{r['id']}",
                  'status': r['status'], 'net_eur': round(_net(r), 2), 'project_label': _label(r), 'valid_until': r['valid_until'] or '',
                  'expired': bool(r['valid_until'] and r['valid_until'] < today)}
         if r['status'] in ('entwurf', 'gesendet_manuell') and not entry['expired']:
             offers.append(entry)
-        elif r['status'] == 'angenommen' and not invoiced:
-            accepted.append(entry)
+        elif r['status'] == 'angenommen':
+            # SDQ-001: nach einer Abschlagsrechnung bleibt der Rest sichtbar; ein Entwurf zählt noch nicht als abgerechnet
+            billing = proposal_billing(conn, r['id'])
+            if needs_billing(billing):
+                if billing['remaining_net_cents'] is not None:
+                    entry['net_eur'] = round(billing['remaining_net_cents'] / 100, 2)
+                entry.update({'total_net_eur': round(_net(r), 2), 'billing_state': billing['state'],
+                              'billing_label': billing['state_label']})
+                accepted.append(entry)
     with_offer = {o['lead_id'] for o in offers + accepted}
     estimates = [{'lead_id': r['id'], 'company': r['company'], 'stage': r['stage'], 'estimated_budget': r['estimated_budget'], 'offer': r['offer']}
                  for r in conn.execute(f"""SELECT id, company, stage, estimated_budget, offer FROM leads WHERE estimated_budget>0
@@ -242,7 +249,7 @@ def potential(conn, today=None):
         'sent_sum': round(sum(o['net_eur'] for o in offers if o['status'] == 'gesendet_manuell'), 2),
         'accepted': accepted, 'accepted_sum': round(sum(o['net_eur'] for o in accepted), 2),
         'estimates': estimates[:10], 'estimates_sum': sum(e['estimated_budget'] for e in estimates), 'estimates_count': len(estimates),
-        'notice': 'Offenes Potenzial = Summe der kalkulierten, noch gültigen Angebote (netto). Schätzungen ohne Angebot stehen getrennt – sie sind keine Zusage und kein Umsatz.',
+        'notice': 'Offenes Potenzial = Summe der kalkulierten, noch gültigen Angebote (netto). Bei angenommenen Angeboten zählt nur der noch nicht festgeschriebene Rest. Schätzungen ohne Angebot stehen getrennt – sie sind keine Zusage und kein Umsatz.',
     }
 
 
