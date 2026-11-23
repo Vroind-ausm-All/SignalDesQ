@@ -50,7 +50,7 @@ Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
 
 | Befund (Audit) | Prüfung | Stand dev54 | Priorität |
 |---|---|---|---|
-| **B1** Navigation aus offener Firmenakte: URL zeigt neuen Bereich, Akte bleibt sichtbar | Browser-Nachstellung: Akte `#/firmen/akte/1` öffnen, in der Seitenleiste „Abrechnen“ klicken | **besteht weiter.** Adresse `#/abrechnen`, Reiter „Rechnungen“ und Seitenleiste „Abrechnen“ aktiv, sichtbar ist aber weiter die Firmenakte (`#modal` offen, `body.akte-page`). Bei ungespeicherten Eingaben erscheint keine Rückfrage. | **P0** → SDQ-002 |
+| **B1** Navigation aus offener Firmenakte: URL zeigt neuen Bereich, Akte bleibt sichtbar | Browser-Nachstellung: Akte `#/firmen/akte/1` öffnen, in der Seitenleiste „Abrechnen“ klicken | **besteht weiter.** Adresse `#/abrechnen`, Reiter „Rechnungen“ und Seitenleiste „Abrechnen“ aktiv, sichtbar ist aber weiter die Firmenakte (`#modal` offen, `body.akte-page`). Bei ungespeicherten Eingaben erscheint keine Rückfrage. | **P0** → SDQ-002 ✓ |
 | **B2** Ungespeicherter Rechnungsentwurf geht beim Verlassen verloren | Code: `formguard.js` schützt Akte-Formulare, `einstellungen.js` die Einstellungen; `accounting.js` hat keinen Eingabeschutz und kein `beforeunload`. Browser: interner Wechsel behält die Eingaben im (versteckten) Editor, Neuladen/Schließen verwirft sie ohne Warnung. | **besteht teilweise** (kein Schutz bei Neuladen/Schließen, keine Rückfrage) | **P0** → SDQ-003 |
 | **B3** Zugangsdaten (IMAP/CalDAV) bei „merken“ im Klartext | `sales_tool/credentials.py`: `zugangsdaten.json` neben der Datenbank, JSON im Klartext, Dateirechte 600 (unter Windows wirkungslos) | **besteht weiter** | **P0** → SDQ-004 |
 | **B4** Angebot mit Abschlagsrechnung erscheint vollständig abgerechnet | Code: `accepted_without_invoice`, `today.potential`, `proposal_rows`, `workday._steps` werteten **jede** Rechnung (auch Entwurf, auch 40-%-Abschlag) als „berechnet“ | **bestand – behoben in SDQ-001** | **P0** ✓ |
@@ -63,7 +63,7 @@ Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
 
 | Modul | Ist-Zustand | Risiko | Nutzerwert | Nächste Änderung | Test |
 |---|---|---|---|---|---|
-| Navigation / Routing (`nav.js`, `app.js`, `aktepage.js`) | Hash-Router mit Bereichen; Akte als Detailseite über `#modal` | **hoch:** URL und sichtbare Ansicht widersprechen sich (B1) | hoch | SDQ-002: Seitenleiste/Reiter schließen die Akte mit Eingabeschutz | Browser-Test Akte → jeder Bereich, Zurück/Vor, Direktlink |
+| Navigation / Routing (`nav.js`, `app.js`, `aktepage.js`) | Hash-Router mit Bereichen; Akte als Detailseite über `#modal` | vor SDQ-002 **hoch:** URL und sichtbare Ansicht widersprachen sich (B1); behoben | hoch | SDQ-002: Seitenleiste/Reiter schließen die Akte mit Eingabeschutz | Browser-Test Akte → jeder Bereich, Zurück/Vor, Direktlink |
 | Eingabeschutz (`formguard.js`, `einstellungen.js`) | Akte und Einstellungen geschützt | **hoch** für Rechnungs- und Angebotseditor (B2) | hoch | SDQ-003: gemeinsamer Schutz für Rechnungs- und Angebotseditor | Browser-Test: Wechsel, Neuladen |
 | Zugangsdaten (`credentials.py`) | RAM oder Klartext-JSON | **hoch** (Geheimnis auf Datenträger, auch in Kopien des Datenordners) | mittel | SDQ-004: OS-Schlüsselbund (optional), sonst nur Arbeitsspeicher; Migration alter Datei | Unit-Tests ohne Klartext-Datei |
 | Abrechnung (`accounting.py`, `einvoice.py`) | GoBD-Festschreibung, Storno, Zahlungen, Mahnungen, XRechnung | mittel; Restbetrag-Fehler behoben (SDQ-001); externe Fachprüfung fehlt | mittel | KoSIT-Validierung dokumentieren; Funktion bis dahin nicht als „produktionsreif“ bewerben | 39+ Unit-Tests, SDQ-001 |
@@ -95,7 +95,7 @@ Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
 | Kennung | Prio | Titel | Abhängig von | Stand |
 |---|---|---|---|---|
 | SDQ-001 | P0 | Abrechnungsstand je Angebot: Teilabrechnung, Entwurf, Storno, Zahlung getrennt | – | **implementiert** (PR, siehe unten) |
-| SDQ-002 | P0 | Routing: Seitenleiste/Reiter schließen die Firmenakte; URL und sichtbare Ansicht immer gleich | – | offen (Fehler reproduziert) |
+| SDQ-002 | P0 | Routing: Seitenleiste/Reiter schließen die Firmenakte; URL und sichtbare Ansicht immer gleich | – | **implementiert** |
 | SDQ-003 | P0 | Eingabeschutz für Rechnungs- und Angebotseditor (Wechsel, Neuladen, Schließen) | SDQ-002 (gleiche Navigationsstelle) | offen |
 | SDQ-004 | P0 | Zugangsdaten ohne Klartext: OS-Schlüsselbund optional, Migration der Altdatei, keine Geheimnisse in Logs/Exporten | – | offen |
 | SDQ-005 | P1 | Volle Browser-Suite in CI | – | offen |
@@ -138,4 +138,20 @@ Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
 - **Restrisiko:** Gemischte Angebote (einmalig + monatlich) werten nur den einmaligen Teil; Nachlässe in einer Schlussrechnung gelten
   als „vollständig“. Keine externe Prüfung der Buchhaltungsfunktion.
 - **Reifeauswirkung:** Dimension 6 (Rechnung und Steuer) – einer von drei im Audit genannten Abzügen ist behoben. Vorschlag 51 → 54,
-  Konfidenz M; Gesamtindex 47,7 → 47,9. Bewusst klein, weil die externe Fachprüfung fehlt.
+  Konfidenz M; Gesamtindex 47,7 → 47,8 (genau 47,66 → 47,81). Bewusst klein, weil die externe Fachprüfung fehlt.
+
+### SDQ-002 – Bereichswechsel schließt die Firmenakte (P0, Audit B1)
+
+- **Ausgangsproblem (nachgestellt):** Akte `#/firmen/akte/1` offen, Seitenleiste „Abrechnen“ → Adresse `#/abrechnen`, Seitenleiste und
+  Reiter „Abrechnen“ aktiv, sichtbar weiter die Akte. Ursache: `switchView` wechselte die Ansicht hinter der Akte, schloss sie aber nicht.
+- **Änderung (`nav.js`):** (1) Jeder Ansichtswechsel, der nicht aus der Adresse kommt (Zurück/Vor/Neuladen entscheidet `apply()`),
+  schließt die Akte; ungespeicherte Eingaben bleiben wie bei bisherigen Sprüngen im Arbeitsspeicher. (2) Klicks auf Navigation
+  (Seitenleiste, Hilfe, Reiter, `data-view-link`, `data-go`, Sprünge in die Einstellungen) fragen bei ungespeicherten Eingaben vorher
+  über den vorhandenen Dialog: Speichern · Weiter bearbeiten (Wechsel abgebrochen, Adresse unverändert) · Verwerfen.
+- **Tests:** `tests/e2e/test_sdq002_akte_navigation_browser.py` – alle sechs Bereiche, ein Bereichsreiter, Zurück/Vor, Direktlink,
+  alle drei Antworten der Rückfrage mit Prüfung über die API, ob gespeichert wurde. Gegen den alten `nav.js` rot (Akte bleibt sichtbar).
+- **Restrisiko:** Zurück aus einem Bereich in die Akte zeigt die Akte über dem zuletzt sichtbaren Bereich (Adresse = Akte, sichtbar = Akte;
+  Seitenleiste markiert „Firmen“) – konsistent, aber die Liste dahinter ist nicht die Firmenliste. Mobile Schublade nur über den
+  bestehenden Navigationstest abgedeckt.
+- **Reifeauswirkung:** Dimension 4 (CRM) und 7 (UX) nannten diesen Fehler als Abzug. Vorschlag 7: 62 → 64, 4: 72 → 73 (Konfidenz M,
+  ohne Nutzertest). Gesamtindex 47,8 → 48,1 (genau 47,81 → 48,06).

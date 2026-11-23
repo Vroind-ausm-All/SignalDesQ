@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0-dev55 – Abschlagsrechnung heißt nicht „abgerechnet“ (SDQ-001)
+## 2.0.0-dev55 – Abschlagsrechnung heißt nicht „abgerechnet“, Bereichswechsel schließt die Firmenakte (SDQ-001, SDQ-002)
 
 Erstes Arbeitspaket der Welle „Kritische Fehler und Sicherheitsgrundlagen“; neuer technischer Ausgangsstand in [PRODUCT_MATURITY_AUDIT.md](docs/PRODUCT_MATURITY_AUDIT.md).
 
@@ -9,6 +9,9 @@ Erstes Arbeitspaket der Welle „Kritische Fehler und Sicherheitsgrundlagen“; 
 - **Was du siehst:** Unter „Aus Angeboten berechnen“ steht z. B. „teilweise abgerechnet: 4.000,00 € von 10.000,00 € netto · 6.000,00 € netto noch abzurechnen“ mit dem Knopf „Schlussrechnung über den Rest“; liegt schon ein Entwurf vor, „Entwurf öffnen“. „Heute“ zählt beim Potenzial nur den Rest. Die Angebotsliste nennt als nächsten Schritt „Schlussrechnung: … netto offen“, die Akte „teilweise abgerechnet, … € netto offen“.
 - Rein lesend: kein Schemawechsel, keine Änderung an Rechnungen, Festschreibung, Storno oder E-Rechnung.
 - Tests: neu `test_sdq001_billing_state.py` (10 Fälle) und `e2e/test_sdq001_billing_state_browser.py`; `test_accounting.py` prüft jetzt, dass eine nur als Entwurf angelegte Schlussrechnung den Rest nicht ausblendet.
+- **Fehlerbehebung – Akte blieb stehen (SDQ-002):** Wer in einer geöffneten Firmenakte in der Seitenleiste z. B. „Abrechnen“ wählte, sah in der Adresse, der Seitenleiste und den Reitern schon „Abrechnen“ – auf dem Bildschirm aber weiter die Akte. Jetzt schließt jeder Wechsel des Bereichs (Seitenleiste, Reiter, Sprünge aus „Heute“ oder in die Einstellungen) die Akte; Adresse und sichtbarer Bereich stimmen immer überein. „Zurück“ öffnet die Akte wieder, „Vor“ führt wieder in den Bereich.
+- **Eingabeschutz beim Bereichswechsel:** Hast du in der Akte etwas geändert und nicht gespeichert, fragt SignalDesk vorher: Speichern · Weiter bearbeiten · Verwerfen. „Weiter bearbeiten“ bricht den Wechsel ab, die Adresse bleibt bei der Akte. Wechselt ein Programmteil die Ansicht von selbst, bleiben ungespeicherte Eingaben wie bisher im Arbeitsspeicher und kommen beim nächsten Öffnen der Firma zurück.
+- Test: neu `e2e/test_sdq002_akte_navigation_browser.py` (alle sechs Bereiche, Reiter, Zurück/Vor, Direktlink, die drei Antworten der Rückfrage); gegen den alten Stand rot.
 
 ## 2.0.0-dev54 – Firmenakte als Detailseite, überall „Firma“ statt „Lead“
 

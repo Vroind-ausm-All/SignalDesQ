@@ -91,6 +91,11 @@
   const plainSwitch = window.switchView;
   window.switchView = function (view) {
     if (typeof currentView !== 'undefined' && currentView) scrollOf[currentView] = window.scrollY;
+    // SDQ-002 (Audit B1): Wer eine Ansicht wechselt, verlässt die Firmenakte. Vorher blieb die Akte sichtbar, während Adresse,
+    // Seitenleiste und Reiter schon den neuen Bereich zeigten. Ungespeicherte Eingaben bleiben wie bei jedem Sprung im
+    // Arbeitsspeicher (formguard.js); Klicks auf die Navigation fragen vorher nach (siehe „Navigation aus der Akte“ unten).
+    // Beim Anwenden einer Adresse (Zurück/Vor, Neuladen) entscheidet apply() selbst über die Akte.
+    if (!fromHistory && modalOpen()) closeModal();
     plainSwitch(view);
     markArea(view);
     document.dispatchEvent(new CustomEvent('signaldesk:view', {detail: {view}}));
@@ -187,6 +192,22 @@
     if (ignorePop) { ignorePop--; return; }
     apply(parse(location.hash));
   });
+
+  // ---- SDQ-002: Navigation aus der offenen Akte – erst Eingabeschutz (Speichern · Weiter bearbeiten · Verwerfen), dann wechseln.
+  // „Weiter bearbeiten“ bricht den Wechsel ab: Adresse, Seitenleiste und Akte bleiben, wie sie waren.
+  const NAV_TARGETS = '.sidebar .nav, .nav-help, [data-go], [data-area-view], [data-view-link], [data-settings-jump], [data-settings-link]';
+  let replaying = false;
+  document.addEventListener('click', e => {
+    if (replaying || !modalOpen() || !window.leadGuard || !window.leadGuard.dirty().length) return;
+    const target = e.target.closest && e.target.closest(NAV_TARGETS);
+    if (!target) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    window.leadGuard.requestClose(() => {
+      replaying = true;
+      try { target.click(); } finally { replaying = false; }
+    });
+  }, true);
 
   // ---- Klicks
   document.addEventListener('click', e => {
