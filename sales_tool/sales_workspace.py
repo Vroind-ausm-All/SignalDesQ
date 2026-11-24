@@ -251,14 +251,21 @@ def make_proposal(conn,data):
 
 
 def proposal_rows(conn):
-    return [{'id':r['id'],'lead_id':r['lead_id'],'company':r['company'],'status':r['status'],
+    from .accounting import proposal_billing  # SDQ-001: „berechnet“ erst bei vollständiger Abrechnung
+    rows = []
+    for r in conn.execute('SELECT p.*,l.company FROM proposals p JOIN leads l ON l.id=p.lead_id ORDER BY p.id DESC LIMIT 100'):
+        billing = proposal_billing(conn, r['id'], json.loads(r['customer_json']))
+        rows.append({**_proposal_row(conn, r), 'invoiced': billing['complete'], 'billing': billing})
+    return rows
+
+
+def _proposal_row(conn, r):
+    return {'id':r['id'],'lead_id':r['lead_id'],'company':r['company'],'status':r['status'],
              'number':r['number'] or f"#{r['id']}",'valid_until':r['valid_until'] or '',
              'expired':bool(r['valid_until'] and r['status'] in ('entwurf','gesendet_manuell') and r['valid_until']<dt.date.today().isoformat()),
              'project_label':json.loads(r['customer_json'])['project_label'],
              'net_eur':json.loads(r['customer_json'])['net_eur'],'created_at':r['created_at'],
-             'revision_no':r['revision_no'] or 1,'superseded':bool(r['superseded_by']),'addendum_of':r['addendum_of'],'addendum_no':r['addendum_no'] or 0,
-             'invoiced':bool(conn.execute("SELECT 1 FROM invoices WHERE proposal_id=? AND kind<>'storno' AND status<>'storniert' LIMIT 1",(r['id'],)).fetchone())}
-            for r in conn.execute('SELECT p.*,l.company FROM proposals p JOIN leads l ON l.id=p.lead_id ORDER BY p.id DESC LIMIT 100')]
+             'revision_no':r['revision_no'] or 1,'superseded':bool(r['superseded_by']),'addendum_of':r['addendum_of'],'addendum_no':r['addendum_no'] or 0}
 
 
 def proposal_detail(conn,ident,customer_only=False):

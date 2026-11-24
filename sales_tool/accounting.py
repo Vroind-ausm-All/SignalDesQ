@@ -1173,13 +1173,102 @@ def overview(conn):
     }
 
 
-def accepted_without_invoice(conn):
-    return [{'id': r['id'], 'lead_id': r['lead_id'], 'company': r['company'], 'number': r['number'] or f"#{r['id']}",
-             'project_label': json.loads(r['customer_json']).get('project_label', '')}
-            for r in conn.execute("""SELECT p.*, l.company FROM proposals p JOIN leads l ON l.id=p.lead_id
-                                     WHERE p.status='angenommen' AND NOT EXISTS
-                                     (SELECT 1 FROM invoices i WHERE i.proposal_id=p.id AND i.kind<>'storno' AND i.status<>'storniert')
-                                     ORDER BY p.id DESC LIMIT 20""")]
+# ---------------------------------------------------------------- Abrechnungsstand je Angebot (SDQ-001)
+# Vorher galt ein Angebot als „berechnet“, sobald irgendeine Rechnung daran hing – auch ein Entwurf oder eine Abschlagsrechnung
+# über 40 %. Der Rest des Auftrags verschwand damit aus „Angenommen, noch nicht abgerechnet“. Jetzt wird getrennt nach
+# Rechnungsstand (was ist festgeschrieben) und Zahlungsstand (was ist bezahlt).
+BILLING_STATES = {
+    'offen': 'noch nicht abgerechnet', 'entwurf': 'Rechnungsentwurf vorhanden', 'teilweise': 'teilweise abgerechnet',
+    'vollstaendig': 'vollständig abgerechnet', 'storniert': 'Rechnung storniert – neu abrechnen', 'monatlich': 'monatliche Abrechnung',
+}
+PAYMENT_STATES = {'keine': 'keine Rechnung festgeschrieben', 'ausstehend': 'Zahlung ausstehend', 'teilbezahlt': 'teilweise bezahlt',
+                  'bezahlt': 'vollständig bezahlt'}
+
+
+def _billing_target_cents(customer):
+    """Einmalig abzurechnender Nettobetrag laut Angebot; None für reine Monatsleistungen (siehe care.py)."""
+    billing = customer.get('billing')
+    if billing == 'monatlich':
+        return None
+    value = customer.get('once_net_eur') if billing == 'gemischt' else customer.get('net_eur')
+    try:
+        return int((Decimal(str(value or 0)) * 100).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+    except (InvalidOperation, ValueError):
+        return 0
+
+
+def proposal_billing(conn, proposal_id, customer=None):
+    """Rechnungs- und Zahlungsstand eines Angebots. Nur festgeschriebene Rechnungen zählen als abgerechnet;
+    Entwürfe werden getrennt ausgewiesen, Stornos und stornierte Rechnungen zählen nicht."""
+    if customer is None:
+        row = conn.execute('SELECT customer_json FROM proposals WHERE id=?', (proposal_id,)).fetchone()
+        customer = json.loads(row['customer_json']) if row else {}
+    target = _billing_target_cents(customer)
+    rows = conn.execute("SELECT id, kind, status, net_cents, gross_cents FROM invoices WHERE proposal_id=? AND kind<>'storno'",
+                        (proposal_id,)).fetchall()
+    issued = [r for r in rows if r['status'] not in ('entwurf', 'storniert')]
+    drafts = [r for r in rows if r['status'] == 'entwurf']
+    cancelled = [r for r in rows if r['status'] == 'storniert']
+    invoiced = sum(r['net_cents'] for r in issued)
+    gross = sum(r['gross_cents'] for r in issued)
+    paid = sum(paid_cents(conn, r['id']) for r in issued)
+    if target is None:
+        state = 'monatlich'
+        complete = bool(issued)  # Monate verwaltet care.py; hier nur „schon eine Monatsrechnung festgeschrieben“
+    else:
+        # Eine festgeschriebene Gesamt- oder Schlussrechnung schließt die Abrechnung ab (auch mit Nachlass);
+        # Abschlagsrechnungen allein nur, wenn sie den Angebotsbetrag erreichen.
+        complete = any(r['kind'] in ('rechnung', 'schluss') for r in issued) or (bool(issued) and invoiced >= target)
+        if complete:
+            state = 'vollstaendig'
+        elif issued:
+            state = 'teilweise'
+        elif drafts:
+            state = 'entwurf'
+        elif cancelled:
+            state = 'storniert'
+        else:
+            state = 'offen'
+    if not issued:
+        pay = 'keine'
+    elif paid >= gross:
+        pay = 'bezahlt'
+    elif paid > 0:
+        pay = 'teilbezahlt'
+    else:
+        pay = 'ausstehend'
+    remaining = None if target is None else (0 if complete else max(0, target - invoiced))
+    return {
+        'state': state, 'state_label': BILLING_STATES[state], 'complete': complete,
+        'target_net_cents': target, 'invoiced_net_cents': invoiced, 'remaining_net_cents': remaining,
+        'draft_count': len(drafts), 'draft_ids': [r['id'] for r in drafts], 'issued_count': len(issued),
+        'invoiced_pct': round(100 * invoiced / target, 1) if target else None,
+        'payment_state': pay, 'payment_label': PAYMENT_STATES[pay], 'paid_cents': paid, 'outstanding_cents': max(0, gross - paid),
+    }
+
+
+def needs_billing(billing):
+    """Angenommenes Angebot, bei dem noch etwas abzurechnen ist (auch Entwurf, Teilabrechnung oder nach Storno)."""
+    if billing['state'] == 'monatlich':
+        return not billing['complete'] and not billing['draft_count']
+    return not billing['complete']
+
+
+def accepted_without_invoice(conn, limit=20):
+    """Angenommene Angebote, die noch nicht vollständig abgerechnet sind – mit Restbetrag (Name aus Kompatibilitätsgründen)."""
+    out = []
+    for r in conn.execute("""SELECT p.*, l.company FROM proposals p JOIN leads l ON l.id=p.lead_id
+                             WHERE p.status='angenommen' ORDER BY p.id DESC"""):
+        customer = json.loads(r['customer_json'])
+        billing = proposal_billing(conn, r['id'], customer)
+        if not needs_billing(billing):
+            continue
+        out.append({'id': r['id'], 'lead_id': r['lead_id'], 'company': r['company'], 'number': r['number'] or f"#{r['id']}",
+                    'project_label': customer.get('project_label', ''), 'deposit_pct': customer.get('deposit_pct', 40),
+                    'monthly': billing['state'] == 'monatlich', 'billing': billing})
+        if len(out) >= limit:
+            break
+    return out
 
 
 def sales_kpis(conn, params):

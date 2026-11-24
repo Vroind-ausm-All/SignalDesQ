@@ -365,7 +365,14 @@ def _steps(conn, lead, lock):
     props = conn.execute('SELECT id, number, status FROM proposals WHERE lead_id=? ORDER BY id DESC', (lid,)).fetchall()
     sent = next((p for p in props if p['status'] in ('gesendet_manuell', 'angenommen')), None)
     won = lead['stage'] == 'gewonnen' or any(p['status'] == 'angenommen' for p in props)
-    invoiced = bool(conn.execute("SELECT 1 FROM invoices WHERE lead_id=? AND status<>'entwurf' LIMIT 1", (lid,)).fetchone())
+    invoiced = bool(conn.execute("SELECT 1 FROM invoices WHERE lead_id=? AND status NOT IN ('entwurf','storniert') AND kind<>'storno' LIMIT 1", (lid,)).fetchone())
+    # SDQ-001: angenommene Angebote erst als abgerechnet zählen, wenn sie vollständig berechnet sind (Abschlag ≠ abgerechnet)
+    from .accounting import proposal_billing, needs_billing
+    accepted_bills = [proposal_billing(conn, p['id']) for p in props if p['status'] == 'angenommen']
+    open_bills = [b for b in accepted_bills if needs_billing(b)]
+    rest_cents = sum(b['remaining_net_cents'] or 0 for b in open_bills)
+    if accepted_bills:
+        invoiced = not open_bills
     S = []
 
     def step(key, label, done, detail, action, partial=False):
@@ -386,7 +393,15 @@ def _steps(conn, lead, lock):
     step('angebot', 'Festpreisangebot', bool(sent), (f"{sent['number']} beim Kunden" if sent else (f"{props[0]['number']} als Entwurf" if props else 'kein Angebot')),
          ({'label': 'Angebot öffnen', 'view': 'quotes', 'lead_id': lid, 'ref': props[0]['id']} if props else
           {'label': 'Angebot aus bestätigtem Bedarf', 'view': 'quote_from_need', 'lead_id': lid}), partial=bool(props))
-    step('abschluss', 'Abschluss', won and invoiced, 'gewonnen' + (' · abgerechnet' if invoiced else ' · Rechnung offen') if won else 'offen',
+    if invoiced:
+        bill_note = ' · abgerechnet'
+    elif open_bills and any(b['state'] == 'teilweise' for b in open_bills):
+        bill_note = ' · teilweise abgerechnet, ' + f"{rest_cents / 100:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.') + ' € netto offen'
+    elif open_bills and any(b['state'] == 'entwurf' for b in open_bills):
+        bill_note = ' · Rechnungsentwurf noch nicht festgeschrieben'
+    else:
+        bill_note = ' · Rechnung offen'
+    step('abschluss', 'Abschluss', won and invoiced, 'gewonnen' + bill_note if won else 'offen',
          {'label': 'Rechnung schreiben', 'view': 'accounting', 'lead_id': lid}, partial=won)
     # Nächster Schritt: erster offener Schritt in sinnvoller Reihenfolge – mit Sperre/Freigabe-Regeln
     nxt = None

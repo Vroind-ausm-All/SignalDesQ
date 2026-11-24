@@ -240,6 +240,12 @@ class ProposalToInvoiceTests(AccountingBase):
         self.assertEqual(final['net_cents'], 600000)
         self.assertEqual(final['lines'][1]['unit_price_cents'], -400000)
         self.assertIn(dep['number'], final['lines'][1]['description'])
+        # SDQ-001: Solange die Schlussrechnung nur Entwurf ist, bleibt der Rest sichtbar; erst festgeschrieben ist alles abgerechnet
+        open_items = acc.overview(self.conn)['accepted_without_invoice']
+        self.assertEqual([(p['id'], p['billing']['state'], p['billing']['remaining_net_cents']) for p in open_items],
+                         [(self.prop['id'], 'teilweise', 600000)])
+        lines = [{k: x[k] for k in ('description', 'quantity', 'unit', 'unit_price_cents', 'vat_rate')} for x in final['lines']]
+        acc.finalize_invoice(self.conn, acc.update_invoice(self.conn, final['id'], {**buyer(), 'lines': lines})['id'])
         self.assertEqual(acc.overview(self.conn)['accepted_without_invoice'], [])
 
     def test_buyer_defaults_fall_back_to_lead(self):

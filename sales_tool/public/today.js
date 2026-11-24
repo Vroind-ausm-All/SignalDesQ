@@ -205,7 +205,7 @@
       <div><small>Nur geschätzt, ohne Angebot</small><b>${euros(p.estimates_sum)}</b><span>${p.estimates_count} ${p.estimates_count === 1 ? 'Firma' : 'Firmen'}</span></div>`;
     const offers = [...p.accepted.map(o => ({...o, accepted: true})), ...p.offers].slice(0, 8).map(o => `<div class="td-item">
       <span class="td-kind ${o.accepted ? 'won' : 'offer'}">${esc(o.accepted ? 'angenommen' : STATUS[o.status] || o.status)}</span>
-      <div><b>${esc(o.company)} · ${euros(o.net_eur)}</b><small>${esc(o.number)} · ${esc(o.project_label)}${o.valid_until ? ' · gültig bis ' + esc(fmtDate(o.valid_until)) : ''}</small></div>
+      <div><b>${esc(o.company)} · ${euros(o.net_eur)}${o.billing_state === 'teilweise' ? ' Rest' : ''}</b><small>${esc(o.number)} · ${esc(o.project_label)}${o.accepted && o.billing_state && o.billing_state !== 'offen' ? ' · ' + esc(o.billing_label) + (o.billing_state === 'teilweise' ? ` (Auftrag ${euros(o.total_net_eur)})` : '') : ''}${o.valid_until && !o.accepted ? ' · gültig bis ' + esc(fmtDate(o.valid_until)) : ''}</small></div>
       <button type="button" class="btn btn-ghost" data-go-action="${enc({view: 'quotes', ref: o.proposal_id})}">${o.accepted ? 'Rechnung erstellen' : 'Angebot öffnen'}</button></div>`);
     const est = p.estimates.slice(0, 5).map(e => `<div class="td-item">
       <span class="td-kind est">Schätzung</span>

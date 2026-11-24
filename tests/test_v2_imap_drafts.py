@@ -19,6 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from tmpclean import cleanup_tmp  # noqa: E402
 
+from cred_fake import FakeStore  # noqa: E402
 from sales_tool import credentials, imap_drafts, netpolicy  # noqa: E402
 from sales_tool.model import connect  # noqa: E402
 from sales_tool.server import prepare_database  # noqa: E402
@@ -77,6 +78,7 @@ class FakeIMAP(socketserver.StreamRequestHandler):
 
 class ImapDraftTests(unittest.TestCase):
     def setUp(self):
+        credentials.set_backend(FakeStore())  # SDQ-004: nie den echten Schlüsselbund benutzen
         netpolicy.STATE.update(stored=False, forced=False)
         self.tmp = tempfile.TemporaryDirectory()
         self.db = str(Path(self.tmp.name) / 'i.sqlite3')
@@ -98,6 +100,7 @@ class ImapDraftTests(unittest.TestCase):
         self.srv.server_close()
         self.conn.close()
         credentials._MEMORY.clear()
+        credentials.set_backend('auto')
         netpolicy.STATE.update(stored=False, forced=False)
         cleanup_tmp(self.tmp)
 

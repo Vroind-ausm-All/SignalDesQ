@@ -58,10 +58,10 @@ def _check_url(url):
 
 
 def view(conn, db_path):
-    from .credentials import status
+    from .credentials import status, store_info
     s = _settings(conn)
     stale = bool(s['last_sync']) and dt.datetime.now() - dt.datetime.fromisoformat(s['last_sync']) > dt.timedelta(hours=STALE_HOURS)
-    return {'url': s['url'], 'username': s['username'], 'configured': bool(s['url'] and s['username']), 'password': status(db_path, 'caldav'),
+    return {'url': s['url'], 'username': s['username'], 'configured': bool(s['url'] and s['username']), 'password': status(db_path, 'caldav'), 'password_store': store_info(db_path, 'caldav'),
             'last_sync': s['last_sync'], 'last_result': s['last_result'], 'stale': stale,
             'busy_count': conn.execute('SELECT COUNT(*) FROM caldav_busy').fetchone()[0],
             'notice': 'Am besten ein App-Passwort des Anbieters verwenden. Passwörter stehen nie in der Datenbank.'}
