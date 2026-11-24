@@ -11,14 +11,33 @@
     try {
       if (!cat) {
         cat = await api('/lead-finder/catalog');
-        $('#lfSources').innerHTML = Object.entries(cat.sources).map(([k, s]) => `<button type="button" class="lf-card" data-lf-source="${esc(k)}"><span class="lf-ampel ${esc(s.ampel)}">${esc(ampelNames[s.ampel])}</span><b>${esc(s.title)}</b><small>${esc(s.good_for)}</small><small class="muted">${esc(s.limits)}</small><small class="lf-license">Lizenz: ${esc(s.license)}</small></button>`).join('');
+        $('#lfSources').innerHTML = Object.entries(cat.sources).map(([k, s]) => `<button type="button" class="lf-card" data-lf-source="${esc(k)}"><span class="lf-ampel ${esc(s.ampel)}">${esc(ampelNames[s.ampel])}</span><b>${esc(s.title)}</b><small>${esc(s.good_for)}</small><small class="muted">${esc(s.limits)}</small><small class="lf-license">Lizenz: ${esc(s.license)}</small><small class="muted" data-lf-measured="${esc(k)}"></small></button>`).join('');
         $('#lfCategory').innerHTML = Object.entries(cat.osm_categories).map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join('');
         $('#lfPreset').innerHTML = Object.entries(cat.cpv_presets).map(([k, v]) => `<option value="${esc(k)}">${esc(v.label)} (${esc(v.codes.join(', '))})</option>`).join('');
         selectSource(null);
       }
-      await Promise.all([loadRuns(), loadManual()]);
+      await Promise.all([loadRuns(), loadManual(), loadProviders()]);
     } catch (e) { toast(e.message, true); }
   };
+
+  // SDQ-008: je Quelle Aktualität, Kosten und die eigenen Messwerte (letzte 30 Tage, nur aus dieser Installation)
+  const deDate = iso => iso ? new Date(iso.replace(' ', 'T') + 'Z').toLocaleDateString('de-DE') : '';
+  async function loadProviders() {
+    let rep;
+    try { rep = await api('/lead-finder/providers'); } catch (e) { return; }
+    for (const p of rep.providers) {
+      const el = document.querySelector(`[data-lf-measured="${p.key}"]`);
+      if (!el) continue;
+      const m = p.measured;
+      const runs = m.runs ? `Letzte ${m.days} Tage: ${m.runs} ${m.runs === 1 ? 'Abfrage' : 'Abfragen'}`
+        + (m.error_rate !== null ? `, ${Math.round(m.error_rate * 100)} % fehlgeschlagen` : '')
+        + (m.last_success ? `, zuletzt erfolgreich am ${deDate(m.last_success)}` : ', noch kein erfolgreicher Abruf')
+        + (m.reviewed ? ` · ${m.taken_over} von ${m.reviewed} geprüften Treffern übernommen` : '')
+        : `Letzte ${m.days} Tage: noch keine Abfrage`;
+      el.textContent = `Aktualität: ${p.freshness} · Kosten: ${p.cost} · ${runs}`;
+      el.title = `Limits der Quelle: ${p.provider_limits}\nPersonendaten: ${p.personal_data}\n${rep.note}` + (m.last_error ? `\nLetzter Fehler: ${m.last_error}` : '');
+    }
+  }
 
   function selectSource(key) {
     source = key;
@@ -55,7 +74,7 @@
     } catch (err) {
       $('#lfStatus').textContent = err.message;
       toast(err.message, true);
-    } finally { btn.disabled = false; }
+    } finally { btn.disabled = false; loadProviders(); }
   }
 
   function render(run) {

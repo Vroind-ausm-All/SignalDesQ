@@ -54,6 +54,8 @@
 
 ## Umsetzung im Lead-Finder (v1.1)
 
+- **Seit 2.0.0-dev58 (SDQ-008):** Jede Quellenkarte zeigt Aktualität, Kosten und die eigenen Messwerte der letzten 30 Tage (Abfragen, Fehlerrate, letzter Erfolg, übernommene Treffer); Schnittstelle `GET /api/lead-finder/providers`.
+
 - **Datensparsam**: gespeichert werden nur Firmenname, Website, Anschrift, Branche, Größe, Registernummer, Quelle und Lizenz. Telefonnummern, E-Mail-Adressen und Personennamen aus den Quellen werden verworfen. Einträge ohne Rechtsformzusatz werden standardmäßig ausgefiltert.
 - **Fair Use**: identifizierender User-Agent (mit Website/E-Mail aus den Stammdaten, falls gepflegt), 24-h-Ergebniscache, mindestens 10 Sekunden Abstand, höchstens 40 Abfragen pro Quelle und Tag.
 - **Nachvollziehbar**: Jeder Treffer behält Beleg-Link und Lizenzhinweis. Bei Übernahme schreibt SignalDesk Quelle und Hinweis „Fund ist keine Einwilligung“ in den Lead und protokolliert eine Aktivität.

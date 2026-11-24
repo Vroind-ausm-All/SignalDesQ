@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.0.0-dev58 – Jede Datenquelle mit Lizenz, Aktualität, Limits, Kosten und eigener Fehlerrate (SDQ-008)
+
+- **Neu auf den Quellenkarten** (Finden → „Einzelne Quelle gezielt abfragen“): Aktualität, Kosten und was deine eigenen Abfragen der letzten 30 Tage ergeben haben, z. B. „4 Abfragen, 25 % fehlgeschlagen, zuletzt erfolgreich am 24.11.2026 · 2 von 8 geprüften Treffern übernommen“. Limits der Quelle, Umgang mit Personendaten und der letzte Fehler stehen im Tooltip.
+- **Neu für Auswertungen:** `GET /api/lead-finder/providers?days=30` liefert dieselben Angaben je Quelle, die Fehlerrate mit Vertrauensbereich und das Datum des letzten lokalen OpenStreetMap-Imports.
+- Gemessen wird nur aus den Abfragen dieser Installation; es wird nichts zusätzlich abgerufen. Lizenz- und Limitangaben sind Stand November 2026 und nicht live geprüft – das steht auch in der Antwort.
+- Tests: neu `test_sdq008_providers.py` (6 Fälle) und `e2e/test_sdq008_providers_browser.py`.
+
+## 2.0.0-dev57 – Werkzeug für den Recherche-Benchmark (SDQ-006)
+
+- **Neu:** `tools/research_benchmark.py` misst, wie vollständig und wie richtig SignalDesk die Firmen eines Gebiets findet: Vollständigkeit, Genauigkeit, Dubletten und vor allem falsch zugeordnete Websites und Registernummern, jeweils mit Vertrauensbereich. Anleitung, Format und vorgeschlagene Zielwerte in [RECHERCHE_BENCHMARK.md](docs/RECHERCHE_BENCHMARK.md), Vorlage unter `docs/bench/research/`.
+- **Noch kein Ergebnis:** Dafür braucht es eine von Menschen geprüfte Referenzliste. Die mitgelieferten Testdaten sind erfunden; ein Bericht daraus beginnt mit „Synthetische Testdaten – kein Messergebnis“.
+- Datenschutz: Referenz- und Lauf-Dateien enthalten nur Firmendaten; Felder wie E-Mail oder Ansprechpartner werden abgelehnt. Der Export liest die Datenbank nur und ruft nichts im Netz ab.
+- Keine Änderung an Recherche, Datenmodell oder Oberfläche.
+
 ## 2.0.0-dev56 – Alle Browser-Tests laufen in der CI (SDQ-005)
 
 - **Prüfung bei jedem Push:** Die CI führte bisher nur einen der 51 Browser-Tests aus. Jetzt laufen alle, auch die Regressionstests zu Teilabrechnung, Akte-Navigation, Rechnungs-Eingabeschutz und Passwortspeicher.
