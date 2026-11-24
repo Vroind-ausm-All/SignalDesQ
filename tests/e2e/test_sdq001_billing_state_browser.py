@@ -49,6 +49,16 @@ class BillingStateBrowserTests(unittest.TestCase):
                 conn.execute("UPDATE proposals SET status='angenommen' WHERE id=?", (prop['id'],))
                 conn.commit()
                 issue(conn, acc.invoice_from_proposal(conn, {'proposal_id': prop['id'], 'mode': 'abschlag', 'percent': 40}))
+                # Projekt gestartet und abgenommen: erst dann ist die Schlussrechnung der nächste Schritt in der Angebotsliste
+                # (vorher heißt er „Kick-off …“ bzw. „Übergabe & Abnahme …“ – der Rest bleibt unter Abrechnen und Heute sichtbar)
+                from sales_tool import handover, kickoff
+                kickoff.act(conn, prop['id'], {'action': 'start', 'trotz_offener_punkte': True})
+                for it in handover.state(conn, prop['id'])['items']:
+                    if it['kind'] == 'liefer':
+                        handover.act(conn, prop['id'], {'action': 'item', 'item_id': it['id'], 'state': 'erledigt'})
+                handover.act(conn, prop['id'], {'action': 'uebergabe'})
+                handover.act(conn, prop['id'], {'action': 'abnahme', 'result': 'abgenommen'})
+                conn.commit()
             server = ThreadingHTTPServer(('127.0.0.1', 0), make_handler(db))
             threading.Thread(target=server.serve_forever, daemon=True).start()
             base = f'http://127.0.0.1:{server.server_port}'
@@ -83,8 +93,14 @@ class BillingStateBrowserTests(unittest.TestCase):
 
                         # ---- Angebote: nächster Schritt nennt den Rest
                         go('#/angebote')
+                        # Die Liste zeichnet zuerst ohne Projektstand und danach mit – geprüft wird der Endstand
                         page.wait_for_function('() => document.body.innerText.includes("Schlussrechnung:")')
-                        self.assertIn('netto offen', page.inner_text('#viewQuotes'))
+                        page.wait_for_load_state('networkidle')
+                        page.wait_for_timeout(300)
+                        quotes = page.inner_text('#viewQuotes')
+                        self.assertIn('Schlussrechnung: 6.000', quotes)
+                        self.assertIn('netto offen', quotes)
+                        self.assertNotIn('Kick-off:', quotes)
 
                         # ---- Heute: Potenzial zeigt den Rest
                         go('#/heute')

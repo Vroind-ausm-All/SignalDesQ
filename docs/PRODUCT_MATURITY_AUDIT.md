@@ -199,6 +199,10 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
   Adresse per `setTimeout(0)` und nahm „?firma“ zurück – auch wenn inzwischen eine neue Adresse (wieder eine Akte) gekommen war.
   Behoben über einen Zähler der Adresswechsel (`popstate`); Regressionstest `e2e/test_sdq005_akte_close_race_browser.py`
   stellt den Ablauf gezielt nach und ist gegen den alten Stand rot. Lokal nie aufgetreten – genau dafür braucht es die CI.
+- **Zweiter CI-Lauf:** `test_sdq001_billing_state_browser` prüfte die Angebotsliste, bevor der Projektstand nachgeladen war.
+  Mit Projektstand heißt der nächste Schritt dort richtigerweise „Kick-off …“ (Reihenfolge Kick-off → Abnahme → Schlussrechnung);
+  der Rest bleibt unter Abrechnen und Heute sichtbar. Testfehler, kein Produktfehler: Der Test startet und nimmt das Projekt
+  jetzt ab und prüft den Endstand nach dem Nachladen.
 - **Tests:** lokal 52 gefunden, 52 gelaufen, 0 übersprungen, 0 nicht bestanden (Chromium 1243, Playwright 1.64.1).
   CI-Ergebnis siehe Pull Request. `--min-tests 52`.
 - **Nicht abgedeckt:** Browser-Tests nur unter Linux/Chromium; kein Firefox/WebKit, kein Windows-Browserlauf.
