@@ -185,10 +185,13 @@ def ensure_crawler(py: Path, reinstall=False, variant=DEFAULT_VARIANT) -> bool:
         return True
     say(f'② Installiere „{variant}“ ({VARIANTS[variant]["label"]}; feste Versionen mit Prüfsummen) …')
     ok = True
-    for lock in lock_files(variant) or [REQUIREMENTS]:
-        target = lock if lock.exists() else REQUIREMENTS
-        if not run(pip_install_cmd(py, target) if target != REQUIREMENTS else
-                   [str(py), '-m', 'pip', 'install', '--disable-pip-version-check', '-q', '-r', str(REQUIREMENTS)], quiet=True):
+    missing = [f.name for f in lock_files(variant) if not f.exists()]
+    if missing:  # SDQ-038 (Prüfbericht F07): nie ohne Prüfsummen installieren – unvollständiges Paket ablehnen
+        say(f'   ✗ Lockdatei fehlt ({", ".join(missing)}) – ohne feste Versionen und Prüfsummen wird nichts installiert. '
+            'Bitte das Release-Paket vollständig neu herunterladen.')
+        ok = False
+    for lock in [] if missing else lock_files(variant):
+        if not run(pip_install_cmd(py, lock), quiet=True):
             ok = False
             break
     if ok and VARIANTS[variant]['browser']:

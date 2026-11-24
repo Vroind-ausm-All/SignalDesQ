@@ -79,6 +79,30 @@ IMPORT_FIELDS = ("company", "website", "location", "industry", "employees", "sig
                  "permission_evidence", "next_step", "next_date")
 
 
+def drain_request(handler, limit=1024 * 1024):
+    """Ungelesenen Rest des Anfragekörpers einlesen (bis 1 MB), bevor die Verbindung endet. Wird eine Anfrage abgelehnt,
+    ohne dass ihr Körper gelesen wurde, bricht Windows die Verbindung sonst hart ab – der Aufrufer sieht dann einen
+    Verbindungsfehler statt der Fehlermeldung. ``handler.rfile`` muss ein ``_CountingReader`` sein."""
+    try:
+        total = int(handler.headers.get("Content-Length", "0") or 0)
+    except (ValueError, AttributeError):
+        return
+    left = total - (handler.rfile.count - getattr(handler, "_body_from", handler.rfile.count))
+    if left <= 0:
+        return
+    if left > limit:
+        handler.close_connection = True  # zu groß zum Nachlesen: Verbindung nicht weiterverwenden
+        return
+    try:
+        while left > 0:
+            chunk = handler.rfile.read(min(65536, left))
+            if not chunk:
+                break
+            left -= len(chunk)
+    except OSError:
+        handler.close_connection = True
+
+
 class _CountingReader:
     """Reicht alles an den Eingabestrom durch und zählt die gelesenen Bytes."""
 
@@ -227,27 +251,7 @@ def make_handler(db_path, allowed_hosts=None):
             self.rfile = _CountingReader(self.rfile)  # 2.0.0-dev10: mitzählen, wie viel vom Anfragekörper gelesen wurde
 
         def _drain(self, limit=1024 * 1024):
-            """Ungelesenen Rest des Anfragekörpers einlesen (bis 1 MB), bevor die Verbindung endet. Wird eine Anfrage abgelehnt,
-            ohne dass ihr Körper gelesen wurde, bricht Windows die Verbindung sonst hart ab – der Aufrufer sieht dann einen
-            Verbindungsfehler statt der Fehlermeldung."""
-            try:
-                total = int(self.headers.get("Content-Length", "0") or 0)
-            except (ValueError, AttributeError):
-                return
-            left = total - (self.rfile.count - getattr(self, "_body_from", self.rfile.count))
-            if left <= 0:
-                return
-            if left > limit:
-                self.close_connection = True  # zu groß zum Nachlesen: Verbindung nicht weiterverwenden
-                return
-            try:
-                while left > 0:
-                    chunk = self.rfile.read(min(65536, left))
-                    if not chunk:
-                        break
-                    left -= len(chunk)
-            except OSError:
-                self.close_connection = True
+            drain_request(self, limit)
 
         server_version = "SignalDesk/" + __version__.rsplit(".", 1)[0]  # v1.19: aus der Paketversion statt fest eingetragen
         user = None

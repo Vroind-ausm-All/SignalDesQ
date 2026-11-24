@@ -25,7 +25,8 @@ COLUMNS = ['Umsatz (ohne Soll/Haben-Kz)', 'Soll/Haben-Kennzeichen', 'WKZ Umsatz'
 VORSTEUER_BU = {19: '9', 7: '8'}
 NOTICE = ('DATEV-Buchungsstapel (EXTF 700) mit den Kernspalten, Kontenrahmen SKR03. Ein Probeimport in DATEV ist nicht '
           'erfolgt: Vor der ersten Übergabe mit der Steuerberatung einen Testimport vereinbaren. Buchungen mit „prüfen“ '
-          'brauchen eine Entscheidung der Steuerberatung.')
+          'brauchen eine Entscheidung der Steuerberatung. Die Datei ist für den Import in DATEV gedacht, nicht zum Bearbeiten '
+          'in Excel oder LibreOffice.')
 
 
 def get_datev_settings(conn):
@@ -68,14 +69,20 @@ def _amount(cents):
     return f'{abs(cents) // 100},{abs(cents) % 100:02d}'
 
 
+# SDQ-042 (Prüfbericht F11): Ein Tabellenprogramm würde Felder, die mit = + - @ (oder Tab/Zeilenumbruch) beginnen, als
+# Formel lesen. Ein Apostroph davor stünde in DATEV im Buchungstext; deshalb werden solche Zeichen am Anfang entfernt.
+_FORMULA_START = re.compile(r'^[=+\-@\t\r\s]+')
+
+
 def _text(value, limit):
     value = re.sub(r'\s+', ' ', re.sub(r'[;"]', ' ', str(value or ''))).strip()
+    value = _FORMULA_START.sub('', value)
     return '"' + value.encode('cp1252', 'replace').decode('cp1252')[:limit] + '"'
 
 
 def _beleg(value):
-    # Belegfeld 1: höchstens 36 Zeichen aus a-z A-Z 0-9 $ & % * + - / .
-    return '"' + re.sub(r'[^A-Za-z0-9$&%*+\-/.]', '', str(value or ''))[:36] + '"'
+    # Belegfeld 1: höchstens 36 Zeichen aus a-z A-Z 0-9 $ & % * + - / . – nicht mit + oder - beginnend (Formel, F11)
+    return '"' + _FORMULA_START.sub('', re.sub(r'[^A-Za-z0-9$&%*+\-/.]', '', str(value or '')))[:36] + '"'
 
 
 def bookings(conn, start, end, s):

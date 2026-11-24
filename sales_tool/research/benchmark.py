@@ -375,3 +375,73 @@ def export_run(db_path, query_id, system='', since='', lead_ids=None):
         conn.close()
     return {'format': RUN_FORMAT, 'system': system, 'created_at': dt.datetime.now().isoformat(timespec='seconds'),
             'queries': [{'id': query_id, 'candidates': cands}]}
+
+
+# ---------------------------------------------------------------- Referenzliste aus einer Tabelle (Vorlage referenzliste-vorlage.xlsx)
+
+# Spaltenkopf (Anfang, klein geschrieben) → Feld. Die Vorlage nennt die Spalten auf Deutsch.
+TABLE_COLUMNS = (('suche', 'query'), ('ref', 'ref_id'), ('firmenname', 'name'), ('name', 'name'), ('rechtsform', 'legal_form'),
+                 ('straße', 'street'), ('strasse', 'street'), ('plz', 'zip'), ('ort', 'city'), ('website', 'website'),
+                 ('registernummer', 'register_id'), ('lei', 'lei'), ('status', 'status'), ('beleg', 'evidence'),
+                 ('prüfer', 'checked_by'), ('pruefer', 'checked_by'), ('prüfdatum', 'checked_on'), ('pruefdatum', 'checked_on'),
+                 ('notiz', 'note'))
+NONE_WORDS = {'keine', 'kein', 'keine website', '-', 'null', 'none'}
+
+
+def _column(header):
+    h = str(header or '').strip().lower()
+    for prefix, field in TABLE_COLUMNS:
+        if h.startswith(prefix):
+            return field
+    return None
+
+
+def _cell(value):
+    if value is None:
+        return ''
+    if isinstance(value, (dt.date, dt.datetime)):
+        return value.strftime('%Y-%m-%d')
+    return str(value).strip()
+
+
+def reference_from_table(rows, queries=None, name=''):
+    """Referenzliste aus Tabellenzeilen (erste Zeile = Spaltenköpfe). ``queries``: {id: {description, complete, method}}.
+
+    Leere Website/Registernummer = nicht geprüft (Feld fehlt), „keine“ = geprüft und gibt es nicht (null).
+    Unbekannte Spalten werden abgelehnt, damit keine Personendaten in die Liste rutschen."""
+    rows = [list(r) for r in rows]
+    if not rows:
+        raise ValueError('Tabelle ist leer.')
+    fields = [_column(h) for h in rows[0]]
+    unknown = [str(h) for h, f in zip(rows[0], fields) if f is None and str(h or '').strip()]
+    if unknown:
+        raise ValueError('Unbekannte Spalten (Personendaten gehören nicht in die Liste): ' + ', '.join(unknown))
+    queries = dict(queries or {})
+    by_query = {}
+    for n, row in enumerate(rows[1:], start=2):
+        values = {}
+        for field, raw in zip(fields, row):
+            if field:
+                values.setdefault(field, []).append(_cell(raw))
+        if not any(v for vs in values.values() for v in vs):
+            continue  # Leerzeile
+        one = {k: next((v for v in vs if v), '') for k, vs in values.items()}
+        if 'zeile löschen' in one.get('name', '').lower():
+            raise ValueError(f'Zeile {n}: Beispielzeile der Vorlage bitte löschen.')
+        qid = one.pop('query', '') or 'q1'
+        entry = {'ref_id': one.get('ref_id') or f'z{n}'}
+        for key in ('name', 'legal_form', 'street', 'zip', 'city', 'lei', 'note', 'status', 'checked_on'):
+            if one.get(key):
+                entry[key] = one[key]
+        for key in ('website', 'register_id'):
+            if one.get(key):
+                entry[key] = None if one[key].lower() in NONE_WORDS else one[key]
+        entry['evidence'] = [v for v in values.get('evidence', []) if v]
+        entry['checked_by'] = [v for v in values.get('checked_by', []) if v]
+        by_query.setdefault(qid, []).append(entry)
+    out = []
+    for qid in sorted(set(by_query) | set(queries)):
+        meta = queries.get(qid, {})
+        out.append({'id': qid, 'description': meta.get('description', ''), 'complete': bool(meta.get('complete', False)),
+                    'method': meta.get('method', ''), 'companies': by_query.get(qid, [])})
+    return {'format': REF_FORMAT, 'name': name or 'Referenzliste aus Tabelle', 'synthetic': False, 'queries': out}

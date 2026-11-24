@@ -19,7 +19,7 @@ Betrieb
   ... sichern [--ziel ORDNER] [--verschluesselt] [--pruefen]   (Passwort: SIGNALDESK_SICHERUNG_PASSWORT oder Abfrage)
   ... sicherungen   |   sicherung-pruefen 20261124-020000   |   zurueckspielen 20261124-020000 studio-nord --ja
   ... sicherungen-aufraeumen --behalten 14       (löscht ältere Sätze – nur auf ausdrücklichen Aufruf)
-  ... protokoll [--anzahl 50] [--konto erika]   |   protokoll-pruefen
+  ... protokoll [--anzahl 50] [--konto erika]   |   protokoll-pruefen [--anker DATEI]   |   protokoll-anker
 
 Die lokale Einzelplatz-Installation braucht das nicht. Organisationen werden nie gelöscht: Archivieren sperrt eine
 Organisation, die Daten bleiben erhalten (Rechnungen sind aufbewahrungspflichtig). Jede Änderung steht im Protokoll.
@@ -31,6 +31,7 @@ import getpass
 import json
 import os
 import sys
+from pathlib import Path
 
 from . import abrechnung, accounts, audit_trail, mailer, ops, tenancy
 
@@ -66,7 +67,7 @@ def _parser():
     ke = sub.add_parser('konto-email', help='E-Mail-Adresse eines Kontos setzen (leer: entfernen)')
     ke.add_argument('username')
     ke.add_argument('email', nargs='?', default='')
-    st = sub.add_parser('einstellung', help='registrierung (aus|offen), public_url, testphase_tage')
+    st = sub.add_parser('einstellung', help='registrierung (aus|offen), public_url, testphase_tage, leerlauf_minuten (Standard 60, 0 = aus)')
     st.add_argument('schluessel', choices=sorted(accounts.SETTINGS))
     st.add_argument('wert')
     ab = sub.add_parser('tarif', help='Tarif und Abrechnungsstand einer Organisation ansehen oder setzen (Anbieter: manuell)')
@@ -99,13 +100,22 @@ def _parser():
     z.add_argument('slug')
     z.add_argument('--ziel')
     z.add_argument('--ja', action='store_true', help='Bestätigung: aktueller Stand wird ersetzt (vorher gesichert)')
+    kp = sub.add_parser('sicherung-kopieren', help='Satz an einen zweiten Ort kopieren und Prüfsummen nachrechnen')
+    kp.add_argument('name')
+    kp.add_argument('--nach', required=True, help='Ordner am zweiten Ort (anderer Datenträger, eingehängter Speicher)')
+    kp.add_argument('--ziel', help='Ordner der Sätze, falls nicht der Standard')
+    gw = sub.add_parser('gesamt-wiederherstellen', help='ganze Installation aus einem Satz in den (leeren) --root-Ordner')
+    gw.add_argument('satz', help='Pfad des Sicherungssatzes')
+    gw.add_argument('--ja', action='store_true', help='Bestätigung')
     pr = sub.add_parser('sicherungen-aufraeumen')
     pr.add_argument('--behalten', type=int, required=True)
     pr.add_argument('--ziel')
     p = sub.add_parser('protokoll', help='Verwaltungs- und Anmeldeprotokoll')
     p.add_argument('--anzahl', type=int, default=50)
     p.add_argument('--konto', help='nur Einträge zu diesem Konto')
-    sub.add_parser('protokoll-pruefen', help='Hash-Kette des Protokolls nachrechnen')
+    pp = sub.add_parser('protokoll-pruefen', help='Hash-Kette des Protokolls nachrechnen')
+    pp.add_argument('--anker', help='hinterlegte Anker-Datei (JSON) zusätzlich prüfen')
+    sub.add_parser('protokoll-anker', help='Stand der Kette als JSON ausgeben – außerhalb des Servers hinterlegen')
     return ap
 
 
@@ -187,21 +197,33 @@ def run(args, d):  # noqa: C901 – eine Verzweigung je Befehl
         encrypted = (folder / 'manifest.json').exists() and json.loads((folder / 'manifest.json').read_text(encoding='utf-8'))['encrypted']
         return ops.restore_org(d, args.name, args.slug, args.ziel, password=_set_password(args.name) if encrypted else None,
                                confirm=args.ja, actor=actor), 0
+    if cmd == 'sicherung-kopieren':
+        return ops.copy_backup(d, args.name, args.nach, target=args.ziel, actor=actor), 0
     if cmd == 'sicherungen-aufraeumen':
         return ops.prune_backups(d, args.behalten, args.ziel, actor=actor), 0
     if cmd == 'protokoll':
         return audit_trail.events(d, args.anzahl, target=args.konto), 0
     if cmd == 'protokoll-pruefen':
-        out = audit_trail.verify(d)
+        if args.anker:
+            out = audit_trail.verify_anchor(d, json.loads(Path(args.anker).read_text(encoding='utf-8')))
+        else:
+            out = audit_trail.verify(d)
         return out, 0 if out['ok'] else 1
+    if cmd == 'protokoll-anker':
+        return audit_trail.anchor(d), 0
     raise ValueError(f'Unbekannter Befehl {cmd}')
 
 
 def main(argv=None):
     args = _parser().parse_args(argv)
-    d = tenancy.Directory(args.root)
     try:
-        out, code = run(args, d)
+        if args.cmd == 'gesamt-wiederherstellen':  # --root ist hier der neue, leere Ordner: nichts vorher anlegen
+            manifest = Path(args.satz).expanduser() / 'manifest.json'
+            encrypted = manifest.exists() and json.loads(manifest.read_text(encoding='utf-8')).get('encrypted')
+            pw = _secret('SIGNALDESK_SICHERUNG_PASSWORT', 'Passwort der Sicherung: ', confirm=False) if encrypted else None
+            out, code = ops.restore_installation(args.satz, args.root, password=pw or None, confirm=args.ja), 0
+        else:
+            out, code = run(args, tenancy.Directory(args.root))
     except (tenancy.TenantError, LookupError, ValueError, PermissionError) as exc:
         print('FEHLER:', exc)
         return 1

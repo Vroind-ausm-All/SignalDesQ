@@ -65,8 +65,12 @@ def init(directory: tenancy.Directory):
         cols = {r['name'] for r in conn.execute('PRAGMA table_info(account_sessions)')}
         if 'stage' not in cols:  # dev62 → dev63: bestehende Sitzungen sind vollständige Anmeldungen
             conn.execute("ALTER TABLE account_sessions ADD COLUMN stage TEXT NOT NULL DEFAULT 'voll'")
+        if 'last_seen' not in cols:  # dev65: Abmelden nach Leerlauf
+            conn.execute("ALTER TABLE account_sessions ADD COLUMN last_seen TEXT NOT NULL DEFAULT ''")
         if 'email' not in {r['name'] for r in conn.execute('PRAGMA table_info(accounts)')}:  # dev64: Einladung, Registrierung
             conn.execute("ALTER TABLE accounts ADD COLUMN email TEXT NOT NULL DEFAULT ''")
+        if 'sec_stamp' not in {r['name'] for r in conn.execute('PRAGMA table_info(accounts)')}:  # dev65: Widerrufsstand (F02)
+            conn.execute("ALTER TABLE accounts ADD COLUMN sec_stamp TEXT NOT NULL DEFAULT ''")
         audit_trail.init(conn)
 
 
@@ -95,7 +99,16 @@ SETTINGS = {
     'registrierung': ('aus', 'offen'),   # Selbstregistrierung neuer Organisationen
     'public_url': None,                  # öffentliche Adresse für Links in E-Mails, z. B. https://app.example.org
     'testphase_tage': None,              # Länge der Testphase einer selbst registrierten Organisation
+    'leerlauf_minuten': None,            # Abmelden nach so vielen Minuten ohne Anfrage (Standard 60, 0 = aus)
 }
+IDLE_DEFAULT = 60
+
+
+def idle_minutes(directory):
+    """Leerlauf-Grenze in Minuten (None = aus)."""
+    value = setting(directory, 'leerlauf_minuten', '')
+    minutes = int(value) if str(value).isdigit() else IDLE_DEFAULT
+    return minutes or None
 
 
 def set_setting(directory, key, value, actor=None):
@@ -110,6 +123,8 @@ def set_setting(directory, key, value, actor=None):
         raise ValueError('public_url: https://hostname (ohne Pfad); http nur für 127.0.0.1/localhost.')
     if key == 'testphase_tage' and not (value.isdigit() and 1 <= int(value) <= 365):
         raise ValueError('testphase_tage: 1 bis 365.')
+    if key == 'leerlauf_minuten' and not (value.isdigit() and (int(value) == 0 or 5 <= int(value) <= 720)):
+        raise ValueError('leerlauf_minuten: 5 bis 720, oder 0 für aus.')
     init(directory)
     with directory._connect() as conn:
         conn.execute('INSERT INTO directory_settings(key, value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
@@ -198,14 +213,25 @@ def account_view(directory, username):
             'organizations': [dict(r) for r in orgs]}
 
 
-def set_membership(directory, username, slug, role, actor=None):
-    """Konto einer Organisation zuordnen oder seine Rolle ändern. Eine Rollenänderung wirkt mit der nächsten Anfrage."""
+def same_email(a, b):
+    """Adressvergleich wie beim Kontoabgleich (``account_by_email``): ohne Leerraum, ohne Groß-/Kleinschreibung."""
+    a, b = (a or '').strip().casefold(), (b or '').strip().casefold()
+    return bool(a) and a == b
+
+
+def set_membership(directory, username, slug, role, actor=None, consume=None):
+    """Konto einer Organisation zuordnen oder seine Rolle ändern. Eine Rollenänderung wirkt mit der nächsten Anfrage.
+
+    ``consume``: optionale Funktion ``(conn) -> bool``, die in **derselben** Transaktion einen Einmal-Nachweis verbraucht
+    (Einladung, SDQ-033/F01). Gibt sie False zurück, entsteht keine Mitgliedschaft."""
     if role not in auth.ROLES:
         raise ValueError('Rolle: ' + ', '.join(auth.ROLES))
     org = directory.get(slug)
     init(directory)
     with directory._connect() as conn:
         acc = _account(conn, username)
+        if consume is not None and not consume(conn):
+            raise LookupError('Einladung wurde gerade schon verwendet.')
         before = conn.execute('SELECT role FROM memberships WHERE account_id=? AND slug=?', (acc['id'], slug)).fetchone()
         conn.execute('''INSERT INTO memberships(account_id, slug, role) VALUES (?,?,?)
                         ON CONFLICT(account_id, slug) DO UPDATE SET role=excluded.role''', (acc['id'], slug, role))
@@ -226,8 +252,15 @@ def _revoke_in_org(db_path, username, deactivate=True):
             oc.commit()
 
 
+def _bump(conn, account_id):
+    """Widerrufsstand des Kontos erneuern (SDQ-034, Prüfbericht F02). Jede Sitzung einer Organisation trägt den Stand ihrer
+    Eröffnung; passt er nicht mehr, endet sie bei der nächsten Anfrage – auch auf anderen Geräten und in anderen Organisationen."""
+    conn.execute('UPDATE accounts SET sec_stamp=? WHERE id=?', (secrets.token_hex(8), account_id))
+
+
 def _end_everywhere(directory, conn, acc):
     """Zentrale Sitzungen beenden; gibt die Organisationen zurück, in denen danach die Sitzungen enden müssen."""
+    _bump(conn, acc['id'])
     conn.execute('DELETE FROM account_sessions WHERE account_id=?', (acc['id'],))
     slugs = [r['slug'] for r in conn.execute('SELECT slug FROM memberships WHERE account_id=?', (acc['id'],))]
     return slugs
@@ -277,7 +310,9 @@ def change_password(directory, username, old, new, actor=None, ip=''):
             raise PermissionError('Bisheriges Passwort stimmt nicht.')
         auth._check_password_policy(new, username)
         conn.execute('UPDATE accounts SET pw_hash=? WHERE id=?', (auth.hash_password(new), acc['id']))
-        conn.execute('DELETE FROM account_sessions WHERE account_id=?', (acc['id'],))
+        slugs = _end_everywhere(directory, conn, acc)  # dieselbe Regel wie beim Zurücksetzen durch den Betreiber
+    for slug in slugs:
+        _revoke_in_org(directory.get(slug)['db_path'], username, deactivate=False)
     _log(directory, actor or f'konto:{username}', 'passwort_geaendert', username, ip=ip)
     return {'changed': True}
 
@@ -307,7 +342,7 @@ def _new_session(conn, account_id, stage):
     span = dt.timedelta(hours=CENTRAL_HOURS) if stage == 'voll' else dt.timedelta(minutes=PENDING_MINUTES)
     expires = (dt.datetime.now(dt.timezone.utc) + span).strftime('%Y-%m-%d %H:%M:%S')
     conn.execute("DELETE FROM account_sessions WHERE expires_at < datetime('now')")
-    conn.execute('INSERT INTO account_sessions(token_hash, account_id, expires_at, stage) VALUES (?,?,?,?)',
+    conn.execute("INSERT INTO account_sessions(token_hash, account_id, expires_at, stage, last_seen) VALUES (?,?,?,?,datetime('now'))",
                  (auth._token_hash(token), account_id, expires, stage))
     return token
 
@@ -347,6 +382,8 @@ def login(directory, username, password, client=''):
             stage = 'voll'
         token = _new_session(conn, acc['id'], stage)
         _clear_fails(conn, key)
+        if auth.needs_rehash(acc['pw_hash']):  # SDQ-041: alten Hash mit aktuellen Parametern neu bilden
+            conn.execute('UPDATE accounts SET pw_hash=? WHERE id=?', (auth.hash_password(password), acc['id']))
         if stage == 'voll':
             conn.execute("UPDATE accounts SET last_login_at=datetime('now') WHERE id=?", (acc['id'],))
     _log(directory, f"konto:{acc['username']}", 'anmeldung' if stage == 'voll' else 'anmeldung_passwort_ok',
@@ -354,15 +391,29 @@ def login(directory, username, password, client=''):
     return {**account_view(directory, acc['username']), 'stage': stage}, token
 
 
+def _touch_idle(conn, token_hash, minutes):
+    """Wie ``auth.touch_idle`` für die zentrale Sitzung: False (und gelöscht), wenn zu lange unbenutzt."""
+    gone = conn.execute("DELETE FROM account_sessions WHERE token_hash=? AND last_seen<>'' AND last_seen < datetime('now', ?)",
+                        (token_hash, f'-{int(minutes)} minutes')).rowcount
+    if not gone:
+        conn.execute("UPDATE account_sessions SET last_seen=datetime('now') WHERE token_hash=? AND "
+                     "(last_seen='' OR last_seen < datetime('now', '-1 minutes'))", (token_hash,))
+    return not gone
+
+
 def session(directory, token):
     """(Konto, Stufe) zur zentralen Sitzung – oder (None, None)."""
     if not token:
         return None, None
     init(directory)
+    limit = idle_minutes(directory)
     with directory._connect() as conn:
         row = conn.execute('''SELECT a.*, s.stage AS session_stage FROM account_sessions s JOIN accounts a ON a.id=s.account_id
                               WHERE s.token_hash=? AND s.expires_at > datetime('now') AND a.active=1''',
                            (auth._token_hash(token),)).fetchone()
+        if row and row['session_stage'] == 'voll':
+            if limit and not _touch_idle(conn, auth._token_hash(token), limit):
+                return None, None
     return (row, row['session_stage']) if row else (None, None)
 
 
@@ -459,6 +510,7 @@ def mfa_confirm(directory, token, code, client=''):
             conn.execute('INSERT INTO account_recovery_codes(account_id, code_hash) VALUES (?,?)', (acc['id'], _hash_recovery(raw)))
         # alle anderen zentralen Sitzungen des Kontos beenden – sie wurden ohne zweiten Faktor geöffnet
         conn.execute('DELETE FROM account_sessions WHERE account_id=? AND token_hash<>?', (acc['id'], auth._token_hash(token)))
+        _bump(conn, acc['id'])  # Sitzungen in Organisationen, die ohne zweiten Faktor eröffnet wurden, enden ebenfalls
         new = _upgrade(conn, token, acc['id']) if stage == 'einrichtung' else None
     _log(directory, f"konto:{acc['username']}", 'zweiter_faktor_eingerichtet', acc['username'], ip=client)
     return {'active': True, 'recovery_codes': codes,
@@ -482,6 +534,8 @@ def mfa_disable(directory, token, password, code, client=''):
             raise PermissionError('Code stimmt nicht.')
         conn.execute('DELETE FROM account_mfa WHERE account_id=?', (acc['id'],))
         conn.execute('DELETE FROM account_recovery_codes WHERE account_id=?', (acc['id'],))
+        _bump(conn, acc['id'])
+        conn.execute('DELETE FROM account_sessions WHERE account_id=? AND token_hash<>?', (acc['id'], auth._token_hash(token)))
     _log(directory, f"konto:{acc['username']}", 'zweiter_faktor_abgeschaltet', acc['username'], ip=client)
     return {'active': False}
 
@@ -511,6 +565,21 @@ def membership(directory, username, slug):
     return row['role'] if row else None
 
 
+def org_access(directory, username, slug):
+    """(Rolle, Widerrufsstand) für eine Anfrage in der Organisation – oder (None, None).
+
+    None auch dann, wenn der zweite Faktor Pflicht ist und das Konto ihn nicht hat (Pflicht gilt ab sofort, F02)."""
+    init(directory)
+    required = require_2fa(directory)
+    with directory._connect() as conn:
+        row = conn.execute('''SELECT m.role, a.sec_stamp, a.id FROM memberships m JOIN accounts a ON a.id=m.account_id
+                              JOIN organizations o ON o.slug=m.slug
+                              WHERE a.username=? AND a.active=1 AND m.slug=? AND o.status='aktiv' ''', (username, slug)).fetchone()
+        if not row or (required and not _mfa_active(conn, row['id'])):
+            return None, None
+    return row['role'], row['sec_stamp']
+
+
 def enter(directory, account, slug, client=''):
     """Organisation betreten: Mitgliedschaft prüfen, Benutzer dort anlegen/angleichen, Sitzung öffnen. Gibt das Token zurück."""
     role = membership(directory, account['username'], slug)
@@ -532,7 +601,8 @@ def enter(directory, account, slug, client=''):
                              (account['username'], account['display_name'], role)).lastrowid
         from .quality import put_setting
         put_setting(oc, 'auth_required', True)  # Rollenrechte gelten immer – auch ohne Zutun der Organisation
-        token = auth.create_session(oc, uid)
+        _, stamp = org_access(directory, account['username'], slug)
+        token = auth.create_session(oc, uid, sec_stamp=stamp or '')
         oc.commit()
     _log(directory, f"konto:{account['username']}", 'organisation_betreten', slug, role, client)
     return token

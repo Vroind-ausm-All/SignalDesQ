@@ -1,3 +1,3 @@
 # Optional für SignalDesk ab v1.8: verschlüsselte Datensicherungen (AES-256-GCM).
 # Ohne dieses Paket funktionieren alle anderen Funktionen inkl. Login; nur die verschlüsselte Sicherung fehlt.
-cryptography>=42,<47
+cryptography>=48.0.1,<51  # 48.0.1: Fix für GHSA-537c-gmf6-5ccf (OpenSSL in den Wheels, CVE-2026-34180)

@@ -5,6 +5,9 @@ app.example.org {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		-Server
 	}
+	request_body {
+		max_size 64MB   # wie nginx client_max_body_size (Importe)
+	}
 	# Caddy setzt X-Forwarded-Proto und X-Forwarded-For und reicht den Host-Header unverändert weiter.
 	reverse_proxy 127.0.0.1:8765 {
 		health_uri /healthz

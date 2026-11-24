@@ -19,6 +19,7 @@ keine Liste der Organisationen und keinen Zutritt.
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
 import secrets
 import signal
@@ -30,9 +31,9 @@ from urllib.parse import urlparse
 
 import re
 
-from . import abrechnung, accounts, auth, einladungen, ops, tenancy
+from . import hosting, abrechnung, accounts, auth, einladungen, ops, tenancy
 from .model import connect
-from .server import (CSP, LOOPBACK_HOSTS, PUBLIC, STATIC_FILES, _CountingReader, _host_name, bind_server, make_handler,
+from .server import (CSP, LOOPBACK_HOSTS, PUBLIC, STATIC_FILES, _CountingReader, _host_name, bind_server, drain_request, make_handler,
                      prepare_database)
 
 CENTRAL_FILES = {'/anmelden': ('zentral.html', 'text/html'), '/zentral.js': ('zentral.js', 'text/javascript'),
@@ -56,18 +57,23 @@ class _RequestMeta:
             self.send_header('X-Request-ID', rid)
 
 
-def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, scheduler=False, logger=None, backup_target=None):
+def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, scheduler=False, logger=None, backup_target=None,
+                       trusted_proxies=(), ready_cache_seconds=30):
     hosts = LOOPBACK_HOSTS | {h.lower() for h in (allowed_hosts or ())}
     accounts.init(directory)
     classes, lock = {}, threading.Lock()
+    trusted = {ipaddress.ip_address(p) for p in trusted_proxies}  # SDQ-039 (F08): nur diesen Proxys wird X-Forwarded-For geglaubt
+    ready_lock = threading.Lock()
+    ready_cache = {'at': 0.0, 'report': None}  # SDQ-040 (F10): öffentliche Bereitschaft höchstens alle 30 s neu prüfen
 
     def org_class(slug, db_path):
         with lock:
             if slug not in classes:
+                hosting.register(db_path)  # SDQ-037: Betriebsgrenzen (Legacy-Abruf, Browser, lokale Ziele, Web-Restore)
                 classes[slug] = type('OrgHandler', (_RequestMeta, make_handler(db_path, allowed_hosts)), {})
                 if scheduler:
                     from .quality import start_scheduler
-                    start_scheduler(db_path)
+                    start_scheduler(db_path, paused=lambda: abrechnung.state(directory, slug)['read_only'])
             return classes[slug]
 
     class FrontHandler(_RequestMeta, BaseHTTPRequestHandler):
@@ -161,6 +167,7 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                 if not self.parse_request():
                     return
                 self._sd_rid, self._sd_status, self._sd_org = secrets.token_hex(6), 0, ''
+                self._body_from = self.rfile.count
                 t0 = time.perf_counter()
                 try:
                     self._dispatch()
@@ -180,6 +187,7 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                     else:
                         print('Serverfehler (Mehrmandanten):', repr(exc))
                     self._send(500, {'error': 'Interner Serverfehler', 'request_id': self._sd_rid})
+                drain_request(self)  # abgelehnte Anfrage (fremde Herkunft, Host, Tarif): Körper lesen, sonst bricht Windows ab
                 self.wfile.flush()
                 ops.log_request(logger, rid=self._sd_rid, method=self.command, path=self.path, status=self._sd_status,
                                 ms=(time.perf_counter() - t0) * 1000, org=self._sd_org)
@@ -246,17 +254,24 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
             except (LookupError, tenancy.TenantError):
                 return None
             with connect(db_path) as conn:
-                user = auth.session_user(conn, self.headers.get('Cookie', ''))
+                user = auth.session_user(conn, self.headers.get('Cookie', ''), idle_minutes=accounts.idle_minutes(directory))
                 if not user:
                     return None
-                role = accounts.membership(directory, user['username'], slug)
-                if not role:  # Mitgliedschaft entzogen oder Konto gesperrt: Sitzung hier beenden
+                role, stamp = accounts.org_access(directory, user['username'], slug)
+                if not role:  # Mitgliedschaft entzogen, Konto gesperrt oder zweiter Faktor Pflicht und fehlt: Sitzung beenden
                     conn.execute('DELETE FROM sessions WHERE user_id=?', (user['id'],))
                     conn.commit()
+                    return None
+                if auth.session_stamp(conn, self.headers.get('Cookie', '')) != stamp:
+                    # Passwort, zweiter Faktor oder Sperre haben sich seit dem Öffnen geändert (F02): neu anmelden
+                    auth.end_session(conn, self.headers.get('Cookie', ''))
                     return None
                 if role != user['role']:
                     conn.execute('UPDATE users SET role=? WHERE id=?', (role, user['id']))
                     conn.commit()
+            central = cookies.get(accounts.CENTRAL_COOKIE, '')
+            if central:  # Arbeit in der Organisation hält auch die zentrale Sitzung (Wechsel der Organisation) am Leben
+                accounts.session(directory, central)
             return slug, db_path
 
         # ------------------------------------------------ Betrieb
@@ -268,14 +283,33 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
         def _health(self, route):
             if route == '/healthz':
                 return self._send(200, ops.health())
-            report = ops.readiness(directory, detail=self._local(), backup_target=backup_target)
-            if not self._local():  # von außen nur das Ergebnis, keine Einzelheiten
-                report = {'status': report['status'], 'version': report['version']}
+            if self._local():
+                report = ops.readiness(directory, detail=True, backup_target=backup_target)
+            else:  # von außen nur das Ergebnis, keine Einzelheiten – und zwischengespeichert, damit Abfragen nichts kosten
+                with ready_lock:
+                    if ready_cache['report'] is None or time.monotonic() - ready_cache['at'] > ready_cache_seconds:
+                        full = ops.readiness(directory, detail=False, backup_target=backup_target)
+                        ready_cache.update(at=time.monotonic(), report={'status': full['status'], 'version': full['version']})
+                    report = dict(ready_cache['report'])
             return self._send(200 if report['status'] == 'bereit' else 503, report)
 
         # ------------------------------------------------ zentrale Endpunkte
         def _client(self):
-            return self.client_address[0] if self.client_address else ''
+            """IP des Clients. Hinter einem eingetragenen Proxy (``--vertrauter-proxy``) der Eintrag, den dieser Proxy als
+            letzten an X-Forwarded-For angehängt hat; sonst immer der direkte Verbindungspartner (selbst gesetzte Header
+            zählen nicht)."""
+            direct = self.client_address[0] if self.client_address else ''
+            try:
+                from_proxy = ipaddress.ip_address(direct) in trusted
+            except ValueError:
+                from_proxy = False
+            if from_proxy:
+                last = (self.headers.get('X-Forwarded-For') or '').split(',')[-1].strip()
+                try:
+                    return str(ipaddress.ip_address(last))
+                except ValueError:
+                    return direct
+            return direct
 
         def _after_full_login(self, view, tok):
             """Volle Anmeldung: Cookie setzen, bei genau einer Organisation direkt hinein."""
@@ -440,6 +474,8 @@ def build_parser():
     ap.add_argument('--no-scheduler', action='store_true')
     ap.add_argument('--log-file', help='Betriebsprotokoll als JSON-Zeilen (Standard: stderr); Rotation 10 × 10 MB')
     ap.add_argument('--log-level', default='INFO', choices=('DEBUG', 'INFO', 'WARNING', 'ERROR'))
+    ap.add_argument('--vertrauter-proxy', action='append', default=[], metavar='IP',
+                    help='IP des TLS-Proxys, dessen X-Forwarded-For gilt (z. B. 127.0.0.1). Ohne: direkte Verbindung zählt.')
     ap.add_argument('--backup-dir', help='Ordner der Sicherungssätze für /readyz (Standard: <root>/sicherungen)')
     return ap
 
@@ -454,7 +490,8 @@ def main(argv=None):
         if args.host not in ('0.0.0.0', '::'):
             allowed.add(args.host)
     orgs = prepare_all(directory)
-    handler = make_multi_handler(directory, allowed, scheduler=not args.no_scheduler, logger=logger, backup_target=args.backup_dir)
+    handler = make_multi_handler(directory, allowed, scheduler=not args.no_scheduler, logger=logger, backup_target=args.backup_dir,
+                                 trusted_proxies=args.vertrauter_proxy)
     server, port = bind_server(handler, args.port, attempts=1, host=args.host)  # Dienst: fester Port, kein Ausweichen
     server.daemon_threads = True
 

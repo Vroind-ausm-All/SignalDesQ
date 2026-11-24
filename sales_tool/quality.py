@@ -578,10 +578,21 @@ def run_due(conn, db_path, start=True, now=None):
     return ran
 
 
-def start_scheduler(db_path, every_seconds=300):
-    """Hintergrund-Thread für fällige Aufträge (nur im laufenden Programm, nicht in Tests) – je Datenbank einer."""
-    from . import tenancy
+def scheduler_tick(db_path, paused=None):
+    """Eine Runde des Planers. Gibt die ausgeführten Aufträge zurück (``None``, wenn angehalten)."""
     from .model import connect
+    if paused and paused():
+        return None
+    with connect(db_path) as conn:
+        return run_due(conn, db_path)
+
+
+def start_scheduler(db_path, every_seconds=300, paused=None):
+    """Hintergrund-Thread für fällige Aufträge (nur im laufenden Programm, nicht in Tests) – je Datenbank einer.
+
+    ``paused``: optionale Funktion; gibt sie True zurück, bleiben fällige Aufträge in dieser Runde liegen (dev65: Organisation
+    nur lesbar, weil Testphase oder Tarif abgelaufen). Sie laufen weiter, sobald die Sperre endet."""
+    from . import tenancy
     key = tenancy.db_key(db_path)
     state = _SCHED.get(key)
     if state and state['thread'].is_alive():
@@ -593,8 +604,7 @@ def start_scheduler(db_path, every_seconds=300):
         while not stop.wait(60 if state['first'] else every_seconds):
             state['first'] = False
             try:
-                with connect(db_path) as conn:
-                    run_due(conn, db_path)
+                scheduler_tick(db_path, paused)
             except Exception as exc:  # nie den Server mitreißen
                 print('Wiederkehrende Aufträge:', repr(exc))
     t = tenancy.thread(loop, db_path, name='recurring-jobs')

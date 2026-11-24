@@ -188,6 +188,9 @@ def restore_upload(h, db_path, password=None, confirm=False):
 
 
 def route_restore(h, conn, method, route, query, db_path):
+    from . import hosting
+    if hosting.hosted() and method == 'POST' and route in ('/api/backups/restore', '/api/backups/restore-upload'):
+        raise PermissionError(hosting.RESTORE_MESSAGE)  # SDQ-037 (F06): nur der Betreiber spielt geprüfte Sätze zurück
     if route == '/api/backups/all' and method == 'GET':
         h._send(200, list_all(db_path))
         return True

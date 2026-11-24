@@ -54,7 +54,25 @@ def _check_url(url):
         raise ValueError('Bitte die HTTPS-Adresse des Kalenders angeben (z. B. https://dav.anbieter.de/calendars/name/kalender/).')
     if not p.hostname:
         raise ValueError('Kalender-Adresse unvollständig.')
+    from . import hosting
+    try:
+        port = p.port or (443 if p.scheme == 'https' else 80)
+    except ValueError as exc:
+        raise ValueError('Kalender-Adresse: Port ungültig.') from exc
+    if hosting.hosted() and p.scheme != 'https':
+        raise ValueError('Kalender-Adresse: im Server nur HTTPS.')
+    hosting.check_service_host(p.hostname, port, hosting.CALDAV_PORTS, 'Kalender-Adresse')
     return url.strip() if url.strip().endswith('/') else url.strip() + '/'
+
+
+def _target(s):
+    """Kanonisches Ziel eines Zugangs: Schema, Host (klein), Port, Benutzername. Ein gespeichertes Passwort gilt nur dafür."""
+    p = urlsplit(s.get('url') or '')
+    try:
+        port = p.port or (443 if p.scheme == 'https' else 80)
+    except ValueError:
+        port = None
+    return (p.scheme, (p.hostname or '').lower().rstrip('.'), port, (s.get('username') or '').strip())
 
 
 def view(conn, db_path):
@@ -73,6 +91,7 @@ def save(conn, db_path, data):
     from .credentials import forget, put
     from .quality import put_setting
     s = _settings(conn)
+    before = _target(s)
     if data.get('forget') is True:
         forget(db_path, 'caldav')
     if 'url' in data:
@@ -84,6 +103,8 @@ def save(conn, db_path, data):
         s['username'] = u.strip()
     if data.get('password'):
         put(db_path, 'caldav', data['password'], remember=data.get('remember') is True)
+    elif _target(s) != before:  # F03: neues Ziel oder Konto – das alte Passwort geht nie an einen anderen Server
+        forget(db_path, 'caldav')
     put_setting(conn, SETTING, s)
     conn.commit()
     return view(conn, db_path)
@@ -97,6 +118,7 @@ def _auth(conn, db_path):
     s = _settings(conn)
     if not (s['url'] and s['username']):
         raise ValueError('Zuerst Kalender-Adresse und Benutzername eintragen.')
+    _check_url(s['url'])  # Ziel bei jeder Verwendung erneut prüfen (Namensauflösung kann sich ändern)
     pw = get(db_path, 'caldav')
     if not pw:
         raise ValueError('Passwort für den Kalender fehlt (nach einem Neustart erneut eingeben oder „auf diesem Rechner merken“).')

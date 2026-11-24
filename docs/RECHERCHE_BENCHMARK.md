@@ -8,6 +8,11 @@ Mit SDQ-006 gibt es ein **Werkzeug**, aber **noch kein Ergebnis**. Ein Ergebnis 
 
 1. **Referenzliste anlegen.** Vorlage: [`docs/bench/research/vorlage-referenz.json`](bench/research/vorlage-referenz.json). Prüfen mit
    `python tools/research_benchmark.py validate referenz.json`.
+   Wer lieber in einer Tabelle arbeitet (ab dev65): Tabellenvorlage ausfüllen (Spalten Suche, Ref-Nr, Firmenname, Rechtsform,
+   PLZ, Ort, Website, Registernummer, Status, Beleg 1/2, Prüfer 1/2, Prüfdatum, Notiz), Beispielzeile löschen, dann
+   `python tools/research_benchmark.py import-table liste.xlsx --out referenz.json --suche q1="Steuerberater 70173–70199" --vollstaendig q1 --methode q1="Kammerverzeichnis, Stichtag …"`.
+   CSV mit `;` oder `,` geht auch (für `.xlsx` wird `openpyxl` gebraucht). In der Tabelle heißt eine leere Zelle bei Website
+   oder Registernummer „nicht geprüft“, `keine` heißt „geprüft, gibt es nicht“. Andere Spalten werden abgelehnt.
 2. **In SignalDesk recherchieren**, wie es eine Nutzerin tun würde: dieselbe Branche, dasselbe Gebiet, eine frische Datenbank.
 3. **Lauf exportieren:**
    `python tools/research_benchmark.py export-run --db signaldesk.sqlite3 --query q1 --out lauf.json`.
