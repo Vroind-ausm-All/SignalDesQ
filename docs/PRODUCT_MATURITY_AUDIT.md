@@ -100,7 +100,7 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
 | SDQ-004 | P0 | Zugangsdaten ohne Klartext: OS-Schlüsselbund optional, Migration der Altdatei, keine Geheimnisse in Logs/Exporten | – | **implementiert** |
 | SDQ-005 | P1 | Volle Browser-Suite in CI | – | erledigt (2.0.0-dev56) |
 | SDQ-006 | P1 | Recherche-Benchmark: Referenzliste, Messgrößen, Auswerteskript (Ergebnisse erst mit echten Prüfern) | – | Werkzeug erledigt (2.0.0-dev57), Messung offen |
-| SDQ-007 | P1 | Identitätsstufen (bestätigt … keine Zuordnung) mit harten Gegenbelegen und Regressionen | SDQ-006 | offen |
+| SDQ-007 | P1 | Identitätsstufen (bestätigt … keine Zuordnung) mit harten Gegenbelegen und Regressionen | SDQ-006 | Website-Zuordnung in „Finden“ erledigt (2.0.0-dev59) |
 | SDQ-008 | P1 | Provider-Beschreibung je Quelle (Lizenz, Frische, Limits, Fehlerrate, Kosten) | – | erledigt (2.0.0-dev58) |
 | SDQ-009 | P1 | Gestaltetes Angebots-PDF aus dem Kundenexport | – | offen |
 | SDQ-010 | P1 | Datenzugriffsschicht mit Organisationsfilter (Vorbereitung Mandanten) | SDQ-002…004 | offen |
@@ -252,3 +252,22 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
   Quellen geprüft; die Antwort sagt das (`live_verified: false`). Kostenpflichtige Anbieter sind nicht angebunden.
 - **Reifeauswirkung (Vorschlag):** Dimension 1 (Firmenfindung) 45 → 46: Herkunft und Zuverlässigkeit jeder Quelle sind jetzt
   sichtbar und messbar; die Abdeckung selbst ist unverändert. Gesamtindex 48,90 → 49,01 (≈ 49,0).
+
+### SDQ-007 – Website-Zuordnung: Stufen und harte Gegenbelege (P1)
+
+- **Ausgangsproblem:** Die Website-Suche in „Finden“ (`sweep.find_website` → `_match`) kannte die Stufen „belegt“,
+  „wahrscheinlich“ (Vorschlag) und keine Zuordnung, prüfte als Gegenbeleg aber nur Registernummer, Registergericht, Name und
+  PLZ. Nachgestellt: „Müller Elektro GmbH“ ↔ Impressum „Müller Elektro e.K.“, „Muster Bau GmbH & Co. KG“ ↔ „Muster Bau
+  Verwaltungs GmbH“, Firma in Stuttgart ↔ Impressum in Hamburg (wenn eine Seite keine PLZ hat) und „Elektro GmbH“ ↔
+  „Elektro Schmidt GmbH“ wurden alle als „wahrscheinlich“ vorgeschlagen. Das widersprach dem Grundsatz in
+  `research/identity.py` (Rechtsform und Ort sind harte Gegenbelege; Verwaltungs-GmbH und KG bleiben getrennt).
+- **Änderung:** neue `sweep.counter_evidence()` – andere Registernummer, anderes Registergericht, anderer Name, andere
+  Rechtsform (`identity.legal_family`), andere PLZ, anderer Ort (`identity.norm_city`, nur wenn die PLZ nicht ohnehin
+  übereinstimmt). Jeder Gegenbeleg schließt die Zuordnung aus, auch als Vorschlag. Namensabgleich: Ein Name, der im anderen
+  steckt, zählt nur noch, wenn er aus mindestens zwei Wörtern besteht. Abgelehnte Domains stehen mit Grund im Beleg
+  („Gegenbeleg: domain.de: andere Rechtsform im Impressum (…)“).
+- **Tests:** `tests/test_sdq007_identity_levels.py` (7 Fälle, 6 davon gegen den alten Stand rot); bestehende Tests zu
+  Website-Suche und OSM-Funden unverändert grün.
+- **Nicht umgesetzt:** Die Impressumsübernahme für eine vom Nutzer selbst eingetragene Website (`lead_imprint.py`) nutzt die
+  Gegenbelege noch nicht. Eine Messung, wie viele Fehlzuordnungen das verhindert, steht aus (SDQ-006, Referenzliste).
+- **Reifeauswirkung (Vorschlag):** Dimension 2 (Identität) 50 → 52 (Konfidenz M, ohne Messung). Gesamtindex 49,01 → 49,21.
