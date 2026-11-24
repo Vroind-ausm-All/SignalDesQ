@@ -44,7 +44,7 @@ Regeln für jede spätere Änderung eines Werts (Phase H):
 | Echte Websites, echte Quellen | bewusst nicht ausgeführt (keine Abrufe fremder Seiten) | **nicht geprüft** |
 
 CI: vier Jobs (unit-Matrix, install-Matrix, e2e nur `test_ui_workday.py`, reproduzierbares Release mit SBOM-Abgleich). Die volle
-Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
+Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen alle Browser-Tests in CI, übersprungene gelten als Fehler.
 
 ## 3. Historische Befunde, am aktuellen Code geprüft
 
@@ -98,7 +98,7 @@ Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
 | SDQ-002 | P0 | Routing: Seitenleiste/Reiter schließen die Firmenakte; URL und sichtbare Ansicht immer gleich | – | **implementiert** |
 | SDQ-003 | P0 | Eingabeschutz für Rechnungs- und Angebotseditor (Wechsel, Neuladen, Schließen) | SDQ-002 (gleiche Navigationsstelle) | **implementiert** |
 | SDQ-004 | P0 | Zugangsdaten ohne Klartext: OS-Schlüsselbund optional, Migration der Altdatei, keine Geheimnisse in Logs/Exporten | – | **implementiert** |
-| SDQ-005 | P1 | Volle Browser-Suite in CI | – | offen |
+| SDQ-005 | P1 | Volle Browser-Suite in CI | – | erledigt (2.0.0-dev56) |
 | SDQ-006 | P1 | Recherche-Benchmark: Referenzliste, Messgrößen, Auswerteskript (Ergebnisse erst mit echten Prüfern) | – | offen |
 | SDQ-007 | P1 | Identitätsstufen (bestätigt … keine Zuordnung) mit harten Gegenbelegen und Regressionen | SDQ-006 | offen |
 | SDQ-008 | P1 | Provider-Beschreibung je Quelle (Lizenz, Frische, Limits, Fehlerrate, Kosten) | – | offen |
@@ -113,7 +113,7 @@ Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
 | Kein bekannter Datenverlust in Kernfunktionen | B2 behoben (SDQ-003); Angebotseditor nur beforeunload, kein Browser-Test mit Positionen |
 | Nachweisbare Mandantentrennung | **offen** (nicht vorhanden) |
 | Backup und Restore geprüft | lokal ja (T15); Cloud offen |
-| Release-Tests | lokal ja; volle Browser-Suite nicht in CI |
+| Release-Tests | Unit-Matrix, Installation, alle 51 Browser-Tests (SDQ-005) und reproduzierbares Release in CI; macOS nicht |
 | Recherchequalität gemessen | **offen** |
 | Externe Nutzertests | **offen** |
 | Produktversprechen rechtlich geprüft | **offen** |
@@ -185,3 +185,17 @@ Browser-Suite läuft in CI **nicht** – Befund T-1 unten.
   Für SaaS braucht es ein serverseitiges Secret Management (Welle 4/5) – dieses Paket betrifft die lokale Installation.
 - **Reifeauswirkung:** Dimension 9 (Sicherheit) nannte diesen Befund als Hauptabzug: 33 → 38 (Konfidenz M, ohne externe Prüfung).
   Gesamtindex 48,24 → 48,74 (≈ 48,7).
+
+### SDQ-005 – Volle Browser-Suite in der CI (P1, Befund T-1)
+
+- **Ausgangsproblem:** Der CI-Job `e2e` führte nur `tests/e2e/test_ui_workday.py` aus; die übrigen 50 Browser-Tests (darunter die
+  Regressionstests zu SDQ-001 bis SDQ-004) liefen nur lokal. Zusätzlich überspringen sich alle Browser-Tests still, wenn Playwright
+  fehlt – ein kaputter Installationsschritt hätte einen grünen Lauf ohne einen einzigen Browser-Test ergeben.
+- **Änderung:** neues `tools/run_e2e.py` (führt `tests/e2e` vollständig aus, zählt gefunden/gelaufen/übersprungen/nicht bestanden).
+  Der CI-Job ruft es mit `--no-skips --min-tests 51` auf: ein übersprungener Test oder weniger als 51 gefundene Tests machen den
+  Lauf rot. Zeitlimit des Jobs 25 → 30 Minuten.
+- **Tests:** lokal 51 gefunden, 51 gelaufen, 0 übersprungen, 0 nicht bestanden (226 s, Chromium 1243, Playwright 1.64.1).
+  CI-Ergebnis siehe Pull Request.
+- **Nicht abgedeckt:** Browser-Tests nur unter Linux/Chromium; kein Firefox/WebKit, kein Windows-Browserlauf.
+- **Reifeauswirkung (Vorschlag, gilt erst mit grünem CI-Lauf):** Dimension 8 (Tests) 65 → 67, weil Regressionen der
+  Oberfläche jetzt bei jedem Push geprüft werden. Gesamtindex 48,74 → 48,90 (≈ 48,9).

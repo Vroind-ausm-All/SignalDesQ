@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.0-dev56 – Alle Browser-Tests laufen in der CI (SDQ-005)
+
+- **Prüfung bei jedem Push:** Die CI führte bisher nur einen der 51 Browser-Tests aus. Jetzt laufen alle, auch die Regressionstests zu Teilabrechnung, Akte-Navigation, Rechnungs-Eingabeschutz und Passwortspeicher.
+- **Kein stilles Überspringen:** Fehlt Playwright oder Chromium, wurden die Browser-Tests bisher übersprungen und der Lauf blieb grün. Neues `tools/run_e2e.py` zählt gefundene, gelaufene und übersprungene Tests; in der CI ist jeder übersprungene Test ein Fehler, und es müssen mindestens 51 Tests gefunden werden.
+- Keine Änderung an der Anwendung selbst.
+
 ## 2.0.0-dev55 – Welle 1: Teilabrechnung, Akte und Rechnungsentwurf beim Wechseln, Passwörter nie im Klartext (SDQ-001 bis SDQ-004)
 
 Erstes Arbeitspaket der Welle „Kritische Fehler und Sicherheitsgrundlagen“; neuer technischer Ausgangsstand in [PRODUCT_MATURITY_AUDIT.md](docs/PRODUCT_MATURITY_AUDIT.md).
