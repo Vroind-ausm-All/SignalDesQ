@@ -87,7 +87,14 @@ def onboarding(conn):
     leads = conn.execute('SELECT COUNT(*) FROM leads').fetchone()[0]
     inbound = conn.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='inbound'").fetchone()[0] and \
         conn.execute('SELECT COUNT(*) FROM inbound').fetchone()[0]
+    # 2.0.0-dev64 (SDQ-026): Rechnungsstammdaten als erster Schritt – ohne sie gibt es keine gültige (E-)Rechnung.
+    from .accounting import get_settings
+    from .einvoice import settings_ready_for_xrechnung
+    missing = get_settings(conn)['missing'] + [m for m in settings_ready_for_xrechnung(conn) if m == 'Telefon']
     steps = [
+        {'key': 'rechnungsdaten', 'label': 'Rechnungsdaten eintragen',
+         'detail': ('Noch offen: ' + ', '.join(missing) + '.') if missing else 'Firmenname, Anschrift, Steuernummer, IBAN, E-Mail und Telefon für Rechnung und E-Rechnung.',
+         'done': not missing, 'action': {'label': 'Öffnen', 'view': 'settings', 'anchor': 'firma'}},
         {'key': 'preise', 'label': 'Leistungen und Preise prüfen', 'detail': 'Stundensatz, Mindestverdienst und Katalogwerte – Grundlage jedes Festpreises.',
          'done': has('pricing'), 'action': {'label': 'Öffnen', 'view': 'settings', 'anchor': 'preise'}},
         {'key': 'zielkunden', 'label': 'Zielkunden festlegen', 'detail': 'Region, Größe und Branchen – danach bewertet SignalDesk die Passung.',

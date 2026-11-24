@@ -108,7 +108,7 @@ class MultiTenantTests(unittest.TestCase):
         self.assertEqual(c.call('/zentral.js')[0], 200)
         self.assertEqual(c.call('/app.js')[0], 200)
         self.assertEqual(c.call('/rechnung/1')[0], 302)
-        self.assertEqual(c.call('/api/zentral/status')[1], {'logged_in': False})
+        self.assertEqual(c.call('/api/zentral/status')[1], {'logged_in': False, 'registration_open': False})  # dev64: Registrierung ist standardmäßig aus
 
     def test_single_membership_enters_directly_and_sees_only_own_data(self):
         c = Client(self.base)

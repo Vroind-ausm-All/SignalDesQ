@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev64 – Welle 5: E-Rechnung prüfen, DATEV, Ersteinrichtung, Registrierung und Tarif (SDQ-024 bis SDQ-028)
+
+- **Neu – E-Rechnung prüfen:** In jeder Rechnung prüft „E-Rechnung prüfen“ die XRechnung gegen 63 Regeln aus EN 16931 und XRechnung 3.0 (Pflichtangaben, Summen, Steuer, Codelisten, IBAN-Prüfziffer, Kontaktangaben). Auch importierte E-Rechnungen werden so geprüft. Die Prüfung ersetzt den offiziellen KoSIT-Validator nicht und sagt das auch.
+- **Neu – DATEV-Buchungsstapel:** Unter „Steuer & Export“ Beraternummer und Mandantennummer eintragen, dann die Datei im DATEV-Format (EXTF 700, SKR03) herunterladen. Ein Probeimport in DATEV ist noch nicht erfolgt – bitte mit der Steuerberatung einen Testimport vereinbaren. Ausgaben nach § 13b sind als „prüfen“ markiert.
+- **Ersteinrichtung:** Der erste Schritt unter „Erste Schritte“ heißt jetzt „Rechnungsdaten eintragen“ und nennt, was für eine gültige (E-)Rechnung noch fehlt.
+- **Neu für Server mit mehreren Organisationen – Registrierung und Einladungen:** Wenn der Betreiber es freischaltet, kann sich eine neue Organisation unter `/anmelden` selbst registrieren (Bestätigung per Link). Die Verwaltung einer Organisation lädt Mitglieder per E-Mail-Adresse ein, zieht Einladungen zurück und entfernt Mitglieder. **SignalDesk verschickt dabei keine E-Mails:** Die Nachrichten liegen im Postausgang des Servers, der Betreiber gibt den Link weiter.
+- **Neu – Testphase und Tarif:** Selbst registrierte Organisationen starten mit einer Testphase. Danach ist die Organisation nur lesbar (Ansehen und Export gehen weiter, nichts wird gelöscht), bis der Betreiber den Tarif freischaltet. Es gibt keinen Zahlungsanbieter und keine Preise im Programm.
+- **Für Betreiber:** neue Befehle `einstellung`, `konto-email`, `tarif`, `postausgang` und `anlegen … --admin KONTO`.
+- Tests: neu `test_sdq024_einvoice_check.py` (10), `test_sdq025_datev.py` (5), `test_sdq027_signup.py` (10), `e2e/test_sdq024_invoice_check_browser.py`, `e2e/test_sdq027_signup_browser.py`; Ersteinrichtung in `test_v2_focus.py` erweitert.
+
 ## 2.0.0-dev63 – Betrieb und Sicherheit für den Server mit mehreren Organisationen (SDQ-017 bis SDQ-023)
 
 - **Neu – Zwei-Faktor-Anmeldung:** Unter `/anmelden` → „Zwei-Faktor-Anmeldung“ verbindest du dein Konto mit einer Authenticator-App (zeitbasierte Codes, RFC 6238). Danach fragt SignalDesk nach dem Passwort einen Code ab; vorher gibt es weder die Liste der Organisationen noch Zutritt. Jeder Code gilt nur einmal. Dazu gibt es zehn Wiederherstellungscodes für den Fall, dass das Telefon fehlt. Der Betreiber kann den zweiten Faktor für alle vorschreiben (`zwei-faktor-pflicht an`); wer ihn noch nicht hat, richtet ihn bei der nächsten Anmeldung ein.

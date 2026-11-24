@@ -278,6 +278,13 @@
 
   window.accOpenInvoice = openInvoice;
 
+  // 2.0.0-dev64 (SDQ-024): Ergebnis der Regelprüfung – ehrlich als Teilprüfung gekennzeichnet
+  function checkHtml(c) {
+    const items = list => list.map(e => `<li><code>${esc(e.rule)}</code> ${esc(e.text)}</li>`).join('');
+    const head = c.valid === null ? 'Nicht geprüft' : c.valid ? `Keine Fehler in ${c.rules_checked} geprüften Regeln` : `${c.errors.length} Fehler in ${c.rules_checked} geprüften Regeln`;
+    return `<div class="sales-banner ${c.valid === false ? 'sales-warning' : ''}" data-acc-check-state="${c.valid === null ? 'offen' : c.valid ? 'ok' : 'fehler'}"><b>${esc(head)}</b>${c.profile ? ' · ' + esc(c.profile) : ''}${c.errors.length ? `<ul>${items(c.errors)}</ul>` : ''}${c.warnings.length ? `<ul class="muted">${items(c.warnings)}</ul>` : ''}<small class="muted">${esc(c.notice)}</small></div>`;
+  }
+
   function showDetail(inv) {
     setMode('detail');
     const el = $('#accDetail');
@@ -288,8 +295,8 @@
     el.innerHTML = `<div class="ui-head"><button type="button" class="ui-back" data-acc-close-detail>← Rechnungen</button><h1>${esc(inv.number)}</h1>${statusPill(inv)}<span class="ui-meta">${esc(inv.buyer_name)} · ${esc(kindNames[inv.kind] || '')}</span><span class="ui-sp"></span><a class="btn btn-primary" href="/rechnung/${inv.id}" target="_blank" rel="noopener">Drucken / PDF ↗</a></div>
       <div class="ui-card acc-detail"><div class="acc-detail-grid"><div><small>Rechnungsdatum</small><b>${deDate(inv.issue_date)}</b></div><div><small>Fällig</small><b>${deDate(inv.due_date)}</b></div><div><small>Brutto</small><b>${money(inv.gross_cents)}</b></div><div><small>Offen</small><b>${money(inv.outstanding_cents)}</b>${inv.overdue_days ? `<small class="late">${inv.overdue_days} Tage überfällig</small>` : ''}</div></div>
       ${inv.corrects ? `<p class="muted">Storniert Rechnung ${esc(inv.corrects.number)} vom ${deDate(inv.corrects.issue_date)}.</p>` : ''}${inv.corrected_by.length ? `<p class="muted">Storniert durch ${inv.corrected_by.map(c => `<button type="button" class="text-button" data-acc-open="${c.id}">${esc(c.number)}</button>`).join(', ')}.</p>` : ''}
-      <div class="acc-btn-group"><a class="btn btn-ghost" href="/api/accounting/invoices/${inv.id}/xrechnung" download>E-Rechnung (XRechnung XML) ↓</a>${inv.kind !== 'storno' ? `<button type="button" class="btn btn-ghost" data-acc-duplicate="${inv.id}">Als neuen Entwurf kopieren</button>` : ''}${inv.status === 'offen' && inv.kind !== 'storno' ? `<button type="button" class="btn btn-danger" data-acc-cancel="${inv.id}">Stornieren</button>` : ''}</div>
-      <p class="muted">Die XRechnung ist die rechtlich maßgebliche E-Rechnung für Geschäftskunden; das PDF ist eine Ansichtskopie. Nichts wird automatisch versendet.</p>
+      <div class="acc-btn-group"><a class="btn btn-ghost" href="/api/accounting/invoices/${inv.id}/xrechnung" download>E-Rechnung (XRechnung XML) ↓</a><button type="button" class="btn btn-ghost" data-acc-check="${inv.id}">E-Rechnung prüfen</button>${inv.kind !== 'storno' ? `<button type="button" class="btn btn-ghost" data-acc-duplicate="${inv.id}">Als neuen Entwurf kopieren</button>` : ''}${inv.status === 'offen' && inv.kind !== 'storno' ? `<button type="button" class="btn btn-danger" data-acc-cancel="${inv.id}">Stornieren</button>` : ''}</div>
+      <p class="muted">Die XRechnung ist die rechtlich maßgebliche E-Rechnung für Geschäftskunden; das PDF ist eine Ansichtskopie. Nichts wird automatisch versendet.</p><div id="accCheckResult" aria-live="polite"></div>
       <div class="sales-cols acc-detail-cols">
         <div><div class="sales-subhead">Zahlungseingänge</div><div class="sales-list">${payments}</div>
           ${open ? `<form class="sales-form" id="accPaymentForm"><div class="acc-row3"><label>Betrag €<input name="amount_eur" inputmode="decimal" value="${(inv.outstanding_cents / 100).toFixed(2).replace('.', ',')}"></label><label>Datum<input type="date" name="paid_on" value="${iso(new Date())}"></label><label>Art<select name="method">${catalog.payment_methods.map(m => `<option value="${m}">${esc(methodNames[m])}</option>`).join('')}</select></label></div><label>Notiz (z. B. Kontoauszug-Nr.)<input name="note" maxlength="300"></label><button type="submit" class="btn btn-ghost">Zahlung erfassen</button></form>` : ''}</div>
@@ -354,7 +361,7 @@
     try {
       const r = await api('/accounting/einvoice/import', 'POST', {filename: file.name, xml: await file.text()});
       const p = r.parsed, s = r.expense_suggestion, f = $('#accExpenseForm');
-      $('#accEinvoiceResult').innerHTML = `<div class="sales-banner"><b>${esc(p.format)}</b> · ${esc(p.supplier)} · Nr. ${esc(p.number)} · ${deDate(p.issue_date)}<br>Netto ${esc(p.net)} · USt. ${esc(p.vat)} · Brutto ${esc(p.gross)} ${esc(p.currency)}${p.due_date ? ' · fällig ' + deDate(p.due_date) : ''}${p.iban ? '<br>IBAN ' + esc(p.iban) : ''}</div>${p.warnings.map(w => `<div class="sales-banner sales-warning">${esc(w)}</div>`).join('')}${r.duplicate ? '<div class="sales-banner sales-warning">Diese Datei wurde bereits importiert.</div>' : ''}${r.already_booked_expense_id ? '<div class="sales-banner sales-warning">Bereits als Ausgabe gebucht.</div>' : ''}<p class="muted">${esc(r.notice)}</p>`;
+      $('#accEinvoiceResult').innerHTML = `<div class="sales-banner"><b>${esc(p.format)}</b> · ${esc(p.supplier)} · Nr. ${esc(p.number)} · ${deDate(p.issue_date)}<br>Netto ${esc(p.net)} · USt. ${esc(p.vat)} · Brutto ${esc(p.gross)} ${esc(p.currency)}${p.due_date ? ' · fällig ' + deDate(p.due_date) : ''}${p.iban ? '<br>IBAN ' + esc(p.iban) : ''}</div>${p.warnings.map(w => `<div class="sales-banner sales-warning">${esc(w)}</div>`).join('')}${r.duplicate ? '<div class="sales-banner sales-warning">Diese Datei wurde bereits importiert.</div>' : ''}${r.already_booked_expense_id ? '<div class="sales-banner sales-warning">Bereits als Ausgabe gebucht.</div>' : ''}<p class="muted">${esc(r.notice)}</p>${r.check ? checkHtml(r.check) : ''}`;
       if (!r.already_booked_expense_id) {
         f.elements.document_id.value = r.document_id;
         for (const k of ['supplier', 'expense_date', 'receipt_ref', 'description']) f.elements[k].value = s[k] || '';
@@ -397,8 +404,23 @@
       const route = Object.entries(k.paid_by_contact_route_cents);
       $('#accSalesKpis').innerHTML = `<div class="sales-internal-grid"><span>Angebote erstellt</span><b>${k.proposals_total}</b>${Object.entries(k.proposals_by_status).map(([s, n]) => `<span>· ${esc(s.replaceAll('_', ' '))}</span><b>${n}</b>`).join('')}<span>Annahmequote (angenommen / entschieden)</span><b>${k.acceptance_rate_pct === null ? '–' : k.acceptance_rate_pct + ' %'}</b><span>Ø angenommener Auftragswert netto</span><b>${k.avg_accepted_net_eur === null ? '–' : money(k.avg_accepted_net_eur * 100)}</b><span>Firmen gewonnen / verloren</span><b>${k.leads_won} / ${k.leads_lost}</b></div><div class="sales-subhead">Zahlungseingang nach Kontaktweg</div>${route.length ? `<div class="sales-internal-grid">${route.map(([r, c]) => `<span>${esc(r === 'unbekannt' ? 'Kontaktweg nicht erfasst' : ((typeof routeNames !== 'undefined' && routeNames[r]) || r))}</span><b>${money(c)}</b>`).join('')}</div>` : '<div class="empty">Noch keine Zahlungen mit Firmen-Zuordnung.</div>'}<p class="muted">${esc(k.note)}</p>`;
       $('#accExports').innerHTML = [['rechnungen', 'Rechnungsausgangsbuch'], ['ausgaben', 'Ausgaben / Belege'], ['buchungen', 'Buchungsliste (SKR03-Vorschlag)']].map(([kind, label]) => `<a class="btn btn-ghost" href="/api/accounting/export/${kind}.csv?${qs}" download>${esc(label)} ↓</a>`).join('');
+      renderDatev(qs);
       $('#accAudit').innerHTML = audit.length ? audit.slice(0, 60).map(a => `<div class="sales-item"><div><strong>${esc(a.entity)} #${esc(a.entity_id)} · ${esc(a.action.replaceAll('_', ' '))}</strong><small>${esc(a.ts)} UTC · ${esc(a.detail)}</small></div></div>`).join('') : '<div class="empty">Noch keine Einträge.</div>';
     } catch (err) { toast(err.message, true); }
+  }
+
+  // 2.0.0-dev64 (SDQ-025): DATEV-Buchungsstapel – Nummern der Steuerberatung, Vorschau, Download
+  async function renderDatev(qs) {
+    const box = $('#accDatev');
+    if (!box) return;
+    try {
+      const d = await api('/accounting/datev/settings');
+      const form = `<form class="sales-form" id="accDatevForm"><div class="acc-row3"><label>Beraternummer<input name="berater_nr" inputmode="numeric" maxlength="7" value="${esc(d.berater_nr)}"></label><label>Mandantennummer<input name="mandant_nr" inputmode="numeric" maxlength="5" value="${esc(d.mandant_nr)}"></label><label>Wirtschaftsjahr beginnt<select name="wj_beginn_monat">${Array.from({length: 12}, (_, i) => `<option value="${i + 1}" ${d.wj_beginn_monat === i + 1 ? 'selected' : ''}>${i + 1}.</option>`).join('')}</select></label></div><button type="submit" class="btn btn-ghost">Speichern</button></form>`;
+      if (d.missing.length) { box.innerHTML = `<p class="muted">Für den DATEV-Export die Nummern von der Steuerberatung eintragen: ${esc(d.missing.join(', '))}.</p>${form}`; return; }
+      let info = null, err = '';
+      try { info = await api('/accounting/datev/preview?' + qs); } catch (e) { err = e.message; }
+      box.innerHTML = `${err ? `<div class="sales-banner sales-warning">${esc(err)}</div>` : `<a class="btn btn-ghost" id="accDatevDownload" href="/api/accounting/export/datev.csv?${qs}" download>DATEV-Buchungsstapel (${info.count} Buchungen) ↓</a>${info.review.length ? `<div class="sales-banner sales-warning">${info.review.length} Buchung(en) mit § 13b ohne Steuerschlüssel – mit der Steuerberatung klären.</div>` : ''}<p class="muted">${esc(info.notice)}</p>`}<details><summary>Nummern der Steuerberatung</summary>${form}</details>`;
+    } catch (e) { box.innerHTML = `<div class="sales-banner sales-warning">${esc(e.message)}</div>`; }
   }
 
   // ------------------------------------------------------------ Stammdaten & Backup (Einstellungen → Meine Firma, Sicherung & Zugang)
@@ -460,6 +482,13 @@
     $('#accShowCancelled').addEventListener('change', loadExpenses);
     $('#accPreset').addEventListener('change', () => { applyPreset(); loadReport(); });
     $('#accReportForm').addEventListener('submit', loadReport);
+    $('#accDatev')?.addEventListener('submit', e => {
+      if (e.target.id !== 'accDatevForm') return;
+      e.preventDefault();
+      const f = e.target;
+      api('/accounting/datev/settings', 'PUT', {berater_nr: f.elements.berater_nr.value, mandant_nr: f.elements.mandant_nr.value, wj_beginn_monat: Number(f.elements.wj_beginn_monat.value)})
+        .then(() => { toast('DATEV-Angaben gespeichert'); loadReport(); }).catch(err => toast(err.message, true));
+    });
     $('#accReportForm').addEventListener('input', e => { if (e.target.type === 'date') $('#accPreset').value = 'custom'; });
     $('#accSettingsForm')?.addEventListener('submit', saveSettings);
     $('#accBackup')?.addEventListener('click', async () => {
@@ -470,6 +499,7 @@
     $('#viewAccounting').addEventListener('submit', e => {
       if (e.target.id === 'accPaymentForm') { e.preventDefault(); submitPayment(e.target); }
       if (e.target.id === 'accDunningForm') { e.preventDefault(); submitDunning(e.target); }
+
     });
     $('#viewAccounting').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-acc-open]')) { e.preventDefault(); openInvoice(Number(e.target.dataset.accOpen)); } });
     document.addEventListener('click', async e => {
@@ -481,6 +511,8 @@
       if (fp) return fromProposal(Number(fp.dataset.accFromProposal), fp.dataset.mode);
       if (t.closest('[data-acc-del-line]')) { const rows = $$('#accLines .acc-line'); if (rows.length > 1) t.closest('tr').remove(); updateTotals(); return; }
       if (t.closest('[data-acc-close-detail]')) { setMode('list'); return; }
+      const chk = t.closest('[data-acc-check]');
+      if (chk) { try { $('#accCheckResult').innerHTML = checkHtml(await api(`/accounting/invoices/${chk.dataset.accCheck}/xrechnung/check`)); } catch (err) { toast(err.message, true); } return; }
       const dup = t.closest('[data-acc-duplicate]');
       if (dup) { try { const inv = await api(`/accounting/invoices/${dup.dataset.accDuplicate}/duplicate`, 'POST', {}); toast('Kopie als Entwurf angelegt – Leistungsdatum ergänzen'); loadInvoices(); openEditor(inv); } catch (err) { toast(err.message, true); } return; }
       const cancel = t.closest('[data-acc-cancel]');

@@ -8,9 +8,11 @@ from pathlib import Path
 
 from . import accounting as acc
 from .einvoice import document_row, document_rows, import_document, xrechnung_xml
+from .einvoice_check import check as check_einvoice
+from . import datev
 from .invoice_print import invoice_html
 
-INVOICE_RE = re.compile(r'/api/accounting/invoices/(\d+)(/finalize|/cancel|/duplicate|/payments|/dunning|/xrechnung)?')
+INVOICE_RE = re.compile(r'/api/accounting/invoices/(\d+)(/finalize|/cancel|/duplicate|/payments|/dunning|/xrechnung|/xrechnung/check)?')
 
 
 def _q(query, key):
@@ -98,6 +100,12 @@ def route_accounting(h, conn, method, route, query, db_path):
             h._send_raw(200, data, 'application/xml', f'xrechnung-{number}.xml',
                         extra_headers={'X-SignalDesk-Warnings': str(len(warnings))})
             return True
+        if action == '/xrechnung/check' and method == 'GET':
+            data, warnings = xrechnung_xml(conn, ident)
+            result = check_einvoice(data)
+            result['generator_warnings'] = warnings
+            h._send(200, result)
+            return True
         return False
     pay = re.fullmatch(r'/api/accounting/payments/(\d+)', route)
     if pay and method == 'DELETE':
@@ -123,7 +131,10 @@ def route_accounting(h, conn, method, route, query, db_path):
             h._send(200, acc.cancel_expense(conn, int(exp.group(1)), str(body.get('reason') or '')))
         return True
     if route == '/api/accounting/einvoice/import' and method == 'POST':
-        h._send(200, import_document(conn, h._body(max_len=4_500_000)))
+        result = import_document(conn, h._body(max_len=4_500_000))
+        doc = document_row(conn, result['document_id'])
+        result['check'] = check_einvoice(bytes(doc['xml']))
+        h._send(200, result)
         return True
     if route == '/api/accounting/documents' and method == 'GET':
         h._send(200, document_rows(conn))
@@ -146,6 +157,24 @@ def route_accounting(h, conn, method, route, query, db_path):
         start, end = acc._period(params)
         body = acc.export_csv(conn, export.group(1), params).encode('utf-8')
         h._send_raw(200, body, 'text/csv', f'signaldesk-{export.group(1)}-{start}-bis-{end}.csv')
+        return True
+    if route == '/api/accounting/datev/settings':
+        if method == 'GET':
+            h._send(200, datev.get_datev_settings(conn))
+            return True
+        if method == 'PUT':
+            h._send(200, datev.save_datev_settings(conn, h._body()))
+            return True
+    if route == '/api/accounting/export/datev.csv' and method == 'GET':
+        params = {'from': _q(query, 'from'), 'to': _q(query, 'to')}
+        data, info = datev.buchungsstapel(conn, params)
+        h._send_raw(200, data, 'text/csv; charset=windows-1252', f"EXTF_Buchungsstapel_{info['from']}_{info['to']}.csv",
+                    extra_headers={'X-SignalDesk-Pruefen': str(len(info['review']))})
+        return True
+    if route == '/api/accounting/datev/preview' and method == 'GET':
+        params = {'from': _q(query, 'from'), 'to': _q(query, 'to')}
+        _, info = datev.buchungsstapel(conn, params)
+        h._send(200, info)
         return True
     if route == '/api/accounting/audit' and method == 'GET':
         h._send(200, acc.audit_rows(conn))

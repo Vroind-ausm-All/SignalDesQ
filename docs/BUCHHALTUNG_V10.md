@@ -53,7 +53,7 @@ Beides nur, wenn tatsächlich Verzug vorliegt. Texte sind Entwürfe.
 - **UStVA-Vorbereitung** für Monat/Quartal/Jahr, Ist- oder Soll-Basis, Kennzahlen 81, 86, 21, 46/47, 66, 67 und voraussichtliche Zahllast.
 - **EÜR vereinfacht**: Einnahmen nach Zufluss, Ausgaben nach Abfluss, Aufteilung nach Kategorien. Keine AfA, keine Privatanteile.
 - **Vertriebskennzahlen**: Angebote je Status, Annahmequote, Ø Auftragswert, Zahlungseingang je Kontaktweg.
-- **CSV-Exporte** (Excel-kompatibel, `;`, deutsches Zahlenformat, Schutz gegen Formel-Injection): Rechnungsausgangsbuch, Ausgaben, Buchungsliste mit SKR03-Kontenvorschlägen. Kein DATEV-Format.
+- **CSV-Exporte** (Excel-kompatibel, `;`, deutsches Zahlenformat, Schutz gegen Formel-Injection): Rechnungsausgangsbuch, Ausgaben, Buchungsliste mit SKR03-Kontenvorschlägen. Seit 2.0.0-dev64 zusätzlich ein DATEV-Buchungsstapel (EXTF 700, siehe unten).
 - **Änderungsprotokoll** aller buchhalterisch relevanten Aktionen.
 
 ## API (lokal, JSON)
@@ -82,6 +82,21 @@ Beides nur, wenn tatsächlich Verzug vorliegt. Texte sind Entwürfe.
 ## Grenzen & Prüfbedarf
 
 - Die XRechnung folgt XRechnung 3.0 / EN 16931 (UBL), wurde aber **nicht mit dem offiziellen KoSIT-Validator geprüft** (in der Entwicklungsumgebung nicht erreichbar). Vor dem ersten Kundenversand eine Datei validieren.
-- Keine ZUGFeRD-PDF, kein GiroCode, kein Bankimport, kein DATEV-Format, keine ELSTER-Übermittlung.
+- Keine ZUGFeRD-PDF, kein GiroCode, kein Bankimport, keine ELSTER-Übermittlung. DATEV-Buchungsstapel seit 2.0.0-dev64 (ohne Probeimport in DATEV).
 - Keine Verfahrensdokumentation – die musst du (ggf. mit Vorlage der Steuerberatung) selbst erstellen.
 - Kontenvorschläge SKR03 sind Vorschläge, keine verbindliche Kontierung.
+
+## Ergänzung 2.0.0-dev64: E-Rechnung prüfen, DATEV-Buchungsstapel
+
+- **E-Rechnung prüfen** (Rechnung öffnen → „E-Rechnung prüfen“; beim Import einer E-Rechnung automatisch): 63 Regeln aus
+  EN 16931 und XRechnung 3.0 – Pflichtangaben, Rechensummen je Position, je Steuersatz und gesamt, Steuerkategorien,
+  Codelisten (Währung, Land, Einheit), Zahlungsangaben mit IBAN-Prüfziffer, Kontaktangaben (BR-DE). Platzhalter wie eine
+  fehlende Käufer-E-Mail gelten als Fehler. **Kein Ersatz für den KoSIT-Validator**; CII-Dateien werden als „nicht geprüft“
+  gemeldet.
+- **DATEV-Buchungsstapel** (Steuer & Export): Datei `EXTF_Buchungsstapel_…csv` im DATEV-Format 700, Kategorie 21,
+  Formatversion 13, Kontenrahmen SKR03, Sachkontenlänge 4, Windows-1252, Belegdatum TTMM. Ausgangsrechnungen über den
+  Sammeldebitor 10000 an die Erlöskonten (8400/8300 sind Automatikkonten), Zahlungen Bank an Debitor, Ausgaben mit
+  Vorsteuerschlüssel 9 (19 %) oder 8 (7 %). Ausgaben nach § 13b gehen ohne Schlüssel und als „prüfen“ markiert hinaus.
+  Beraternummer, Mandantennummer und Beginn des Wirtschaftsjahrs kommen von der Steuerberatung; der Zeitraum muss in einem
+  Wirtschaftsjahr liegen. **Ein Probeimport in DATEV ist nicht erfolgt** – vor der ersten Übergabe mit der Steuerberatung
+  einen Testimport vereinbaren.

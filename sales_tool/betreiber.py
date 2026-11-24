@@ -32,7 +32,7 @@ import json
 import os
 import sys
 
-from . import accounts, audit_trail, ops, tenancy
+from . import abrechnung, accounts, audit_trail, mailer, ops, tenancy
 
 
 def _secret(env, prompt, confirm=True):
@@ -52,6 +52,7 @@ def _parser():
     a = sub.add_parser('anlegen')
     a.add_argument('slug')
     a.add_argument('name')
+    a.add_argument('--admin', help='vorhandenes Konto gleich als Verwaltung der neuen Organisation eintragen')
     sub.add_parser('liste').add_argument('--alle', action='store_true', help='auch archivierte')
     sub.add_parser('archivieren').add_argument('slug')
     ex = sub.add_parser('export')
@@ -61,6 +62,19 @@ def _parser():
     k = sub.add_parser('konto-anlegen', help='zentrales Konto (Passwort aus SIGNALDESK_PASSWORT oder Abfrage)')
     k.add_argument('username')
     k.add_argument('display_name', nargs='?', default='')
+    k.add_argument('--email', default='')
+    ke = sub.add_parser('konto-email', help='E-Mail-Adresse eines Kontos setzen (leer: entfernen)')
+    ke.add_argument('username')
+    ke.add_argument('email', nargs='?', default='')
+    st = sub.add_parser('einstellung', help='registrierung (aus|offen), public_url, testphase_tage')
+    st.add_argument('schluessel', choices=sorted(accounts.SETTINGS))
+    st.add_argument('wert')
+    ab = sub.add_parser('tarif', help='Tarif und Abrechnungsstand einer Organisation ansehen oder setzen (Anbieter: manuell)')
+    ab.add_argument('slug')
+    ab.add_argument('--plan', choices=sorted(abrechnung.PLANS))
+    ab.add_argument('--status', choices=abrechnung.STATUSES)
+    ab.add_argument('--bis', help='bezahlt bis JJJJ-MM-TT (bei gekuendigt: Ende)')
+    sub.add_parser('postausgang', help='abgelegte Nachrichten (Einladungen, Bestätigungen)').add_argument('--anzahl', type=int, default=20)
     m = sub.add_parser('mitglied', help='Konto einer Organisation zuordnen oder Rolle ändern')
     m.add_argument('username')
     m.add_argument('slug')
@@ -103,7 +117,12 @@ def run(args, d):  # noqa: C901 – eine Verzweigung je Befehl
     actor = audit_trail.operator()
     cmd = args.cmd
     if cmd == 'anlegen':
-        return d.create(args.slug, args.name, actor=actor), 0
+        if args.admin:
+            accounts.account_view(d, args.admin)  # Konto muss vorhanden sein, bevor die Organisation entsteht
+        org = d.create(args.slug, args.name, actor=actor)
+        if args.admin:
+            org['admin'] = accounts.set_membership(d, args.admin, args.slug, 'admin', actor=actor)
+        return org, 0
     if cmd == 'liste':
         return d.list(include_archived=args.alle), 0
     if cmd == 'archivieren':
@@ -117,7 +136,18 @@ def run(args, d):  # noqa: C901 – eine Verzweigung je Befehl
         return out, 0
     if cmd == 'konto-anlegen':
         pw = _secret('SIGNALDESK_PASSWORT', 'Passwort für das Konto: ')
-        return accounts.create_account(d, args.username, pw, args.display_name, actor=actor), 0
+        return accounts.create_account(d, args.username, pw, args.display_name, actor=actor, email=args.email), 0
+    if cmd == 'konto-email':
+        return accounts.set_email(d, args.username, args.email, actor=actor), 0
+    if cmd == 'einstellung':
+        return accounts.set_setting(d, args.schluessel, args.wert, actor=actor), 0
+    if cmd == 'tarif':
+        if args.plan or args.status or args.bis:
+            return abrechnung.set_subscription(d, args.slug, args.plan, args.status, args.bis, actor=actor), 0
+        d.get(args.slug)
+        return abrechnung.state(d, args.slug), 0
+    if cmd == 'postausgang':
+        return {'ordner': str(d.root / mailer.FOLDER), 'nachrichten': mailer.outbox(d, args.anzahl)}, 0
     if cmd == 'mitglied':
         return accounts.set_membership(d, args.username, args.slug, args.role, actor=actor), 0
     if cmd == 'entziehen':

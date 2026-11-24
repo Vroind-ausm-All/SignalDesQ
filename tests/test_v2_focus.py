@@ -92,7 +92,9 @@ class FocusTests(Base):
 class OnboardingTests(Base):
     def test_steps_follow_real_data_and_can_be_hidden(self):
         o = focus.onboarding(self.conn)
-        self.assertEqual((o['done'], o['total'], o['show']), (0, 4, True))
+        self.assertEqual((o['done'], o['total'], o['show']), (0, 5, True))
+        self.assertEqual(o['steps'][0]['key'], 'rechnungsdaten')
+        self.assertIn('IBAN', o['steps'][0]['detail'])
         from sales_tool import pricing
         pricing.save_pricing_settings(self.conn, {**pricing.pricing_settings(self.conn), 'hourly_rate': 95})
         qualification.save(self.conn, {**qualification.default_profile(), 'industries': [], 'home': '70173'})
@@ -101,11 +103,19 @@ class OnboardingTests(Base):
         reach.save(self.conn, reach.load(self.conn))
         self.conn.commit()
         o = focus.onboarding(self.conn)
-        self.assertEqual({s['key']: s['done'] for s in o['steps']}, {'preise': True, 'zielkunden': True, 'zeiten': True, 'erste_firma': False})
+        self.assertEqual({s['key']: s['done'] for s in o['steps']},
+                         {'rechnungsdaten': False, 'preise': True, 'zielkunden': True, 'zeiten': True, 'erste_firma': False})
         self.assertEqual(next(s for s in o['steps'] if s['key'] == 'erste_firma')['action']['view'], 'new_lead')
         self.lead('Erste Fiktiv GmbH', 'recherche')
         o = focus.onboarding(self.conn)
-        self.assertEqual((o['done'], o['show']), (4, False))  # alles eingerichtet: verschwindet von selbst
+        self.assertEqual((o['done'], o['show']), (4, True))
+        from sales_tool import accounting as acc
+        acc.save_settings(self.conn, {'company_name': 'Fiktiv Studio', 'street': 'Weg 1', 'zip': '20457', 'city': 'Hamburg',
+                                      'tax_number': '22/123/45678', 'email': 'rechnung@fiktiv.example', 'iban': 'DE89 3704 0044 0532 0130 00'})
+        self.assertIn('Telefon', focus.onboarding(self.conn)['steps'][0]['detail'])  # E-Rechnung braucht eine Telefonnummer
+        acc.save_settings(self.conn, {'phone': '+49 40 123456'})
+        o = focus.onboarding(self.conn)
+        self.assertEqual((o['done'], o['show']), (5, False))  # alles eingerichtet: verschwindet von selbst
 
     def test_dismiss_and_validation(self):
         self.assertFalse(focus.set_onboarding(self.conn, {'dismissed': True})['show'])
@@ -162,7 +172,7 @@ class HttpTests(Base):
 
     def test_endpoints(self):
         st, d = self.call('GET', '/api/focus')
-        self.assertEqual((st, d['focus']['items'], d['onboarding']['total']), (200, [], 4))
+        self.assertEqual((st, d['focus']['items'], d['onboarding']['total']), (200, [], 5))
         self.assertFalse(self.call('PUT', '/api/onboarding', {'dismissed': True})[1]['show'])
         self.assertFalse(self.call('GET', '/api/focus')[1]['onboarding']['show'])  # vor der Antwort gespeichert
         self.assertEqual(self.call('PUT', '/api/onboarding', {'dismissed': 'ja'})[0], 400)

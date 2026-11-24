@@ -28,7 +28,9 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import urlparse
 
-from . import accounts, auth, ops, tenancy
+import re
+
+from . import abrechnung, accounts, auth, einladungen, ops, tenancy
 from .model import connect
 from .server import (CSP, LOOPBACK_HOSTS, PUBLIC, STATIC_FILES, _CountingReader, _host_name, bind_server, make_handler,
                      prepare_database)
@@ -213,11 +215,15 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                 return self._unauthorized(route, method)
             slug, db_path = org
             self._sd_org = slug
+            blocked = abrechnung.blocks(directory, slug, method, route)
+            if blocked:  # SDQ-028: Testphase/Tarif abgelaufen – nur lesen und exportieren
+                return self._send(402, {'error': blocked['notice'], 'subscription': blocked})
             if (method, route) == ('GET', '/api/auth/status'):  # wie im Team-Betrieb, dazu Organisation und Hinweis „zentral“
                 with connect(db_path) as conn:
                     st = auth.status(conn, auth.session_user(conn, self.headers.get('Cookie', '')))
                 return self._send(200, {**st, 'central': True, 'switch_url': '/anmelden',
                                         'organization': {'slug': slug, 'name': directory.get(slug)['name']},
+                                        'subscription': abrechnung.state(directory, slug),
                                         'notice': 'Konten, Passwörter und Rollen verwaltet der Betreiber zentral.'})
             handler_cls = org_class(slug, db_path)
             h = handler_cls.__new__(handler_cls)
@@ -298,9 +304,29 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
             if route == '/api/zentral/logout' and method == 'POST':
                 return self._logout()
             acc, stage = accounts.session(directory, token)
+            full = acc if stage == 'voll' else None
+            # SDQ-027: Registrierung und Einladung – ohne Anmeldung erreichbar, jeweils mit einmaligem Link
+            if route == '/api/zentral/registrieren' and method == 'POST':
+                return self._send(200, einladungen.register(directory, self._body(), self._client()))
+            if route == '/api/zentral/registrieren/bestaetigen' and method == 'POST':
+                b = self._body()
+                if set(b) != {'token'}:
+                    raise ValueError('Erwartet: {token}.')
+                return self._send(200, einladungen.confirm(directory, b['token'], self._client()))
+            if route == '/api/zentral/einladung' and method == 'POST':
+                b = self._body()
+                if set(b) != {'token'}:
+                    raise ValueError('Erwartet: {token}.')
+                return self._send(200, {**einladungen.invitation_info(directory, b['token']), 'logged_in': bool(full),
+                                        'username': full['username'] if full else ''})
+            if route == '/api/zentral/einladung/annehmen' and method == 'POST':
+                b = self._body()
+                tok = b.pop('token', None)
+                out = einladungen.accept(directory, tok, account=full, new=None if full else b, client=self._client())
+                return self._send(200, out)
             if route == '/api/zentral/status' and method == 'GET':
                 if not acc:
-                    return self._send(200, {'logged_in': False})
+                    return self._send(200, {'logged_in': False, 'registration_open': einladungen.registration_open(directory)})
                 if stage != 'voll':
                     return self._send(200, {'logged_in': False, 'stage': stage,
                                             'user': {'username': acc['username'], 'display_name': acc['display_name']}})
@@ -340,6 +366,21 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                     raise ValueError('Erwartet: {slug}.')
                 self._end_org_session()
                 return self._send(200, {'entered': slug}, self._enter_cookies(acc, slug))
+            m = re.fullmatch(r'/api/zentral/orgs/([a-z0-9-]{1,40})/(mitglieder|einladungen)(?:/([A-Za-z0-9._-]{1,40}))?', route)
+            if m:
+                slug, kind, item = m.groups()
+                if kind == 'mitglieder' and method == 'GET' and not item:
+                    return self._send(200, einladungen.members(directory, acc, slug))
+                if kind == 'einladungen' and method == 'POST' and not item:
+                    b = self._body()
+                    if set(b) != {'email', 'role'}:
+                        raise ValueError('Erwartet: {email, role}.')
+                    return self._send(201, einladungen.invite(directory, acc, slug, b['email'], b['role'], self._client()))
+                if kind == 'einladungen' and method == 'DELETE' and item and item.isdigit():
+                    return self._send(200, einladungen.revoke(directory, acc, slug, int(item), self._client()))
+                if kind == 'mitglieder' and method == 'DELETE' and item:
+                    return self._send(200, einladungen.remove_member(directory, acc, slug, item, self._client()))
+                return self._send(405, {'error': 'Methode nicht erlaubt.'})
             if route == '/api/zentral/password' and method == 'POST':
                 b = self._body()
                 if set(b) != {'old', 'new'}:
