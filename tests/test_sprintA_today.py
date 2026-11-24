@@ -17,8 +17,9 @@ from sales_tool.model import connect, init_db
 from sales_tool.sales_workspace import make_proposal
 from sales_tool.server import make_handler
 
-TODAY = dt.date.today()
-D = lambda n: (TODAY + dt.timedelta(days=n)).isoformat()
+# Datum erst beim Aufruf bestimmen: Die Anwendung rechnet mit dt.date.today() zur Laufzeit. Mit einem beim Import festgelegten
+# Datum scheiterte test_plan_order_and_next_step, wenn ein langer Lauf (Windows-CI, 16 Minuten) über Mitternacht ging.
+D = lambda n: (dt.date.today() + dt.timedelta(days=n)).isoformat()
 
 import os as _os
 import sys as _sys
