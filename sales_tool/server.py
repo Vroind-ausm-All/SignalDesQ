@@ -318,8 +318,10 @@ def make_handler(db_path, allowed_hosts=None):
         def _same_origin(self):
             origin = self.headers.get("Origin")
             if origin:
-                expected = f"http://{self.headers.get('Host', '')}"
-                if origin != expected:
+                host = self.headers.get('Host', '')
+                # SDQ-015: hinter einem TLS-Proxy (X-Forwarded-Proto: https) kommt die Seite von https://
+                expected = {f"http://{host}"} | ({f"https://{host}"} if self.headers.get("X-Forwarded-Proto", "") == "https" else set())
+                if origin not in expected:
                     self._error("Anfragen von fremden Webseiten sind gesperrt.", 403)
                     return False
             return True

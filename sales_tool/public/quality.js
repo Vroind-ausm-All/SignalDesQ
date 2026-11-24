@@ -65,6 +65,10 @@
     auth = await api('/auth/status');
     renderAuthBar();
     const box = $('#qAuth');
+    if (auth.central) {  // SDQ-014: Mehrmandanten-Installation – Anmeldung und Rollen zentral
+      box.innerHTML = `<p class="muted">Organisation <b>${esc(auth.organization.name)}</b>. Angemeldet als <b>${esc(auth.user.display_name || auth.user.username)}</b> (${esc(auth.user.role)}). ${esc(auth.notice)}</p><a class="btn btn-ghost" href="${esc(auth.switch_url)}">Organisation wechseln oder Passwort ändern</a>`;
+      return;
+    }
     if (!auth.has_users) {
       box.innerHTML = `<p class="muted">${esc(auth.notice)}</p><form id="qSetupForm" class="sales-form"><b>Administration anlegen</b>
         <div class="sales-row"><label>Benutzername<input name="username" required minlength="3" maxlength="40" autocomplete="username"></label><label>Anzeigename<input name="display_name" maxlength="80"></label></div>
@@ -93,7 +97,8 @@
     const bar = $('#authBar');
     if (!bar || !auth) return;
     bar.classList.toggle('hidden', !auth.user);
-    bar.innerHTML = auth.user ? `${esc(auth.user.display_name || auth.user.username)} · ${esc(auth.user.role)} <button type="button" class="text-button" data-q-logout>Abmelden</button>` : '';
+    const org = auth.organization ? `<a class="text-button" href="${esc(auth.switch_url)}" data-q-org>${esc(auth.organization.name)} · wechseln</a><br>` : '';  // SDQ-016
+    bar.innerHTML = auth.user ? `${org}${esc(auth.user.display_name || auth.user.username)} · ${esc(auth.user.role)} <button type="button" class="text-button" data-q-logout>Abmelden</button>` : '';
   }
 
   async function loadResearchTech() {

@@ -87,10 +87,17 @@ class InventoryTests(unittest.TestCase):
             self.assertLessEqual(set(sql_scan.writers(SRC, table)), allowed, table)
 
     def test_login_data_written_only_by_auth(self):
-        # tenancy.py leert Sitzungen und Passwort-Hashes nur in der Kopie für den Datenexport (export_organization).
-        allowed = {'sales_tool/auth.py', 'sales_tool/server.py', 'sales_tool/tenancy.py'}
+        # tenancy.py leert Sitzungen und Passwort-Hashes nur in der Kopie für den Datenexport (export_organization);
+        # accounts.py legt bei zentraler Anmeldung Benutzer ohne Passwort an und sperrt sie beim Entzug;
+        # multi_server.py beendet Sitzungen ohne Mitgliedschaft und gleicht die Rolle an (SDQ-014/015).
+        allowed = {'sales_tool/auth.py', 'sales_tool/server.py', 'sales_tool/tenancy.py', 'sales_tool/accounts.py',
+                   'sales_tool/multi_server.py'}
         for table in data_map.tables(scope='zugang'):
             self.assertLessEqual(set(sql_scan.writers(SRC, table)), allowed, table)
+
+    def test_central_accounts_written_only_by_accounts(self):
+        for table in ('accounts', 'memberships', 'account_sessions'):
+            self.assertEqual(set(sql_scan.writers(SRC, table)), {'sales_tool/accounts.py'}, table)
 
     def test_variable_write_targets_reviewed(self):
         self.assertEqual(set(sql_scan.writers(SRC, sql_scan.VARIABLE)), REVIEWED_VARIABLE_WRITERS)

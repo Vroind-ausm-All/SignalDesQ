@@ -169,4 +169,4 @@ CATALOG_TABLES = {'entities': 'installation', 'imports': 'installation', 'entiti
 
 # Tabelle des Mandantenverzeichnisses (SDQ-011) – eigene Datei `organisationen.sqlite3` im Wurzelordner einer
 # Mehrmandanten-Installation, nicht in der Datenbank einer Organisation.
-DIRECTORY_TABLES = {'organizations': 'installation'}
+DIRECTORY_TABLES = {'organizations': 'installation', 'accounts': 'zugang', 'memberships': 'zugang', 'account_sessions': 'zugang'}

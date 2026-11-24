@@ -41,7 +41,8 @@ def markdown(inv):
     for name, row in inv['tables'].items():
         meta = data_map.TABLES.get(name)
         area, scope, personal, retention = ((meta.area, meta.scope, 'ja' if meta.personal else 'nein', meta.retention) if meta else
-                                            (('Mandantenverzeichnis (eigene Datei)', 'installation', 'nein', 'fachlich') if name in data_map.DIRECTORY_TABLES else
+                                            (('Mandantenverzeichnis (eigene Datei)', data_map.DIRECTORY_TABLES[name], 'ja' if name == 'accounts' else 'nein',
+                                              'kurz' if name == 'account_sessions' else 'fachlich') if name in data_map.DIRECTORY_TABLES else
                                              ('Firmenkatalog (eigene Datei)', data_map.CATALOG_TABLES.get(name, '?'), 'nein', 'kurz')))
         short = lambda mods: ', '.join(m.replace('sales_tool/', '') for m in mods) or '–'
         lines.append(f"| `{name}` | {area} | {scope} | {personal} | {retention} | {short(row['read'])} | {short(row['write'])} |")

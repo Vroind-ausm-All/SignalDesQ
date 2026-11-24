@@ -84,6 +84,8 @@ class Directory:
             conn.execute("""CREATE TABLE IF NOT EXISTS organizations (
                 slug TEXT PRIMARY KEY, name TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'aktiv',
                 created_at TEXT NOT NULL DEFAULT (datetime('now')), archived_at TEXT NOT NULL DEFAULT '')""")
+        from . import accounts  # SDQ-014: Konten und Mitgliedschaften der zentralen Anmeldung im selben Verzeichnis
+        accounts.init(self)
 
     @contextlib.contextmanager
     def _connect(self):
