@@ -1,0 +1,22 @@
+# SignalDesk – tägliche Sicherung aller Organisationen mit Wiederherstellungstest (systemd, gestartet vom Timer).
+# Schlägt die Prüfung fehl, endet der Lauf mit Rückgabewert 1 → systemctl --failed / Überwachung meldet es.
+[Unit]
+Description=SignalDesk Sicherungssatz und Wiederherstellungstest
+
+[Service]
+Type=oneshot
+User=signaldesk
+Group=signaldesk
+WorkingDirectory=/opt/signaldesk
+EnvironmentFile=/etc/signaldesk/umgebung
+# Passwort der Sicherung: eigene Datei, nur für root und signaldesk lesbar (chmod 0640), Inhalt eine Zeile
+#   SIGNALDESK_SICHERUNG_PASSWORT=…
+EnvironmentFile=/etc/signaldesk/sicherung.geheim
+ExecStart=/opt/signaldesk/.venv/bin/python -m sales_tool.betreiber --root ${SIGNALDESK_ROOT} \
+    sichern --verschluesselt --pruefen --ziel ${SIGNALDESK_SICHERUNG_ZIEL}
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+UMask=0077
+ReadWritePaths=/srv/signaldesk /var/backups/signaldesk

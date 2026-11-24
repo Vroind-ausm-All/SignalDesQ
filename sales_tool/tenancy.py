@@ -112,7 +112,7 @@ class Directory:
             raise TenantError('Ordner der Organisation liegt außerhalb des Verzeichnisses.')
         return resolved / DB_NAME
 
-    def create(self, slug, name, prepare=None):
+    def create(self, slug, name, prepare=None, actor=None):
         """Organisation anlegen: Eintrag + leere, migrierte Datenbank. ``prepare`` (Standard: ``server.prepare_database``)."""
         self.check_slug(slug)
         name = (name or '').strip()
@@ -129,7 +129,12 @@ class Directory:
                 from .server import prepare_database as prepare
             prepare(path)
             conn.execute('INSERT INTO organizations(slug, name) VALUES (?, ?)', (slug, name))
+        self._log(actor, 'organisation_angelegt', slug, name)
         return self.get(slug)
+
+    def _log(self, actor, action, target, detail=''):
+        from . import audit_trail  # SDQ-022
+        audit_trail.record(self, actor or audit_trail.operator(), action, target, detail)
 
     def get(self, slug):
         self.check_slug(slug)
@@ -152,11 +157,12 @@ class Directory:
             raise TenantError(f'Organisation „{slug}“ ist archiviert.')
         return Path(org['db_path'])
 
-    def archive(self, slug):
+    def archive(self, slug, actor=None):
         """Organisation stilllegen: keine Anmeldung, keine Aufträge mehr. Die Daten bleiben unverändert erhalten."""
         self.get(slug)
         with self._connect() as conn:
             conn.execute("UPDATE organizations SET status='archiviert', archived_at=datetime('now') WHERE slug=?", (slug,))
+        self._log(actor, 'organisation_archiviert', slug)
         return self.get(slug)
 
 
@@ -188,13 +194,16 @@ def org_files(db_path):
 EXPORT_FORMAT = 'signaldesk-organisation-export/1'
 
 
-def export_organization(db_path, target_zip):
+def export_organization(db_path, target_zip, password=None):
     """Datenexport einer Organisation (Übergabe, Kündigung, Art. 20 DSGVO): eine konsistente Kopie der Datenbank,
     die Bildschirmfotos und ein Verzeichnis mit Zeilenzahlen und Einordnung jeder Tabelle.
 
     Nicht enthalten: Zugangsdaten (Passwörter für Postfach und Kalender), Anmeldesitzungen, Sicherungen und der öffentliche
-    Firmenkatalog. In der Kopie werden Passwort-Hashes und Sitzungen geleert. Die Ausgabe ist unverschlüsselt – sie gehört
-    auf ein Speichermedium der Organisation.
+    Firmenkatalog. In der Kopie werden Passwort-Hashes und Sitzungen geleert.
+
+    Mit ``password`` (SDQ-023) wird die ZIP-Datei mit AES-256-GCM verschlüsselt (Schlüssel per scrypt aus dem Passwort, wie
+    ``backup_crypto``); Dateiendung ``.zip.sdenc``. Entschlüsseln: ``python -m sales_tool.backup_crypto entschluesseln``.
+    Ohne Passwort ist die Ausgabe unverschlüsselt und gehört nur auf ein verschlüsseltes Speichermedium der Organisation.
     """
     import datetime as dt
     import json
@@ -206,6 +215,14 @@ def export_organization(db_path, target_zip):
     target_zip = Path(target_zip)
     if target_zip.exists():
         raise TenantError('Zieldatei gibt es schon – nicht überschrieben.')
+    if password is not None:
+        from . import backup_crypto
+        if not backup_crypto.available():
+            raise TenantError('Verschlüsselter Export braucht das optionale Paket „cryptography“ (pip install -r requirements-team.txt).')
+        if not isinstance(password, str) or len(password) < backup_crypto.MIN_PASSWORD:
+            raise TenantError(f'Passwort für den Export: mindestens {backup_crypto.MIN_PASSWORD} Zeichen. Es wird nicht gespeichert.')
+        if not target_zip.name.endswith('.zip.sdenc'):
+            raise TenantError('Verschlüsselter Export: Dateiname muss auf .zip.sdenc enden.')
     with tempfile.TemporaryDirectory() as tmp:
         copy = Path(tmp) / 'signaldesk.sqlite3'
         src = sqlite3.connect(f'file:{files["datenbank"].as_posix()}?mode=ro', uri=True)
@@ -232,11 +249,18 @@ def export_organization(db_path, target_zip):
                     'excluded': ['Zugangsdaten', 'Anmeldesitzungen', 'Passwort-Hashes', 'Sicherungen', 'Firmenkatalog (öffentliche Daten)'],
                     'notice': 'Unverschlüsselt. Enthält personenbezogene Daten (siehe tables[].personal) und steuerlich '
                               'aufbewahrungspflichtige Unterlagen (retention = gobd).'}
+        if password is not None:
+            manifest['notice'] = manifest['notice'].replace('Unverschlüsselt.', 'Verschlüsselt übergeben (AES-256-GCM).')
         target_zip.parent.mkdir(parents=True, exist_ok=True)
-        with zipfile.ZipFile(target_zip, 'x', zipfile.ZIP_DEFLATED) as zf:
+        plain_zip = Path(tmp) / 'export.zip' if password is not None else target_zip
+        with zipfile.ZipFile(plain_zip, 'x', zipfile.ZIP_DEFLATED) as zf:
             zf.write(copy, 'signaldesk.sqlite3')
             for p in shot_files:
                 zf.write(p, 'bildschirmfotos/' + p.relative_to(shots).as_posix())
             zf.writestr('manifest.json', json.dumps(manifest, ensure_ascii=False, indent=1))
+        if password is not None:
+            from .backup_crypto import encrypt_bytes
+            with open(target_zip, 'xb') as out:  # nie überschreiben
+                out.write(encrypt_bytes(plain_zip.read_bytes(), password))
     return {'path': str(target_zip), 'size_bytes': target_zip.stat().st_size, **{k: manifest[k] for k in ('format', 'screenshots')},
-            'tables': len(tables)}
+            'tables': len(tables), 'encrypted': password is not None}

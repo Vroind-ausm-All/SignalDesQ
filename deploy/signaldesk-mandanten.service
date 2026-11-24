@@ -1,0 +1,48 @@
+# SignalDesk – Server für mehrere Organisationen (systemd). Beispiel, vor Gebrauch Pfade prüfen.
+# Installation: siehe docs/BETRIEB_SERVER.md
+#   sudo cp deploy/signaldesk-mandanten.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now signaldesk-mandanten
+[Unit]
+Description=SignalDesk (Mehrmandanten)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=signaldesk
+Group=signaldesk
+WorkingDirectory=/opt/signaldesk
+# Keine Geheimnisse in dieser Datei. Die Umgebungsdatei enthält nur Pfade und den öffentlichen Hostnamen.
+EnvironmentFile=/etc/signaldesk/umgebung
+ExecStart=/opt/signaldesk/.venv/bin/python -m sales_tool.multi_server \
+    --root ${SIGNALDESK_ROOT} --host 127.0.0.1 --port ${SIGNALDESK_PORT} \
+    --allowed-host ${SIGNALDESK_HOST} --log-file ${SIGNALDESK_LOG} \
+    --backup-dir ${SIGNALDESK_SICHERUNG_ZIEL}
+# SIGTERM: laufende Anfragen enden, Planer stoppen, dann Ende (Rückgabewert 0)
+KillSignal=SIGTERM
+TimeoutStopSec=30
+Restart=on-failure
+RestartSec=5
+
+# Härtung: nur der Datenordner und der Protokollordner sind beschreibbar
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+UMask=0077
+ReadWritePaths=/srv/signaldesk /var/log/signaldesk
+ReadOnlyPaths=/var/backups/signaldesk
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,7 @@
+# /etc/signaldesk/umgebung – Pfade und öffentlicher Hostname. Keine Passwörter hier.
+SIGNALDESK_ROOT=/srv/signaldesk
+SIGNALDESK_PORT=8765
+SIGNALDESK_HOST=app.example.org
+SIGNALDESK_LOG=/var/log/signaldesk/betrieb.jsonl
+# Ziel der Sicherungssätze: am besten ein eigener Datenträger oder ein eingehängter Speicher außerhalb des Servers
+SIGNALDESK_SICHERUNG_ZIEL=/var/backups/signaldesk

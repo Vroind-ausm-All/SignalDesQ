@@ -1,7 +1,10 @@
-// SDQ-014: zentrale Anmeldung einer Mehrmandanten-Installation – Konto anmelden, Organisation wählen oder wechseln.
+// SDQ-014/021: zentrale Anmeldung einer Mehrmandanten-Installation – Konto anmelden (Passwort, ggf. Code aus der App),
+// zweiten Faktor einrichten, Organisation wählen oder wechseln.
 (function () {
   const $ = s => document.querySelector(s);
   const msg = t => { $('#zMsg').textContent = t || ''; };
+  const views = ['#zLogin', '#zCode', '#zSetup', '#zOrgs'];
+  const show = id => views.forEach(v => $(v).classList.toggle('hidden', v !== id));
   async function call(path, body) {
     const opts = body === undefined ? {} : {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)};
     const r = await fetch('/api/zentral/' + path, opts);
@@ -9,9 +12,16 @@
     if (!r.ok) throw Error(data.error || 'Anfrage fehlgeschlagen');
     return data;
   }
+  function showSetup(required) {
+    $('#zSetupWhy').textContent = required ? 'Für dieses Konto ist ein zweiter Faktor vorgeschrieben.'
+      : 'Nach dem Passwort fragt SignalDesk dann zusätzlich einen Code aus der App ab.';
+    $('#zSetupStart').classList.remove('hidden');
+    $('#zSetupConfirm').classList.add('hidden');
+    $('#zCodes').classList.add('hidden');
+    show('#zSetup');
+  }
   function showOrgs(s) {
-    $('#zLogin').classList.add('hidden');
-    $('#zOrgs').classList.remove('hidden');
+    show('#zOrgs');
     $('#zWho').textContent = 'Angemeldet als ' + (s.user.display_name || s.user.username) + '.';
     const list = $('#zOrgList');
     list.textContent = '';
@@ -26,11 +36,25 @@
       list.appendChild(li);
     }
     $('#zNone').classList.toggle('hidden', s.organizations.length > 0);
+    $('#zMfaState').textContent = s.two_factor ? 'an' : 'aus';
+    $('#zMfaInfo').textContent = s.two_factor
+      ? 'Noch ' + s.recovery_codes_left + ' Wiederherstellungscodes übrig.' + (s.require_2fa ? ' In dieser Installation Pflicht.' : '')
+      : 'Schützt das Konto, wenn das Passwort bekannt wird.';
+    $('#zMfaOn').classList.toggle('hidden', !!s.two_factor);
+    $('#zMfaOff').classList.toggle('hidden', !s.two_factor || !!s.require_2fa);
   }
   async function refresh() {
     const s = await call('status');
-    if (!s.logged_in) { $('#zLogin').classList.remove('hidden'); $('#zOrgs').classList.add('hidden'); return; }
-    showOrgs(s);
+    if (s.logged_in) return showOrgs(s);
+    if (s.stage === 'zweitfaktor') return show('#zCode');
+    if (s.stage === 'einrichtung') return showSetup(true);
+    show('#zLogin');
+  }
+  function afterLogin(r) {
+    if (r.entered) { location.href = '/'; return null; }
+    if (r.stage === 'zweitfaktor') { show('#zCode'); $('#zCode').code.focus(); return null; }
+    if (r.stage === 'einrichtung') { showSetup(true); return null; }
+    return refresh();
   }
   $('#zLogin').addEventListener('submit', async e => {
     e.preventDefault();
@@ -39,8 +63,72 @@
     try {
       const r = await call('login', {username: f.username.value, password: f.password.value});
       f.password.value = '';
-      if (r.entered) { location.href = '/'; return; }
+      await afterLogin(r);
+    } catch (err) { msg(err.message); }
+  });
+  $('#zCode').addEventListener('submit', async e => {
+    e.preventDefault();
+    msg('');
+    const f = e.target;
+    try {
+      const r = await call('code', {code: f.code.value.trim()});
+      f.code.value = '';
+      await afterLogin(r);
+    } catch (err) {
+      f.code.value = '';
+      msg(err.message);
+      if (/abgelaufen|neu anmelden/i.test(err.message)) show('#zLogin');
+    }
+  });
+  document.querySelector('[data-z-restart]').addEventListener('click', async () => {
+    try { await call('logout', {}); } catch (err) { /* schon abgemeldet */ }
+    msg('');
+    show('#zLogin');
+  });
+  $('#zSetupStart').addEventListener('submit', async e => {
+    e.preventDefault();
+    msg('');
+    const f = e.target;
+    try {
+      const r = await call('2fa/start', {password: f.password.value});
+      f.password.value = '';
+      $('#zSecret').textContent = r.secret;
+      $('#zUri').textContent = r.uri;
+      f.classList.add('hidden');
+      $('#zSetupConfirm').classList.remove('hidden');
+      $('#zSetupConfirm').code.focus();
+    } catch (err) { msg(err.message); }
+  });
+  $('#zSetupConfirm').addEventListener('submit', async e => {
+    e.preventDefault();
+    msg('');
+    const f = e.target;
+    try {
+      const r = await call('2fa/confirm', {code: f.code.value.trim()});
+      f.reset();
+      f.classList.add('hidden');
+      $('#zSecret').textContent = '';
+      $('#zUri').textContent = '';
+      const list = $('#zCodeList');
+      list.textContent = '';
+      for (const c of r.recovery_codes) { const li = document.createElement('li'); li.textContent = c; list.appendChild(li); }
+      $('#zCodes').classList.remove('hidden');
+    } catch (err) { msg(err.message); }
+  });
+  $('#zCodesDone').addEventListener('click', async () => {
+    $('#zCodeList').textContent = '';
+    msg('');
+    await refresh();
+  });
+  $('#zMfaOn').addEventListener('click', () => { msg(''); showSetup(false); });
+  $('#zMfaOff').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = e.target;
+    try {
+      await call('2fa/off', {password: f.password.value, code: f.code.value.trim()});
+      f.reset();
       await refresh();
+      msg('Zwei-Faktor-Anmeldung abgeschaltet.');
     } catch (err) { msg(err.message); }
   });
   $('#zOrgList').addEventListener('click', async e => {

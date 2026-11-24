@@ -1,0 +1,17 @@
+# Caddy als TLS-Proxy vor SignalDesk (holt das Zertifikat selbst). Hostname anpassen.
+app.example.org {
+	encode gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+	# Caddy setzt X-Forwarded-Proto und X-Forwarded-For und reicht den Host-Header unverändert weiter.
+	reverse_proxy 127.0.0.1:8765 {
+		health_uri /healthz
+		health_interval 30s
+	}
+	log {
+		output file /var/log/caddy/signaldesk.log
+		format json
+	}
+}

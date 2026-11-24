@@ -13,3 +13,7 @@ body.zentral{background:var(--bg);min-height:100vh;display:flex;align-items:cent
 .hidden{display:none}
 .zentral-pw{margin:12px 0}
 .zentral-pw summary{cursor:pointer}
+.zentral-secret{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:17px;letter-spacing:.06em;word-break:break-all;background:var(--bg);padding:8px;border-radius:6px}
+.zentral-setup code{word-break:break-all;font-size:12px}
+.zentral-codes{font-family:ui-monospace,Menlo,Consolas,monospace;columns:2;padding-left:18px}
+.zentral-card .small{font-size:12px}

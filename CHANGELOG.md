@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.0.0-dev63 – Betrieb und Sicherheit für den Server mit mehreren Organisationen (SDQ-017 bis SDQ-023)
+
+- **Neu – Zwei-Faktor-Anmeldung:** Unter `/anmelden` → „Zwei-Faktor-Anmeldung“ verbindest du dein Konto mit einer Authenticator-App (zeitbasierte Codes, RFC 6238). Danach fragt SignalDesk nach dem Passwort einen Code ab; vorher gibt es weder die Liste der Organisationen noch Zutritt. Jeder Code gilt nur einmal. Dazu gibt es zehn Wiederherstellungscodes für den Fall, dass das Telefon fehlt. Der Betreiber kann den zweiten Faktor für alle vorschreiben (`zwei-faktor-pflicht an`); wer ihn noch nicht hat, richtet ihn bei der nächsten Anmeldung ein.
+- **Sperre nach Fehlversuchen bleibt bestehen:** Fünf falsche Passwörter oder Codes sperren das Konto für 15 Minuten, auch über einen Neustart des Servers hinweg.
+- **Neu – Protokoll der Verwaltung:** Anmeldungen, Fehlversuche, Konten, Mitgliedschaften, Organisationen, Sicherungen, Exporte und Änderungen am zweiten Faktor werden mit Zeit, Handelndem und (bei Anmeldungen) IP-Adresse festgehalten. Eine Hash-Kette zeigt, wenn ein Eintrag verändert oder entfernt wurde (`protokoll-pruefen`).
+- **Neu – Sicherung aller Organisationen mit Wiederherstellungstest:** `sichern --verschluesselt --pruefen` sichert das Verzeichnis und jede Organisation (auch archivierte) und prüft den Satz sofort: Prüfsummen, Entschlüsseln, Unversehrtheit, Zeilenzahlen und Migration auf das aktuelle Schema. Einzelne Organisationen lassen sich mit `zurueckspielen` wiederherstellen, ohne die anderen zu berühren. Es wird nichts automatisch gelöscht.
+- **Neu – Verschlüsselter Export:** `export … --out name.zip.sdenc --verschluesselt` (AES-256-GCM). Entschlüsseln mit `python -m sales_tool.backup_crypto entschluesseln`.
+- **Neu – Betrieb:** `/healthz` und `/readyz` für Überwachung und Proxy, ein Betriebsprotokoll mit einer JSON-Zeile je Anfrage (ohne Cookies, Abfragen und IP-Adressen) und eine Anfrage-Nummer in jeder Antwort. Der Dienst beendet sich bei `SIGTERM` sauber und weicht nicht still auf einen anderen Port aus.
+- **Neu – Serverpaket:** `deploy/` mit gehärteter systemd-Dienstdatei, täglichem Sicherungs-Timer, Beispielen für Caddy und nginx, dazu das Betriebshandbuch [BETRIEB_SERVER.md](docs/BETRIEB_SERVER.md). Die Verwaltung heißt jetzt `python -m sales_tool.betreiber` und ist damit im Release-Paket enthalten; `tools/organisationen.py` funktioniert weiter.
+- **Fehlerbehebung:** Kopien in Sicherungssätzen werden als einzelne Datei ohne Schreibprotokoll (WAL) abgelegt. Sonst wären spätere Änderungen an einer Kopie an der Prüfsumme vorbeigegangen.
+- Die lokale Einzelplatz-Installation ist unverändert.
+- Tests: neu `test_sdq017_operations.py` (16 Fälle), `test_sdq021_security.py` (20 Fälle), `test_sdq020_deploy.py` (6 Fälle) und `e2e/test_sdq021_two_factor_browser.py`.
+
 ## 2.0.0-dev62 – Mehrere Organisationen mit zentraler Anmeldung (SDQ-014 bis SDQ-016)
 
 - **Neu – Betrieb für mehrere Organisationen:** `python -m sales_tool.multi_server --root …` bedient alle Organisationen eines Verzeichnisses, jede mit eigener Datenbank. Die Anmeldung erfolgt zentral unter `/anmelden`; wer zu mehreren Organisationen gehört, wählt dort und kann jederzeit wechseln („Organisation · wechseln“ unten in der Seitenleiste).

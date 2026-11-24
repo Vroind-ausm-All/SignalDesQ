@@ -61,12 +61,14 @@ ausführen (bei abweichendem Speicherort zusätzlich `--db PFAD`). Das schaltet 
 
 ## Was für echten Cloud-Betrieb noch fehlt
 
+Seit 2.0.0-dev61 bis dev63 gibt es einen Server für mehrere Organisationen mit eigener Datenbank je Organisation, zentraler Anmeldung, zweitem Faktor, Sperre über Neustarts hinweg, Verwaltungsprotokoll, geprüften Sicherungssätzen und einem Serverpaket. Wie er betrieben wird, steht im Betriebshandbuch [BETRIEB_SERVER.md](BETRIEB_SERVER.md). Die folgende Liste stammt aus Phase 6. Erledigte Punkte sind dort markiert.
+
 Bewusst nicht Teil von Phase 6:
 
 - Server-Datenbank (z. B. PostgreSQL) statt einer SQLite-Datei, Verbindungs-Pool, Migrationen mit Rücknahme
-- Mandantentrennung, falls mehrere Firmen dieselbe Installation nutzen
-- 2FA, Single Sign-on (OIDC), Leerlauf-Timeout, Sperre nach Fehlversuchen über Neustarts hinweg
+- ~~Mandantentrennung, falls mehrere Firmen dieselbe Installation nutzen~~ (dev61/62: eine Datenbank je Organisation)
+- ~~2FA~~ (dev63, TOTP), Single Sign-on (OIDC), Leerlauf-Timeout, ~~Sperre nach Fehlversuchen über Neustarts hinweg~~ (dev63, zentrale Anmeldung)
 - Verschlüsselung der Datenbank im Ruhezustand bzw. verschlüsselter Speicher beim Hoster
 - Hosting in der EU mit Auftragsverarbeitungsvertrag (Art. 28 DSGVO), technisch-organisatorische Maßnahmen, Verzeichnis der Verarbeitungstätigkeiten
-- Monitoring, zentrales Logging, automatische externe Backups mit Wiederherstellungstest
+- ~~Monitoring-Endpunkte, strukturierte Protokolle, tägliche Sicherung mit Wiederherstellungstest~~ (dev63); offen: Kopie an einen zweiten Ort, zentrales Logging, Alarmierung
 - Externer Penetrationstest
