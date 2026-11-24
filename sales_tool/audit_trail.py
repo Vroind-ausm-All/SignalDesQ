@@ -104,3 +104,34 @@ def verify(directory):
     if rows and rows[0]['prev_hash'] != GENESIS:
         return {'ok': False, 'events': len(rows), 'first_bad': rows[0]['id'], 'reason': 'Anfang der Kette fehlt.'}
     return {'ok': True, 'events': len(rows), 'first_bad': None, 'reason': ''}
+
+
+def anchor(directory):
+    """Stand der Kette zum externen Hinterlegen (SDQ-043, Prüfbericht F12): Anzahl, Nummer und Hash des letzten Eintrags.
+
+    Wer Schreibrechte an der Datenbank hat, kann das Ende der Kette abschneiden, ohne dass ``verify`` es merkt. Ein Anker,
+    der außerhalb des Servers liegt (anderer Speicher, E-Mail an sich selbst, Ticket), macht das sichtbar."""
+    import datetime as dt
+    with directory._connect() as conn:
+        init(conn)
+        last = conn.execute('SELECT id, at, hash FROM audit_events ORDER BY id DESC LIMIT 1').fetchone()
+        count = conn.execute('SELECT COUNT(*) FROM audit_events').fetchone()[0]
+    return {'format': 'signaldesk-protokoll-anker-1', 'created_at': dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'events': count, 'last_id': last['id'] if last else 0, 'last_at': last['at'] if last else '',
+            'last_hash': last['hash'] if last else GENESIS}
+
+
+def verify_anchor(directory, saved):
+    """Kette prüfen und zusätzlich, ob der hinterlegte Eintrag noch unverändert da ist (nichts am Ende abgeschnitten)."""
+    out = verify(directory)
+    if not isinstance(saved, dict) or saved.get('format') != 'signaldesk-protokoll-anker-1':
+        raise ValueError('Kein Protokoll-Anker (format signaldesk-protokoll-anker-1).')
+    with directory._connect() as conn:
+        init(conn)
+        row = conn.execute('SELECT hash FROM audit_events WHERE id=?', (int(saved.get('last_id') or 0),)).fetchone()
+    if saved.get('last_id') and (not row or row['hash'] != saved.get('last_hash')):
+        return {**out, 'ok': False, 'anchor_ok': False,
+                'reason': f"Eintrag {saved['last_id']} aus dem Anker fehlt oder ist verändert (Protokoll gekürzt oder ersetzt)."}
+    if out['events'] < int(saved.get('events') or 0):
+        return {**out, 'ok': False, 'anchor_ok': False, 'reason': 'Weniger Einträge als beim Anker (Protokoll gekürzt).'}
+    return {**out, 'anchor_ok': True}

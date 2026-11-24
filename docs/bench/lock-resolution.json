@@ -1,5 +1,5 @@
 {
- "cutoff": "2026-10-24T00:00:00",
+ "cutoff": "2026-11-10T00:00:00",
  "pythons": [
   "3.10",
   "3.11",
@@ -45,8 +45,8 @@
     "license": "MIT-0"
    },
    "cryptography": {
-    "version": "46.0.7",
-    "uploaded": "2026-04-08",
+    "version": "50.0.2",
+    "uploaded": "2026-09-30",
     "targets": 8,
     "license": "Apache-2.0 OR BSD-3-Clause"
    },
@@ -206,35 +206,17 @@
  },
  "rounds": [
   {
-   "variant": "research",
+   "variant": "team",
    "round": 1,
    "constraints": {
-    "cssselect": "==1.5.0",
-    "dateparser": "<1.5.0",
-    "frostwork": "<0.2.2",
-    "lxml-html-clean": "<0.4.6",
-    "python-dateutil": "<4.0.0",
-    "pytz": "<2026.6",
-    "rapidfuzz": "==3.14.5",
-    "regex": "<2026.11.7",
-    "tzdata": "<2026.6",
-    "w3lib": "<2.6.0"
+    "pycparser": "==3.11"
    }
   },
   {
-   "variant": "research",
+   "variant": "team",
    "round": 2,
    "constraints": {
-    "cssselect": "==1.5.0",
-    "dateparser": "<1.5.0",
-    "frostwork": "<0.2.2",
-    "lxml-html-clean": "<0.4.6",
-    "python-dateutil": "<4.0.0",
-    "pytz": "<2026.6",
-    "rapidfuzz": "==3.14.5",
-    "regex": "<2026.11.7",
-    "tzdata": "<2026.6",
-    "w3lib": "<2.6.0"
+    "pycparser": "==3.11"
    }
   }
  ]

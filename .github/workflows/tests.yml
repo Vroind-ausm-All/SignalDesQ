@@ -28,8 +28,8 @@ jobs:
         os: [windows-latest, ubuntu-latest]
         python: ["3.10", "3.13"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4 (fest gepinnt, SDQ-038)
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
         with:
           python-version: ${{ matrix.python }}
       - name: Tests
@@ -45,8 +45,8 @@ jobs:
         os: [windows-latest, ubuntu-latest]
         variant: [basis, browser]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4 (fest gepinnt, SDQ-038)
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
         with:
           python-version: "3.12"
       - name: Release-ZIP bauen
@@ -54,7 +54,7 @@ jobs:
       - name: Frische Installation prüfen
         shell: bash
         run: python tools/install_check.py dist/SignalDesk-*[0-9].zip --variant ${{ matrix.variant }} --report install-${{ matrix.os }}-${{ matrix.variant }}.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         if: always()
         with:
           name: install-${{ matrix.os }}-${{ matrix.variant }}
@@ -64,8 +64,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4 (fest gepinnt, SDQ-038)
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
         with:
           python-version: "3.12"
       - name: Variante „browser“ (feste Versionen)
@@ -79,8 +79,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4 (fest gepinnt, SDQ-038)
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
         with:
           python-version: "3.12"
       - name: Reproduzierbar (zweimal bauen, gleiche Prüfsumme)
@@ -94,7 +94,7 @@ jobs:
           python tools/make_sbom.py --out /tmp/sbom.json --md /tmp/BESTANDTEILE.md
           diff -u sbom/signaldesk.cdx.json /tmp/sbom.json
           diff -u docs/BESTANDTEILE.md /tmp/BESTANDTEILE.md
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: release-zip
           path: a/

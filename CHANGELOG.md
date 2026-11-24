@@ -1,14 +1,22 @@
 # Changelog
 
-## 2.0.0-dev65 – Welle 6: Wiederherstellung, zweiter Ort, Leerlauf, Referenzliste aus Tabelle (SDQ-029 bis SDQ-032)
+## 2.0.0-dev65 – Welle 6: Wiederherstellung, Leerlauf, Referenzliste; Befunde der Sicherheitsprüfung (SDQ-029 bis SDQ-043)
 
 - **Neu für Betreiber – ganze Installation wiederherstellen:** `betreiber --root NEUER_ORDNER gesamt-wiederherstellen SATZ --ja` stellt Verzeichnis und alle Organisationen aus einem Sicherungssatz in einem leeren Ordner wieder her und prüft dabei Prüfsummen, Unversehrtheit und Zeilenzahlen. Ein Ordner mit Inhalt wird nie überschrieben.
 - **Neu – Sicherung an einen zweiten Ort:** `betreiber sicherung-kopieren NAME --nach ORDNER` kopiert einen Satz z. B. auf einen eingehängten Datenträger und rechnet dort alle Prüfsummen nach. Vorhandenes wird nicht überschrieben.
 - **Neu – Abmelden nach Leerlauf** (Server für mehrere Organisationen): Nach 60 Minuten ohne Aktivität ist eine neue Anmeldung nötig. Der Betreiber stellt die Zeit mit `einstellung leerlauf_minuten` ein (5 bis 720, 0 = aus). Einzelplatz und Team-Betrieb bleiben unverändert.
 - **Tarif:** Solange eine Organisation nur lesbar ist, ruhen ihre wiederkehrenden Aufträge.
 - **Recherche-Benchmark:** `research_benchmark.py import-table` wandelt die ausgefüllte Tabellenvorlage (xlsx oder CSV) in eine Referenzliste um und prüft sie.
+- **Sicherheit – Befunde der externen Prüfung vom 24.11.2026** (Einzelheiten: [SICHERHEITSPRUEFUNG_2026-11-24.md](docs/SICHERHEITSPRUEFUNG_2026-11-24.md)):
+  - Eine Einladung kann nur das Konto mit der eingeladenen E-Mail-Adresse annehmen.
+  - Passwortwechsel, Sperre und Änderungen am zweiten Faktor beenden alle Sitzungen des Kontos, auch auf anderen Geräten und in anderen Organisationen.
+  - Kalender- und Postfachzugänge richtet nur die Verwaltung ein; bei einem neuen Server oder Konto wird das gespeicherte Passwort verworfen.
+  - Recherche-Einstellungen gelten je Organisation. Im Server für mehrere Organisationen sind der ältere Abruf, der Browser, lokale Kalender-/Postfachserver und das Wiederherstellen per Upload gesperrt.
+  - Passwörter werden stärker gehasht und beim nächsten Login automatisch umgestellt.
+  - DATEV-Export ohne Formelanfänge; Login-Bremse hinter dem Proxy je Client (`--vertrauter-proxy`); `/readyz` von außen zwischengespeichert; Protokoll-Anker (`protokoll-anker`, `protokoll-pruefen --anker`).
+  - cryptography 50.0.2 im Team-Paket; ohne Lockdatei wird nichts installiert; CI-Aktionen fest gepinnt.
 - **Fehlerbehebung (Windows):** Der Server für mehrere Organisationen liest bei abgelehnten Anfragen (z. B. fremde Herkunft) den Anfragekörper zu Ende, statt die Verbindung hart abzubrechen.
-- Tests: neu `test_sdq029_betrieb_more.py` (18 Fälle).
+- Tests: neu `test_sdq029_betrieb_more.py` (18 Fälle) und `test_sdq033_pruefbericht.py` (21 Fälle).
 
 ## 2.0.0-dev64 – Welle 5: E-Rechnung prüfen, DATEV, Ersteinrichtung, Registrierung und Tarif (SDQ-024 bis SDQ-028)
 

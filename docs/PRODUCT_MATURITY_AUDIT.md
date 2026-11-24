@@ -126,12 +126,23 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
 | SDQ-030 | P2 | Wiederkehrende Aufträge ruhen, solange eine Organisation nur lesbar ist | SDQ-028 | **implementiert** (2.0.0-dev65) |
 | SDQ-031 | P1 | Sicherungssatz an zweiten Ort kopieren; ganze Installation in leeren Ordner wiederherstellen | SDQ-018 | **implementiert** (2.0.0-dev65), nicht auf echtem Server geübt |
 | SDQ-032 | P1 | Abmelden nach Leerlauf (Mehrmandanten-Betrieb, einstellbar) | SDQ-015 | **implementiert** (2.0.0-dev65) |
+| SDQ-033 | P0 | Prüfbericht F01: Einladung an eingeladene Adresse binden, Verbrauch und Rolle atomar | SDQ-027 | **implementiert** (2.0.0-dev65) |
+| SDQ-034 | P0 | F02: Widerrufsstand je Konto, Organisationssitzungen enden nach Sicherheitsänderung | SDQ-021 | **implementiert** (2.0.0-dev65) |
+| SDQ-035 | P0 | F03: Kalender-/Postfachzugänge nur Verwaltung, Passwort an Ziel gebunden | – | **implementiert** (2.0.0-dev65) |
+| SDQ-036 | P0 | F04: Recherche-Schalter je Organisation | SDQ-012 | **implementiert** (2.0.0-dev65) |
+| SDQ-037 | P0 | F05/F06: Betriebsgrenzen im Mehrmandanten-Server (Legacy-Abruf, Browser, lokale Ziele, Web-Restore) | SDQ-015 | **implementiert** (2.0.0-dev65), Egress-Regeln offen (Betrieb) |
+| SDQ-038 | P0 | F07: cryptography ≥ 48.0.1, Lock-Pflicht, Actions gepinnt | – | **implementiert** (2.0.0-dev65), Signatur und Python 3.10 offen |
+| SDQ-039 | P1 | F08: Client-IP nur über eingetragenen Proxy | SDQ-020 | **implementiert** (2.0.0-dev65), Staging-Nachweis offen |
+| SDQ-040 | P1 | F10: öffentliche Bereitschaft zwischengespeichert | SDQ-017 | **implementiert** (2.0.0-dev65), Kontingente/Lasttest offen |
+| SDQ-041 | P1 | F09: scrypt-Profil p=5, Neu-Hash beim Login | – | **implementiert** (2.0.0-dev65), Länge/MFA-Pflicht/Seed-Schlüssel offen |
+| SDQ-042 | P1 | F11: Formelanfänge im DATEV-Stapel entfernen | SDQ-025 | **implementiert** (2.0.0-dev65), Probeimport offen |
+| SDQ-043 | P1 | F12: Protokoll-Anker zum externen Hinterlegen | SDQ-022 | **implementiert** (2.0.0-dev65), Ablage/Alarm offen |
 
 ## 6. Launch-Gates (Stand)
 
 | Gate | Stand |
 |---|---|
-| Keine offenen kritischen Sicherheitsbefunde | B3 behoben (SDQ-004); zweiter Faktor, dauerhafte Sperre und Verwaltungsprotokoll ergänzt (SDQ-021/022); externes Security Assessment fehlt – Gate bleibt **offen** |
+| Keine offenen kritischen Sicherheitsbefunde | Externe Prüfung vom 24.11.2026 (dev64): 8 hohe, 4 erhöhte Befunde, Empfehlung „SaaS-Start zurückstellen“. In dev65 F01–F04 behoben, F05–F12 teilweise (SICHERHEITSPRUEFUNG_2026-11-24.md); Nachprüfung fehlt – Gate bleibt **offen** |
 | Kein bekannter Datenverlust in Kernfunktionen | B2 behoben (SDQ-003); Angebotseditor nur beforeunload, kein Browser-Test mit Positionen |
 | Nachweisbare Mandantentrennung | **technisch nachgewiesen** (E10, SDQ-011 bis SDQ-016: eine Datenbank je Organisation, zentrale Anmeldung, Negativtests per HTTP und im Browser); **offen** bis zur externen Sicherheitsprüfung und einem Betrieb mit echten Organisationen |
 | Backup und Restore geprüft | lokal ja (T15); Server: Sicherungssatz aller Organisationen mit automatischem Wiederherstellungstest und Zurückspielen je Organisation (SDQ-018), Kopie an einen zweiten Ort mit Prüfsummen und Wiederherstellung der ganzen Installation (SDQ-031), jeweils getestet; **offen** bis zu einer geübten Wiederherstellung auf einem echten Server |
@@ -485,3 +496,15 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
   Installation und Kopie an einen zweiten Ort sind Befehle mit Prüfung statt Handarbeit, aber weiterhin nicht im echten
   Betrieb geübt. Dimension 9 (Sicherheit und Datenschutz) 47 → 48: Leerlauf-Abmelden; ohne externe Prüfung bleibt die
   Konfidenz begrenzt. Dimension 1 bleibt bei 46, weil ohne geprüfte Liste nichts gemessen ist. Gesamtindex 54,91 → 55,19.
+
+### Externe Sicherheitsprüfung vom 24.11.2026 (SDQ-033 bis SDQ-043, 2.0.0-dev65)
+
+- **Bericht:** statische Prüfung von dev64 (Commit 9509761) gegen OWASP ASVS 5.0 Level 2, Freigabereife 28/100,
+  Empfehlung: öffentlichen SaaS-Start zurückstellen. 12 Befunde mit Abnahmekriterien.
+- **Behebung:** Stand je Befund in [SICHERHEITSPRUEFUNG_2026-11-24.md](SICHERHEITSPRUEFUNG_2026-11-24.md). Behoben: F01, F02,
+  F03, F04, F08 (Code), F11 (DATEV). Teilweise: F05, F06, F07, F09, F10, F12 – der Rest braucht Betrieb (Egress, Staging,
+  Ablage, Alarm) oder Entscheidungen (Python 3.10, Passwortlänge, MFA-Pflicht für Verwaltung, Schlüsselverwaltung).
+- **Tests:** `test_sdq033_pruefbericht.py` (21 Fälle, je Befund mindestens ein Negativtest).
+- **Reifeauswirkung (Vorschlag):** Die Prüfung hat Lücken gezeigt, die in Dimension 9 (47 → 48 nach Welle 6) nicht
+  eingepreist waren; die Behebungen schließen den größten Teil davon. Dimension 9 bleibt deshalb bei 48, bis eine
+  Nachprüfung vorliegt. Gesamtindex unverändert 55,19.

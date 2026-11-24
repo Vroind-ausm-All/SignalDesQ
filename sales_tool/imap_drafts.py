@@ -88,6 +88,8 @@ def _check_host(host, port):
         raise ValueError('Postfach-Server angeben, z. B. imap.anbieter.de.')
     if type(port) is not int or not 1 <= port <= 65535:
         raise ValueError('Port: Zahl zwischen 1 und 65535 (üblich: 993).')
+    from . import hosting
+    hosting.check_service_host(host.strip().lower(), port, hosting.IMAP_PORTS, 'Postfach-Server')
     return host.strip().lower()
 
 
@@ -106,6 +108,7 @@ def save(conn, db_path, data):
     from .credentials import forget, put
     from .quality import put_setting
     s = _settings(conn)
+    before = ((s['host'] or '').lower().rstrip('.'), s['port'], (s['username'] or '').strip())
     if data.get('forget') is True:
         forget(db_path, 'imap')
     if 'host' in data or 'port' in data:
@@ -122,6 +125,8 @@ def save(conn, db_path, data):
         raise ValueError('Absender: eine E-Mail-Adresse, z. B. hallo@deine-agentur.de.')
     if data.get('password'):
         put(db_path, 'imap', data['password'], remember=data.get('remember') is True)
+    elif ((s['host'] or '').lower().rstrip('.'), s['port'], (s['username'] or '').strip()) != before:
+        forget(db_path, 'imap')  # F03: neues Ziel oder Konto – das alte Passwort geht nie an einen anderen Server
     put_setting(conn, SETTING, s)
     conn.commit()
     return view(conn, db_path)
@@ -135,6 +140,8 @@ def _connect(conn, db_path):
     s = _settings(conn)
     if not (s['host'] and s['username']):
         raise ValueError('Zuerst Postfach-Server und Benutzername eintragen.')
+    from . import hosting
+    hosting.check_service_host(s['host'], s['port'], hosting.IMAP_PORTS, 'Postfach-Server')  # bei jeder Verwendung
     pw = get(db_path, 'imap')
     if not pw:
         raise ValueError('Passwort für das Postfach fehlt (nach einem Neustart erneut eingeben oder „auf diesem Rechner merken“).')

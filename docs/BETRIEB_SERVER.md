@@ -177,6 +177,22 @@ sudo -u signaldesk … betreiber --root $R sicherung-kopieren "$(ls /var/backups
 | Organisation kündigt | `betreiber … export studio-nord --out studio-nord.zip.sdenc --verschluesselt`, Passwort getrennt übergeben, danach `archivieren` |
 | Update | Dienst stoppen, Sicherung mit Prüfung von Hand (`sichern --verschluesselt --pruefen`), Release ersetzen, Dienst starten (migriert alle Organisationen), `/readyz` prüfen |
 
+## 7a. Grenzen im Server für mehrere Organisationen (ab dev65, Sicherheitsprüfung vom 24.11.2026)
+
+- **Proxy:** Der Dienst glaubt `X-Forwarded-For` nur von `--vertrauter-proxy` (Vorlage: `127.0.0.1`). Der Proxy setzt den
+  Header auf die echte Client-IP (nginx: `$remote_addr`). Ohne den Schalter zählt die direkte Verbindung – hinter einem Proxy
+  teilen sich dann alle Nutzer ein IP-Budget für Fehlversuche.
+- **Gesperrt** (serverseitig, auch über die API): älterer Website-Abruf ohne IP-Pinning, Browser für Recherche und
+  Website-Bewertung, Kalender- und Postfachserver auf lokalen oder privaten Adressen und außerhalb von 443/993,
+  Wiederherstellen einer Datei über die Weboberfläche (nur `betreiber … zurueckspielen`).
+- **Zusätzlich auf dem Server:** Ausgangsregeln der Firewall (keine Verbindungen in interne Netze und zu Metadaten-Adressen),
+  weil Kalender und Postfach den Namen beim Verbinden erneut auflösen.
+- **Sitzungen:** Passwortwechsel, Zurücksetzen, Sperre und Änderungen am zweiten Faktor beenden alle Sitzungen des Kontos in
+  allen Organisationen. Die Zwei-Faktor-Pflicht wirkt sofort.
+- **Protokoll-Anker:** `betreiber … protokoll-anker > anker-$(date +%F).json` regelmäßig außerhalb des Servers ablegen;
+  `protokoll-pruefen --anker DATEI` zeigt, ob das Protokoll seitdem gekürzt wurde.
+- `/readyz` von außen wird höchstens alle 30 Sekunden neu berechnet; vom Server selbst (Überwachung) immer frisch.
+
 ## 8. Was noch fehlt
 
 - Kein Betrieb mit echten Organisationen, keine externe Sicherheitsprüfung, kein Lasttest.

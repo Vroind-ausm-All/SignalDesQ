@@ -12,6 +12,9 @@ NAME = 'browser'
 
 
 def available():
+    from ... import hosting
+    if not hosting.browser_allowed():  # SDQ-037: im Server für mehrere Organisationen gesperrt
+        return False
     try:
         import playwright.sync_api  # noqa: F401
         return True

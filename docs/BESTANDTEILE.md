@@ -23,7 +23,7 @@ Feste Versionen mit SHA-256-Prüfsummen in `requirements-lock-*.txt`; installier
 | cffi | 2.1.1 | MIT-0 | team | 2026-08-03 |
 | charset-normalizer | 3.5.2 | MIT | research | 2026-09-30 |
 | courlan | 1.4.0 | Apache-2.0 | research | 2026-06-01 |
-| cryptography | 46.0.7 | Apache-2.0 OR BSD-3-Clause | team | 2026-04-08 |
+| cryptography | 50.0.2 | Apache-2.0 OR BSD-3-Clause | team | 2026-09-30 |
 | cssselect | 1.5.0 | BSD-3-Clause | research | 2026-07-27 |
 | dateparser | 1.4.3 | BSD-3-Clause | research | 2026-09-03 |
 | greenlet | 3.5.6 | MIT AND PSF-2.0 | browser | 2026-09-14 |

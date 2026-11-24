@@ -17,7 +17,7 @@ EnvironmentFile=/etc/signaldesk/umgebung
 ExecStart=/opt/signaldesk/.venv/bin/python -m sales_tool.multi_server \
     --root ${SIGNALDESK_ROOT} --host 127.0.0.1 --port ${SIGNALDESK_PORT} \
     --allowed-host ${SIGNALDESK_HOST} --log-file ${SIGNALDESK_LOG} \
-    --backup-dir ${SIGNALDESK_SICHERUNG_ZIEL}
+    --backup-dir ${SIGNALDESK_SICHERUNG_ZIEL} --vertrauter-proxy 127.0.0.1
 # SIGTERM: laufende Anfragen enden, Planer stoppen, dann Ende (Rückgabewert 0)
 KillSignal=SIGTERM
 TimeoutStopSec=30

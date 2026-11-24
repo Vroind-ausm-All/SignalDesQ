@@ -263,14 +263,20 @@ def accept(directory, token, account=None, new=None, client=''):
                                 actor=f"konto:{new.get('username')}", email=row['email'])
         username = new['username']
     else:
+        # SDQ-033 (Prüfbericht F01): nur das Konto mit der eingeladenen Adresse darf annehmen. Die Einladung bleibt bei
+        # Ablehnung unverbraucht; die Antwort nennt keine Kontodaten.
+        if not accounts.same_email(account['email'] if 'email' in account.keys() else '', row['email']):
+            audit_trail.record(directory, f"konto:{account['username']}", 'einladung_abgelehnt', row['slug'], 'andere Adresse', client)
+            raise PermissionError('Diese Einladung gilt für eine andere E-Mail-Adresse. Bitte mit dem eingeladenen Konto anmelden '
+                                  'oder die Verwaltung um eine Einladung an die Adresse dieses Kontos bitten.')
         username = account['username']
     if not accounts.membership(directory, username, row['slug']):
         abrechnung.check_member_limit(directory, row['slug'])
-    with directory._connect() as conn:  # erst jetzt verbrauchen: einmalig, auch bei gleichzeitigen Aufrufen
-        n = conn.execute('''UPDATE invitations SET accepted_at=datetime('now'), accepted_by=?
-                            WHERE id=? AND accepted_at='' AND revoked_at=\'\'''', (username, row['id'])).rowcount
-    if not n:
-        raise LookupError('Einladung wurde gerade schon verwendet.')
-    accounts.set_membership(directory, username, row['slug'], row['role'], actor=f'konto:{username}')
+
+    def consume(conn):  # in derselben Transaktion wie die Mitgliedschaft: beides oder nichts
+        return conn.execute('''UPDATE invitations SET accepted_at=datetime('now'), accepted_by=?
+                               WHERE id=? AND accepted_at='' AND revoked_at='' AND expires_at > datetime('now')''',
+                            (username, row['id'])).rowcount == 1
+    accounts.set_membership(directory, username, row['slug'], row['role'], actor=f'konto:{username}', consume=consume)
     audit_trail.record(directory, f'konto:{username}', 'einladung_angenommen', row['slug'], row['role'], client)
     return {'accepted': True, 'username': username, 'organization': {'slug': row['slug'], 'name': row['org_name']}}

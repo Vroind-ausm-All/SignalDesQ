@@ -19,7 +19,7 @@ Betrieb
   ... sichern [--ziel ORDNER] [--verschluesselt] [--pruefen]   (Passwort: SIGNALDESK_SICHERUNG_PASSWORT oder Abfrage)
   ... sicherungen   |   sicherung-pruefen 20261124-020000   |   zurueckspielen 20261124-020000 studio-nord --ja
   ... sicherungen-aufraeumen --behalten 14       (löscht ältere Sätze – nur auf ausdrücklichen Aufruf)
-  ... protokoll [--anzahl 50] [--konto erika]   |   protokoll-pruefen
+  ... protokoll [--anzahl 50] [--konto erika]   |   protokoll-pruefen [--anker DATEI]   |   protokoll-anker
 
 Die lokale Einzelplatz-Installation braucht das nicht. Organisationen werden nie gelöscht: Archivieren sperrt eine
 Organisation, die Daten bleiben erhalten (Rechnungen sind aufbewahrungspflichtig). Jede Änderung steht im Protokoll.
@@ -113,7 +113,9 @@ def _parser():
     p = sub.add_parser('protokoll', help='Verwaltungs- und Anmeldeprotokoll')
     p.add_argument('--anzahl', type=int, default=50)
     p.add_argument('--konto', help='nur Einträge zu diesem Konto')
-    sub.add_parser('protokoll-pruefen', help='Hash-Kette des Protokolls nachrechnen')
+    pp = sub.add_parser('protokoll-pruefen', help='Hash-Kette des Protokolls nachrechnen')
+    pp.add_argument('--anker', help='hinterlegte Anker-Datei (JSON) zusätzlich prüfen')
+    sub.add_parser('protokoll-anker', help='Stand der Kette als JSON ausgeben – außerhalb des Servers hinterlegen')
     return ap
 
 
@@ -202,8 +204,13 @@ def run(args, d):  # noqa: C901 – eine Verzweigung je Befehl
     if cmd == 'protokoll':
         return audit_trail.events(d, args.anzahl, target=args.konto), 0
     if cmd == 'protokoll-pruefen':
-        out = audit_trail.verify(d)
+        if args.anker:
+            out = audit_trail.verify_anchor(d, json.loads(Path(args.anker).read_text(encoding='utf-8')))
+        else:
+            out = audit_trail.verify(d)
         return out, 0 if out['ok'] else 1
+    if cmd == 'protokoll-anker':
+        return audit_trail.anchor(d), 0
     raise ValueError(f'Unbekannter Befehl {cmd}')
 
 
