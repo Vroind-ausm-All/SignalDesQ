@@ -113,7 +113,7 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
 | Kein bekannter Datenverlust in Kernfunktionen | B2 behoben (SDQ-003); Angebotseditor nur beforeunload, kein Browser-Test mit Positionen |
 | Nachweisbare Mandantentrennung | **offen** (nicht vorhanden) |
 | Backup und Restore geprüft | lokal ja (T15); Cloud offen |
-| Release-Tests | Unit-Matrix, Installation, alle 51 Browser-Tests (SDQ-005) und reproduzierbares Release in CI; macOS nicht |
+| Release-Tests | Unit-Matrix, Installation, alle 52 Browser-Tests (SDQ-005) und reproduzierbares Release in CI; macOS nicht |
 | Recherchequalität gemessen | **offen** |
 | Externe Nutzertests | **offen** |
 | Produktversprechen rechtlich geprüft | **offen** |
@@ -192,10 +192,15 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
   Regressionstests zu SDQ-001 bis SDQ-004) liefen nur lokal. Zusätzlich überspringen sich alle Browser-Tests still, wenn Playwright
   fehlt – ein kaputter Installationsschritt hätte einen grünen Lauf ohne einen einzigen Browser-Test ergeben.
 - **Änderung:** neues `tools/run_e2e.py` (führt `tests/e2e` vollständig aus, zählt gefunden/gelaufen/übersprungen/nicht bestanden).
-  Der CI-Job ruft es mit `--no-skips --min-tests 51` auf: ein übersprungener Test oder weniger als 51 gefundene Tests machen den
+  Der CI-Job ruft es mit `--no-skips --min-tests 52` auf: ein übersprungener Test oder weniger als 52 gefundene Tests machen den
   Lauf rot. Zeitlimit des Jobs 25 → 30 Minuten.
-- **Tests:** lokal 51 gefunden, 51 gelaufen, 0 übersprungen, 0 nicht bestanden (226 s, Chromium 1243, Playwright 1.64.1).
-  CI-Ergebnis siehe Pull Request.
+- **Gleich beim ersten CI-Lauf gefunden:** `test_sdq002_akte_navigation_browser` scheiterte in einem von zwei Läufen
+  (Adresse „#/firmen“ bei offener Akte). Ursache war kein Testfehler, sondern ein Wettlauf in `nav.js`: `closeModal()` prüft die
+  Adresse per `setTimeout(0)` und nahm „?firma“ zurück – auch wenn inzwischen eine neue Adresse (wieder eine Akte) gekommen war.
+  Behoben über einen Zähler der Adresswechsel (`popstate`); Regressionstest `e2e/test_sdq005_akte_close_race_browser.py`
+  stellt den Ablauf gezielt nach und ist gegen den alten Stand rot. Lokal nie aufgetreten – genau dafür braucht es die CI.
+- **Tests:** lokal 52 gefunden, 52 gelaufen, 0 übersprungen, 0 nicht bestanden (Chromium 1243, Playwright 1.64.1).
+  CI-Ergebnis siehe Pull Request. `--min-tests 52`.
 - **Nicht abgedeckt:** Browser-Tests nur unter Linux/Chromium; kein Firefox/WebKit, kein Windows-Browserlauf.
 - **Reifeauswirkung (Vorschlag, gilt erst mit grünem CI-Lauf):** Dimension 8 (Tests) 65 → 67, weil Regressionen der
   Oberfläche jetzt bei jedem Push geprüft werden. Gesamtindex 48,74 → 48,90 (≈ 48,9).

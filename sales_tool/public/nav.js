@@ -30,6 +30,8 @@
   const ANALYSEN = ['center', 'research', 'scoring', 'signals', 'report'];  // 2.0.0-dev51: Unteransichten des Reiters „Analysen“
   const scrollOf = {};
   let fromHistory = false, pushedLead = false, ignorePop = 0, restoringOffer = null;
+  let navSeq = 0;  // zählt Adresswechsel durch den Browser (Zurück/Vor, Link, eingegebene Adresse)
+  window.addEventListener('popstate', () => { navSeq++; });
 
   const areaOf = view => AREA_OF[view] || 'heute';
   const modalOpen = () => !!document.getElementById('modal') && !document.getElementById('modal').classList.contains('hidden');
@@ -124,11 +126,15 @@
   const plainClose = window.closeModal;
   window.closeModal = function () {
     const r = plainClose();
+    const seq = navSeq;
     // Erst nach dem aktuellen Ablauf entscheiden: Springt der Aufrufer gleich in eine andere Ansicht, bleibt die Firma im
     // Verlauf – „Zurück“ öffnet sie dann wieder. Wurde nur geschlossen, wird der Verlaufseintrag der Firma zurückgenommen.
     setTimeout(() => {
       const {view, params} = parse(location.hash);
-      if (!params.has('firma') || modalOpen()) { if (!params.has('firma')) pushedLead = false; return; }
+      if (!params.has('firma')) pushedLead = false;
+      // SDQ-005: Kam inzwischen schon eine neue Adresse (Zurück/Vor, Link, eingegebene Adresse – z. B. wieder eine Akte),
+      // gehört die Adresse nicht mehr zu diesem Schließen. Sonst stünde dort „#/firmen“, während die Akte offen ist.
+      if (seq !== navSeq || !params.has('firma') || modalOpen()) return;
       if (pushedLead) { pushedLead = false; ignorePop++; history.back(); }
       else { params.delete('firma'); history.replaceState(null, '', build(view || currentView, params)); }  // direkt geöffnete Akte → Liste
     }, 0);
