@@ -203,6 +203,12 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
   Mit Projektstand heißt der nächste Schritt dort richtigerweise „Kick-off …“ (Reihenfolge Kick-off → Abnahme → Schlussrechnung);
   der Rest bleibt unter Abrechnen und Heute sichtbar. Testfehler, kein Produktfehler: Der Test startet und nimmt das Projekt
   jetzt ab und prüft den Endstand nach dem Nachladen.
+- **Dritter CI-Lauf:** `test_catalog_browser` (älterer Test) prüfte die Angebotskarte im Playbook sofort nach dem Speichern eines
+  Katalogpreises. Die Karte wird im Hintergrund neu geladen (`refreshOffers`); der Adresswechsel lädt die Seite nicht neu.
+  Testfehler: Der Test wartet jetzt auf den neuen Preis und prüft zusätzlich nach echtem Neuladen.
+- **Folgerung:** Mehrere Browser-Tests prüften Zwischenstände, die lokal schnell genug fertig waren. Solche Stellen zeigen sich
+  erst unter CI-Last; jede gefundene wird einzeln auf Ursache geprüft (Produktfehler oder Testfehler), nicht wiederholt oder
+  übersprungen.
 - **Tests:** lokal 52 gefunden, 52 gelaufen, 0 übersprungen, 0 nicht bestanden (Chromium 1243, Playwright 1.64.1).
   CI-Ergebnis siehe Pull Request. `--min-tests 52`.
 - **Nicht abgedeckt:** Browser-Tests nur unter Linux/Chromium; kein Firefox/WebKit, kein Windows-Browserlauf.
