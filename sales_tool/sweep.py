@@ -1388,33 +1388,73 @@ def _same_words(a, b):
     return len(small) >= 2 and small <= big
 
 
-def _match(cand, fields):
+def _cget(cand, key):
+    return (cand[key] if key in cand.keys() else '') or ''
+
+
+def _names_match(a, b):
+    """Gleicher Betriebsname? Gleich nach Normalisierung, gleiche Wörter in anderer Reihenfolge, oder der kürzere Name steckt im
+    längeren – Letzteres nur, wenn der kürzere aus mindestens zwei Wörtern besteht (SDQ-007: „Elektro GmbH“ ist nicht
+    „Elektro Schmidt GmbH“)."""
+    nm, nm2 = normalize_name(a), normalize_name(b)
+    if not (nm and nm2):
+        return False
+    if nm == nm2 or _same_words(a, b):  # 2.0.0-dev44: „Malerbetrieb Huber“ / „Huber Malerbetrieb e.K.“
+        return True
+    short_name = a if len(nm) <= len(nm2) else b
+    short, long_ = sorted((nm, nm2), key=len)
+    return len(short) >= 5 and short in long_ and len(_name_words(short_name)) >= 2
+
+
+def counter_evidence(cand, fields):
+    """SDQ-007: harte Gegenbelege zwischen Firma und Impressum. Gibt den ersten Grund zurück oder ''.
+    Jeder Gegenbeleg schließt eine Zuordnung aus – auch als Vorschlag (Grundsatz aus research/identity.py)."""
     from .company_data import normalize_register
+    from .research import identity
     val = lambda k: ((fields.get(k) or {}).get('value') or '')
     reg = re.sub(r'\s+', '', val('register_number').upper())
     wanted_reg = re.sub(r'\s+', '', (cand['register_id'] or '').upper())
-    nm, nm2 = normalize_name(cand['name']), normalize_name(val('legal_name'))
-    names_match = bool(nm and nm2 and (nm == nm2 or (min(len(nm), len(nm2)) >= 5 and (nm in nm2 or nm2 in nm))))
-    if not names_match and nm and nm2:  # 2.0.0-dev44: gleiche Wörter in anderer Reihenfolge, z. B. „Malerbetrieb Huber“ / „Huber Malerbetrieb e.K.“
-        names_match = _same_words(cand['name'], val('legal_name'))
     if wanted_reg and reg and wanted_reg != reg:
-        return None, ''
-    if nm and nm2 and not names_match:
-        return None, ''
-    if cand['zip'] and val('zip') and cand['zip'] != val('zip'):
-        return None, ''
+        return f"andere Registernummer im Impressum ({val('register_number')})"
     if reg and wanted_reg == reg:
-        court = cand['register_court'] if 'register_court' in cand.keys() else ''
-        expected = normalize_register(court, wanted_reg)
+        expected = normalize_register(_cget(cand, 'register_court'), wanted_reg)
         observed = normalize_register(val('register_court'), reg)
         if expected and observed and expected != observed:
-            return None, ''
+            return f"anderes Registergericht im Impressum ({val('register_court')})"
+    if normalize_name(cand['name']) and normalize_name(val('legal_name')) and not _names_match(cand['name'], val('legal_name')):
+        return f"anderer Firmenname im Impressum ({val('legal_name')[:80]})"
+    fa = identity.legal_family(cand['name']) or identity.legal_family(_cget(cand, 'legal_form'))
+    fb = identity.legal_family(val('legal_name')) or identity.legal_family(val('legal_form'))
+    if fa and fb and fa != fb:
+        return f"andere Rechtsform im Impressum ({val('legal_name')[:80] or val('legal_form')})"
+    if cand['zip'] and val('zip') and cand['zip'] != val('zip'):
+        return f"andere PLZ im Impressum ({val('zip')})"
+    ca, cb = identity.norm_city(_cget(cand, 'city')), identity.norm_city(val('city'))
+    if ca and cb and ca != cb and not (cand['zip'] and cand['zip'] == val('zip')):
+        return f"anderer Ort im Impressum ({val('city')[:60]})"
+    return ''
+
+
+def _match(cand, fields):
+    """Stufen (SDQ-007): 'belegt' (Registernummer und -gericht und Name stimmen) · 'wahrscheinlich' (nur Vorschlag, Mensch
+    bestätigt) · None (keine Zuordnung). Gibt (Stufe, Begründung) zurück; bei None nennt die Begründung den Gegenbeleg."""
+    from .company_data import normalize_register
+    val = lambda k: ((fields.get(k) or {}).get('value') or '')
+    why_not = counter_evidence(cand, fields)
+    if why_not:
+        return None, why_not
+    reg = re.sub(r'\s+', '', val('register_number').upper())
+    wanted_reg = re.sub(r'\s+', '', (cand['register_id'] or '').upper())
+    names_match = _names_match(cand['name'], val('legal_name'))
+    if reg and wanted_reg == reg:
+        expected = normalize_register(_cget(cand, 'register_court'), wanted_reg)
+        observed = normalize_register(val('register_court'), reg)
         if expected and observed and names_match:
             return 'belegt', f"Registernummer und Registergericht stimmen überein: {val('register_number')} · {val('register_court')}"
         return 'wahrscheinlich', f"Registernummer {val('register_number')} stimmt überein; Registergericht oder Firmenname nicht sicher verglichen"
     if names_match and (not cand['zip'] or val('zip') == cand['zip']):
         return 'wahrscheinlich', f"Firmenname{' und PLZ' if cand['zip'] else ''} im Impressum stimmen überein"
-    return None, ''
+    return None, 'Impressum ohne passenden Firmennamen oder Registernummer'
 
 
 def find_website(conn, cid):
@@ -1425,6 +1465,7 @@ def find_website(conn, cid):
     errors = 0
     inspected = 0
     rejected = set(json.loads(cand['imprint_json'] or '{}').get('rejected_domains', []))
+    against = []  # SDQ-007: Domain mit Gegenbeleg – wird im Beleg genannt, damit die Ablehnung nachvollziehbar ist
     targets = [cand['website']] if cand['website'] else [d for d in domain_guesses(cand['name'], cand['city']) if d not in rejected]
     for dom in targets:
         tried.append(dom)
@@ -1437,6 +1478,8 @@ def find_website(conn, cid):
         if res.get('status') != 'ok':
             continue
         status, why = _match(cand, res.get('fields') or {})
+        if not status and why:
+            against.append(f'{dom}: {why}')
         if status:
             f = res['fields']
             contact = {k: (f.get(k) or {}).get('value') for k in ('business_phone', 'business_email') if (f.get(k) or {}).get('value')}
@@ -1462,10 +1505,12 @@ def find_website(conn, cid):
         return {'status': 'pruefung_fehlgeschlagen', 'tried': tried, 'evidence': why}
     if cand['website']:
         conn.execute("UPDATE discovery_candidates SET website_status='nicht_bestaetigt', website_evidence=? WHERE id=?",
-                     ('Website geprüft, aber Firma nicht eindeutig zuzuordnen – bitte selbst prüfen', cid))
+                     (('Website geprüft, aber Firma nicht eindeutig zuzuordnen – bitte selbst prüfen'
+                       + (' · Gegenbeleg: ' + '; '.join(against) if against else ''))[:300], cid))
     else:
         conn.execute("UPDATE discovery_candidates SET website_status='nicht_gefunden', website_evidence=? WHERE id=?",
-                     ((f'Geprüft: {inspected}; Abrufe fehlgeschlagen: {errors}. Domains: ' + ', '.join(tried))[:300] if tried else 'Kein sinnvoller Domainname ableitbar', cid))
+                     ((f'Geprüft: {inspected}; Abrufe fehlgeschlagen: {errors}. Domains: ' + ', '.join(tried)
+                       + (' · Gegenbeleg: ' + '; '.join(against) if against else ''))[:300] if tried else 'Kein sinnvoller Domainname ableitbar', cid))
     conn.commit()
     return {'status': 'nicht_gefunden', 'tried': tried}
 

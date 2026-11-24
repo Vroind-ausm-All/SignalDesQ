@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.0-dev59 – Website-Suche schlägt keine fremde Gesellschaft mehr vor (SDQ-007)
+
+- **Fehlerbehebung – falsche Website-Vorschläge:** Die Website-Suche in „Finden“ schlug bisher auch Seiten vor, deren Impressum eine andere Gesellschaft nennt: „Müller Elektro e.K.“ für die „Müller Elektro GmbH“, die Verwaltungs-GmbH für die GmbH & Co. KG, ein Impressum in Hamburg für eine Firma in Stuttgart oder „Elektro Schmidt GmbH“ für die „Elektro GmbH“. Jetzt schließt jeder harte Gegenbeleg einen Vorschlag aus: andere Registernummer, anderes Registergericht, anderer Name, andere Rechtsform, andere PLZ oder anderer Ort.
+- **Nachvollziehbar:** Wird eine geprüfte Domain abgelehnt, steht der Grund im Beleg, z. B. „Gegenbeleg: mueller-elektro.de: andere Rechtsform im Impressum (Müller Elektro e.K.)“.
+- Unverändert: „belegt“ nur bei gleicher Registernummer, gleichem Registergericht und gleichem Namen; „wahrscheinlich“ bleibt ein Vorschlag, den du bestätigst.
+- Test: neu `test_sdq007_identity_levels.py` (7 Fälle, 6 gegen den alten Stand rot).
+
 ## 2.0.0-dev58 – Jede Datenquelle mit Lizenz, Aktualität, Limits, Kosten und eigener Fehlerrate (SDQ-008)
 
 - **Neu auf den Quellenkarten** (Finden → „Einzelne Quelle gezielt abfragen“): Aktualität, Kosten und was deine eigenen Abfragen der letzten 30 Tage ergeben haben, z. B. „4 Abfragen, 25 % fehlgeschlagen, zuletzt erfolgreich am 24.11.2026 · 2 von 8 geprüften Treffern übernommen“. Limits der Quelle, Umgang mit Personendaten und der letzte Fehler stehen im Tooltip.
