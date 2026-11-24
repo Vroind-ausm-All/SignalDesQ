@@ -103,7 +103,13 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
 | SDQ-007 | P1 | Identitätsstufen (bestätigt … keine Zuordnung) mit harten Gegenbelegen und Regressionen | SDQ-006 | Website-Zuordnung in „Finden“ erledigt (2.0.0-dev59) |
 | SDQ-008 | P1 | Provider-Beschreibung je Quelle (Lizenz, Frische, Limits, Fehlerrate, Kosten) | – | erledigt (2.0.0-dev58) |
 | SDQ-009 | P1 | Gestaltetes Angebots-PDF aus dem Kundenexport | – | **implementiert** (2.0.0-dev60) |
-| SDQ-010 | P1 | Datenzugriffsschicht mit Organisationsfilter (Vorbereitung Mandanten) | SDQ-002…004 | offen |
+| SDQ-010 | P1 | Tabellenregister und Inventar aller SQL-Zugriffe (statt Organisationsfilter, siehe E10) | SDQ-002…004 | **implementiert** (2.0.0-dev61) |
+| SDQ-011 | P1 | Mandantenverzeichnis: eine Datenbank je Organisation, Pfadregeln, Archivierung | SDQ-010 | **implementiert** (2.0.0-dev61) |
+| SDQ-012 | P1 | Prozesszustand je Organisation (Offline, Anmeldesperre, Läufe, Planer) | SDQ-011 | **implementiert** (2.0.0-dev61) |
+| SDQ-013 | P1 | Dateien je Organisation und Datenexport ohne Zugangsdaten | SDQ-011 | **implementiert** (2.0.0-dev61) |
+| SDQ-014 | P1 | Zentrale Anmeldung: Konten, Mitgliedschaften, Rollen je Organisation | SDQ-011 | **implementiert** (2.0.0-dev62) |
+| SDQ-015 | P1 | Server für mehrere Organisationen (Sitzung → genau eine Organisation) | SDQ-014 | **implementiert** (2.0.0-dev62) |
+| SDQ-016 | P1 | Organisation wechseln, Abmelden, Entzug und Sperre wirken sofort | SDQ-015 | **implementiert** (2.0.0-dev62) |
 
 ## 6. Launch-Gates (Stand)
 
@@ -111,7 +117,7 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
 |---|---|
 | Keine offenen kritischen Sicherheitsbefunde | B3 behoben (SDQ-004); externes Security Assessment fehlt – Gate bleibt **offen** |
 | Kein bekannter Datenverlust in Kernfunktionen | B2 behoben (SDQ-003); Angebotseditor nur beforeunload, kein Browser-Test mit Positionen |
-| Nachweisbare Mandantentrennung | **offen** (nicht vorhanden) |
+| Nachweisbare Mandantentrennung | **technisch nachgewiesen** (E10, SDQ-011 bis SDQ-016: eine Datenbank je Organisation, zentrale Anmeldung, Negativtests per HTTP und im Browser); **offen** bis zur externen Sicherheitsprüfung und einem Betrieb mit echten Organisationen |
 | Backup und Restore geprüft | lokal ja (T15); Cloud offen |
 | Release-Tests | Unit-Matrix, Installation, alle 52 Browser-Tests (SDQ-005) und reproduzierbares Release in CI; macOS nicht |
 | Recherchequalität gemessen | **offen** – Werkzeug und Format vorhanden (SDQ-006), keine geprüfte Referenzliste |
@@ -290,3 +296,72 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
   Anbieters; der Seitenumbruch ist nur mit Chromium geprüft. Keine Rückmeldung von Kunden zur Gestaltung.
 - **Reifeauswirkung (Vorschlag):** Dimension 5 (Angebote) 78 → 79 (Konfidenz M): der im Audit genannte P1-Mangel ist behoben,
   die PDF-Erzeugung hängt aber am Browser. Gesamtindex 49,21 → 49,29.
+
+### Welle 3 – Mandantenfähigkeit vorbereiten (SDQ-010 bis SDQ-013, 2.0.0-dev61)
+
+- **Entscheidung:** eine Datenbank je Organisation (Architektur E10, Entscheidung Vasco 24.11.2026) statt `org_id` in allen
+  Tabellen. Damit entfällt der im Audit geforderte „erzwungene Organisationsfilter“ im SQL: Die Grenze ist die Datei. Was
+  diese Variante stattdessen verlangt – kein geteilter Prozesszustand, alle Dateien im Ordner der Organisation – ist
+  umgesetzt und getestet.
+- **SDQ-010 – Tabellenregister und Datenzugriffs-Inventar.** `sales_tool/data_map.py` ordnet alle 83 Tabellen ein
+  (Organisation / Installation / Zugang, Personenbezug, Aufbewahrung: GoBD, fachlich, kurz). `sales_tool/sql_scan.py` liest
+  alle SQL-Aufrufe aus dem Quelltext (AST, ohne Ausführung); `tools/sql_inventory.py` erzeugt `docs/DATENZUGRIFF.md`.
+  Ergebnis: rund 1.300 Aufrufe in 61 Modulen, alle statisch lesbar. Tests (`tests/test_sdq010_data_map.py`, 11 Fälle) halten
+  fest: jede Tabelle registriert; jede Spalte mit Personenbezug in einer als personenbezogen markierten Tabelle;
+  Rechnungs- und Steuerdaten schreiben nur `accounting.py` und `einvoice.py`; Anmeldedaten nur `auth.py`, `server.py` und die
+  Exportkopie; SQL-Text bleibt statisch lesbar; das Inventar-Dokument ist aktuell.
+- **SDQ-011 – Mandantenverzeichnis.** `sales_tool/tenancy.py`: `Directory` legt Organisationen mit eigener, migrierter
+  Datenbank in eigenem Ordner an, prüft Kennungen (kein `../`, keine Verknüpfung aus dem Verzeichnis heraus, keine
+  reservierten Namen), überschreibt nie eine vorhandene Datei und archiviert statt zu löschen. Kommandozeile
+  `tools/organisationen.py`.
+- **SDQ-012 – Prozesszustand je Organisation.** Gefunden durch Durchsicht aller Modul-Variablen: Der Offline-Schalter galt
+  für alle Datenbanken im Prozess; fünf Fehlversuche für „admin“ bei einer Organisation sperrten „admin“ bei allen; ein
+  Impressum-Lauf Nr. 1 blockierte Lauf Nr. 1 jeder anderen Datenbank; der Planer für wiederkehrende Aufträge lief nur für
+  die erste Datenbank. Jetzt je Datenbank getrennt; Anfragen und Auftragsschritte laufen mit gesetztem Mandanten.
+  Bewusst geteilt bleiben Recherche-Technik-Schalter, Abruf-Bremsen und öffentliche Nachschlagedaten (E10).
+- **SDQ-013 – Dateien und Export.** `tenancy.org_files` nennt alle Dateien einer Organisation (Datenbank, Sicherungen,
+  Bildschirmfotos, Firmenkatalog, Altdatei Zugangsdaten); alle liegen im Ordner der Organisation. `export_organization`
+  erzeugt eine ZIP-Datei mit konsistenter Datenbankkopie, Bildschirmfotos und Verzeichnis (Zeilen, Personenbezug,
+  Aufbewahrung je Tabelle) – ohne Zugangsdaten, Sitzungen und Passwort-Hashes.
+- **Tests:** `tests/test_sdq011_tenancy.py` (18 Fälle, davon 5 gegen den alten Stand rot: Offline-Schalter, wartende
+  Netzschritte, Anmeldesperre, Lauf-Nummern, Planer). Drei ältere Tests warten jetzt über `sweep.join_sweep(..., db_path)`
+  statt über die interne Liste, weil Suchnummern nur je Datenbank eindeutig sind.
+- **Nicht umgesetzt:** Der Server bedient weiterhin eine Datenbank je Prozess; es gibt keine zentrale Anmeldung, die eine
+  Person ihrer Organisation zuordnet, und keine Oberfläche für das Verzeichnis. Hilfsfunktionen für Tests
+  (`wait_websites`, `wait_scans`, `report.wait_idle`) merken sich weiterhin nur die zuletzt benutzte Datenbank. Der Export ist
+  unverschlüsselt. Löschen einer Organisation gibt es nicht (Aufbewahrungspflicht, braucht eine freigegebene Regel).
+- **Reifeauswirkung (Vorschlag):** Dimension 10 (Mandantenfähige SaaS-Architektur) 10 → 13: Trennmodell entschieden,
+  Verzeichnis und Isolation im Prozess getestet, aber kein Mehrmandanten-Betrieb. Dimension 9 (Sicherheit und Datenschutz)
+  38 → 39: vollständige Einordnung personenbezogener und aufbewahrungspflichtiger Daten, Schreibgrenzen als Test,
+  Datenexport ohne Geheimnisse. Gesamtindex 49,29 → 49,75.
+
+### Welle 3, Teil 2 – Zentrale Anmeldung und Server für mehrere Organisationen (SDQ-014 bis SDQ-016, 2.0.0-dev62)
+
+- **SDQ-014 – Zentrale Anmeldung.** `sales_tool/accounts.py`: Konten (scrypt-Hash wie bisher), Mitgliedschaften mit Rolle
+  (admin, vertrieb, buchhaltung, lesen) und zentrale Sitzungen im Verzeichnis `organisationen.sqlite3`. Betritt eine Person
+  eine Organisation, entsteht dort ein Benutzer **ohne eigenes Passwort** (Anmeldung nur zentral) und eine Sitzung in deren
+  Datenbank; die Login-Pflicht wird dort eingeschaltet, damit die Rollenrechte immer gelten. Anmeldeseite `/anmelden`
+  (`public/zentral.*`) mit Auswahl, Wechsel und Passwortänderung; Konten und Mitgliedschaften über `tools/organisationen.py`.
+- **SDQ-015 – Server für mehrere Organisationen.** `python -m sales_tool.multi_server --root …`. Jede Anfrage wird nur
+  weitergereicht, wenn (1) das Cookie eine aktive Organisation nennt, (2) die Sitzung in **deren** Datenbank gültig ist und
+  (3) das Konto im Verzeichnis noch Mitglied ist. Sonst: Seiten → `/anmelden`, API → 401. Danach übernimmt der unveränderte
+  Handler genau dieser Datenbank. Örtliche Anmeldung, Benutzerverwaltung und Login-Schalter sind in der Organisation gesperrt
+  (zentral). Nebenbei behoben: Der Herkunftscheck lehnte Anfragen hinter einem TLS-Proxy (`Origin: https://…`) ab.
+- **SDQ-016 – Wechsel, Abmelden, Entzug.** Wechsel beendet die Sitzung der bisherigen Organisation; Abmelden beendet zentrale
+  und Organisationssitzung; Rollenänderung gilt mit der nächsten Anfrage; Entzug der Mitgliedschaft oder Sperre des Kontos
+  beendet den Zugang sofort – auch wenn nur das Verzeichnis geändert wurde.
+- **Tests:** `tests/test_sdq014_multi_tenant.py` (15 Fälle per HTTP: ohne Anmeldung nur Anmeldeseite, gefälschte
+  Organisation im Cookie, Sitzung einer anderen Organisation, `../` als Kennung, Rollen je Organisation, Rollenänderung,
+  Entzug, Entzug nur im Verzeichnis, gesperrtes Konto, archivierte Organisation, Konto ohne Mitgliedschaft, örtliche
+  Anmeldung gesperrt, Abmelden und Wiederverwendung alter Sitzungen, Passwortänderung, Sperre nach Fehlversuchen, fremde
+  Herkunft, unbekannter Host) und `tests/e2e/test_sdq014_multi_tenant_browser.py` (Anmelden, falsches Passwort, wählen,
+  nur eigene Firmen, wechseln, abmelden). CI-Mindestzahl Browser-Tests 54 → 55.
+- **Nicht umgesetzt:** Selbstregistrierung, Einladungen per E-Mail und Passwort-Zurücksetzen per E-Mail (es gibt bewusst
+  keinen Mailversand ohne Freigabe; der Betreiber setzt Passwörter über die Kommandozeile). Keine Zwei-Faktor-Anmeldung, kein
+  OIDC/SSO. Das Kalender-Abo (`/kalender/…`) braucht im Mehrmandanten-Betrieb eine Sitzung und ist dort für Kalender-Programme
+  noch nicht nutzbar. Hintergrundaufträge einer Organisation laufen im selben Prozess (Trennung über den Mandantenkontext,
+  SDQ-012), nicht in getrennten Prozessen. Keine externe Sicherheitsprüfung; kein Betrieb mit echten Organisationen.
+- **Reifeauswirkung (Vorschlag):** Dimension 10 (Mandantenfähige SaaS-Architektur) 13 → 30: Mehrmandanten-Betrieb mit
+  zentraler Anmeldung ist lauffähig und an den Grenzen getestet; es fehlen Abrechnung, Betrieb, Selbstregistrierung und
+  Prüfung. Dimension 9 (Sicherheit und Datenschutz) 39 → 41: Zugriffsentzug wirkt sofort, Sitzungen sind an die Datenbank
+  der Organisation gebunden, Proxy-Herkunftscheck korrigiert. Gesamtindex 49,75 → 51,99.

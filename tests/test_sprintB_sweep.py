@@ -410,7 +410,7 @@ class SweepHttpTests(SweepBase):
         self.assertEqual(self.call('/api/industries')[0], 200)
         status, s = self.call('/api/sweeps', 'POST', {'place': 'Stuttgart', 'radius_km': 30, 'sources': ['gleif', 'ted']})
         self.assertEqual(status, 202)
-        sw._THREADS[s['id']].join(30)
+        sw.join_sweep(s['id'], 30, db_path=self.db)
         status, d = self.call(f"/api/sweeps/{s['id']}")
         self.assertEqual(d['status'], 'fertig')
         status, lst = self.call('/api/sweep-candidates?status=neu&sort=distanz')

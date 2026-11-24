@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0d2026">
+<title>SignalDesk · Anmelden</title><link rel="icon" href="/favicon.svg"><script src="/theme.js"></script>
+<link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/zentral.css"></head>
+<body class="zentral">
+<main class="zentral-card" aria-labelledby="zTitle">
+  <h1 id="zTitle">SignalDesk</h1>
+  <form id="zLogin" class="hidden" autocomplete="on">
+    <p class="muted">Anmelden mit deinem Konto.</p>
+    <label>Benutzername<input name="username" autocomplete="username" required maxlength="40"></label>
+    <label>Passwort<input name="password" type="password" autocomplete="current-password" required maxlength="200"></label>
+    <button type="submit" class="btn btn-primary">Anmelden</button>
+  </form>
+  <section id="zOrgs" class="hidden" aria-live="polite">
+    <p class="muted" id="zWho"></p>
+    <h2>Organisation wählen</h2>
+    <ul id="zOrgList" class="zentral-orgs"></ul>
+    <p id="zNone" class="muted hidden">Dein Konto ist noch keiner Organisation zugeordnet. Bitte wende dich an die Administration.</p>
+    <details class="zentral-pw"><summary>Passwort ändern</summary>
+      <form id="zPw">
+        <label>Bisheriges Passwort<input name="old" type="password" autocomplete="current-password" required maxlength="200"></label>
+        <label>Neues Passwort (mind. 10 Zeichen)<input name="new" type="password" autocomplete="new-password" required minlength="10" maxlength="200"></label>
+        <button type="submit" class="btn btn-ghost">Passwort ändern</button>
+      </form>
+    </details>
+    <button type="button" id="zLogout" class="btn btn-ghost">Abmelden</button>
+  </section>
+  <p id="zMsg" class="zentral-msg" role="alert"></p>
+</main>
+<script src="/zentral.js"></script>
+</body>
+</html>

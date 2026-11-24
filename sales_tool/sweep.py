@@ -27,6 +27,7 @@ import time
 import unicodedata
 
 from . import area as ar
+from . import tenancy
 from . import industries as ind
 from . import lead_finder as lf
 from .research import catalog
@@ -43,7 +44,7 @@ MAX_GLEIF_REQUESTS = 150
 GLEIF_DELAY = 1.1
 DAILY_SWEEPS = 20
 MAX_IMPORT_BYTES = 60_000_000
-_THREADS = {}
+_THREADS = {}  # (Datenbank, Suche) → Warter/Thread; SDQ-012: Suchnummern gibt es in jeder Organisation
 _WEB = {'thread': None}
 _LOCK = threading.Lock()
 
@@ -454,7 +455,7 @@ def start_sweep(conn, data, db_path, start=True):
                   'payload': {'sid': sid}, 'max_attempts': 2})
     job, _ = jobs.submit(conn, 'sweep', f'Sammelsuche {label}', tasks, job_key=f'sweep:{sid}', params={'sid': sid},
                          priority=3, db_path=db_path, start=start)
-    _THREADS[sid] = jobs.JobWaiter(db_path, job['id'])
+    _THREADS[(tenancy.db_key(db_path), sid)] = jobs.JobWaiter(db_path, job['id'])
     return sweep_detail(conn, sid)
 
 
@@ -649,10 +650,10 @@ def retry_sweep(conn, sid, db_path, start=True):
         conn.commit()
         if start:
             jobs.ensure_workers(db_path)
-            _THREADS[sid] = jobs.JobWaiter(db_path, job['id'])
+            _THREADS[(tenancy.db_key(db_path), sid)] = jobs.JobWaiter(db_path, job['id'])
     elif start:
-        t = threading.Thread(target=run_sweep, args=(db_path, sid, failed), daemon=True, name=f'sweep-retry-{sid}')
-        _THREADS[sid] = t
+        t = tenancy.thread(run_sweep, db_path, args=(db_path, sid, failed), name=f'sweep-retry-{sid}')
+        _THREADS[(tenancy.db_key(db_path), sid)] = t
         t.start()
     return {'retrying': failed}
 
@@ -1643,6 +1644,14 @@ def _web_worker(db_path):
     with connect(db_path) as conn:
         adopt_waiting_websites(conn, db_path, start=False)
     jobs.run_until_idle(db_path, kinds=('website',))
+
+
+def join_sweep(sid, timeout=30, db_path=None):
+    """Auf eine Sammelsuche warten (Tests, Kommandozeile). Ohne db_path: diese Suchnummer in jeder Datenbank des Prozesses."""
+    want = tenancy.db_key(db_path) if db_path else None
+    for (db, s), t in list(_THREADS.items()):
+        if s == sid and (want is None or db == want):
+            t.join(timeout)
 
 
 def wait_websites(timeout=60):

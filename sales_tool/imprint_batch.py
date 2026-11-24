@@ -22,7 +22,7 @@ from .model import connect
 from .website_analyzer import CrawlError
 
 MAX_ITEMS = 100
-_RUNNERS: dict[int, threading.Thread] = {}
+_RUNNERS: dict[tuple[str, int], threading.Thread] = {}
 _LOCK = threading.Lock()
 APPLY_FIELDS = ('legal_name', 'legal_form', 'street', 'zip', 'city', 'register_court', 'register_number', 'vat_id',
                 'business_phone', 'business_email')
@@ -163,20 +163,24 @@ def create_run(conn, data, db_path, start=True):
 # ---------------------------------------------------------------- Ausführung
 
 def start_runner(db_path, run_id):
+    from . import tenancy
+    key = (tenancy.db_key(db_path), run_id)  # SDQ-012: Lauf-Nummern gibt es in jeder Organisation – nur zusammen eindeutig
     with _LOCK:
-        t = _RUNNERS.get(run_id)
+        t = _RUNNERS.get(key)
         if t and t.is_alive():
             return False
-        t = threading.Thread(target=_run, args=(db_path, run_id), daemon=True, name=f'impressum-batch-{run_id}')
-        _RUNNERS[run_id] = t
+        t = tenancy.thread(_run, db_path, args=(db_path, run_id), name=f'impressum-batch-{run_id}')
+        _RUNNERS[key] = t
         t.start()
         return True
 
 
-def wait_for(run_id, timeout=30):
-    t = _RUNNERS.get(run_id)
-    if t:
-        t.join(timeout)
+def wait_for(run_id, timeout=30, db_path=None):
+    from . import tenancy
+    want = tenancy.db_key(db_path) if db_path else None
+    for (db, rid), t in list(_RUNNERS.items()):
+        if rid == run_id and (want is None or db == want):
+            t.join(timeout)
 
 
 def _next_item(db_path, run_id):

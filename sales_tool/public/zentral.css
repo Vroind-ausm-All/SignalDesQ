@@ -1,0 +1,15 @@
+/* SDQ-014: Anmeldeseite der Mehrmandanten-Installation – ergänzt style.css */
+body.zentral{background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.zentral-card{width:100%;max-width:420px;background:var(--surface,#fff);border:1px solid var(--line,#d8e1e3);border-radius:12px;padding:24px}
+.zentral-card h1{margin:0 0 12px;font-size:22px}
+.zentral-card h2{font-size:15px;margin:16px 0 8px}
+.zentral-card label{display:block;margin:10px 0}
+.zentral-card input{display:block;width:100%;margin-top:4px}
+.zentral-card form .btn{margin-top:12px;width:100%}
+.zentral-orgs{list-style:none;padding:0;margin:0 0 12px}
+.zentral-orgs li{margin:6px 0}
+.zentral-orgs .btn{width:100%;text-align:left}
+.zentral-msg{color:#b2453f;min-height:1.2em;margin:12px 0 0}
+.hidden{display:none}
+.zentral-pw{margin:12px 0}
+.zentral-pw summary{cursor:pointer}

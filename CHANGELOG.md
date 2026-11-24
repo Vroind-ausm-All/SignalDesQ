@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.0.0-dev62 – Mehrere Organisationen mit zentraler Anmeldung (SDQ-014 bis SDQ-016)
+
+- **Neu – Betrieb für mehrere Organisationen:** `python -m sales_tool.multi_server --root …` bedient alle Organisationen eines Verzeichnisses, jede mit eigener Datenbank. Die Anmeldung erfolgt zentral unter `/anmelden`; wer zu mehreren Organisationen gehört, wählt dort und kann jederzeit wechseln („Organisation · wechseln“ unten in der Seitenleiste).
+- **Sicher getrennt:** Jede Anfrage gilt nur mit einer Sitzung, die in der Datenbank genau dieser Organisation angelegt wurde und deren Mitgliedschaft noch besteht. Rollen (Administration, Vertrieb, Buchhaltung, Lesen) gelten je Organisation. Entzug einer Mitgliedschaft und Sperre eines Kontos wirken mit der nächsten Anfrage.
+- **Für Betreiber:** Konten anlegen, Organisationen zuordnen, Rollen ändern, Zugang entziehen, Konten sperren über `tools/organisationen.py`. Es werden keine E-Mails verschickt.
+- **Fehlerbehebung:** Hinter einem TLS-Proxy lehnte SignalDesk Änderungen ab, weil die Seite von `https://` kam. Jetzt wird `X-Forwarded-Proto: https` berücksichtigt.
+- Die lokale Einzelplatz-Installation ist unverändert.
+- Tests: neu `test_sdq014_multi_tenant.py` (15 Fälle über HTTP) und `e2e/test_sdq014_multi_tenant_browser.py`.
+
+## 2.0.0-dev61 – Welle 3: Mandantenfähigkeit vorbereiten (SDQ-010 bis SDQ-013)
+
+- **Entscheidung:** Organisationen werden später über je eine eigene Datenbank getrennt (Architektur E10). Für die lokale Installation ändert sich nichts; Schema und Daten bleiben, wie sie sind.
+- **Fehlerbehebung – geteilter Zustand zwischen Datenbanken:** Liefen mehrere Datenbanken im selben Programm, galt der Offline-Schalter für alle, Fehlversuche bei der Anmeldung sperrten denselben Benutzernamen überall, ein Impressum-Lauf blockierte den gleich nummerierten Lauf einer anderen Datenbank, und wiederkehrende Aufträge liefen nur für die erste. Das ist jetzt je Datenbank getrennt.
+- **Neu für Betreiber:** `tools/organisationen.py` legt Organisationen mit eigener Datenbank an, listet und archiviert sie und erstellt einen Datenexport (Datenbankkopie, Bildschirmfotos, Verzeichnis der Tabellen) – ohne Zugangsdaten, Sitzungen und Passwort-Hashes.
+- **Neu für Entwicklung:** Tabellenregister (`sales_tool/data_map.py`) mit Personenbezug und Aufbewahrungspflicht je Tabelle und ein Inventar aller SQL-Zugriffe ([DATENZUGRIFF.md](docs/DATENZUGRIFF.md)). Tests verhindern, dass andere Module Rechnungs- oder Anmeldedaten schreiben, und dass eine neue Tabelle ohne Einordnung entsteht.
+- Tests: neu `test_sdq010_data_map.py` (11 Fälle) und `test_sdq011_tenancy.py` (18 Fälle, 5 davon gegen den alten Stand rot).
+
 ## 2.0.0-dev60 – Angebot als gestaltetes PDF (SDQ-009)
 
 - **Neu:** Im geöffneten Angebot öffnet „Angebot als PDF ↗“ eine gestaltete Druckfassung im Stil deiner Rechnungen: Absender, Anschrift der Kundenfirma, Angebotsnummer, Gültigkeit, Positionen mit Festpreisen, Summen mit Umsatzsteuer, Leistungsumfang, Abnahme und Zahlungsplan. Über „Drucken / als PDF speichern“ entsteht das PDF.
