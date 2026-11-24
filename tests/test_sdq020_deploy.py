@@ -6,7 +6,7 @@ import re
 import shlex
 import sys
 import unittest
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -66,7 +66,7 @@ class DeployPackageTests(unittest.TestCase):
         svc = _unit('signaldesk-mandanten.service')
         writable = svc['ReadWritePaths'][0].split()
         self.assertIn(env['SIGNALDESK_ROOT'], writable)
-        self.assertIn(str(Path(env['SIGNALDESK_LOG']).parent), writable)
+        self.assertIn(str(PurePosixPath(env['SIGNALDESK_LOG']).parent), writable)  # Linux-Pfade, auch wenn der Test unter Windows läuft
         self.assertEqual(svc['ProtectSystem'], ['strict'])
         self.assertEqual(svc['NoNewPrivileges'], ['yes'])
         self.assertEqual(svc['KillSignal'], ['SIGTERM'])

@@ -253,6 +253,9 @@ class BackupTests(Base):
 
 
 class ServiceTests(unittest.TestCase):
+    # Unter Windows beendet send_signal(SIGTERM) den Prozess hart (TerminateProcess) – dort gibt es kein abfangbares SIGTERM.
+    # Der Dienst ist für Linux mit systemd gebaut (deploy/); dort läuft dieser Test in der CI (ubuntu-latest).
+    @unittest.skipIf(os.name == 'nt', 'SIGTERM ist unter Windows nicht abfangbar; Dienstbetrieb nur unter Linux/systemd')
     def test_sigterm_stops_cleanly_and_logs(self):
         with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
             root = Path(tmp) / 'm'
