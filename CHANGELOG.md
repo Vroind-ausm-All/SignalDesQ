@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0-dev61 – Welle 3: Mandantenfähigkeit vorbereiten (SDQ-010 bis SDQ-013)
+
+- **Entscheidung:** Organisationen werden später über je eine eigene Datenbank getrennt (Architektur E10). Für die lokale Installation ändert sich nichts; Schema und Daten bleiben, wie sie sind.
+- **Fehlerbehebung – geteilter Zustand zwischen Datenbanken:** Liefen mehrere Datenbanken im selben Programm, galt der Offline-Schalter für alle, Fehlversuche bei der Anmeldung sperrten denselben Benutzernamen überall, ein Impressum-Lauf blockierte den gleich nummerierten Lauf einer anderen Datenbank, und wiederkehrende Aufträge liefen nur für die erste. Das ist jetzt je Datenbank getrennt.
+- **Neu für Betreiber:** `tools/organisationen.py` legt Organisationen mit eigener Datenbank an, listet und archiviert sie und erstellt einen Datenexport (Datenbankkopie, Bildschirmfotos, Verzeichnis der Tabellen) – ohne Zugangsdaten, Sitzungen und Passwort-Hashes.
+- **Neu für Entwicklung:** Tabellenregister (`sales_tool/data_map.py`) mit Personenbezug und Aufbewahrungspflicht je Tabelle und ein Inventar aller SQL-Zugriffe ([DATENZUGRIFF.md](docs/DATENZUGRIFF.md)). Tests verhindern, dass andere Module Rechnungs- oder Anmeldedaten schreiben, und dass eine neue Tabelle ohne Einordnung entsteht.
+- Tests: neu `test_sdq010_data_map.py` (11 Fälle) und `test_sdq011_tenancy.py` (18 Fälle, 5 davon gegen den alten Stand rot).
+
 ## 2.0.0-dev60 – Angebot als gestaltetes PDF (SDQ-009)
 
 - **Neu:** Im geöffneten Angebot öffnet „Angebot als PDF ↗“ eine gestaltete Druckfassung im Stil deiner Rechnungen: Absender, Anschrift der Kundenfirma, Angebotsnummer, Gültigkeit, Positionen mit Festpreisen, Summen mit Umsatzsteuer, Leistungsumfang, Abnahme und Zahlungsplan. Über „Drucken / als PDF speichern“ entsteht das PDF.

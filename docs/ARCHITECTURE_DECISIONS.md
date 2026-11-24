@@ -89,3 +89,13 @@ Optimierungsliste zum Master-Prompt – höchstens zehn Punkte, jeder überprüf
 - **Erste Chance:** nutzt bis Teil 2 die Bedarfsanalyse der Firma (Tabelle `discovery`), damit kein Bedarf doppelt gespeichert wird.
 - **Rückbau:** Die Spalten `opportunity_id` dürfen leer sein; ohne Chancen verhält sich SignalDesk wie vorher. Die Tabelle kann bleiben.
 - **Teil 2 (dev19):** Weitere Chancen speichern ihre Bedarfsanalyse und Freigabe in eigenen Spalten derselben Tabelle; `workday.need_status`, `confirm_need`, `reopen_need` und `quote_from_need` nehmen optional die Chance. Die Versandfreigabe prüft den Bedarf der Chance des Angebots.
+
+## E10 – Mandantentrennung: eine Datenbank je Organisation (2.0.0-dev61, SDQ-010 bis SDQ-013)
+
+- **Variante A:** jede Organisation bekommt eine eigene SQLite-Datei in einem eigenen Ordner; ein Verzeichnis (`organisationen.sqlite3`) führt Kennung, Name und Status.
+- **Variante B:** eine Datenbank für alle, Spalte `org_id` in allen 83 Tabellen und Filter in allen rund 1.300 SQL-Stellen.
+- **Gewählt: A** (Entscheidung Vasco, 24.11.2026). B braucht eine Migration aller Tabellen einschließlich der Rechnungsdaten, und eine einzige vergessene Bedingung gibt Daten über die Grenze. Bei A ist die Trennung physisch; Zugangsdaten, Auftrags-Worker, Sicherungen und Bildschirmfotos hängen ohnehin schon am Pfad der Datenbank. Die lokale Installation ist der Fall „eine Organisation“ und ändert sich nicht.
+- **Was A trotzdem verlangt:** Prozesszustand, der nicht am Datenbankpfad hängt, wird zwischen Organisationen geteilt. Gefunden und behoben (SDQ-012): Offline-Schalter, Sperre nach Fehlversuchen bei der Anmeldung, Impressum-Läufe und Sammelsuchen (Nummern je Datenbank), Planer für wiederkehrende Aufträge. Der Mandant einer Anfrage oder eines Auftragsschritts steht in `tenancy.current()`; Hintergrund-Threads starten über `tenancy.thread`.
+- **Bewusst geteilt (Installation):** Schalter der Recherche-Technik (Parser, Abrufweg), Abruf-Bremsen für Wikidata und Overpass, DNS-Zwischenspeicher, öffentliche Nachschlagedaten. Sie gehören dem Betreiber, nicht der Organisation.
+- **Grenzen von A:** Auswertungen über alle Organisationen brauchen einen eigenen Weg (je Datenbank lesen und zusammenführen). Viele Organisationen bedeuten viele Dateien; ab einigen Tausend ist ein Datenbankserver zu prüfen. Der Server bedient je Prozess eine Datenbank; die Zuordnung Anmeldung → Organisation (zentrale Anmeldung) ist noch nicht gebaut.
+- **Rückbau:** `tenancy.py` und das Verzeichnis lassen sich entfernen, ohne Daten zu ändern. Die Schlüssel je Datenbank verhalten sich mit einer einzigen Datenbank wie vorher.

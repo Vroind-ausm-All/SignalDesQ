@@ -224,8 +224,8 @@ def claim(conn, kinds=None):
         if kinds:
             sql += f" AND t.kind IN ({','.join('?' * len(kinds))})"
             args += list(kinds)
-        from .. import netpolicy
-        if netpolicy.offline():  # v1.19: Aufträge mit Internetbedarf warten im Offline-Modus
+        from .. import netpolicy, tenancy
+        if netpolicy.offline(tenancy.conn_key(conn)):  # v1.19: Aufträge mit Internetbedarf warten im Offline-Modus
             sql += f" AND t.kind NOT IN ({','.join('?' * len(netpolicy.NETWORK_KINDS))})"
             args += list(netpolicy.NETWORK_KINDS)
         row = conn.execute(sql + ' ORDER BY j.priority, t.id LIMIT 1', args).fetchone()
@@ -277,7 +277,13 @@ def _finish(conn, task, status, result=None, error='', retry_delay=None):
 
 
 def run_one(db_path, kinds=None):
-    """Einen Schritt ausführen. Gibt True zurück, wenn etwas zu tun war."""
+    """Einen Schritt ausführen. Gibt True zurück, wenn etwas zu tun war. Läuft im Mandanten dieser Datenbank (SDQ-012)."""
+    from .. import tenancy
+    with tenancy.use(db_path):
+        return _run_one(db_path, kinds)
+
+
+def _run_one(db_path, kinds=None):
     from ..model import connect
     with connect(db_path) as conn:
         task = claim(conn, kinds)

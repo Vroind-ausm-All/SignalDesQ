@@ -295,7 +295,7 @@ class V113HttpTests(tb.SweepHttpTests):
         self.assertEqual(self.call('/api/tasks/research-cleanup', 'POST', {}), (200, {'updated': 0}))
         status, s = self.call('/api/sweeps', 'POST', {'place': 'Stuttgart', 'radius_km': 0, 'sources': ['gleif'], 'find_websites': False})
         self.assertEqual(status, 202)
-        sw._THREADS[s['id']].join(30)
+        sw.join_sweep(s['id'], 30, db_path=self.db)
         self.assertEqual(self.call(f"/api/sweeps/{s['id']}/retry", 'POST', {})[0], 400, 'nichts fehlgeschlagen')
         self.assertEqual(self.call('/api/sweeps/9999/retry', 'POST', {})[0], 404)
         status, lst = self.call('/api/sweep-candidates?status=alle&city=Stuttgart&max_km=5&no_ted=1')

@@ -15,6 +15,7 @@ import threading
 import time
 
 from .company_data import _audit
+from . import tenancy
 
 ROLES = {
     'admin': 'Administration – alles inkl. Benutzer, Einstellungen, Backups',
@@ -172,7 +173,8 @@ def _fail(key):
 def login(conn, data, client=''):
     if not isinstance(data, dict) or set(data) != {'username', 'password'} or not all(isinstance(v, str) for v in data.values()):
         raise ValueError('Erwartet: {username, password}.')
-    key = data['username'].casefold()[:40]
+    name = data['username'].casefold()[:40]
+    key = f'{tenancy.conn_key(conn)}|{name}'  # SDQ-012: Sperre je Organisation – Fehlversuche bei A sperren „admin“ bei B nicht
     if _throttled(key) or _throttled('ip:' + client):
         raise Throttled('Zu viele Fehlversuche – bitte 15 Minuten warten.')
     user = conn.execute('SELECT * FROM users WHERE username=? AND active=1', (data['username'],)).fetchone()
@@ -180,7 +182,7 @@ def login(conn, data, client=''):
     if not user or not ok:
         _fail(key)
         _fail('ip:' + client)
-        _audit(conn, 'auth', 0, 'login_fehlgeschlagen', key)
+        _audit(conn, 'auth', 0, 'login_fehlgeschlagen', name)
         conn.commit()
         raise NotLoggedIn('Benutzername oder Passwort falsch.')
     with _FAIL_LOCK:

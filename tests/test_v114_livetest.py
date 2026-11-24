@@ -382,7 +382,7 @@ class V114HttpTests(tb.SweepHttpTests):
         status, s = self.call('/api/sweeps', 'POST', {'place': 'Stuttgart', 'radius_km': 0, 'sources': ['gleif'], 'org_kinds': ['unternehmen', 'verein'],
                                                      'ted_nationwide': False, 'find_websites': False})
         self.assertEqual(status, 202)
-        sw._THREADS[s['id']].join(30)
+        sw.join_sweep(s['id'], 30, db_path=self.db)
         self.assertEqual(self.call('/api/sweeps', 'POST', {'place': 'Stuttgart', 'org_kinds': ['alle']})[0], 400)
 
 

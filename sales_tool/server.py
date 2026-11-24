@@ -50,7 +50,7 @@ from . import postcalc
 from . import appearance
 from . import focus as focus_mod
 from .research import osm_local
-from . import netpolicy
+from . import netpolicy, tenancy
 from .backup_restore import route_restore
 from .workday import route_workday, ContactLocked, check_stage_change, assert_contact_allowed, after_meeting_done
 from .report import route_report, recover_reports
@@ -948,7 +948,8 @@ def make_handler(db_path, allowed_hosts=None):
         def _run(self, method):
             self._body_from = self.rfile.count
             try:
-                self._routes(method)
+                with tenancy.use(db_path):  # SDQ-012: Mandant dieser Anfrage für Offline-Schalter, Sperren und Aufträge
+                    self._routes(method)
             except auth.NotLoggedIn as exc:
                 self._send(401, {"error": str(exc), "auth_required": True})
             except auth.Throttled as exc:

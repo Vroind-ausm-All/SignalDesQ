@@ -381,7 +381,7 @@ JOB_KINDS = {
     'datenqualitaet_pruefen': 'Änderungen erkennen und Veraltung prüfen',
 }
 LEAD_FINDER_KEYS = {'source', 'place', 'keyword', 'category', 'min_employees', 'limit', 'preset', 'days', 'legal_entities_only'}
-_SCHED = {'thread': None, 'stop': None}
+_SCHED: dict = {}  # SDQ-012: Datenbank → {'thread', 'stop', 'first'} – je Organisation ein eigener Planer
 _RUN_LOCK = threading.Lock()
 
 
@@ -579,24 +579,36 @@ def run_due(conn, db_path, start=True, now=None):
 
 
 def start_scheduler(db_path, every_seconds=300):
-    """Hintergrund-Thread für fällige Aufträge (nur im laufenden Programm, nicht in Tests)."""
+    """Hintergrund-Thread für fällige Aufträge (nur im laufenden Programm, nicht in Tests) – je Datenbank einer."""
+    from . import tenancy
     from .model import connect
-    if _SCHED['thread'] and _SCHED['thread'].is_alive():
-        return _SCHED['thread']
+    key = tenancy.db_key(db_path)
+    state = _SCHED.get(key)
+    if state and state['thread'].is_alive():
+        return state['thread']
     stop = threading.Event()
+    state = {'stop': stop, 'first': True}
 
     def loop():
-        while not stop.wait(60 if _SCHED.get('first', True) else every_seconds):
-            _SCHED['first'] = False
+        while not stop.wait(60 if state['first'] else every_seconds):
+            state['first'] = False
             try:
                 with connect(db_path) as conn:
                     run_due(conn, db_path)
             except Exception as exc:  # nie den Server mitreißen
                 print('Wiederkehrende Aufträge:', repr(exc))
-    t = threading.Thread(target=loop, daemon=True, name='recurring-jobs')
-    _SCHED.update(thread=t, stop=stop, first=True)
+    t = tenancy.thread(loop, db_path, name='recurring-jobs')
+    state['thread'] = t
+    _SCHED[key] = state
     t.start()
     return t
+
+
+def stop_scheduler(db_path):
+    from . import tenancy
+    state = _SCHED.pop(tenancy.db_key(db_path), None)
+    if state:
+        state['stop'].set()
 
 
 # ---------------------------------------------------------------- HTTP
