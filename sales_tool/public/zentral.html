@@ -12,6 +12,32 @@
     <label>Passwort<input name="password" type="password" autocomplete="current-password" required maxlength="200"></label>
     <button type="submit" class="btn btn-primary">Anmelden</button>
   </form>
+  <form id="zCode" class="hidden" autocomplete="off">
+    <p class="muted">Zweiter Schritt: Code aus der Authenticator-App (oder einen Wiederherstellungscode).</p>
+    <label>Code<input name="code" inputmode="numeric" autocomplete="one-time-code" required minlength="6" maxlength="20"></label>
+    <button type="submit" class="btn btn-primary">Bestätigen</button>
+    <button type="button" class="btn btn-ghost" data-z-restart>Neu anmelden</button>
+  </form>
+  <section id="zSetup" class="hidden zentral-setup" aria-live="polite">
+    <h2>Zwei-Faktor-Anmeldung einrichten</h2>
+    <p class="muted" id="zSetupWhy">Für dieses Konto ist ein zweiter Faktor vorgeschrieben.</p>
+    <form id="zSetupStart">
+      <label>Passwort bestätigen<input name="password" type="password" autocomplete="current-password" required maxlength="200"></label>
+      <button type="submit" class="btn btn-primary">Schlüssel erzeugen</button>
+    </form>
+    <form id="zSetupConfirm" class="hidden" autocomplete="off">
+      <p>In der Authenticator-App ein Konto hinzufügen und diesen Schlüssel eingeben (zeitbasiert):</p>
+      <p class="zentral-secret" id="zSecret" data-z-secret></p>
+      <p class="muted small">Oder als Adresse: <code id="zUri"></code></p>
+      <label>Angezeigter Code<input name="code" inputmode="numeric" autocomplete="one-time-code" required minlength="6" maxlength="6"></label>
+      <button type="submit" class="btn btn-primary">Einrichtung abschließen</button>
+    </form>
+    <div id="zCodes" class="hidden">
+      <p><strong>Wiederherstellungscodes</strong> – jetzt ausdrucken oder im Passwort-Manager ablegen. Jeder gilt einmal, wenn das Telefon fehlt. Sie werden nicht noch einmal angezeigt.</p>
+      <ul class="zentral-codes" id="zCodeList"></ul>
+      <button type="button" class="btn btn-primary" id="zCodesDone">Gespeichert – weiter</button>
+    </div>
+  </section>
   <section id="zOrgs" class="hidden" aria-live="polite">
     <p class="muted" id="zWho"></p>
     <h2>Organisation wählen</h2>
@@ -22,6 +48,15 @@
         <label>Bisheriges Passwort<input name="old" type="password" autocomplete="current-password" required maxlength="200"></label>
         <label>Neues Passwort (mind. 10 Zeichen)<input name="new" type="password" autocomplete="new-password" required minlength="10" maxlength="200"></label>
         <button type="submit" class="btn btn-ghost">Passwort ändern</button>
+      </form>
+    </details>
+    <details class="zentral-pw" id="zMfa"><summary>Zwei-Faktor-Anmeldung: <span id="zMfaState">aus</span></summary>
+      <p class="muted small" id="zMfaInfo"></p>
+      <button type="button" class="btn btn-ghost" id="zMfaOn">Einrichten</button>
+      <form id="zMfaOff" class="hidden">
+        <label>Passwort<input name="password" type="password" autocomplete="current-password" required maxlength="200"></label>
+        <label>Code aus der App<input name="code" inputmode="numeric" autocomplete="one-time-code" required minlength="6" maxlength="6"></label>
+        <button type="submit" class="btn btn-ghost">Abschalten</button>
       </form>
     </details>
     <button type="button" id="zLogout" class="btn btn-ghost">Abmelden</button>

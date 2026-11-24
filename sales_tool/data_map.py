@@ -167,6 +167,8 @@ def check_register(conn):
 # öffentliche Daten (CC0), von mehreren Organisationen teilbar.
 CATALOG_TABLES = {'entities': 'installation', 'imports': 'installation', 'entities_fts': 'installation'}
 
-# Tabelle des Mandantenverzeichnisses (SDQ-011) – eigene Datei `organisationen.sqlite3` im Wurzelordner einer
-# Mehrmandanten-Installation, nicht in der Datenbank einer Organisation.
-DIRECTORY_TABLES = {'organizations': 'installation', 'accounts': 'zugang', 'memberships': 'zugang', 'account_sessions': 'zugang'}
+# Tabellen des Mandantenverzeichnisses (SDQ-011, 014, 021, 022) – eigene Datei `organisationen.sqlite3` im Wurzelordner
+# einer Mehrmandanten-Installation, nicht in der Datenbank einer Organisation.
+DIRECTORY_TABLES = {'organizations': 'installation', 'accounts': 'zugang', 'memberships': 'zugang', 'account_sessions': 'zugang',
+                    'account_mfa': 'zugang', 'account_recovery_codes': 'zugang', 'login_failures': 'zugang',
+                    'directory_settings': 'installation', 'audit_events': 'zugang'}

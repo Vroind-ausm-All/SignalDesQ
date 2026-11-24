@@ -73,7 +73,7 @@ jobs:
           python -m pip install --require-hashes -r requirements-lock-browser.txt
           python -m playwright install --with-deps chromium
       - name: Alle Browser-Tests (SDQ-005)
-        run: python tools/run_e2e.py --no-skips --min-tests 55
+        run: python tools/run_e2e.py --no-skips --min-tests 56
 
   release:
     runs-on: ubuntu-latest

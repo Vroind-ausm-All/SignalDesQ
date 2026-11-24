@@ -110,15 +110,22 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
 | SDQ-014 | P1 | Zentrale Anmeldung: Konten, Mitgliedschaften, Rollen je Organisation | SDQ-011 | **implementiert** (2.0.0-dev62) |
 | SDQ-015 | P1 | Server für mehrere Organisationen (Sitzung → genau eine Organisation) | SDQ-014 | **implementiert** (2.0.0-dev62) |
 | SDQ-016 | P1 | Organisation wechseln, Abmelden, Entzug und Sperre wirken sofort | SDQ-015 | **implementiert** (2.0.0-dev62) |
+| SDQ-017 | P1 | Zustand des Servers: `/healthz`, `/readyz` | SDQ-015 | **implementiert** (2.0.0-dev63) |
+| SDQ-018 | P1 | Sicherung aller Organisationen, Wiederherstellungstest, Zurückspielen einer Organisation | SDQ-011 | **implementiert** (2.0.0-dev63) |
+| SDQ-019 | P1 | Betriebsprotokoll (JSON-Zeilen, Anfrage-Nummer), sauberes Beenden | SDQ-015 | **implementiert** (2.0.0-dev63) |
+| SDQ-020 | P1 | Serverpaket: systemd-Dienst, Sicherungs-Timer, Proxy-Beispiele, Betriebshandbuch | SDQ-017…019 | **implementiert** (2.0.0-dev63), nicht auf echtem Server erprobt |
+| SDQ-021 | P1 | Zweiter Faktor (TOTP), Wiederherstellungscodes, Pflicht, Sperre über Neustarts | SDQ-014 | **implementiert** (2.0.0-dev63) |
+| SDQ-022 | P1 | Verwaltungs- und Anmeldeprotokoll mit Hash-Kette | SDQ-014 | **implementiert** (2.0.0-dev63) |
+| SDQ-023 | P1 | Verschlüsselter Datenexport einer Organisation | SDQ-013 | **implementiert** (2.0.0-dev63) |
 
 ## 6. Launch-Gates (Stand)
 
 | Gate | Stand |
 |---|---|
-| Keine offenen kritischen Sicherheitsbefunde | B3 behoben (SDQ-004); externes Security Assessment fehlt – Gate bleibt **offen** |
+| Keine offenen kritischen Sicherheitsbefunde | B3 behoben (SDQ-004); zweiter Faktor, dauerhafte Sperre und Verwaltungsprotokoll ergänzt (SDQ-021/022); externes Security Assessment fehlt – Gate bleibt **offen** |
 | Kein bekannter Datenverlust in Kernfunktionen | B2 behoben (SDQ-003); Angebotseditor nur beforeunload, kein Browser-Test mit Positionen |
 | Nachweisbare Mandantentrennung | **technisch nachgewiesen** (E10, SDQ-011 bis SDQ-016: eine Datenbank je Organisation, zentrale Anmeldung, Negativtests per HTTP und im Browser); **offen** bis zur externen Sicherheitsprüfung und einem Betrieb mit echten Organisationen |
-| Backup und Restore geprüft | lokal ja (T15); Cloud offen |
+| Backup und Restore geprüft | lokal ja (T15); Server: Sicherungssatz aller Organisationen mit automatischem Wiederherstellungstest und Zurückspielen je Organisation (SDQ-018, getestet); **offen** bis zu einer geübten Wiederherstellung auf einem echten Server und einer Kopie an einem zweiten Ort |
 | Release-Tests | Unit-Matrix, Installation, alle 52 Browser-Tests (SDQ-005) und reproduzierbares Release in CI; macOS nicht |
 | Recherchequalität gemessen | **offen** – Werkzeug und Format vorhanden (SDQ-006), keine geprüfte Referenzliste |
 | Externe Nutzertests | **offen** |
@@ -365,3 +372,47 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
   zentraler Anmeldung ist lauffähig und an den Grenzen getestet; es fehlen Abrechnung, Betrieb, Selbstregistrierung und
   Prüfung. Dimension 9 (Sicherheit und Datenschutz) 39 → 41: Zugriffsentzug wirkt sofort, Sitzungen sind an die Datenbank
   der Organisation gebunden, Proxy-Herkunftscheck korrigiert. Gesamtindex 49,75 → 51,99.
+
+### Welle 4 – Betrieb und Sicherheit (SDQ-017 bis SDQ-023, 2.0.0-dev63)
+
+- **SDQ-017 – Zustand.** `/healthz` (Prozess lebt) und `/readyz` (Verzeichnis beschreibbar, jede aktive Organisation lesbar
+  und auf aktuellem Schema, mindestens 512 MB frei; Warnung, wenn die letzte geprüfte Sicherung älter als 26 h ist). Ohne
+  Anmeldung; Einzelheiten nur bei lokalem Aufruf ohne `X-Forwarded-For`. HTTP 503, wenn nicht bereit.
+- **SDQ-018 – Sicherungssatz.** `sales_tool/ops.py`, `python -m sales_tool.betreiber sichern [--verschluesselt] [--pruefen]`:
+  Verzeichnis und jede Organisation (auch archivierte) als konsistente SQLite-Kopie, optional AES-256-GCM, Manifest mit
+  Prüfsumme und Zeilenzahl je Tabelle, Ordner erst nach dem Manifest umbenannt. **Wiederherstellungstest**: Prüfsumme,
+  Entschlüsseln, `integrity_check`, Zeilenzahlen gegen das Manifest, Migration einer Kopie. `zurueckspielen` stellt eine
+  Organisation wieder her (GoBD-Schutz und Vorher-Sicherung aus `backup_restore`). Gefunden und behoben: Kopien blieben im
+  WAL-Modus – Änderungen an einer Kopie landeten in einer `-wal`-Datei und gingen an der Prüfsumme vorbei.
+- **SDQ-019 – Protokolle.** JSON-Zeilen je Anfrage (`rid`, Methode, Pfad mit `:id` statt Zahlen und Kennungen, Status,
+  Dauer, Organisation), Rotation 10 × 10 MB, `X-Request-ID` in jeder Antwort. Keine Cookies, Abfragen, IP-Adressen,
+  Inhalte (Test). `SIGTERM` beendet den Dienst sauber; belegter Port führt zu einem Fehler statt zu stillem Ausweichen.
+- **SDQ-020 – Serverpaket.** `deploy/`: gehärtete systemd-Unit (`ProtectSystem=strict`, eigener Benutzer, nur Daten- und
+  Protokollordner beschreibbar), täglicher Timer für Sicherung mit Prüfung, Caddy- und nginx-Beispiel, Umgebungsdatei
+  ohne Geheimnisse; Betriebshandbuch `docs/BETRIEB_SERVER.md`. Ein Test löst die Units mit der Beispiel-Umgebung auf und
+  prüft die Aufrufe mit den echten Parsern. Die Verwaltung liegt jetzt in `sales_tool/betreiber.py` (im Release enthalten).
+- **SDQ-021 – Zweiter Faktor.** TOTP nach RFC 6238 (Standardbibliothek, Testvektoren aus dem RFC), Anmeldung in Stufen:
+  ohne Code keine Organisationsliste und kein Zutritt, neues Token nach dem Code, jeder Code nur einmal, zehn
+  Wiederherstellungscodes (nur Hash gespeichert, je einmal gültig). Pflicht für die Installation (`zwei-faktor-pflicht an`)
+  beendet laufende Sitzungen ohne zweiten Faktor und erzwingt die Einrichtung. Abschalten nur mit Passwort und Code und nicht
+  bei Pflicht; Zurücksetzen durch den Betreiber beendet alle Sitzungen. Fehlversuche (Passwort und Code) stehen im
+  Verzeichnis: Die Sperre gilt auch nach einem Neustart.
+- **SDQ-022 – Verwaltungsprotokoll.** `sales_tool/audit_trail.py`: Konten, Mitgliedschaften, Organisationen, Sicherungen,
+  Exporte, zweiter Faktor, Anmeldungen und Fehlversuche (mit IP) mit Handelndem (`konto:…` oder `betreiber:<OS-Benutzer>`).
+  Hash-Kette (SHA-256) erkennt veränderte, entfernte und fehlende erste Einträge; gleichzeitige Schreiber bleiben eine Kette
+  (Test mit 12 Threads). Nur Anhängen, im Code abgesichert. Unbekannte Benutzernamen werden nicht gespeichert.
+- **SDQ-023 – Verschlüsselter Export.** `export … --verschluesselt` → `.zip.sdenc` (AES-256-GCM, scrypt), Klartext nur im
+  temporären Ordner; Entschlüsseln mit `backup_crypto`.
+- **Tests:** `tests/test_sdq017_operations.py` (16), `tests/test_sdq021_security.py` (20), `tests/test_sdq020_deploy.py` (6),
+  `tests/e2e/test_sdq021_two_factor_browser.py` (Pflicht-Einrichtung bei Telefonbreite, falscher Code, Wiederherstellungscodes,
+  Anmeldung mit Code). CI-Mindestzahl Browser-Tests 55 → 56.
+- **Nicht umgesetzt:** kein Betrieb auf einem echten Server, keine geübte Wiederherstellung der ganzen Installation, keine
+  Kopie an einen zweiten Ort, keine Alarmierung, keine Metriken (Prometheus). Kein WebAuthn/Passkey, kein OIDC, kein
+  Leerlauf-Abmelden; das TOTP-Geheimnis liegt unverschlüsselt im Verzeichnis (E11). Keine Aufbewahrungsfrist für das
+  Verwaltungsprotokoll (wächst unbegrenzt). Keine externe Sicherheitsprüfung.
+- **Reifeauswirkung (Vorschlag):** Dimension 11 (Betrieb und Integrationen) 23 → 34: Zustand, Protokolle, geprüfte
+  Sicherung, Wiederherstellung je Organisation und Serverpaket sind vorhanden und getestet, aber nie im echten Betrieb
+  gelaufen. Dimension 9 (Sicherheit und Datenschutz) 41 → 47: zweiter Faktor mit Pflicht, dauerhafte Sperre,
+  manipulationssicheres Verwaltungsprotokoll, verschlüsselte Exporte und Sicherungen; ohne externe Prüfung bleibt die
+  Konfidenz begrenzt. Dimension 10 (Mandantenfähige SaaS-Architektur) 30 → 32: Sicherung und Wiederherstellung je
+  Organisation. Gesamtindex 51,99 → 53,49.

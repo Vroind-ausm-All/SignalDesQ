@@ -1,0 +1,11 @@
+# Täglich um 02:15 Uhr (Serverzeit); verpasste Läufe werden nach dem Start nachgeholt.
+[Unit]
+Description=SignalDesk tägliche Sicherung
+
+[Timer]
+OnCalendar=*-*-* 02:15:00
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

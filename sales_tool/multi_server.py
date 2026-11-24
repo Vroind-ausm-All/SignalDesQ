@@ -10,17 +10,25 @@ Jede Anfrage wird genau einer Organisation zugeordnet, und zwar nur über eine g
 
 Eine fremde oder gefälschte Organisation im Cookie hilft nicht: Ein Sitzungstoken gilt nur in der Datenbank, in der es angelegt
 wurde. Ohne Sitzung gibt es nur die Anmeldeseite, ihre Skripte und die unveränderlichen Programmdateien.
+
+Betrieb (SDQ-017/019): ``/healthz`` (Prozess lebt) und ``/readyz`` (bereit; Einzelheiten nur bei direktem lokalem Aufruf)
+ohne Anmeldung; je Anfrage eine JSON-Zeile im Betriebsprotokoll und eine Anfrage-Nummer im Kopf ``X-Request-ID``.
+Zweiter Faktor (SDQ-021): Nach dem Passwort folgt bei eingerichtetem zweitem Faktor der Code aus der App; vorher gibt es
+keine Liste der Organisationen und keinen Zutritt.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import secrets
+import signal
 import threading
+import time
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import urlparse
 
-from . import accounts, auth, tenancy
+from . import accounts, auth, ops, tenancy
 from .model import connect
 from .server import (CSP, LOOPBACK_HOSTS, PUBLIC, STATIC_FILES, _CountingReader, _host_name, bind_server, make_handler,
                      prepare_database)
@@ -32,9 +40,21 @@ CENTRAL_ONLY = {('POST', '/api/auth/login'), ('POST', '/api/auth/setup'), ('POST
                 ('PUT', '/api/auth/settings')}
 CENTRAL_ONLY_PREFIX = '/api/auth/users'
 MAX_BODY = 16 * 1024
+HEALTH_ROUTES = ('/healthz', '/readyz')
 
 
-def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, scheduler=False):
+class _RequestMeta:
+    """Status und Anfrage-Nummer mitschreiben – auch im Handler der Organisation, der die Antwort selbst sendet."""
+
+    def send_response(self, code, message=None):
+        self._sd_status = code
+        super().send_response(code, message)
+        rid = getattr(self, '_sd_rid', '')
+        if rid:
+            self.send_header('X-Request-ID', rid)
+
+
+def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, scheduler=False, logger=None, backup_target=None):
     hosts = LOOPBACK_HOSTS | {h.lower() for h in (allowed_hosts or ())}
     accounts.init(directory)
     classes, lock = {}, threading.Lock()
@@ -42,13 +62,13 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
     def org_class(slug, db_path):
         with lock:
             if slug not in classes:
-                classes[slug] = make_handler(db_path, allowed_hosts)
+                classes[slug] = type('OrgHandler', (_RequestMeta, make_handler(db_path, allowed_hosts)), {})
                 if scheduler:
                     from .quality import start_scheduler
                     start_scheduler(db_path)
             return classes[slug]
 
-    class FrontHandler(BaseHTTPRequestHandler):
+    class FrontHandler(_RequestMeta, BaseHTTPRequestHandler):
         server_version = 'SignalDesk'
 
         def setup(self):
@@ -97,7 +117,7 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
             return self.headers.get('X-Forwarded-Proto', '') == 'https'
 
         def _cookie(self, name, value, clear=False, hours=accounts.CENTRAL_HOURS):
-            attrs = f"{name}={'' if clear else value}; Path=/; HttpOnly; SameSite=Strict; Max-Age={0 if clear else hours * 3600}"
+            attrs = f"{name}={'' if clear else value}; Path=/; HttpOnly; SameSite=Strict; Max-Age={0 if clear else int(hours * 3600)}"
             return attrs + ('; Secure' if self._secure() else '')
 
         def _cookies(self):
@@ -138,6 +158,8 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                     return
                 if not self.parse_request():
                     return
+                self._sd_rid, self._sd_status, self._sd_org = secrets.token_hex(6), 0, ''
+                t0 = time.perf_counter()
                 try:
                     self._dispatch()
                 except (ValueError, json.JSONDecodeError) as exc:
@@ -151,9 +173,14 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                 except LookupError as exc:
                     self._send(404, {'error': str(exc).strip("'\"")})
                 except Exception as exc:  # noqa: BLE001
-                    print('Serverfehler (Mehrmandanten):', repr(exc))
-                    self._send(500, {'error': 'Interner Serverfehler'})
+                    if logger:
+                        logger.error('serverfehler', exc_info=True, extra={'fields': {'rid': self._sd_rid, 'type': exc.__class__.__name__}})
+                    else:
+                        print('Serverfehler (Mehrmandanten):', repr(exc))
+                    self._send(500, {'error': 'Interner Serverfehler', 'request_id': self._sd_rid})
                 self.wfile.flush()
+                ops.log_request(logger, rid=self._sd_rid, method=self.command, path=self.path, status=self._sd_status,
+                                ms=(time.perf_counter() - t0) * 1000, org=self._sd_org)
             except TimeoutError:
                 self.close_connection = True
 
@@ -167,6 +194,8 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
             route = urlparse(self.path).path
             if _host_name(self.headers.get('Host', '')) not in hosts:
                 return self._send(421, {'error': 'Unbekannter Host.'})
+            if route in HEALTH_ROUTES and method in ('GET', 'HEAD'):
+                return self._health(route)
             if method not in ('GET', 'HEAD') and not self._origin_ok():
                 return self._send(403, {'error': 'Anfragen von fremden Webseiten sind gesperrt.'})
             if route in CENTRAL_FILES and method == 'GET':
@@ -183,6 +212,7 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                     return self._file(*STATIC_FILES[route])  # Programmdateien sind für alle gleich
                 return self._unauthorized(route, method)
             slug, db_path = org
+            self._sd_org = slug
             if (method, route) == ('GET', '/api/auth/status'):  # wie im Team-Betrieb, dazu Organisation und Hinweis „zentral“
                 with connect(db_path) as conn:
                     st = auth.status(conn, auth.session_user(conn, self.headers.get('Cookie', '')))
@@ -197,6 +227,7 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                 return self._send(405, {'error': 'Methode nicht erlaubt.'})
             do()
             self.close_connection = h.close_connection
+            self._sd_status = getattr(h, '_sd_status', 0)
 
         def _org_session(self):
             """(Kennung, Datenbank) der Organisation dieser Anfrage – nur mit gültiger Sitzung und Mitgliedschaft."""
@@ -222,30 +253,86 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                     conn.commit()
             return slug, db_path
 
+        # ------------------------------------------------ Betrieb
+        def _local(self):
+            """Direkter Aufruf vom selben Rechner (nicht über den Proxy weitergereicht)."""
+            ip = self.client_address[0] if self.client_address else ''
+            return ip in ('127.0.0.1', '::1') and not self.headers.get('X-Forwarded-For')
+
+        def _health(self, route):
+            if route == '/healthz':
+                return self._send(200, ops.health())
+            report = ops.readiness(directory, detail=self._local(), backup_target=backup_target)
+            if not self._local():  # von außen nur das Ergebnis, keine Einzelheiten
+                report = {'status': report['status'], 'version': report['version']}
+            return self._send(200 if report['status'] == 'bereit' else 503, report)
+
         # ------------------------------------------------ zentrale Endpunkte
+        def _client(self):
+            return self.client_address[0] if self.client_address else ''
+
+        def _after_full_login(self, view, tok):
+            """Volle Anmeldung: Cookie setzen, bei genau einer Organisation direkt hinein."""
+            cookies = [self._cookie(accounts.CENTRAL_COOKIE, tok)]
+            active = [o for o in view['organizations'] if o['status'] == 'aktiv']
+            entered = None
+            if len(active) == 1:  # nur eine Organisation: direkt hinein
+                acc = accounts.central_account(directory, tok)
+                cookies += self._enter_cookies(acc, active[0]['slug'])
+                entered = active[0]['slug']
+            return self._send(200, {**self._view(view), 'stage': 'voll', 'entered': entered}, cookies)
+
         def _central(self, method, route):
             token = self._cookies().get(accounts.CENTRAL_COOKIE, '')
             if route == '/api/zentral/login' and method == 'POST':
                 b = self._body()
                 if set(b) != {'username', 'password'}:
                     raise ValueError('Erwartet: {username, password}.')
-                view, tok = accounts.login(directory, b['username'], b['password'], self.client_address[0] if self.client_address else '')
-                cookies = [self._cookie(accounts.CENTRAL_COOKIE, tok)]
-                active = [o for o in view['organizations'] if o['status'] == 'aktiv']
-                entered = None
-                if len(active) == 1:  # nur eine Organisation: direkt hinein
-                    acc = accounts.central_account(directory, tok)
-                    cookies += self._enter_cookies(acc, active[0]['slug'])
-                    entered = active[0]['slug']
-                return self._send(200, {**self._view(view), 'entered': entered}, cookies)
-            acc = accounts.central_account(directory, token)
+                view, tok = accounts.login(directory, b['username'], b['password'], self._client())
+                if view['stage'] == 'voll':
+                    return self._after_full_login(view, tok)
+                # Zwischenstufe: kurzlebiges Cookie, keine Organisationen, kein Zutritt
+                pending = [self._cookie(accounts.CENTRAL_COOKIE, tok, hours=accounts.PENDING_MINUTES / 60)]
+                return self._send(200, {'stage': view['stage'], 'user': {'username': view['username'], 'display_name': view['display_name']}},
+                                  pending)
+            if route == '/api/zentral/logout' and method == 'POST':
+                return self._logout()
+            acc, stage = accounts.session(directory, token)
             if route == '/api/zentral/status' and method == 'GET':
                 if not acc:
                     return self._send(200, {'logged_in': False})
-                return self._send(200, {'logged_in': True, **self._view(accounts.account_view(directory, acc['username'])),
+                if stage != 'voll':
+                    return self._send(200, {'logged_in': False, 'stage': stage,
+                                            'user': {'username': acc['username'], 'display_name': acc['display_name']}})
+                view = accounts.account_view(directory, acc['username'])
+                return self._send(200, {'logged_in': True, 'stage': 'voll', **self._view(view),
+                                        'two_factor': view['two_factor'], 'recovery_codes_left': view['recovery_codes_left'],
+                                        'require_2fa': accounts.require_2fa(directory),
                                         'current': self._cookies().get(accounts.ORG_COOKIE, '')})
-            if not acc:
+            if route == '/api/zentral/code' and method == 'POST':
+                b = self._body()
+                if set(b) != {'code'}:
+                    raise ValueError('Erwartet: {code}.')
+                view, tok = accounts.second_factor(directory, token, b['code'], self._client())
+                return self._after_full_login(view, tok)
+            if route == '/api/zentral/2fa/start' and method == 'POST':
+                b = self._body()
+                if set(b) != {'password'}:
+                    raise ValueError('Erwartet: {password}.')
+                return self._send(200, accounts.mfa_start(directory, token, b['password']))
+            if route == '/api/zentral/2fa/confirm' and method == 'POST':
+                b = self._body()
+                if set(b) != {'code'}:
+                    raise ValueError('Erwartet: {code}.')
+                out, new = accounts.mfa_confirm(directory, token, b['code'], self._client())
+                return self._send(200, out, [self._cookie(accounts.CENTRAL_COOKIE, new)] if new else [])
+            if not acc or stage != 'voll':
                 raise auth.NotLoggedIn('Bitte anmelden.')
+            if route == '/api/zentral/2fa/off' and method == 'POST':
+                b = self._body()
+                if set(b) != {'password', 'code'}:
+                    raise ValueError('Erwartet: {password, code}.')
+                return self._send(200, accounts.mfa_disable(directory, token, b['password'], b['code'], self._client()))
             if route == '/api/zentral/enter' and method == 'POST':
                 b = self._body()
                 slug = b.get('slug') if set(b) == {'slug'} else None
@@ -257,11 +344,9 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                 b = self._body()
                 if set(b) != {'old', 'new'}:
                     raise ValueError('Erwartet: {old, new}.')
-                accounts.change_password(directory, acc['username'], b['old'], b['new'])
+                accounts.change_password(directory, acc['username'], b['old'], b['new'], ip=self._client())
                 self._end_org_session()
                 return self._send(200, {'changed': True, 'notice': 'Passwort geändert – bitte neu anmelden.'}, self._clear_all())
-            if route == '/api/zentral/logout' and method == 'POST':
-                return self._logout()
             return self._send(404, {'error': 'Endpunkt nicht gefunden'})
 
         @staticmethod
@@ -270,7 +355,7 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                     'organizations': [{k: o[k] for k in ('slug', 'name', 'role')} for o in view['organizations'] if o['status'] == 'aktiv']}
 
         def _enter_cookies(self, acc, slug):
-            token = accounts.enter(directory, acc, slug)
+            token = accounts.enter(directory, acc, slug, self._client())
             return [self._cookie(accounts.ORG_COOKIE, slug, hours=auth.SESSION_HOURS),
                     self._cookie(auth.COOKIE, token, hours=auth.SESSION_HOURS)]
 
@@ -305,29 +390,50 @@ def prepare_all(directory):
     return out
 
 
-def main(argv=None):
+def build_parser():
     ap = argparse.ArgumentParser(description='SignalDesk für mehrere Organisationen (eine Datenbank je Organisation)')
-    ap.add_argument('--root', required=True, help='Ordner des Mandantenverzeichnisses (tools/organisationen.py)')
+    ap.add_argument('--root', required=True, help='Ordner des Mandantenverzeichnisses (python -m sales_tool.betreiber)')
     ap.add_argument('--port', type=int, default=8765)
     ap.add_argument('--host', default='127.0.0.1')
     ap.add_argument('--allowed-host', action='append', default=[])
     ap.add_argument('--no-scheduler', action='store_true')
-    args = ap.parse_args(argv)
+    ap.add_argument('--log-file', help='Betriebsprotokoll als JSON-Zeilen (Standard: stderr); Rotation 10 × 10 MB')
+    ap.add_argument('--log-level', default='INFO', choices=('DEBUG', 'INFO', 'WARNING', 'ERROR'))
+    ap.add_argument('--backup-dir', help='Ordner der Sicherungssätze für /readyz (Standard: <root>/sicherungen)')
+    return ap
+
+
+def main(argv=None):
+    args = build_parser().parse_args(argv)
     directory = tenancy.Directory(args.root)
+    logger = ops.access_logger(args.log_file, args.log_level)
     allowed = set(args.allowed_host)
     if args.host not in ('127.0.0.1', 'localhost', '::1'):
         print('Hinweis: SignalDesk spricht nur HTTP. Im Netzwerk unbedingt hinter einem TLS-Proxy (HTTPS) betreiben.')
         if args.host not in ('0.0.0.0', '::'):
             allowed.add(args.host)
     orgs = prepare_all(directory)
-    server, port = bind_server(make_multi_handler(directory, allowed, scheduler=not args.no_scheduler), args.port, host=args.host)
+    handler = make_multi_handler(directory, allowed, scheduler=not args.no_scheduler, logger=logger, backup_target=args.backup_dir)
+    server, port = bind_server(handler, args.port, attempts=1, host=args.host)  # Dienst: fester Port, kein Ausweichen
+    server.daemon_threads = True
+
+    def stop(signum, _frame):  # systemd stop / docker stop: laufende Anfragen beenden lassen, dann aus
+        logger.info('stopp', extra={'fields': {'signal': signum}})
+        threading.Thread(target=server.shutdown, daemon=True).start()
+
+    signal.signal(signal.SIGTERM, stop)
+    logger.info('start', extra={'fields': {'port': port, 'organizations': len(orgs), 'version': ops.__version__}})
     print(f'SignalDesk (Mehrmandanten) läuft: http://127.0.0.1:{port}/anmelden  |  {len(orgs)} Organisationen in {directory.root}')
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
+        from .quality import stop_scheduler
+        for org in directory.list(include_archived=True):
+            stop_scheduler(org['db_path'])
         server.server_close()
+        logger.info('beendet')
 
 
 if __name__ == '__main__':

@@ -82,9 +82,10 @@ def create_encrypted_backup(db_path, data):
 
 
 def decrypt_file(src, dst, password):
+    """Sicherung (.sdenc → SQLite) oder verschlüsselten Export (.zip.sdenc → ZIP, SDQ-023) entschlüsseln."""
     plain = decrypt_bytes(Path(src).read_bytes(), password)
-    if not plain.startswith(b'SQLite format 3\x00'):
-        raise ValueError('Entschlüsselter Inhalt ist keine SQLite-Datenbank.')
+    if not (plain.startswith(b'SQLite format 3\x00') or plain.startswith(b'PK\x03\x04')):
+        raise ValueError('Entschlüsselter Inhalt ist weder eine SQLite-Datenbank noch ein Export (ZIP).')
     if Path(dst).exists():
         raise ValueError('Zieldatei existiert bereits – bitte einen neuen Dateinamen wählen.')
     Path(dst).write_bytes(plain)
@@ -94,7 +95,7 @@ def decrypt_file(src, dst, password):
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
     if len(argv) != 3 or argv[0] != 'entschluesseln':
-        print('Aufruf: python -m sales_tool.backup_crypto entschluesseln <datei.sdenc> <ziel.sqlite3>')
+        print('Aufruf: python -m sales_tool.backup_crypto entschluesseln <datei.sdenc|datei.zip.sdenc> <ziel.sqlite3|ziel.zip>')
         return 2
     try:
         print('Entschlüsselt:', decrypt_file(argv[1], argv[2], getpass.getpass('Passwort der Sicherung: ')))

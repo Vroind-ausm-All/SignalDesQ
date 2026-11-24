@@ -96,8 +96,15 @@ class InventoryTests(unittest.TestCase):
             self.assertLessEqual(set(sql_scan.writers(SRC, table)), allowed, table)
 
     def test_central_accounts_written_only_by_accounts(self):
-        for table in ('accounts', 'memberships', 'account_sessions'):
+        for table in ('accounts', 'memberships', 'account_sessions', 'account_mfa', 'account_recovery_codes',
+                      'login_failures', 'directory_settings'):
             self.assertEqual(set(sql_scan.writers(SRC, table)), {'sales_tool/accounts.py'}, table)
+
+    def test_audit_trail_append_only(self):
+        # SDQ-022: Das Protokoll schreibt nur audit_trail.py – und nur per INSERT (kein UPDATE, kein DELETE).
+        self.assertEqual(set(sql_scan.writers(SRC, 'audit_events')), {'sales_tool/audit_trail.py'})
+        src = (SRC / 'audit_trail.py').read_text(encoding='utf-8')
+        self.assertNotRegex(src, r'(?i)(UPDATE|DELETE FROM)\s+audit_events')
 
     def test_variable_write_targets_reviewed(self):
         self.assertEqual(set(sql_scan.writers(SRC, sql_scan.VARIABLE)), REVIEWED_VARIABLE_WRITERS)
