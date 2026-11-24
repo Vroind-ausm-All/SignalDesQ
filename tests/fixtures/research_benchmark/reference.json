@@ -1,0 +1,29 @@
+{
+ "format": "signaldesk-research-reference/1",
+ "name": "Synthetische Testreferenz (fiktive Firmen)",
+ "synthetic": true,
+ "queries": [
+  {
+   "id": "q1", "description": "fiktive Schreinereien, PLZ 99901", "complete": true, "method": "erfunden für Tests",
+   "companies": [
+    {"ref_id": "r1", "name": "Holzwerk Fiktiv GmbH", "zip": "99901", "city": "Musterstadt", "website": "holzwerk-fiktiv.example",
+     "register_id": "HRB 1001", "status": "aktiv", "evidence": ["fiktiv"], "checked_by": ["T1", "T2"], "checked_on": "2026-11-01"},
+    {"ref_id": "r2", "name": "Schreinerei Beispiel KG", "zip": "99901", "city": "Musterstadt", "website": "schreinerei-beispiel.example",
+     "status": "aktiv", "evidence": ["fiktiv"], "checked_by": ["T1"], "checked_on": "2026-11-01"},
+    {"ref_id": "r3", "name": "Tischlerei Ohnenetz e.K.", "zip": "99901", "city": "Musterstadt", "website": null,
+     "status": "aktiv", "evidence": ["fiktiv"], "checked_by": ["T1"], "checked_on": "2026-11-01"},
+    {"ref_id": "r4", "name": "Möbelbau Unauffindbar GmbH", "zip": "99901", "city": "Musterstadt",
+     "status": "aktiv", "evidence": ["fiktiv"], "checked_by": ["T1"], "checked_on": "2026-11-01"},
+    {"ref_id": "r5", "name": "Altholz Geschlossen GmbH", "zip": "99901", "city": "Musterstadt",
+     "status": "geschlossen", "evidence": ["fiktiv"], "checked_by": ["T1"], "checked_on": "2026-11-01"}
+   ]
+  },
+  {
+   "id": "q2", "description": "fiktive Bäckereien, offen", "complete": false, "method": "erfunden für Tests",
+   "companies": [
+    {"ref_id": "b1", "name": "Backstube Fiktiv GmbH", "zip": "99902", "city": "Beispielort", "website": "backstube-fiktiv.example",
+     "status": "aktiv", "evidence": ["fiktiv"], "checked_by": ["T1"], "checked_on": "2026-11-01"}
+   ]
+  }
+ ]
+}

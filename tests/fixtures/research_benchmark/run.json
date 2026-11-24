@@ -1,0 +1,17 @@
+{
+ "format": "signaldesk-research-run/1", "system": "Testlauf",
+ "queries": [
+  {"id": "q1", "candidates": [
+   {"cand_id": "c1", "name": "Holzwerk Fiktiv GmbH", "zip": "99901", "city": "Musterstadt", "website": "https://www.holzwerk-fiktiv.example/", "register_id": "HRB 1001"},
+   {"cand_id": "c2", "name": "Schreinerei Beispiel KG", "zip": "99901", "city": "Musterstadt", "website": "holzwerk-fiktiv.example"},
+   {"cand_id": "c3", "name": "Tischlerei Ohnenetz e.K.", "zip": "99901", "city": "Musterstadt", "website": "facebook.com/ohnenetz"},
+   {"cand_id": "c4", "name": "Holzwerk Fiktiv GmbH", "zip": "99901", "city": "Musterstadt"},
+   {"cand_id": "c5", "name": "Altholz Geschlossen GmbH", "zip": "99901", "city": "Musterstadt"},
+   {"cand_id": "c6", "name": "Ganz Andere Metallbau GmbH", "zip": "99901", "city": "Musterstadt"}
+  ]},
+  {"id": "q2", "candidates": [
+   {"cand_id": "d1", "name": "Backstube Fiktiv GmbH", "zip": "99902", "city": "Beispielort", "website": "backstube-fiktiv.example"},
+   {"cand_id": "d2", "name": "Konditorei Unbekannt GmbH", "zip": "99902", "city": "Beispielort"}
+  ]}
+ ]
+}

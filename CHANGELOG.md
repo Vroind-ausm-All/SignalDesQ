@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.0-dev57 – Werkzeug für den Recherche-Benchmark (SDQ-006)
+
+- **Neu:** `tools/research_benchmark.py` misst, wie vollständig und wie richtig SignalDesk die Firmen eines Gebiets findet: Vollständigkeit, Genauigkeit, Dubletten und vor allem falsch zugeordnete Websites und Registernummern, jeweils mit Vertrauensbereich. Anleitung, Format und vorgeschlagene Zielwerte in [RECHERCHE_BENCHMARK.md](docs/RECHERCHE_BENCHMARK.md), Vorlage unter `docs/bench/research/`.
+- **Noch kein Ergebnis:** Dafür braucht es eine von Menschen geprüfte Referenzliste. Die mitgelieferten Testdaten sind erfunden; ein Bericht daraus beginnt mit „Synthetische Testdaten – kein Messergebnis“.
+- Datenschutz: Referenz- und Lauf-Dateien enthalten nur Firmendaten; Felder wie E-Mail oder Ansprechpartner werden abgelehnt. Der Export liest die Datenbank nur und ruft nichts im Netz ab.
+- Keine Änderung an Recherche, Datenmodell oder Oberfläche.
+
 ## 2.0.0-dev56 – Alle Browser-Tests laufen in der CI (SDQ-005)
 
 - **Prüfung bei jedem Push:** Die CI führte bisher nur einen der 51 Browser-Tests aus. Jetzt laufen alle, auch die Regressionstests zu Teilabrechnung, Akte-Navigation, Rechnungs-Eingabeschutz und Passwortspeicher.

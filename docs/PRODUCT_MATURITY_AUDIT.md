@@ -99,7 +99,7 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
 | SDQ-003 | P0 | Eingabeschutz für Rechnungs- und Angebotseditor (Wechsel, Neuladen, Schließen) | SDQ-002 (gleiche Navigationsstelle) | **implementiert** |
 | SDQ-004 | P0 | Zugangsdaten ohne Klartext: OS-Schlüsselbund optional, Migration der Altdatei, keine Geheimnisse in Logs/Exporten | – | **implementiert** |
 | SDQ-005 | P1 | Volle Browser-Suite in CI | – | erledigt (2.0.0-dev56) |
-| SDQ-006 | P1 | Recherche-Benchmark: Referenzliste, Messgrößen, Auswerteskript (Ergebnisse erst mit echten Prüfern) | – | offen |
+| SDQ-006 | P1 | Recherche-Benchmark: Referenzliste, Messgrößen, Auswerteskript (Ergebnisse erst mit echten Prüfern) | – | Werkzeug erledigt (2.0.0-dev57), Messung offen |
 | SDQ-007 | P1 | Identitätsstufen (bestätigt … keine Zuordnung) mit harten Gegenbelegen und Regressionen | SDQ-006 | offen |
 | SDQ-008 | P1 | Provider-Beschreibung je Quelle (Lizenz, Frische, Limits, Fehlerrate, Kosten) | – | offen |
 | SDQ-009 | P1 | Gestaltetes Angebots-PDF aus dem Kundenexport | – | offen |
@@ -114,7 +114,7 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
 | Nachweisbare Mandantentrennung | **offen** (nicht vorhanden) |
 | Backup und Restore geprüft | lokal ja (T15); Cloud offen |
 | Release-Tests | Unit-Matrix, Installation, alle 52 Browser-Tests (SDQ-005) und reproduzierbares Release in CI; macOS nicht |
-| Recherchequalität gemessen | **offen** |
+| Recherchequalität gemessen | **offen** – Werkzeug und Format vorhanden (SDQ-006), keine geprüfte Referenzliste |
 | Externe Nutzertests | **offen** |
 | Produktversprechen rechtlich geprüft | **offen** |
 | Freigabe Produktionsbetrieb | **offen** |
@@ -214,3 +214,21 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
 - **Nicht abgedeckt:** Browser-Tests nur unter Linux/Chromium; kein Firefox/WebKit, kein Windows-Browserlauf.
 - **Reifeauswirkung (Vorschlag, gilt erst mit grünem CI-Lauf):** Dimension 8 (Tests) 65 → 67, weil Regressionen der
   Oberfläche jetzt bei jedem Push geprüft werden. Gesamtindex 48,74 → 48,90 (≈ 48,9).
+
+### SDQ-006 – Gerüst für den Recherche-Benchmark (P1)
+
+- **Ausgangsproblem:** Kein Recall-/Präzisions-Benchmark. `docs/bench/` enthält nur Fixture-Messungen; ob SignalDesk die Firmen
+  eines Gebiets findet und ihnen die richtige Website zuordnet, ist unbekannt (Dimension 1 und 2 nur mit Konfidenz M/N bewertet).
+- **Änderung:** `sales_tool/research/benchmark.py` und `tools/research_benchmark.py` (validate, export-run, evaluate).
+  Referenzformat mit Belegen, Prüfenden und Prüfdatum je Eintrag, Status aktiv/geschlossen/außerhalb und Kennzeichen
+  „abschließend“. Zuordnung über `identity.decide()` ohne Website. Messgrößen: Recall, Präzision (bei offener Liste als
+  Schranken), Dubletten, Website und Registernummer richtig/falsch zugeordnet, jeweils mit 95-%-Wilson-Bereich. Synthetische
+  Listen tragen im Bericht den Vermerk „kein Messergebnis“. Personendaten werden abgelehnt, der Export enthält nur Firmendaten.
+  Anleitung und vorgeschlagene Zielwerte: [RECHERCHE_BENCHMARK.md](RECHERCHE_BENCHMARK.md).
+- **Tests:** `tests/test_sdq006_research_benchmark.py` (18 Fälle, fiktive Daten): Prüfung der Dateien, Zählung, falsche
+  Website lenkt die Zuordnung nicht, Plattformseite ist keine Website, verschiedene Registernummer nie ein Treffer, nicht
+  geprüfte Felder zählen nicht, Bericht und Export.
+- **Nicht erledigt:** keine echte Referenzliste, keine Messung. Dafür braucht es Menschen, die 3 bis 5 Gebiete unabhängig von
+  SignalDesk erfassen, möglichst doppelt geprüft.
+- **Reifeauswirkung:** keine. Ein Messwerkzeug verbessert die Recherche nicht; Dimension 1 und 2 ändern sich erst mit einem
+  Messergebnis. Gesamtindex bleibt 48,90 (nach SDQ-005).

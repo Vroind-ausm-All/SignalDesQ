@@ -1,0 +1,29 @@
+{
+ "format": "signaldesk-research-reference/1",
+ "name": "VORLAGE – Beispieleintrag ersetzen",
+ "synthetic": true,
+ "queries": [
+  {
+   "id": "q1",
+   "description": "Branche und Gebiet, z. B. Steuerberater in PLZ 70173–70199",
+   "complete": false,
+   "method": "Wie entstand die Liste? Quellen (Kammerverzeichnis, Handelsregister, Begehung …), Stichtag, wer hat geprüft",
+   "companies": [
+    {
+     "ref_id": "r1",
+     "name": "Beispiel Fiktiv GmbH",
+     "legal_form": "GmbH",
+     "zip": "70173",
+     "city": "Stuttgart",
+     "website": "beispiel-fiktiv.example",
+     "register_id": "HRB 000001",
+     "status": "aktiv",
+     "evidence": ["Beleg-URL oder Fundstelle"],
+     "checked_by": ["Kürzel Prüfer 1", "Kürzel Prüfer 2"],
+     "checked_on": "2026-01-01",
+     "note": "website: Text = geprüfter Wert, null = geprüft und gibt es nicht, Feld weglassen = nicht geprüft"
+    }
+   ]
+  }
+ ]
+}
