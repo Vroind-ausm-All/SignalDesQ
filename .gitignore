@@ -12,3 +12,6 @@ __pycache__/
 
 # 2.0.0-dev42: gemerkte Zugangsdaten (Kalender/Postfach) nie einchecken
 zugangsdaten.json
+
+# Release-Pakete entstehen mit tools/build_release.py und werden nicht eingecheckt
+dist/

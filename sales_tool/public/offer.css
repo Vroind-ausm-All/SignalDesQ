@@ -1,0 +1,16 @@
+/* Druckansicht Angebot (SDQ-009) – ergänzt invoice.css, ohne externe Ressourcen */
+.offer h1{font-size:21px}
+.offer .block{margin:6mm 0 0;break-inside:avoid-page}
+.offer h2{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin:0 0 2mm;border-bottom:1px solid var(--line);padding-bottom:1.5mm}
+.offer h3{font-size:13px;margin:3mm 0 1mm}
+.offer p{margin:1.5mm 0}
+.offer ul{margin:1mm 0 0;padding-left:5mm}.offer li{margin:.6mm 0}
+.offer .muted{color:var(--muted);font-size:12px}
+.offer .note{background:#f3f7f6;border-left:3px solid var(--accent);padding:2mm 3mm;font-weight:400}
+.offer .items tr.opt td{color:var(--muted)}
+.offer .tag{display:inline-block;font-size:10px;border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:4px;color:var(--muted)}
+.offer .pos{break-inside:avoid}
+.offer .validity{margin-top:8mm;font-weight:600}
+.offer .sign{display:grid;grid-template-columns:1fr 2fr;gap:12mm;margin-top:16mm;break-inside:avoid}
+.offer .sign div{font-size:11px;color:var(--muted)}.offer .sign span{display:block;border-bottom:1px solid var(--ink);height:12mm;margin-bottom:1.5mm}
+.offer .draft-mark{left:20mm;right:auto}
