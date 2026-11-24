@@ -101,7 +101,7 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
 | SDQ-005 | P1 | Volle Browser-Suite in CI | – | erledigt (2.0.0-dev56) |
 | SDQ-006 | P1 | Recherche-Benchmark: Referenzliste, Messgrößen, Auswerteskript (Ergebnisse erst mit echten Prüfern) | – | Werkzeug erledigt (2.0.0-dev57), Messung offen |
 | SDQ-007 | P1 | Identitätsstufen (bestätigt … keine Zuordnung) mit harten Gegenbelegen und Regressionen | SDQ-006 | offen |
-| SDQ-008 | P1 | Provider-Beschreibung je Quelle (Lizenz, Frische, Limits, Fehlerrate, Kosten) | – | offen |
+| SDQ-008 | P1 | Provider-Beschreibung je Quelle (Lizenz, Frische, Limits, Fehlerrate, Kosten) | – | erledigt (2.0.0-dev58) |
 | SDQ-009 | P1 | Gestaltetes Angebots-PDF aus dem Kundenexport | – | offen |
 | SDQ-010 | P1 | Datenzugriffsschicht mit Organisationsfilter (Vorbereitung Mandanten) | SDQ-002…004 | offen |
 
@@ -232,3 +232,23 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
   SignalDesk erfassen, möglichst doppelt geprüft.
 - **Reifeauswirkung:** keine. Ein Messwerkzeug verbessert die Recherche nicht; Dimension 1 und 2 ändern sich erst mit einem
   Messergebnis. Gesamtindex bleibt 48,90 (nach SDQ-005).
+
+### SDQ-008 – Beschreibung je Datenquelle (P1)
+
+- **Ausgangsproblem:** Lizenz, Grenzen und Fair-Use-Regeln standen in `docs/LEADQUELLEN_V11.md` und teils auf den Quellenkarten.
+  Aktualität, Kosten, Limits der Quelle selbst und vor allem **wie oft eine Quelle in der Praxis versagt** waren nirgends
+  sichtbar (Praxistest 70191: Overpass mehrfach überlastet – das wusste nur, wer den Bericht kannte).
+- **Änderung:** Jede Quelle (Wikidata, OpenStreetMap, GLEIF, TED, GLEIF-CSV, eigene Liste) beschreibt Lizenz, Namensnennung,
+  Aktualität, Limits der Quelle, Kosten und Umgang mit Personendaten. Neu `lead_finder.provider_report()` und
+  `GET /api/lead-finder/providers?days=30`: je Quelle Abfragen, erfolgreiche und fehlgeschlagene, Fehlerrate mit
+  95-%-Wilson-Bereich, letzter Erfolg und letzter Fehler, Treffer je Abfrage, geprüfte und übernommene Treffer; dazu Datum des
+  letzten lokalen OSM-Imports (nur Dateiname). Gemessen wird nur aus den Abfragen dieser Installation, nichts wird abgerufen.
+  Die Quellenkarten unter „Einzelne Quelle gezielt abfragen“ zeigen Aktualität, Kosten und die Messwerte; Limits,
+  Personendaten und letzter Fehler stehen im Tooltip.
+- **Tests:** `tests/test_sdq008_providers.py` (6 Fälle: jede Quelle vollständig beschrieben, Fehlerrate, Zeitraum, laufende
+  Abfrage zählt nicht in die Fehlerrate, Übernahmequote, OSM-Import ohne Pfad, Route mit Fehlerfall) und
+  `tests/e2e/test_sdq008_providers_browser.py`.
+- **Nicht geprüft:** Die Angaben zu Lizenz und Limits der Quellen sind Stand 2026-11 nach Dokumentation, nicht live gegen die
+  Quellen geprüft; die Antwort sagt das (`live_verified: false`). Kostenpflichtige Anbieter sind nicht angebunden.
+- **Reifeauswirkung (Vorschlag):** Dimension 1 (Firmenfindung) 45 → 46: Herkunft und Zuverlässigkeit jeder Quelle sind jetzt
+  sichtbar und messbar; die Abdeckung selbst ist unverändert. Gesamtindex 48,90 → 49,01 (≈ 49,0).

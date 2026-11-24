@@ -19,9 +19,11 @@ from __future__ import annotations
 import datetime as dt
 import json
 import re
+import sqlite3
 import urllib.error
 import urllib.parse
 import urllib.request
+from pathlib import Path
 
 from . import __version__
 
@@ -43,24 +45,37 @@ SOURCES = {
         'attribution': 'Daten: Wikidata (CC0)', 'url': 'https://query.wikidata.org/',
         'good_for': 'Bekanntere Mittelständler und Konzerne mit Website, Branche und Mitarbeiterzahl.',
         'limits': 'Kleine Firmen fehlen oft; Angaben teils veraltet – vor Nutzung auf der Firmenwebsite prüfen.',
+        'freshness': 'Live-Abfrage; Einträge pflegen Freiwillige, Änderungsdatum je Eintrag sehr unterschiedlich.',
+        'provider_limits': 'Öffentlicher SPARQL-Dienst: Abfragezeit höchstens 60 s, bei Überlast Fehler 429/503.',
+        'cost': 'kostenlos', 'personal_data': 'keine übernommen (Personen, Telefon, E-Mail werden verworfen)',
     },
     'osm': {
         'title': 'OpenStreetMap – Firmen & Büros mit Website im Ort', 'license': 'ODbL 1.0', 'ampel': 'gruen',
         'attribution': '© OpenStreetMap-Mitwirkende (ODbL)', 'url': 'https://overpass-api.de/',
         'good_for': 'Lokale Firmen, Büros, Handwerk und Kanzleien in einer Stadt – gut für regionale Akquise.',
         'limits': 'Vollständigkeit schwankt je Region. Bei Weitergabe der Datenbank gilt ODbL (Namensnennung, Share-Alike).',
+        'freshness': 'Live-Abfrage; OSM-Änderungen sind meist nach Minuten sichtbar, gepflegt wird regional sehr unterschiedlich.',
+        'provider_limits': 'Öffentliche Overpass-Server: Fair Use (Richtwert < 10.000 Abfragen, < 1 GB je Tag), häufig überlastet – '
+                           'Alternative: lokaler OSM-Auszug unter „Finden“.',
+        'cost': 'kostenlos', 'personal_data': 'Einträge ohne Rechtsform werden standardmäßig ausgefiltert (mögliche Einzelpersonen)',
     },
     'gleif': {
         'title': 'GLEIF – amtlich geprüfte Firmendaten (LEI)', 'license': 'CC0 1.0', 'ampel': 'gruen',
         'attribution': 'Daten: GLEIF (CC0)', 'url': 'https://api.gleif.org/',
         'good_for': 'Exakter Firmenname, Rechtsform, Anschrift und Handelsregisternummer – ideal zum Verifizieren und für Rechnungsadressen.',
         'limits': 'Nur Firmen mit LEI (typisch: Firmen mit Bank-/Wertpapiergeschäft); keine Website, keine Branche.',
+        'freshness': 'Täglich aktualisiert; jeder LEI-Eintrag wird mindestens jährlich von der ausgebenden Stelle geprüft.',
+        'provider_limits': 'Öffentliche API ohne Schlüssel; GLEIF nennt ein Limit von 60 Anfragen je Minute.',
+        'cost': 'kostenlos', 'personal_data': 'keine (nur juristische Personen)',
     },
     'ted': {
         'title': 'TED – öffentliche Ausschreibungen (Web, Design, Software)', 'license': 'CC BY 4.0 / Metadaten CC0', 'ampel': 'gruen',
         'attribution': 'Quelle: TED – Tenders Electronic Daily, © Europäische Union', 'url': 'https://ted.europa.eu/',
         'good_for': 'Konkrete, ausgeschriebene Aufträge öffentlicher Auftraggeber – kein Werbekontakt nötig, man bewirbt sich.',
         'limits': 'Nur EU-weite (oberschwellige) Verfahren. Unterschwellige Vergaben stehen auf oeffentlichevergabe.de bzw. Landesportalen.',
+        'freshness': 'Werktäglich neue Bekanntmachungen.',
+        'provider_limits': 'Suche anonym ohne Schlüssel; Begrenzung durch das Amt für Veröffentlichungen der EU möglich.',
+        'cost': 'kostenlos', 'personal_data': 'Kontaktpersonen der Vergabestelle werden nicht übernommen',
     },
 }
 
@@ -810,6 +825,70 @@ def manual_links(place='', keyword=''):
     return out
 
 
+PROVIDER_FIELDS = ('license', 'attribution', 'ampel', 'good_for', 'limits', 'freshness', 'provider_limits', 'cost', 'personal_data', 'url')
+TERMS_CHECKED = '2026-11'  # Stand der Angaben zu Lizenz und Limits (docs/LEADQUELLEN_V11.md); nicht live geprüft
+
+
+def _wilson(k, n, z=1.96):
+    if not n:
+        return None
+    p = k / n
+    d = 1 + z * z / n
+    c = (p + z * z / (2 * n)) / d
+    h = z * ((p * (1 - p) / n + z * z / (4 * n * n)) ** 0.5) / d
+    return [round(max(0.0, c - h), 3), round(min(1.0, c + h), 3)]
+
+
+def provider_report(conn, days=30):
+    """SDQ-008: je Quelle Beschreibung (Lizenz, Frische, Limits, Kosten) und gemessene Werte aus den eigenen Abfragen.
+    Gemessen heißt: aus discovery_runs/discovery_candidates dieser Installation – keine Abrufe, keine Schätzung."""
+    days = max(1, min(int(days), 365))
+    since = f'-{days} days'
+    out = []
+    for key, src in SOURCES.items():
+        row = conn.execute("""SELECT COUNT(*) n, SUM(status='done') ok, SUM(status='failed') failed,
+                                       COALESCE(SUM(CASE WHEN status='done' THEN result_count END), 0) results,
+                                       COALESCE(SUM(CASE WHEN status='done' THEN filtered_count END), 0) filtered,
+                                       MAX(CASE WHEN status='done' THEN finished_at END) last_ok,
+                                       MAX(CASE WHEN status='failed' THEN finished_at END) last_failed
+                                FROM discovery_runs WHERE source=? AND created_at >= datetime('now', ?)""", (key, since)).fetchone()
+        n, ok, failed = row['n'] or 0, row['ok'] or 0, row['failed'] or 0
+        last_err = conn.execute("""SELECT error FROM discovery_runs WHERE source=? AND status='failed' AND created_at >= datetime('now', ?)
+                                   ORDER BY id DESC LIMIT 1""", (key, since)).fetchone()
+        cand = {r['status']: r['c'] for r in conn.execute(
+            """SELECT c.status, COUNT(*) c FROM discovery_candidates c JOIN discovery_runs r ON r.id=c.run_id
+               WHERE c.source=? AND r.created_at >= datetime('now', ?) GROUP BY c.status""", (key, since))}
+        reviewed = sum(cand.get(s, 0) for s in ('uebernommen', 'verworfen', 'dublette'))
+        finished = ok + failed
+        out.append({
+            'key': key, 'title': src['title'], **{f: src.get(f, '') for f in PROVIDER_FIELDS},
+            'measured': {
+                'days': days, 'runs': n, 'done': ok, 'failed': failed,
+                'error_rate': round(failed / finished, 3) if finished else None, 'error_rate_ci95': _wilson(failed, finished),
+                'last_success': row['last_ok'] or '', 'last_failure': row['last_failed'] or '',
+                'last_error': (last_err['error'] if last_err else '')[:200],
+                'results': row['results'], 'filtered': row['filtered'],
+                'results_per_run': round(row['results'] / ok, 1) if ok else None,
+                'candidates': sum(cand.values()), 'reviewed': reviewed, 'taken_over': cand.get('uebernommen', 0),
+                'rejected': cand.get('verworfen', 0), 'duplicates': cand.get('dublette', 0),
+                'take_over_rate': round(cand.get('uebernommen', 0) / reviewed, 3) if reviewed else None,
+            },
+        })
+    local = None
+    try:
+        r = conn.execute("""SELECT filename, places, finished_at FROM osm_imports WHERE status='fertig'
+                             ORDER BY id DESC LIMIT 1""").fetchone()
+        if r:
+            local = {'filename': Path(r['filename']).name, 'places': r['places'], 'imported_at': r['finished_at']}
+    except sqlite3.Error:
+        pass
+    return {'providers': out, 'own_limits': {'cache_hours': CACHE_HOURS, 'min_seconds': MIN_SECONDS_BETWEEN_RUNS,
+                                             'daily_per_source': DAILY_LIMIT_PER_SOURCE},
+            'terms_checked': TERMS_CHECKED, 'live_verified': False, 'local_osm': local,
+            'note': 'Gemessen aus den Abfragen dieser Installation. Lizenz- und Limitangaben Stand ' + TERMS_CHECKED +
+                    ', vor produktivem Einsatz bei der Quelle prüfen.'}
+
+
 def catalog():
     return {'sources': SOURCES, 'cpv_presets': {k: {'label': v[0], 'codes': v[1]} for k, v in CPV_PRESETS.items()},
             'osm_categories': {k: v[0] for k, v in OSM_CATEGORIES.items()}, 'manual_sources': manual_links(),
@@ -825,6 +904,13 @@ def route_lead_finder(h, conn, method, route, query):
     import re as _re
     if route == '/api/lead-finder/catalog' and method == 'GET':
         h._send(200, catalog())
+        return True
+    if route == '/api/lead-finder/providers' and method == 'GET':
+        try:
+            days = int(query.get('days', ['30'])[0])
+        except ValueError:
+            raise ValueError('days: ganze Zahl.')
+        h._send(200, provider_report(conn, days))
         return True
     if route == '/api/lead-finder/manual-links' and method == 'GET':
         place = query.get('place', [''])[0][:80]

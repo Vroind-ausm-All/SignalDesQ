@@ -82,7 +82,13 @@ def init_sweep(conn):
 for _key, _title in (('gleif_csv', 'GLEIF-Export (CSV-Import)'), ('liste', 'Eigene Firmenliste (CSV-Import)')):
     lf.SOURCES.setdefault(_key, {'title': _title, 'license': 'CC0 1.0' if _key == 'gleif_csv' else 'eigene Liste', 'ampel': 'gruen',
                                  'attribution': 'Daten: GLEIF (CC0)' if _key == 'gleif_csv' else 'eigene Datei', 'url': '',
-                                 'good_for': 'Große Firmenlisten offline einlesen.', 'limits': 'Keine Website/Branche in GLEIF-Daten.'})
+                                 'good_for': 'Große Firmenlisten offline einlesen.', 'limits': 'Keine Website/Branche in GLEIF-Daten.',
+                                 # SDQ-008: Beschreibung wie bei den Live-Quellen
+                                 'freshness': 'so aktuell wie die eingelesene Datei (Stand der Datei prüfen)',
+                                 'provider_limits': f'höchstens {MAX_IMPORT_BYTES // 1_000_000} MB je Datei; keine Abfrage nach außen',
+                                 'cost': 'kostenlos' if _key == 'gleif_csv' else 'je nach Herkunft der Liste',
+                                 'personal_data': 'keine (nur juristische Personen)' if _key == 'gleif_csv'
+                                 else 'Herkunft und Rechtsgrundlage der Liste selbst prüfen; Personenspalten werden nicht übernommen'})
 
 
 def recover_sweeps(conn):
