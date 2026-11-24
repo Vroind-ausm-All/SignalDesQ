@@ -258,6 +258,32 @@ class RestoreInstallationTests(Base):
         self._check_restored(new_root)
 
 
+class RejectedBodyTests(Base):
+    """Windows-CI: Eine abgelehnte Anfrage (fremde Herkunft) mit ungelesenem Körper wurde hart abgebrochen
+    (WinError 10053) statt mit 403 beantwortet. Der Server für mehrere Organisationen liest den Rest jetzt wie der Einzelplatz."""
+
+    def test_foreign_origin_body_is_read_before_close(self):
+        from sales_tool import multi_server, server as single
+        seen = []
+
+        def spy(handler, limit=1024 * 1024):
+            single.drain_request(handler, limit)
+            seen.append(handler.rfile.count - handler._body_from)
+
+        srv = ThreadingHTTPServer(('127.0.0.1', 0), make_multi_handler(self.dir))
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            body = {'username': 'erika', 'password': PW, 'pad': 'x' * 200_000}
+            with mock.patch.object(multi_server, 'drain_request', side_effect=spy):
+                status, _, _ = Client(f'http://127.0.0.1:{srv.server_port}').call(
+                    '/api/zentral/login', 'POST', body, headers={'Origin': 'http://evil.example'})
+        finally:
+            srv.shutdown()
+            srv.server_close()
+        self.assertEqual(status, 403)
+        self.assertEqual(seen, [len(json.dumps(body).encode())])
+
+
 class IdleLogoutTests(Base):
     def setUp(self):
         super().setUp()

@@ -480,7 +480,7 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
   Einstellung `leerlauf_minuten` (Standard 60, 5 bis 720, 0 = aus). Eine zu lange unbenutzte Sitzung wird gelöscht, nicht
   nur abgelehnt; geschrieben wird höchstens einmal je Minute. Arbeit in einer Organisation hält die zentrale Sitzung mit
   am Leben. Einzelplatz und Team-Betrieb ohne Verzeichnis unverändert.
-- **Tests:** `test_sdq029_betrieb_more.py` (17 Fälle).
+- **Tests:** `test_sdq029_betrieb_more.py` (18 Fälle).
 - **Reifeauswirkung (Vorschlag):** Dimension 11 (Betrieb und Integrationen) 34 → 37: Wiederherstellung der ganzen
   Installation und Kopie an einen zweiten Ort sind Befehle mit Prüfung statt Handarbeit, aber weiterhin nicht im echten
   Betrieb geübt. Dimension 9 (Sicherheit und Datenschutz) 47 → 48: Leerlauf-Abmelden; ohne externe Prüfung bleibt die

@@ -32,7 +32,7 @@ import re
 
 from . import abrechnung, accounts, auth, einladungen, ops, tenancy
 from .model import connect
-from .server import (CSP, LOOPBACK_HOSTS, PUBLIC, STATIC_FILES, _CountingReader, _host_name, bind_server, make_handler,
+from .server import (CSP, LOOPBACK_HOSTS, PUBLIC, STATIC_FILES, _CountingReader, _host_name, bind_server, drain_request, make_handler,
                      prepare_database)
 
 CENTRAL_FILES = {'/anmelden': ('zentral.html', 'text/html'), '/zentral.js': ('zentral.js', 'text/javascript'),
@@ -161,6 +161,7 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                 if not self.parse_request():
                     return
                 self._sd_rid, self._sd_status, self._sd_org = secrets.token_hex(6), 0, ''
+                self._body_from = self.rfile.count
                 t0 = time.perf_counter()
                 try:
                     self._dispatch()
@@ -180,6 +181,7 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                     else:
                         print('Serverfehler (Mehrmandanten):', repr(exc))
                     self._send(500, {'error': 'Interner Serverfehler', 'request_id': self._sd_rid})
+                drain_request(self)  # abgelehnte Anfrage (fremde Herkunft, Host, Tarif): Körper lesen, sonst bricht Windows ab
                 self.wfile.flush()
                 ops.log_request(logger, rid=self._sd_rid, method=self.command, path=self.path, status=self._sd_status,
                                 ms=(time.perf_counter() - t0) * 1000, org=self._sd_org)

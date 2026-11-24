@@ -7,7 +7,8 @@
 - **Neu – Abmelden nach Leerlauf** (Server für mehrere Organisationen): Nach 60 Minuten ohne Aktivität ist eine neue Anmeldung nötig. Der Betreiber stellt die Zeit mit `einstellung leerlauf_minuten` ein (5 bis 720, 0 = aus). Einzelplatz und Team-Betrieb bleiben unverändert.
 - **Tarif:** Solange eine Organisation nur lesbar ist, ruhen ihre wiederkehrenden Aufträge.
 - **Recherche-Benchmark:** `research_benchmark.py import-table` wandelt die ausgefüllte Tabellenvorlage (xlsx oder CSV) in eine Referenzliste um und prüft sie.
-- Tests: neu `test_sdq029_betrieb_more.py` (17 Fälle).
+- **Fehlerbehebung (Windows):** Der Server für mehrere Organisationen liest bei abgelehnten Anfragen (z. B. fremde Herkunft) den Anfragekörper zu Ende, statt die Verbindung hart abzubrechen.
+- Tests: neu `test_sdq029_betrieb_more.py` (18 Fälle).
 
 ## 2.0.0-dev64 – Welle 5: E-Rechnung prüfen, DATEV, Ersteinrichtung, Registrierung und Tarif (SDQ-024 bis SDQ-028)
 
