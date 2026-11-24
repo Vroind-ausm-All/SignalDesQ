@@ -2,7 +2,7 @@
 
 Automatisch erzeugt mit `tools/sql_inventory.py` aus dem Quelltext (SDQ-010). Nicht von Hand ändern.
 
-1377 SQL-Aufrufe in 65 Modulen: 1217 mit festem SQL-Text, 123 aus festen Teilen zusammengesetzt, 34 über eine Hilfsfunktion, 3 Hilfsfunktionen, die SQL nur weiterreichen, und 0 nicht statisch lesbar. 83 von 83 Tabellen der Hauptdatenbank werden im Quelltext namentlich angesprochen, dazu die Tabellen des Offline-Firmenkatalogs und des Mandantenverzeichnisses (je eigene Datei).
+1413 SQL-Aufrufe in 69 Modulen: 1253 mit festem SQL-Text, 123 aus festen Teilen zusammengesetzt, 34 über eine Hilfsfunktion, 3 Hilfsfunktionen, die SQL nur weiterreichen, und 0 nicht statisch lesbar. 83 von 83 Tabellen der Hauptdatenbank werden im Quelltext namentlich angesprochen, dazu die Tabellen des Offline-Firmenkatalogs und des Mandantenverzeichnisses (je eigene Datei).
 
 Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufbewahrung): `sales_tool/data_map.py`. „nur lesen“ nennt Module, die eine Tabelle lesen, aber nicht schreiben.
 
@@ -13,7 +13,7 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `account_mfa` | Mandantenverzeichnis (eigene Datei) | zugang | nein | fachlich | – | accounts.py |
 | `account_recovery_codes` | Mandantenverzeichnis (eigene Datei) | zugang | nein | fachlich | – | accounts.py |
 | `account_sessions` | Mandantenverzeichnis (eigene Datei) | zugang | nein | kurz | – | accounts.py |
-| `accounts` | Mandantenverzeichnis (eigene Datei) | zugang | ja | fachlich | – | accounts.py |
+| `accounts` | Mandantenverzeichnis (eigene Datei) | zugang | ja | fachlich | einladungen.py | accounts.py |
 | `action_dismissals` | Firmen und Kontakt | organisation | nein | kurz | – | sales_integration.py |
 | `activities` | Firmen und Kontakt | organisation | nein | fachlich | – | briefing.py, care.py, chances.py, customer_report.py, duplicates.py, followups.py, handover.py, imprint_batch.py, kickoff.py, lead_finder.py, lead_imprint.py, offer_flow.py, report.py, research_center.py, revisions.py, server.py, sweep.py, website_scorer.py, workday.py |
 | `analysis_runs` | Recherche | organisation | nein | kurz | ai_lab.py | analysis_jobs.py, quickscan.py, server.py |
@@ -48,7 +48,7 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `einvoice_documents` | Rechnung und Steuer | organisation | nein | gobd | accounting.py | einvoice.py |
 | `entities` | Firmenkatalog (eigene Datei) | installation | nein | kurz | – | research/catalog.py |
 | `entities_fts` | Firmenkatalog (eigene Datei) | installation | nein | kurz | – | research/catalog.py |
-| `expenses` | Rechnung und Steuer | organisation | nein | gobd | einvoice.py | accounting.py |
+| `expenses` | Rechnung und Steuer | organisation | nein | gobd | datev.py, einvoice.py | accounting.py |
 | `expert_review_items` | Recherche | organisation | nein | fachlich | – | expert_review.py |
 | `expert_reviews` | Recherche | organisation | ja | fachlich | – | expert_review.py |
 | `findings` | Recherche | organisation | nein | fachlich | ai_lab.py, customer_report.py, offer_basis.py, research_center.py | analysis_jobs.py, quickscan.py, server.py |
@@ -57,8 +57,9 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `handovers` | Angebote und Projekte | organisation | ja | fachlich | – | handover.py |
 | `imports` | Firmenkatalog (eigene Datei) | installation | nein | kurz | – | research/catalog.py |
 | `inbound` | Firmen und Kontakt | organisation | ja | fachlich | focus.py, today.py | reach.py |
+| `invitations` | Mandantenverzeichnis (eigene Datei) | zugang | nein | fachlich | – | einladungen.py |
 | `invoice_lines` | Rechnung und Steuer | organisation | nein | gobd | – | accounting.py |
-| `invoices` | Rechnung und Steuer | organisation | ja | gobd | accounting_api.py, backup_restore.py, care.py, duplicates.py, quality.py, search.py, server.py, workday.py | accounting.py |
+| `invoices` | Rechnung und Steuer | organisation | ja | gobd | accounting_api.py, backup_restore.py, care.py, datev.py, duplicates.py, quality.py, search.py, server.py, workday.py | accounting.py |
 | `job_signals` | Recherche | organisation | nein | fachlich | – | buying_signals.py |
 | `kickoff_items` | Angebote und Projekte | organisation | ja | fachlich | – | kickoff.py |
 | `kickoffs` | Angebote und Projekte | organisation | nein | fachlich | – | kickoff.py |
@@ -67,15 +68,16 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `login_failures` | Mandantenverzeichnis (eigene Datei) | zugang | nein | fachlich | – | accounts.py |
 | `mail_drafts` | Firmen und Kontakt | organisation | nein | fachlich | server.py, workday.py | imap_drafts.py, sales_workspace.py |
 | `meetings` | Firmen und Kontakt | organisation | nein | fachlich | caldav.py, calendar_feed.py, focus.py, messages.py, reach.py, sales_integration.py, today.py, workday.py | chances.py, sales_workspace.py, server.py |
-| `memberships` | Mandantenverzeichnis (eigene Datei) | zugang | nein | fachlich | – | accounts.py |
+| `memberships` | Mandantenverzeichnis (eigene Datei) | zugang | nein | fachlich | abrechnung.py, einladungen.py | accounts.py |
 | `message_templates` | Firmen und Kontakt | organisation | nein | fachlich | – | messages.py |
 | `number_sequences` | Rechnung und Steuer | organisation | nein | gobd | – | accounting.py |
 | `offer_recommendations` | Bedarf und Chancen | organisation | nein | fachlich | – | sales_integration.py |
 | `opportunities` | Bedarf und Chancen | organisation | nein | fachlich | care.py, search.py, today.py | briefing.py, chances.py, sales_workspace.py, server.py, workday.py |
-| `organizations` | Mandantenverzeichnis (eigene Datei) | installation | nein | fachlich | accounts.py, ops.py | tenancy.py |
+| `organizations` | Mandantenverzeichnis (eigene Datei) | installation | nein | fachlich | accounts.py, einladungen.py, ops.py | tenancy.py |
 | `osm_imports` | Firmenfindung | installation | nein | kurz | lead_finder.py | research/osm_local.py |
 | `osm_places` | Firmenfindung | installation | nein | kurz | qualification.py | research/osm_local.py |
-| `payments` | Rechnung und Steuer | organisation | nein | gobd | – | accounting.py |
+| `outbox` | Mandantenverzeichnis (eigene Datei) | installation | nein | fachlich | – | mailer.py |
+| `payments` | Rechnung und Steuer | organisation | nein | gobd | datev.py | accounting.py |
 | `pilot_items` | Firmenfindung | organisation | nein | fachlich | – | pilot.py |
 | `pilot_samples` | Firmenfindung | organisation | nein | fachlich | – | pilot.py |
 | `privacy_records` | Firmen und Kontakt | organisation | ja | fachlich | research_center.py, workday.py | company_data.py, quality.py |
@@ -92,10 +94,13 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `sessions` | Anmeldung | zugang | nein | kurz | – | accounts.py, auth.py, multi_server.py, server.py, tenancy.py |
 | `signal_correlations` | Recherche | organisation | nein | fachlich | report.py, research_center.py, sales_integration.py | buying_signals.py |
 | `signal_scans` | Recherche | organisation | nein | kurz | quality.py, research_center.py | buying_signals.py, report.py |
+| `signup_events` | Mandantenverzeichnis (eigene Datei) | zugang | nein | fachlich | – | einladungen.py |
+| `signup_requests` | Mandantenverzeichnis (eigene Datei) | zugang | nein | fachlich | – | einladungen.py |
 | `studies` | Nutzerstudien | organisation | nein | fachlich | learning.py | studies.py |
 | `study_results` | Nutzerstudien | organisation | nein | fachlich | – | studies.py |
 | `study_sessions` | Nutzerstudien | organisation | nein | fachlich | – | studies.py |
 | `study_tasks` | Nutzerstudien | organisation | nein | fachlich | – | studies.py |
+| `subscriptions` | Mandantenverzeichnis (eigene Datei) | installation | nein | fachlich | – | abrechnung.py |
 | `suppression_list` | Firmen und Kontakt | organisation | ja | fachlich | – | company_data.py |
 | `sweeps` | Firmenfindung | organisation | nein | kurz | – | research/catalog.py, sweep.py |
 | `tasks` | Firmen und Kontakt | organisation | nein | fachlich | messages.py, model.py, today.py | accounting.py, followups.py, handover.py, offer_flow.py, qualification.py, quality.py, research_center.py, revisions.py, sales_integration.py, sales_workspace.py, server.py, workday.py |
@@ -110,9 +115,10 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 
 | Modul | Aufrufe | nicht lesbar | Tabellen |
 |---|---:|---:|---:|
+| `abrechnung.py` | 7 | 0 | 2 |
 | `accounting.py` | 73 | 0 | 12 |
 | `accounting_api.py` | 1 | 0 | 1 |
-| `accounts.py` | 58 | 0 | 10 |
+| `accounts.py` | 65 | 0 | 10 |
 | `addenda.py` | 5 | 0 | 1 |
 | `ai_lab.py` | 3 | 0 | 4 |
 | `analysis_jobs.py` | 6 | 0 | 2 |
@@ -130,8 +136,10 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `company_data.py` | 36 | 0 | 7 |
 | `customer_report.py` | 8 | 0 | 6 |
 | `data_map.py` | 2 | 0 | 0 |
+| `datev.py` | 3 | 0 | 3 |
 | `decision_finder.py` | 2 | 0 | 2 |
 | `duplicates.py` | 22 | 0 | 4 |
+| `einladungen.py` | 16 | 0 | 6 |
 | `einvoice.py` | 8 | 0 | 2 |
 | `expert_review.py` | 17 | 0 | 6 |
 | `focus.py` | 8 | 0 | 5 |
@@ -143,6 +151,7 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `lead_finder.py` | 25 | 0 | 6 |
 | `lead_imprint.py` | 12 | 0 | 5 |
 | `learning.py` | 5 | 0 | 2 |
+| `mailer.py` | 3 | 0 | 1 |
 | `messages.py` | 19 | 0 | 7 |
 | `model.py` | 10 | 0 | 10 |
 | `multi_server.py` | 2 | 0 | 2 |

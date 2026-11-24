@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import datetime as dt
 import hashlib
+import re
 import secrets
 
 from . import audit_trail, auth, tenancy, totp
@@ -64,6 +65,8 @@ def init(directory: tenancy.Directory):
         cols = {r['name'] for r in conn.execute('PRAGMA table_info(account_sessions)')}
         if 'stage' not in cols:  # dev62 → dev63: bestehende Sitzungen sind vollständige Anmeldungen
             conn.execute("ALTER TABLE account_sessions ADD COLUMN stage TEXT NOT NULL DEFAULT 'voll'")
+        if 'email' not in {r['name'] for r in conn.execute('PRAGMA table_info(accounts)')}:  # dev64: Einladung, Registrierung
+            conn.execute("ALTER TABLE accounts ADD COLUMN email TEXT NOT NULL DEFAULT ''")
         audit_trail.init(conn)
 
 
@@ -87,6 +90,63 @@ def setting(directory, key, default=None):
     return row['value'] if row else default
 
 
+# Einstellungen, die der Betreiber setzen darf (SDQ-027). Werte sind Text; die Prüfung steht hier, nicht beim Aufrufer.
+SETTINGS = {
+    'registrierung': ('aus', 'offen'),   # Selbstregistrierung neuer Organisationen
+    'public_url': None,                  # öffentliche Adresse für Links in E-Mails, z. B. https://app.example.org
+    'testphase_tage': None,              # Länge der Testphase einer selbst registrierten Organisation
+}
+
+
+def set_setting(directory, key, value, actor=None):
+    if key not in SETTINGS:
+        raise ValueError('Einstellung: ' + ', '.join(SETTINGS))
+    value = str(value or '').strip()
+    allowed = SETTINGS[key]
+    if allowed and value not in allowed:
+        raise ValueError(f'{key}: ' + ' oder '.join(allowed))
+    if key == 'public_url' and not re.fullmatch(r'https://[A-Za-z0-9.-]+(:\d{2,5})?', value) and \
+            not re.fullmatch(r'http://(127\.0\.0\.1|localhost)(:\d{2,5})?', value):
+        raise ValueError('public_url: https://hostname (ohne Pfad); http nur für 127.0.0.1/localhost.')
+    if key == 'testphase_tage' and not (value.isdigit() and 1 <= int(value) <= 365):
+        raise ValueError('testphase_tage: 1 bis 365.')
+    init(directory)
+    with directory._connect() as conn:
+        conn.execute('INSERT INTO directory_settings(key, value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
+                     (key, value))
+    _log(directory, actor, 'einstellung_gesetzt', key, value)
+    return {key: value}
+
+
+EMAIL_RE = re.compile(r'[^@\s<>"\',;]{1,64}@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}')
+
+
+def check_email(email):
+    email = (email or '').strip() if isinstance(email, str) else ''
+    if len(email) > 200 or not EMAIL_RE.fullmatch(email):
+        raise ValueError('E-Mail-Adresse ungültig.')
+    return email
+
+
+def account_by_email(directory, email):
+    init(directory)
+    with directory._connect() as conn:
+        row = conn.execute('SELECT username FROM accounts WHERE email=? COLLATE NOCASE AND email<>\'\'', (email,)).fetchone()
+    return row['username'] if row else None
+
+
+def set_email(directory, username, email, actor=None):
+    email = check_email(email) if email else ''
+    init(directory)
+    with directory._connect() as conn:
+        acc = _account(conn, username)
+        if email and conn.execute('SELECT 1 FROM accounts WHERE email=? COLLATE NOCASE AND id<>?', (email, acc['id'])).fetchone():
+            raise ValueError('Diese E-Mail-Adresse gehört schon zu einem anderen Konto.')
+        conn.execute('UPDATE accounts SET email=? WHERE id=?', (email, acc['id']))
+    _log(directory, actor, 'email_gesetzt', username)
+    return account_view(directory, username)
+
+
 def require_2fa(directory):
     return setting(directory, 'require_2fa', '0') == '1'
 
@@ -106,15 +166,21 @@ def set_require_2fa(directory, on, actor=None):
 
 # ---------------------------------------------------------------- Verwaltung (Kommandozeile, Betreiber)
 
-def create_account(directory, username, password, display_name='', actor=None):
+def create_account(directory, username, password, display_name='', actor=None, email='', pw_hash=None):
+    """Konto anlegen. ``pw_hash`` statt ``password`` nur für eine bestätigte Registrierung (Passwort dort schon geprüft)."""
     init(directory)
     auth._check_username(username)
-    auth._check_password_policy(password, username)
+    if pw_hash is None:
+        auth._check_password_policy(password, username)
+        pw_hash = auth.hash_password(password)
+    email = check_email(email) if email else ''
     with directory._connect() as conn:
         if conn.execute('SELECT 1 FROM accounts WHERE username=?', (username,)).fetchone():
             raise ValueError(f'Konto „{username}“ gibt es schon.')
-        conn.execute('INSERT INTO accounts(username, display_name, pw_hash) VALUES (?,?,?)',
-                     (username, (display_name or username).strip()[:80], auth.hash_password(password)))
+        if email and conn.execute('SELECT 1 FROM accounts WHERE email=? COLLATE NOCASE', (email,)).fetchone():
+            raise ValueError('Diese E-Mail-Adresse gehört schon zu einem Konto.')
+        conn.execute('INSERT INTO accounts(username, display_name, pw_hash, email) VALUES (?,?,?,?)',
+                     (username, (display_name or username).strip()[:80], pw_hash, email))
     _log(directory, actor, 'konto_angelegt', username)
     return account_view(directory, username)
 
@@ -127,7 +193,7 @@ def account_view(directory, username):
                                WHERE m.account_id=? ORDER BY m.slug''', (acc['id'],)).fetchall()
         mfa = conn.execute('SELECT active FROM account_mfa WHERE account_id=?', (acc['id'],)).fetchone()
         left = conn.execute("SELECT COUNT(*) FROM account_recovery_codes WHERE account_id=? AND used_at=''", (acc['id'],)).fetchone()[0]
-    return {'username': acc['username'], 'display_name': acc['display_name'], 'active': bool(acc['active']),
+    return {'username': acc['username'], 'display_name': acc['display_name'], 'email': acc['email'], 'active': bool(acc['active']),
             'two_factor': bool(mfa and mfa['active']), 'recovery_codes_left': left if mfa and mfa['active'] else 0,
             'organizations': [dict(r) for r in orgs]}
 

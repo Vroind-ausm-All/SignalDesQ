@@ -117,6 +117,11 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
 | SDQ-021 | P1 | Zweiter Faktor (TOTP), Wiederherstellungscodes, Pflicht, Sperre über Neustarts | SDQ-014 | **implementiert** (2.0.0-dev63) |
 | SDQ-022 | P1 | Verwaltungs- und Anmeldeprotokoll mit Hash-Kette | SDQ-014 | **implementiert** (2.0.0-dev63) |
 | SDQ-023 | P1 | Verschlüsselter Datenexport einer Organisation | SDQ-013 | **implementiert** (2.0.0-dev63) |
+| SDQ-024 | P1 | E-Rechnung gegen EN 16931/XRechnung 3.0 prüfen (Teilmenge der Regeln, kein KoSIT-Ersatz) | – | **implementiert** (2.0.0-dev64) |
+| SDQ-025 | P1 | DATEV-Buchungsstapel (EXTF 700, SKR03) | – | **implementiert** (2.0.0-dev64), ohne Probeimport in DATEV |
+| SDQ-026 | P2 | Ersteinrichtung: Rechnungsdaten als erster Schritt; `anlegen --admin` | – | **implementiert** (2.0.0-dev64) |
+| SDQ-027 | P1 | Selbstregistrierung und Einladungen mit austauschbarem Postausgang (kein Versand) | SDQ-014 | **implementiert** (2.0.0-dev64), Versand braucht Freigabe |
+| SDQ-028 | P1 | Tarif je Organisation: Testphase, nur lesen nach Ablauf, Anbieter-Schnittstelle („manuell“) | SDQ-027 | **implementiert** (2.0.0-dev64), kein Zahlungsanbieter, keine Preise |
 
 ## 6. Launch-Gates (Stand)
 
@@ -126,7 +131,7 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
 | Kein bekannter Datenverlust in Kernfunktionen | B2 behoben (SDQ-003); Angebotseditor nur beforeunload, kein Browser-Test mit Positionen |
 | Nachweisbare Mandantentrennung | **technisch nachgewiesen** (E10, SDQ-011 bis SDQ-016: eine Datenbank je Organisation, zentrale Anmeldung, Negativtests per HTTP und im Browser); **offen** bis zur externen Sicherheitsprüfung und einem Betrieb mit echten Organisationen |
 | Backup und Restore geprüft | lokal ja (T15); Server: Sicherungssatz aller Organisationen mit automatischem Wiederherstellungstest und Zurückspielen je Organisation (SDQ-018, getestet); **offen** bis zu einer geübten Wiederherstellung auf einem echten Server und einer Kopie an einem zweiten Ort |
-| Release-Tests | Unit-Matrix, Installation, alle 52 Browser-Tests (SDQ-005) und reproduzierbares Release in CI; macOS nicht |
+| Release-Tests | Unit-Matrix, Installation, alle Browser-Tests (Mindestzahl 58, SDQ-005) und reproduzierbares Release in CI; macOS nicht |
 | Recherchequalität gemessen | **offen** – Werkzeug und Format vorhanden (SDQ-006), keine geprüfte Referenzliste |
 | Externe Nutzertests | **offen** |
 | Produktversprechen rechtlich geprüft | **offen** |
@@ -416,3 +421,38 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
   manipulationssicheres Verwaltungsprotokoll, verschlüsselte Exporte und Sicherungen; ohne externe Prüfung bleibt die
   Konfidenz begrenzt. Dimension 10 (Mandantenfähige SaaS-Architektur) 30 → 32: Sicherung und Wiederherstellung je
   Organisation. Gesamtindex 51,99 → 53,49.
+
+### Welle 5 – Rechnung, Einrichtung, Registrierung und Tarif (SDQ-024 bis SDQ-028, 2.0.0-dev64)
+
+- **SDQ-024 – E-Rechnung prüfen.** `sales_tool/einvoice_check.py`: 63 Regeln aus EN 16931 und XRechnung 3.0 (BR-01 bis
+  BR-16, Parteien BR-06 bis BR-11, BR-DE-1 bis BR-DE-26, Positionen BR-21 bis BR-27, Summen BR-CO-10 bis BR-CO-16,
+  Steueraufschlüsselung je Kategorie, Codelisten, IBAN-Prüfziffer, Dezimalstellen). Route `…/xrechnung/check`, Knopf in der
+  Rechnungsansicht, Ergebnis auch beim Import. Platzhalter des Generators (`unbekannt@invalid`, Telefon `-`) gelten als
+  fehlend. XML mit DOCTYPE/ENTITY wird abgelehnt; CII wird als „nicht geprüft“ gemeldet, nicht als gültig. Tests: alle
+  Steuerarten und Storno bestehen; verfälschte Summe, Steuer, IBAN, Platzhalter-Adresse, Währung, Rechnungsnummer fallen auf.
+  **Grenze:** Teilmenge der Schematron-Regeln, kein Schema-Check (XSD), nicht gegen den KoSIT-Validator abgeglichen.
+- **SDQ-025 – DATEV.** `sales_tool/datev.py`: Kopfzeile EXTF 700/21/13 mit Berater, Mandant, WJ-Beginn, Sachkontenlänge 4,
+  Zeitraum, SKR 03; Kernspalten Umsatz bis Buchungstext; Windows-1252, CRLF, Dezimalkomma, Belegdatum TTMM, Belegfeld 1
+  bereinigt, Texte ohne Trennzeichen. Kontierung: Debitor 10000 an 8400/8300/8195/8338/8200, Bank an Debitor, Ausgaben mit
+  BU 9/8; § 13b ohne Schlüssel und markiert. Zeitraum muss in einem Wirtschaftsjahr liegen. **Grenze:** kein Probeimport in
+  DATEV, keine Personenkonten je Kunde, keine Belegbilder, nur die 14 Kernspalten belegt (die übrigen Spalten des Formats fehlen).
+- **SDQ-026 – Ersteinrichtung.** Schritt „Rechnungsdaten eintragen“ zuerst, nennt die fehlenden Angaben (inkl. Telefon für
+  XRechnung); `betreiber anlegen … --admin KONTO` (Organisation entsteht nicht, wenn das Konto fehlt).
+- **SDQ-027 – Registrierung und Einladungen.** `sales_tool/einladungen.py`, `sales_tool/mailer.py`, Oberfläche unter
+  `/anmelden`. Registrierung nur bei `registrierung=offen`, zweistufig, gleiche Antwort für vorhandene Adressen, Grenzen je IP
+  und Adresse; Einladungen nur durch `admin`, 7 Tage, einmalig, zurückziehbar; letzte Verwaltung bleibt. Tokens nur als Hash,
+  Links nie im Protokoll. **Kein Versand:** Postausgang als Datei (E12).
+- **SDQ-028 – Tarif.** `sales_tool/abrechnung.py`: Testphase (Standard 30 Tage, einstellbar), Mitgliedergrenze je Tarif,
+  nach Ablauf nur lesen (402, Ansehen geht, Abmelden geht), Freischalten durch den Betreiber (`tarif`). Vom Betreiber angelegte
+  Organisationen bleiben unbeschränkt. **Grenze:** kein Zahlungsanbieter, keine Preise, keine Rechnungsstellung an Kunden,
+  geplante Aufträge einer abgelaufenen Organisation laufen weiter.
+- **Tests:** `test_sdq024_einvoice_check.py` (10), `test_sdq025_datev.py` (5), `test_sdq027_signup.py` (10),
+  `test_v2_focus.py` erweitert, `e2e/test_sdq024_invoice_check_browser.py` (Ersteinrichtung, Prüfknopf, DATEV-Download),
+  `e2e/test_sdq027_signup_browser.py` (Registrierung, Bestätigung, Einladung, Annahme bei Telefonbreite). CI-Mindestzahl
+  Browser-Tests 56 → 58.
+- **Reifeauswirkung (Vorschlag):** Dimension 6 (Rechnung und Steuer) 56 → 62: eigene E-Rechnungen werden vor dem Versand
+  geprüft, Übergabe an die Steuerberatung im DATEV-Format; beides ohne externen Abgleich (KoSIT, DATEV-Import). Dimension 7
+  (UX und Onboarding) 65 → 67: Ersteinrichtung führt zu gültigen Rechnungsdaten, Registrierung und Einladung im Browser.
+  Dimension 10 (Mandantenfähige SaaS-Architektur) 32 → 40: Organisationen entstehen und wachsen ohne Betreiber, Testphase
+  und Tarifgrenzen greifen serverseitig; ohne E-Mail-Versand und Zahlungsanbieter ist es noch kein Self-Service-SaaS.
+  Gesamtindex 53,49 → 54,91.

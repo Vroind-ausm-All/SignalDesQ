@@ -66,7 +66,7 @@
     renderAuthBar();
     const box = $('#qAuth');
     if (auth.central) {  // SDQ-014: Mehrmandanten-Installation – Anmeldung und Rollen zentral
-      box.innerHTML = `<p class="muted">Organisation <b>${esc(auth.organization.name)}</b>. Angemeldet als <b>${esc(auth.user.display_name || auth.user.username)}</b> (${esc(auth.user.role)}). ${esc(auth.notice)}</p><a class="btn btn-ghost" href="${esc(auth.switch_url)}">Organisation wechseln oder Passwort ändern</a>`;
+      box.innerHTML = `<p class="muted">Organisation <b>${esc(auth.organization.name)}</b>. Angemeldet als <b>${esc(auth.user.display_name || auth.user.username)}</b> (${esc(auth.user.role)}). ${esc(auth.notice)}</p>${auth.subscription && !auth.subscription.managed ? `<div class="sales-banner ${auth.subscription.read_only ? 'sales-warning' : ''}" data-q-plan>${esc(auth.subscription.plan_label)}: ${esc(auth.subscription.notice)}</div>` : ''}<a class="btn btn-ghost" href="${esc(auth.switch_url)}">Organisation wechseln oder Passwort ändern</a>`;
       return;
     }
     if (!auth.has_users) {

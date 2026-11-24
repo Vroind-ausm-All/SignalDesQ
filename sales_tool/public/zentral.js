@@ -1,12 +1,17 @@
 // SDQ-014/021: zentrale Anmeldung einer Mehrmandanten-Installation – Konto anmelden (Passwort, ggf. Code aus der App),
-// zweiten Faktor einrichten, Organisation wählen oder wechseln.
+// zweiten Faktor einrichten, Organisation wählen oder wechseln. SDQ-027: registrieren, Einladung annehmen, Mitglieder verwalten.
 (function () {
   const $ = s => document.querySelector(s);
   const msg = t => { $('#zMsg').textContent = t || ''; };
-  const views = ['#zLogin', '#zCode', '#zSetup', '#zOrgs'];
+  const views = ['#zLogin', '#zCode', '#zSetup', '#zOrgs', '#zRegister', '#zInvite', '#zTeam'];
+  const KEY = 'sd_einladung';
+  const store = {get: () => { try { return sessionStorage.getItem(KEY) || ''; } catch (e) { return ''; } },
+    set: v => { try { v ? sessionStorage.setItem(KEY, v) : sessionStorage.removeItem(KEY); } catch (e) { /* ohne Speicher */ } }};
+  let teamSlug = '';
   const show = id => views.forEach(v => $(v).classList.toggle('hidden', v !== id));
   async function call(path, body) {
-    const opts = body === undefined ? {} : {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)};
+    const del = body === null;
+    const opts = body === undefined ? {} : del ? {method: 'DELETE'} : {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)};
     const r = await fetch('/api/zentral/' + path, opts);
     const data = await r.json();
     if (!r.ok) throw Error(data.error || 'Anfrage fehlgeschlagen');
@@ -42,10 +47,56 @@
       : 'Schützt das Konto, wenn das Passwort bekannt wird.';
     $('#zMfaOn').classList.toggle('hidden', !!s.two_factor);
     $('#zMfaOff').classList.toggle('hidden', !s.two_factor || !!s.require_2fa);
+    const admin = $('#zAdminOrgs');
+    admin.textContent = '';
+    for (const o of s.organizations.filter(x => x.role === 'admin')) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'btn btn-ghost';
+      b.dataset.zTeam = o.slug;
+      b.dataset.zName = o.name;
+      b.textContent = 'Mitglieder und Einladungen: ' + o.name;
+      admin.appendChild(b);
+    }
+  }
+  const li = (text, btn) => {
+    const el = document.createElement('li');
+    const t = document.createElement('span');
+    t.textContent = text;
+    el.appendChild(t);
+    if (btn) { const b = document.createElement('button'); b.type = 'button'; b.className = 'text-button'; Object.assign(b.dataset, btn.data); b.textContent = btn.label; el.append(' ', b); }
+    return el;
+  };
+  async function showTeam(slug, name) {
+    teamSlug = slug || teamSlug;
+    if (name) $('#zTeamTitle').textContent = 'Mitglieder · ' + name;
+    const t = await call(`orgs/${teamSlug}/mitglieder`);
+    const sub = t.subscription;
+    $('#zTeamPlan').textContent = sub.managed ? sub.notice : `${sub.plan_label}: ${sub.notice} Mitglieder ${sub.members}${sub.members_limit ? ' von ' + sub.members_limit : ''}.`;
+    const list = $('#zTeamList');
+    list.textContent = '';
+    for (const m of t.members) list.appendChild(li(`${m.display_name || m.username} (${m.username}) · ${m.role}${m.active ? '' : ' · gesperrt'}`, {label: 'Entfernen', data: {zRemove: m.username}}));
+    const inv = $('#zTeamInvites');
+    inv.textContent = '';
+    for (const i of t.invitations) inv.appendChild(li(`${i.email} · ${i.role} · bis ${i.expires_at.slice(0, 10)}`, {label: 'Zurückziehen', data: {zRevoke: String(i.id)}}));
+    if (!t.invitations.length) inv.appendChild(li('Keine.'));
+    show('#zTeam');
+  }
+  async function showInvite(token) {
+    const i = await call('einladung', {token});
+    $('#zInviteInfo').textContent = `Einladung zu „${i.organization}“ als ${i.role} (für ${i.email}).` + (i.logged_in ? ` Angemeldet als ${i.username}.` : '');
+    $('#zInviteAccept').classList.toggle('hidden', !i.logged_in);
+    $('#zInviteNew').classList.toggle('hidden', i.logged_in || i.has_account);
+    if (!i.logged_in && i.has_account) { msg('Für diese Adresse gibt es schon ein Konto: bitte anmelden, die Einladung wird danach angezeigt.'); show('#zLogin'); return; }
+    show('#zInvite');
   }
   async function refresh() {
     const s = await call('status');
+    if (store.get() && (s.logged_in || !s.stage)) {
+      try { return await showInvite(store.get()); } catch (err) { store.set(''); msg(err.message); }
+    }
     if (s.logged_in) return showOrgs(s);
+    $('#zRegisterHint').classList.toggle('hidden', !s.registration_open);
     if (s.stage === 'zweitfaktor') return show('#zCode');
     if (s.stage === 'einrichtung') return showSetup(true);
     show('#zLogin');
@@ -150,5 +201,61 @@
     try { await call('logout', {}); } catch (err) { /* schon abgemeldet */ }
     location.reload();
   });
-  refresh().catch(err => msg(err.message));
+  $('#zToRegister').addEventListener('click', () => { msg(''); show('#zRegister'); });
+  document.querySelectorAll('[data-z-back]').forEach(b => b.addEventListener('click', () => { msg(''); show('#zLogin'); }));
+  $('#zRegister').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = e.target;
+    try {
+      const r = await call('registrieren', {email: f.email.value.trim(), org_name: f.org_name.value.trim(), username: f.username.value.trim(),
+        display_name: f.display_name.value.trim(), password: f.password.value});
+      f.reset();
+      show('#zLogin');
+      msg(r.notice);
+    } catch (err) { msg(err.message); }
+  });
+  $('#zInviteAccept').addEventListener('click', async () => {
+    try { const r = await call('einladung/annehmen', {token: store.get()}); store.set(''); await refresh(); msg(`Beigetreten: ${r.organization.name}.`); } catch (err) { msg(err.message); }
+  });
+  $('#zInviteNew').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = e.target;
+    try {
+      const r = await call('einladung/annehmen', {token: store.get(), username: f.username.value.trim(), display_name: f.display_name.value.trim(), password: f.password.value});
+      f.reset();
+      store.set('');
+      show('#zLogin');
+      msg(`Konto angelegt und „${r.organization.name}“ beigetreten. Bitte jetzt anmelden.`);
+    } catch (err) { msg(err.message); }
+  });
+  $('#zAdminOrgs').addEventListener('click', e => {
+    const b = e.target.closest('[data-z-team]');
+    if (b) { msg(''); showTeam(b.dataset.zTeam, b.dataset.zName).catch(err => msg(err.message)); }
+  });
+  document.querySelector('[data-z-orgs]').addEventListener('click', () => { msg(''); refresh().catch(err => msg(err.message)); });
+  $('#zTeamInvite').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = e.target;
+    try { const r = await call(`orgs/${teamSlug}/einladungen`, {email: f.email.value.trim(), role: f.role.value}); f.reset(); await showTeam(); msg(`Einladung an ${r.email} liegt im Postausgang (${r.outbox}).`); } catch (err) { msg(err.message); }
+  });
+  $('#zTeam').addEventListener('click', async e => {
+    const rv = e.target.closest('[data-z-revoke]'), rm = e.target.closest('[data-z-remove]');
+    try {
+      if (rv) { await call(`orgs/${teamSlug}/einladungen/${rv.dataset.zRevoke}`, null); await showTeam(); msg('Einladung zurückgezogen.'); }
+      if (rm) { await call(`orgs/${teamSlug}/mitglieder/${encodeURIComponent(rm.dataset.zRemove)}`, null); await showTeam(); msg(`${rm.dataset.zRemove} entfernt – der Zugang endet sofort.`); }
+    } catch (err) { msg(err.message); }
+  });
+  // Links aus dem Postausgang: #bestaetigen=… (Registrierung) und #einladung=… (Einladung). Danach aus der Adresszeile entfernen.
+  async function fromHash() {
+    const hash = new URLSearchParams(location.hash.slice(1));
+    if (hash.has('bestaetigen') || hash.has('einladung')) history.replaceState(null, '', location.pathname);
+    if (hash.get('bestaetigen')) {
+      try { const r = await call('registrieren/bestaetigen', {token: hash.get('bestaetigen')}); show('#zLogin'); msg(`${r.notice} Organisation: ${r.organization.name}.`); $('#zLogin').username.value = r.username; return; }
+      catch (err) { msg(err.message); }
+    }
+    if (hash.get('einladung')) store.set(hash.get('einladung'));
+    await refresh();
+  }
+  window.addEventListener('hashchange', () => fromHash().catch(err => msg(err.message)));  // Link in schon offener Seite
+  fromHash().catch(err => msg(err.message));
 })();

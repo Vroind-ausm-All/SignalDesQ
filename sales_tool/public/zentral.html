@@ -11,7 +11,45 @@
     <label>Benutzername<input name="username" autocomplete="username" required maxlength="40"></label>
     <label>Passwort<input name="password" type="password" autocomplete="current-password" required maxlength="200"></label>
     <button type="submit" class="btn btn-primary">Anmelden</button>
+    <p class="muted small hidden" id="zRegisterHint">Neu hier? <button type="button" class="text-button" id="zToRegister">Organisation registrieren</button></p>
   </form>
+  <form id="zRegister" class="hidden" autocomplete="on">
+    <h2>Organisation registrieren</h2>
+    <p class="muted small">Du bekommst einen Bestätigungslink an deine E-Mail-Adresse. Erst danach entstehen Konto und Organisation (mit Testphase).</p>
+    <label>E-Mail<input name="email" type="email" autocomplete="email" required maxlength="200"></label>
+    <label>Name der Organisation<input name="org_name" autocomplete="organization" required minlength="2" maxlength="120"></label>
+    <label>Benutzername<input name="username" autocomplete="username" required minlength="3" maxlength="40" pattern="[A-Za-z0-9._\-]{3,40}"></label>
+    <label>Dein Name (optional)<input name="display_name" autocomplete="name" maxlength="80"></label>
+    <label>Passwort (mind. 10 Zeichen)<input name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="200"></label>
+    <button type="submit" class="btn btn-primary">Registrieren</button>
+    <button type="button" class="btn btn-ghost" data-z-back>Zur Anmeldung</button>
+  </form>
+  <section id="zInvite" class="hidden" aria-live="polite">
+    <h2>Einladung</h2>
+    <p id="zInviteInfo"></p>
+    <button type="button" class="btn btn-primary hidden" id="zInviteAccept">Einladung annehmen</button>
+    <form id="zInviteNew" class="hidden" autocomplete="on">
+      <p class="muted small">Neues Konto anlegen – oder <button type="button" class="text-button" data-z-back>mit vorhandenem Konto anmelden</button>, danach den Link erneut öffnen.</p>
+      <label>Benutzername<input name="username" autocomplete="username" required minlength="3" maxlength="40"></label>
+      <label>Dein Name (optional)<input name="display_name" autocomplete="name" maxlength="80"></label>
+      <label>Passwort (mind. 10 Zeichen)<input name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="200"></label>
+      <button type="submit" class="btn btn-primary">Konto anlegen und beitreten</button>
+    </form>
+  </section>
+  <section id="zTeam" class="hidden" aria-live="polite">
+    <button type="button" class="btn btn-ghost" data-z-orgs>← Organisationen</button>
+    <h2 id="zTeamTitle">Mitglieder</h2>
+    <p class="muted small" id="zTeamPlan"></p>
+    <ul class="zentral-orgs" id="zTeamList"></ul>
+    <h2>Offene Einladungen</h2>
+    <ul class="zentral-orgs" id="zTeamInvites"></ul>
+    <form id="zTeamInvite">
+      <label>E-Mail<input name="email" type="email" required maxlength="200"></label>
+      <label>Rolle<select name="role"><option value="vertrieb">vertrieb</option><option value="buchhaltung">buchhaltung</option><option value="lesen">lesen</option><option value="admin">admin</option></select></label>
+      <button type="submit" class="btn btn-primary">Einladen</button>
+      <p class="muted small">Die Einladung wird im Postausgang des Servers abgelegt; SignalDesk verschickt in dieser Fassung keine E-Mails selbst.</p>
+    </form>
+  </section>
   <form id="zCode" class="hidden" autocomplete="off">
     <p class="muted">Zweiter Schritt: Code aus der Authenticator-App (oder einen Wiederherstellungscode).</p>
     <label>Code<input name="code" inputmode="numeric" autocomplete="one-time-code" required minlength="6" maxlength="20"></label>
@@ -59,6 +97,7 @@
         <button type="submit" class="btn btn-ghost">Abschalten</button>
       </form>
     </details>
+    <div id="zAdminOrgs"></div>
     <button type="button" id="zLogout" class="btn btn-ghost">Abmelden</button>
   </section>
   <p id="zMsg" class="zentral-msg" role="alert"></p>

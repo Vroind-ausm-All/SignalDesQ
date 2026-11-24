@@ -84,7 +84,7 @@ class FocusLeadListBrowserTests(unittest.TestCase):
                         # M11: Erste Schritte – echte Prüfung, ausblendbar
                         onb = page.locator('#tdOnboarding')
                         self.assertTrue(onb.is_visible())
-                        self.assertIn('1 von 4 erledigt', page.text_content('#tdOnbState'))  # Firmen sind schon da
+                        self.assertIn('1 von 5 erledigt', page.text_content('#tdOnbState'))  # Firmen sind schon da (dev64: + Rechnungsdaten)
                         page.locator('#tdOnboarding > summary').click()  # 2.0.0-dev50: Klappzeile mit Kurzstand
                         page.locator('#tdOnbHide').click()
                         onb.wait_for(state='hidden')

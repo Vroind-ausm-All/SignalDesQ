@@ -1,11 +1,11 @@
-# Betriebshandbuch: SignalDesk als Server für mehrere Organisationen (ab 2.0.0-dev63)
+# Betriebshandbuch: SignalDesk als Server für mehrere Organisationen (ab 2.0.0-dev63, Registrierung ab dev64)
 
 Dieses Handbuch beschreibt den Betrieb auf einem eigenen Linux-Server: ein Dienst, eine Datenbank je Organisation, zentrale
 Anmeldung mit zweitem Faktor, tägliche geprüfte Sicherung. Für den Einzelplatz und das kleine Team auf einem Rechner gilt
 weiterhin [BETRIEB_UND_TEAM.md](BETRIEB_UND_TEAM.md).
 
 **Stand:** Alles hier ist umgesetzt und automatisch getestet (`tests/test_sdq017_operations.py`,
-`tests/test_sdq021_security.py`, `tests/test_sdq020_deploy.py`). Es ist **nicht** auf einem echten Server mit echten
+`tests/test_sdq021_security.py`, `tests/test_sdq020_deploy.py`, `tests/test_sdq027_signup.py`). Es ist **nicht** auf einem echten Server mit echten
 Organisationen erprobt und nicht extern sicherheitsgeprüft. Vor dem ersten Kunden: Probebetrieb, Wiederherstellung einmal
 von Hand durchspielen, externe Prüfung.
 
@@ -60,6 +60,32 @@ sudo systemctl restart signaldesk-mandanten   # neue Organisation laden (Migrati
 Mit eingeschalteter Pflicht richtet jede Person bei der ersten Anmeldung den zweiten Faktor ein (Authenticator-App,
 Schlüssel abtippen) und bekommt zehn Wiederherstellungscodes. Ohne Pflicht kann jede Person ihn unter „Zwei-Faktor-Anmeldung“
 selbst einschalten.
+
+### Registrierung, Einladungen und Tarif (ab 2.0.0-dev64)
+
+SignalDesk **verschickt keine E-Mails**. Bestätigungs- und Einladungslinks landen als `.eml`-Datei im Postausgang
+`/srv/signaldesk/postausgang/` (nur für den Dienstbenutzer lesbar) und in der Liste `betreiber … postausgang`. Der Betreiber
+gibt den Link von Hand weiter, bis ein echter Versand freigegeben und eingerichtet ist.
+
+```
+sudo -u signaldesk … betreiber --root $R einstellung public_url https://app.example.org   # Adresse in den Links
+sudo -u signaldesk … betreiber --root $R einstellung registrierung offen                  # Standard: aus
+sudo -u signaldesk … betreiber --root $R einstellung testphase_tage 30
+sudo -u signaldesk … betreiber --root $R konto-email erika erika@studio-nord.example
+sudo -u signaldesk … betreiber --root $R anlegen studio-sued "Studio Süd" --admin erika
+sudo -u signaldesk … betreiber --root $R postausgang --anzahl 20
+sudo -u signaldesk … betreiber --root $R tarif studio-nord                                 # Stand ansehen
+sudo -u signaldesk … betreiber --root $R tarif studio-nord --plan team --status aktiv --bis 2027-11-30
+```
+
+- **Registrierung:** Konto und Organisation entstehen erst mit dem Link (24 Stunden gültig, einmalig). Die Antwort verrät
+  nicht, ob es eine Adresse schon gibt. Höchstens 5 Anfragen je IP und Stunde, 3 je Adresse und Tag.
+- **Einladungen:** Verwaltung einer Organisation lädt unter `/anmelden` → „Mitglieder und Einladungen“ ein (7 Tage, einmalig,
+  zurückziehbar, höchstens 50 je Tag). Die letzte Verwaltung kann nicht entfernt werden.
+- **Tarif:** Selbst registrierte Organisationen beginnen mit einer Testphase. Danach (oder nach Ablauf von `--bis`) sind sie
+  **nur lesbar**: Ansehen und Export gehen, Ändern liefert HTTP 402. Es wird nichts gelöscht. Vom Betreiber angelegte
+  Organisationen haben keinen Tarif und keine Grenze. Zahlungen laufen nicht über SignalDesk (Anbieter „manuell“); die Tarife
+  `test`, `solo`, `team` und ihre Mitgliedergrenzen sind Platzhalter ohne Preise.
 
 ## 4. Überwachen
 
@@ -135,6 +161,7 @@ zweiten Ort (anderer Datenträger oder Anbieter) kopiert werden – das übernim
 - Das Geheimnis des zweiten Faktors liegt unverschlüsselt im Verzeichnis (geschützt durch Dateirechte und die
   verschlüsselten Sicherungen). Kein WebAuthn/Passkey, kein OIDC/Single Sign-on.
 - Kein Leerlauf-Abmelden; Sitzungen enden nach 12 Stunden.
+- Kein E-Mail-Versand (nur Postausgang als Datei), kein Zahlungsanbieter, keine festgelegten Preise.
 - Kein Container-Abbild und keine Metriken im Prometheus-Format; Überwachung über `/healthz`, `/readyz` und die Protokolle.
 - Für Datenschutz und Vertrag (Auftragsverarbeitung, TOMs, Verzeichnis der Verarbeitungstätigkeiten, Aufbewahrungsfristen
   für Protokolle) gibt es Bausteine, aber keine geprüften Unterlagen.

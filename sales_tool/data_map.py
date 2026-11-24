@@ -171,4 +171,7 @@ CATALOG_TABLES = {'entities': 'installation', 'imports': 'installation', 'entiti
 # einer Mehrmandanten-Installation, nicht in der Datenbank einer Organisation.
 DIRECTORY_TABLES = {'organizations': 'installation', 'accounts': 'zugang', 'memberships': 'zugang', 'account_sessions': 'zugang',
                     'account_mfa': 'zugang', 'account_recovery_codes': 'zugang', 'login_failures': 'zugang',
-                    'directory_settings': 'installation', 'audit_events': 'zugang'}
+                    'directory_settings': 'installation', 'audit_events': 'zugang',
+                    # dev64 (SDQ-027/028): Registrierung, Einladungen, Postausgang, Tarif
+                    'signup_requests': 'zugang', 'invitations': 'zugang', 'signup_events': 'zugang', 'outbox': 'installation',
+                    'subscriptions': 'installation'}

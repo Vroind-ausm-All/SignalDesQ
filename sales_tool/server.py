@@ -286,7 +286,7 @@ def make_handler(db_path, allowed_hosts=None):
 
         def _send_raw(self, status, data, mime, filename=None, extra_headers=None):
             self.send_response(status)
-            self.send_header("Content-Type", mime if mime.startswith("image/") else mime + "; charset=utf-8")
+            self.send_header("Content-Type", mime if mime.startswith("image/") or "charset=" in mime else mime + "; charset=utf-8")
             self.send_header("Content-Length", str(len(data)))
             self.send_header("Cache-Control", "no-store")
             self._security_headers()
