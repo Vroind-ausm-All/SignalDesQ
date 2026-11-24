@@ -83,11 +83,19 @@ class CatalogBrowserTests(unittest.TestCase):
                         if SHOTS:
                             page.locator('#qbSettingsBox').screenshot(path=str(Path(SHOTS) / 'katalog_vorlagen.png'))
 
-                        # Hilfe: Angebotskarte zeigt denselben Preis (Seite neu laden, Konfiguration wird beim Start gelesen)
+                        # Hilfe: Angebotskarte zeigt denselben Preis. Nach dem Speichern lädt quotes.js die Angebotskarten im
+                        # Hintergrund neu (refreshOffers); der Wechsel per Adresse lädt die Seite nicht neu. Darum auf den neuen
+                        # Preis warten statt sofort zu prüfen (SDQ-005: in der CI vorher gelegentlich der alte Preis).
                         page.goto(base + '/#/einstellungen/hilfe')
                         page.wait_for_load_state('networkidle')
                         card = page.locator('.offer-card', has_text='B2B Website- & Conversion-Sprint')
+                        page.wait_for_function('([t, p]) => [...document.querySelectorAll(".offer-card")].some(c => c.innerText.includes(t) && c.innerText.includes(p))',
+                                               arg=['B2B Website- & Conversion-Sprint', euro(price_now['once_net_eur'])], timeout=10000)
                         self.assertIn(euro(price_now['once_net_eur']), card.inner_text())
+                        # und nach echtem Neuladen ebenso
+                        page.reload()
+                        page.wait_for_load_state('networkidle')
+                        self.assertIn(euro(price_now['once_net_eur']), page.locator('.offer-card', has_text='B2B Website- & Conversion-Sprint').inner_text())
 
                         # Angebot aus der Vorlage
                         page.goto(base + '/#/angebote')
