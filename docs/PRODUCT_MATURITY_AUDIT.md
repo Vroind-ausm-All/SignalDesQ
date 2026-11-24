@@ -54,7 +54,7 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
 | **B2** Ungespeicherter Rechnungsentwurf geht beim Verlassen verloren | Code: `formguard.js` schützt Akte-Formulare, `einstellungen.js` die Einstellungen; `accounting.js` hat keinen Eingabeschutz und kein `beforeunload`. Browser: interner Wechsel behält die Eingaben im (versteckten) Editor, Neuladen/Schließen verwirft sie ohne Warnung. | **besteht teilweise** (kein Schutz bei Neuladen/Schließen, keine Rückfrage) | **P0** → SDQ-003 ✓ |
 | **B3** Zugangsdaten (IMAP/CalDAV) bei „merken“ im Klartext | `sales_tool/credentials.py`: `zugangsdaten.json` neben der Datenbank, JSON im Klartext, Dateirechte 600 (unter Windows wirkungslos) | **besteht weiter** | **P0** → SDQ-004 ✓ |
 | **B4** Angebot mit Abschlagsrechnung erscheint vollständig abgerechnet | Code: `accepted_without_invoice`, `today.potential`, `proposal_rows`, `workday._steps` werteten **jede** Rechnung (auch Entwurf, auch 40-%-Abschlag) als „berechnet“ | **bestand – behoben in SDQ-001** | **P0** ✓ |
-| Fehlendes gestaltetes Angebots-PDF | `sales_workspace.py` exportiert Markdown; kein PDF | besteht | P1 |
+| Fehlendes gestaltetes Angebots-PDF | `sales_workspace.py` exportiert Markdown; kein PDF | **bestand – behoben in SDQ-009** (Druckseite, PDF über den Browser) | P1 ✓ |
 | Keine externe KoSIT-Abnahme der XRechnung | `einvoice.py` verweist selbst auf den Validator; kein Prüfprotokoll im Repo | besteht | P1 (vor Bewerbung der Rechnungsfunktion: Gate) |
 | Kein Recall-/Precision-Benchmark der Recherche | `docs/bench/` enthält Fixture-Messungen, keine unabhängige Referenzliste | besteht | P1 (Welle 2) |
 | Keine Mandantentrennung | SQLite je Installation; `auth.py` ist optionaler Team-Login mit Rollen, keine Organisationen | besteht | P1 für SaaS (Welle 4), Launch-Gate |
@@ -102,7 +102,7 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
 | SDQ-006 | P1 | Recherche-Benchmark: Referenzliste, Messgrößen, Auswerteskript (Ergebnisse erst mit echten Prüfern) | – | Werkzeug erledigt (2.0.0-dev57), Messung offen |
 | SDQ-007 | P1 | Identitätsstufen (bestätigt … keine Zuordnung) mit harten Gegenbelegen und Regressionen | SDQ-006 | Website-Zuordnung in „Finden“ erledigt (2.0.0-dev59) |
 | SDQ-008 | P1 | Provider-Beschreibung je Quelle (Lizenz, Frische, Limits, Fehlerrate, Kosten) | – | erledigt (2.0.0-dev58) |
-| SDQ-009 | P1 | Gestaltetes Angebots-PDF aus dem Kundenexport | – | offen |
+| SDQ-009 | P1 | Gestaltetes Angebots-PDF aus dem Kundenexport | – | **implementiert** (2.0.0-dev60) |
 | SDQ-010 | P1 | Datenzugriffsschicht mit Organisationsfilter (Vorbereitung Mandanten) | SDQ-002…004 | offen |
 
 ## 6. Launch-Gates (Stand)
@@ -271,3 +271,22 @@ Browser-Suite lief in CI **nicht** – Befund T-1 unten; seit SDQ-005 laufen all
 - **Nicht umgesetzt:** Die Impressumsübernahme für eine vom Nutzer selbst eingetragene Website (`lead_imprint.py`) nutzt die
   Gegenbelege noch nicht. Eine Messung, wie viele Fehlzuordnungen das verhindert, steht aus (SDQ-006, Referenzliste).
 - **Reifeauswirkung (Vorschlag):** Dimension 2 (Identität) 50 → 52 (Konfidenz M, ohne Messung). Gesamtindex 49,01 → 49,21.
+
+### SDQ-009 – Gestaltetes Angebot als PDF (P1)
+
+- **Ausgangsproblem:** Ein Angebot ließ sich nur als Markdown exportieren. Zum Versand musste man es selbst in ein Dokument
+  übertragen – mit dem Risiko, dass Stand, Preise oder Umfang nicht mehr zur Freigabe passen.
+- **Änderung:** neue Druckseite `/angebot/ID` (`sales_tool/offer_print.py`, `public/offer.css`) im Stil der Rechnung, die der
+  Browser als PDF speichert („Angebot als PDF ↗“ im geöffneten Angebot). Sie liest ausschließlich den Kundenteil
+  (`proposal_detail(customer_only=True)`); Kalkulation, Stundensätze, Puffer, Bedarfsnotizen und Freigabegrundlage können
+  nicht erscheinen. Empfänger ist die Firma mit Anschrift aus der Akte, nie eine Person. Ein nicht freigegebenes oder nach der
+  Freigabe geändertes Angebot trägt die Marke „ENTWURF“ und kein Unterschriftsfeld; die Versandfassung nennt Stand und
+  Freigabedatum und hat ein Feld „Auftrag erteilt – Unterschrift und Firmenstempel“. Unbekannte Angebote: 404.
+- **Tests:** `tests/test_sdq009_offer_print.py` (9 Fälle: Entwurf, Versandfassung, Änderung nach Freigabe, Empfänger ohne
+  Person, keine internen Werte, Summen mit USt., HTML-Escaping, Route und 404) und
+  `tests/e2e/test_sdq009_offer_print_browser.py` (Knopf öffnet die Seite, Entwurfsmarke, keine Abrufe nach außen);
+  CI-Mindestzahl Browser-Tests 53 → 54.
+- **Nicht umgesetzt:** Kein serverseitig erzeugtes PDF (das PDF entsteht im Druckdialog des Browsers); kein Logo des
+  Anbieters; der Seitenumbruch ist nur mit Chromium geprüft. Keine Rückmeldung von Kunden zur Gestaltung.
+- **Reifeauswirkung (Vorschlag):** Dimension 5 (Angebote) 78 → 79 (Konfidenz M): der im Audit genannte P1-Mangel ist behoben,
+  die PDF-Erzeugung hängt aber am Browser. Gesamtindex 49,21 → 49,29.

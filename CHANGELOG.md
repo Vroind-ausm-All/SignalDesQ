@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.0-dev60 – Angebot als gestaltetes PDF (SDQ-009)
+
+- **Neu:** Im geöffneten Angebot öffnet „Angebot als PDF ↗“ eine gestaltete Druckfassung im Stil deiner Rechnungen: Absender, Anschrift der Kundenfirma, Angebotsnummer, Gültigkeit, Positionen mit Festpreisen, Summen mit Umsatzsteuer, Leistungsumfang, Abnahme und Zahlungsplan. Über „Drucken / als PDF speichern“ entsteht das PDF.
+- **Sicher versenden:** Die Druckfassung enthält nur, was der Kunde sehen soll – keine Kalkulation, keine Stundensätze, keine internen Notizen und keine Ansprechpartner. Solange das Angebot nicht freigegeben oder seit der Freigabe geändert ist, trägt es die Marke „ENTWURF“ und kein Unterschriftsfeld. Die freigegebene Fassung nennt ihren Stand und hat ein Feld für die Auftragserteilung.
+- Der Markdown-Export bleibt unverändert.
+- Tests: neu `test_sdq009_offer_print.py` (9 Fälle) und `e2e/test_sdq009_offer_print_browser.py`.
+
 ## 2.0.0-dev59 – Website-Suche schlägt keine fremde Gesellschaft mehr vor (SDQ-007)
 
 - **Fehlerbehebung – falsche Website-Vorschläge:** Die Website-Suche in „Finden“ schlug bisher auch Seiten vor, deren Impressum eine andere Gesellschaft nennt: „Müller Elektro e.K.“ für die „Müller Elektro GmbH“, die Verwaltungs-GmbH für die GmbH & Co. KG, ein Impressum in Hamburg für eine Firma in Stuttgart oder „Elektro Schmidt GmbH“ für die „Elektro GmbH“. Jetzt schließt jeder harte Gegenbeleg einen Vorschlag aus: andere Registernummer, anderes Registergericht, anderer Name, andere Rechtsform, andere PLZ oder anderer Ort.
