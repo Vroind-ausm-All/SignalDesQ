@@ -67,7 +67,7 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                 classes[slug] = type('OrgHandler', (_RequestMeta, make_handler(db_path, allowed_hosts)), {})
                 if scheduler:
                     from .quality import start_scheduler
-                    start_scheduler(db_path)
+                    start_scheduler(db_path, paused=lambda: abrechnung.state(directory, slug)['read_only'])
             return classes[slug]
 
     class FrontHandler(_RequestMeta, BaseHTTPRequestHandler):
@@ -246,7 +246,7 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
             except (LookupError, tenancy.TenantError):
                 return None
             with connect(db_path) as conn:
-                user = auth.session_user(conn, self.headers.get('Cookie', ''))
+                user = auth.session_user(conn, self.headers.get('Cookie', ''), idle_minutes=accounts.idle_minutes(directory))
                 if not user:
                     return None
                 role = accounts.membership(directory, user['username'], slug)
@@ -257,6 +257,9 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                 if role != user['role']:
                     conn.execute('UPDATE users SET role=? WHERE id=?', (role, user['id']))
                     conn.commit()
+            central = cookies.get(accounts.CENTRAL_COOKIE, '')
+            if central:  # Arbeit in der Organisation hält auch die zentrale Sitzung (Wechsel der Organisation) am Leben
+                accounts.session(directory, central)
             return slug, db_path
 
         # ------------------------------------------------ Betrieb

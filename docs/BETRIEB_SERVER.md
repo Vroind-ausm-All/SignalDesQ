@@ -71,6 +71,7 @@ gibt den Link von Hand weiter, bis ein echter Versand freigegeben und eingericht
 sudo -u signaldesk … betreiber --root $R einstellung public_url https://app.example.org   # Adresse in den Links
 sudo -u signaldesk … betreiber --root $R einstellung registrierung offen                  # Standard: aus
 sudo -u signaldesk … betreiber --root $R einstellung testphase_tage 30
+sudo -u signaldesk … betreiber --root $R einstellung leerlauf_minuten 60                  # Abmelden nach Leerlauf (0 = aus)
 sudo -u signaldesk … betreiber --root $R konto-email erika erika@studio-nord.example
 sudo -u signaldesk … betreiber --root $R anlegen studio-sued "Studio Süd" --admin erika
 sudo -u signaldesk … betreiber --root $R postausgang --anzahl 20
@@ -85,7 +86,12 @@ sudo -u signaldesk … betreiber --root $R tarif studio-nord --plan team --statu
 - **Tarif:** Selbst registrierte Organisationen beginnen mit einer Testphase. Danach (oder nach Ablauf von `--bis`) sind sie
   **nur lesbar**: Ansehen und Export gehen, Ändern liefert HTTP 402. Es wird nichts gelöscht. Vom Betreiber angelegte
   Organisationen haben keinen Tarif und keine Grenze. Zahlungen laufen nicht über SignalDesk (Anbieter „manuell“); die Tarife
-  `test`, `solo`, `team` und ihre Mitgliedergrenzen sind Platzhalter ohne Preise.
+  `test`, `solo`, `team` und ihre Mitgliedergrenzen sind Platzhalter ohne Preise. Solange eine Organisation nur lesbar
+  ist, ruhen auch ihre wiederkehrenden Aufträge (ab dev65); sie laufen weiter, sobald der Tarif wieder gilt.
+- **Leerlauf (ab dev65):** Eine Sitzung, die `leerlauf_minuten` lang (Standard 60, erlaubt 5 bis 720, 0 = aus) keine
+  Anfrage hatte, wird gelöscht; danach ist eine neue Anmeldung nötig. Arbeit in einer Organisation hält die zentrale
+  Sitzung (Wechsel der Organisation) mit am Leben. Unabhängig davon enden Sitzungen spätestens nach 12 Stunden.
+  Der Einzelplatz- und Team-Betrieb ohne Verzeichnis ist davon nicht betroffen.
 
 ## 4. Überwachen
 
@@ -133,15 +139,32 @@ sudo -u signaldesk … betreiber --root $R zurueckspielen 20261124-021500 studio
 Dabei gelten die Regeln der lokalen Wiederherstellung: Der aktuelle Stand wird vorher gesichert
 (`…-vor-wiederherstellung`), und eine Sicherung ohne inzwischen festgeschriebene Rechnungen wird abgelehnt (GoBD).
 
-**Ganze Installation** (Server verloren): Release und Umgebung wie in Abschnitt 2 einrichten, dann den letzten Satz
-entschlüsseln (`python -m sales_tool.backup_crypto entschluesseln DATEI.sdenc ZIEL.sqlite3`) und
-`organisationen.sqlite3` nach `/srv/signaldesk/`, jede `orgs/<kennung>.sqlite3` nach
-`/srv/signaldesk/orgs/<kennung>/signaldesk.sqlite3` legen. Dienst starten, `/readyz` prüfen. Dieser Ablauf ist **nicht**
-automatisiert und sollte vor dem ersten Kunden einmal geübt werden.
+**Ganze Installation** (Server verloren, ab dev65): Release und Umgebung wie in Abschnitt 2 einrichten, den Satz vom
+zweiten Ort holen und in einen **leeren** Ordner wiederherstellen:
+
+```
+SIGNALDESK_SICHERUNG_PASSWORT=… sudo -E -u signaldesk … betreiber --root /srv/signaldesk-neu \
+    gesamt-wiederherstellen /mnt/zweiter-ort/20261124-021500 --ja
+```
+
+`gesamt-wiederherstellen` prüft zuerst alle Prüfsummen, legt Verzeichnis und Organisationen (auch archivierte) an ihren
+Platz, prüft `integrity_check` und Zeilenzahlen gegen das Manifest und migriert jede Organisation. Ein nicht leerer Ordner
+wird nie überschrieben; das Passwort wird nur bei verschlüsselten Sätzen abgefragt. Danach den Dienst mit `--root` auf den
+neuen Ordner starten und `/readyz` prüfen. Den Ablauf vor dem ersten Kunden einmal üben (in einen Probeordner).
 
 **Aufbewahrung:** Sätze werden nicht automatisch gelöscht. `betreiber … sicherungen-aufraeumen --behalten 30` entfernt
-ältere Sätze nur auf ausdrücklichen Aufruf; der neueste geprüfte Satz bleibt immer. Sicherungen sollten zusätzlich an einen
-zweiten Ort (anderer Datenträger oder Anbieter) kopiert werden – das übernimmt SignalDesk nicht.
+ältere Sätze nur auf ausdrücklichen Aufruf; der neueste geprüfte Satz bleibt immer.
+
+**Zweiter Ort (ab dev65):** `betreiber … sicherung-kopieren 20261124-021500 --nach /mnt/zweiter-ort [--ziel …]` kopiert einen
+Satz in einen anderen Ordner (eingehängter Datenträger, Netzlaufwerk), rechnet dort alle Prüfsummen nach und benennt erst
+dann um. Ein vorhandener Satz gleichen Namens wird nicht überschrieben. Hochladen zu einem Anbieter übernimmt SignalDesk
+nicht; der Ordner kann aber z. B. per rclone oder restic weitergegeben werden. Beispiel für die nächtliche Sicherung:
+
+```
+sudo -u signaldesk … betreiber --root $R sichern --verschluesselt --pruefen --ziel /var/backups/signaldesk
+sudo -u signaldesk … betreiber --root $R sicherung-kopieren "$(ls /var/backups/signaldesk | grep -v unfertig | tail -1)" \
+    --ziel /var/backups/signaldesk --nach /mnt/zweiter-ort
+```
 
 ## 7. Häufige Fälle
 
@@ -157,10 +180,10 @@ zweiten Ort (anderer Datenträger oder Anbieter) kopiert werden – das übernim
 ## 8. Was noch fehlt
 
 - Kein Betrieb mit echten Organisationen, keine externe Sicherheitsprüfung, kein Lasttest.
-- Sicherungen gehen nicht automatisch an einen zweiten Ort; Wiederherstellung der ganzen Installation nur von Hand.
+- Der zweite Ort ist ein Ordner; Hochladen zu einem Speicheranbieter und Zeitplan (cron/systemd-Timer) richtet der
+  Betreiber ein. Die Wiederherstellung der ganzen Installation ist getestet, aber noch nicht auf einem echten Server geübt.
 - Das Geheimnis des zweiten Faktors liegt unverschlüsselt im Verzeichnis (geschützt durch Dateirechte und die
   verschlüsselten Sicherungen). Kein WebAuthn/Passkey, kein OIDC/Single Sign-on.
-- Kein Leerlauf-Abmelden; Sitzungen enden nach 12 Stunden.
 - Kein E-Mail-Versand (nur Postausgang als Datei), kein Zahlungsanbieter, keine festgelegten Preise.
 - Kein Container-Abbild und keine Metriken im Prometheus-Format; Überwachung über `/healthz`, `/readyz` und die Protokolle.
 - Für Datenschutz und Vertrag (Auftragsverarbeitung, TOMs, Verzeichnis der Verarbeitungstätigkeiten, Aufbewahrungsfristen

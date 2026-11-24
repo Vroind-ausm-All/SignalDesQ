@@ -65,6 +65,8 @@ def init(directory: tenancy.Directory):
         cols = {r['name'] for r in conn.execute('PRAGMA table_info(account_sessions)')}
         if 'stage' not in cols:  # dev62 → dev63: bestehende Sitzungen sind vollständige Anmeldungen
             conn.execute("ALTER TABLE account_sessions ADD COLUMN stage TEXT NOT NULL DEFAULT 'voll'")
+        if 'last_seen' not in cols:  # dev65: Abmelden nach Leerlauf
+            conn.execute("ALTER TABLE account_sessions ADD COLUMN last_seen TEXT NOT NULL DEFAULT ''")
         if 'email' not in {r['name'] for r in conn.execute('PRAGMA table_info(accounts)')}:  # dev64: Einladung, Registrierung
             conn.execute("ALTER TABLE accounts ADD COLUMN email TEXT NOT NULL DEFAULT ''")
         audit_trail.init(conn)
@@ -95,7 +97,16 @@ SETTINGS = {
     'registrierung': ('aus', 'offen'),   # Selbstregistrierung neuer Organisationen
     'public_url': None,                  # öffentliche Adresse für Links in E-Mails, z. B. https://app.example.org
     'testphase_tage': None,              # Länge der Testphase einer selbst registrierten Organisation
+    'leerlauf_minuten': None,            # Abmelden nach so vielen Minuten ohne Anfrage (Standard 60, 0 = aus)
 }
+IDLE_DEFAULT = 60
+
+
+def idle_minutes(directory):
+    """Leerlauf-Grenze in Minuten (None = aus)."""
+    value = setting(directory, 'leerlauf_minuten', '')
+    minutes = int(value) if str(value).isdigit() else IDLE_DEFAULT
+    return minutes or None
 
 
 def set_setting(directory, key, value, actor=None):
@@ -110,6 +121,8 @@ def set_setting(directory, key, value, actor=None):
         raise ValueError('public_url: https://hostname (ohne Pfad); http nur für 127.0.0.1/localhost.')
     if key == 'testphase_tage' and not (value.isdigit() and 1 <= int(value) <= 365):
         raise ValueError('testphase_tage: 1 bis 365.')
+    if key == 'leerlauf_minuten' and not (value.isdigit() and (int(value) == 0 or 5 <= int(value) <= 720)):
+        raise ValueError('leerlauf_minuten: 5 bis 720, oder 0 für aus.')
     init(directory)
     with directory._connect() as conn:
         conn.execute('INSERT INTO directory_settings(key, value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
@@ -307,7 +320,7 @@ def _new_session(conn, account_id, stage):
     span = dt.timedelta(hours=CENTRAL_HOURS) if stage == 'voll' else dt.timedelta(minutes=PENDING_MINUTES)
     expires = (dt.datetime.now(dt.timezone.utc) + span).strftime('%Y-%m-%d %H:%M:%S')
     conn.execute("DELETE FROM account_sessions WHERE expires_at < datetime('now')")
-    conn.execute('INSERT INTO account_sessions(token_hash, account_id, expires_at, stage) VALUES (?,?,?,?)',
+    conn.execute("INSERT INTO account_sessions(token_hash, account_id, expires_at, stage, last_seen) VALUES (?,?,?,?,datetime('now'))",
                  (auth._token_hash(token), account_id, expires, stage))
     return token
 
@@ -354,15 +367,29 @@ def login(directory, username, password, client=''):
     return {**account_view(directory, acc['username']), 'stage': stage}, token
 
 
+def _touch_idle(conn, token_hash, minutes):
+    """Wie ``auth.touch_idle`` für die zentrale Sitzung: False (und gelöscht), wenn zu lange unbenutzt."""
+    gone = conn.execute("DELETE FROM account_sessions WHERE token_hash=? AND last_seen<>'' AND last_seen < datetime('now', ?)",
+                        (token_hash, f'-{int(minutes)} minutes')).rowcount
+    if not gone:
+        conn.execute("UPDATE account_sessions SET last_seen=datetime('now') WHERE token_hash=? AND "
+                     "(last_seen='' OR last_seen < datetime('now', '-1 minutes'))", (token_hash,))
+    return not gone
+
+
 def session(directory, token):
     """(Konto, Stufe) zur zentralen Sitzung – oder (None, None)."""
     if not token:
         return None, None
     init(directory)
+    limit = idle_minutes(directory)
     with directory._connect() as conn:
         row = conn.execute('''SELECT a.*, s.stage AS session_stage FROM account_sessions s JOIN accounts a ON a.id=s.account_id
                               WHERE s.token_hash=? AND s.expires_at > datetime('now') AND a.active=1''',
                            (auth._token_hash(token),)).fetchone()
+        if row and row['session_stage'] == 'voll':
+            if limit and not _touch_idle(conn, auth._token_hash(token), limit):
+                return None, None
     return (row, row['session_stage']) if row else (None, None)
 
 

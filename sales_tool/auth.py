@@ -47,6 +47,8 @@ def init_auth(conn):
         created_at TEXT NOT NULL DEFAULT (datetime('now')), expires_at TEXT NOT NULL
       );
     ''')
+    if 'last_seen' not in {r[1] for r in conn.execute('PRAGMA table_info(sessions)')}:  # dev65: Abmelden nach Leerlauf
+        conn.execute("ALTER TABLE sessions ADD COLUMN last_seen TEXT NOT NULL DEFAULT ''")
 
 
 # ---------------------------------------------------------------- Passwörter
@@ -113,18 +115,39 @@ def create_session(conn, user_id):
     token = secrets.token_urlsafe(32)
     expires = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=SESSION_HOURS)).strftime('%Y-%m-%d %H:%M:%S')
     conn.execute("DELETE FROM sessions WHERE expires_at < datetime('now')")
-    conn.execute('INSERT INTO sessions(token_hash, user_id, expires_at) VALUES (?,?,?)', (_token_hash(token), user_id, expires))
+    conn.execute("INSERT INTO sessions(token_hash, user_id, expires_at, last_seen) VALUES (?,?,?,datetime('now'))",
+                 (_token_hash(token), user_id, expires))
     conn.execute("UPDATE users SET last_login_at=datetime('now') WHERE id=?", (user_id,))
     conn.commit()
     return token
 
 
-def session_user(conn, cookie_header):
+def session_user(conn, cookie_header, idle_minutes=None):
+    """Benutzer zur Sitzung. Mit ``idle_minutes`` (nur Mehrmandanten-Betrieb) endet eine Sitzung, die so lange unbenutzt war."""
     token = _cookie(cookie_header)
     if not token:
         return None
-    return conn.execute('''SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id
-                           WHERE s.token_hash=? AND s.expires_at > datetime('now') AND u.active=1''', (_token_hash(token),)).fetchone()
+    th = _token_hash(token)
+    user = conn.execute('''SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id
+                           WHERE s.token_hash=? AND s.expires_at > datetime('now') AND u.active=1''', (th,)).fetchone()
+    if user and idle_minutes and not touch_idle(conn, th, idle_minutes):
+        conn.commit()
+        return None
+    return user
+
+
+def touch_idle(conn, token_hash, idle_minutes):
+    """Leerlauf einer Sitzung der Organisation prüfen und ``last_seen`` fortschreiben (höchstens einmal je Minute).
+
+    Gibt False zurück und löscht die Sitzung, wenn sie länger als ``idle_minutes`` unbenutzt war. Eine Sitzung ohne
+    ``last_seen`` (vor dem Update angelegt) gilt ab jetzt als benutzt. Gegenstück für zentrale Sitzungen: ``accounts``."""
+    gone = conn.execute("DELETE FROM sessions WHERE token_hash=? AND last_seen<>'' AND last_seen < datetime('now', ?)",
+                        (token_hash, f'-{int(idle_minutes)} minutes')).rowcount
+    if not gone:
+        conn.execute("UPDATE sessions SET last_seen=datetime('now') WHERE token_hash=? AND "
+                     "(last_seen='' OR last_seen < datetime('now', '-1 minutes'))", (token_hash,))
+    conn.commit()
+    return not gone
 
 
 def _cookie(header):

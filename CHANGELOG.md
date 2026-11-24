@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0-dev65 – Welle 6: Wiederherstellung, zweiter Ort, Leerlauf, Referenzliste aus Tabelle (SDQ-029 bis SDQ-032)
+
+- **Neu für Betreiber – ganze Installation wiederherstellen:** `betreiber --root NEUER_ORDNER gesamt-wiederherstellen SATZ --ja` stellt Verzeichnis und alle Organisationen aus einem Sicherungssatz in einem leeren Ordner wieder her und prüft dabei Prüfsummen, Unversehrtheit und Zeilenzahlen. Ein Ordner mit Inhalt wird nie überschrieben.
+- **Neu – Sicherung an einen zweiten Ort:** `betreiber sicherung-kopieren NAME --nach ORDNER` kopiert einen Satz z. B. auf einen eingehängten Datenträger und rechnet dort alle Prüfsummen nach. Vorhandenes wird nicht überschrieben.
+- **Neu – Abmelden nach Leerlauf** (Server für mehrere Organisationen): Nach 60 Minuten ohne Aktivität ist eine neue Anmeldung nötig. Der Betreiber stellt die Zeit mit `einstellung leerlauf_minuten` ein (5 bis 720, 0 = aus). Einzelplatz und Team-Betrieb bleiben unverändert.
+- **Tarif:** Solange eine Organisation nur lesbar ist, ruhen ihre wiederkehrenden Aufträge.
+- **Recherche-Benchmark:** `research_benchmark.py import-table` wandelt die ausgefüllte Tabellenvorlage (xlsx oder CSV) in eine Referenzliste um und prüft sie.
+- Tests: neu `test_sdq029_betrieb_more.py` (17 Fälle).
+
 ## 2.0.0-dev64 – Welle 5: E-Rechnung prüfen, DATEV, Ersteinrichtung, Registrierung und Tarif (SDQ-024 bis SDQ-028)
 
 - **Neu – E-Rechnung prüfen:** In jeder Rechnung prüft „E-Rechnung prüfen“ die XRechnung gegen 63 Regeln aus EN 16931 und XRechnung 3.0 (Pflichtangaben, Summen, Steuer, Codelisten, IBAN-Prüfziffer, Kontaktangaben). Auch importierte E-Rechnungen werden so geprüft. Die Prüfung ersetzt den offiziellen KoSIT-Validator nicht und sagt das auch.

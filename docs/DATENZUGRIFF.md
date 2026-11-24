@@ -2,7 +2,7 @@
 
 Automatisch erzeugt mit `tools/sql_inventory.py` aus dem Quelltext (SDQ-010). Nicht von Hand ändern.
 
-1413 SQL-Aufrufe in 69 Modulen: 1253 mit festem SQL-Text, 123 aus festen Teilen zusammengesetzt, 34 über eine Hilfsfunktion, 3 Hilfsfunktionen, die SQL nur weiterreichen, und 0 nicht statisch lesbar. 83 von 83 Tabellen der Hauptdatenbank werden im Quelltext namentlich angesprochen, dazu die Tabellen des Offline-Firmenkatalogs und des Mandantenverzeichnisses (je eigene Datei).
+1421 SQL-Aufrufe in 69 Modulen: 1261 mit festem SQL-Text, 123 aus festen Teilen zusammengesetzt, 34 über eine Hilfsfunktion, 3 Hilfsfunktionen, die SQL nur weiterreichen, und 0 nicht statisch lesbar. 83 von 83 Tabellen der Hauptdatenbank werden im Quelltext namentlich angesprochen, dazu die Tabellen des Offline-Firmenkatalogs und des Mandantenverzeichnisses (je eigene Datei).
 
 Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufbewahrung): `sales_tool/data_map.py`. „nur lesen“ nennt Module, die eine Tabelle lesen, aber nicht schreiben.
 
@@ -118,13 +118,13 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `abrechnung.py` | 7 | 0 | 2 |
 | `accounting.py` | 73 | 0 | 12 |
 | `accounting_api.py` | 1 | 0 | 1 |
-| `accounts.py` | 65 | 0 | 10 |
+| `accounts.py` | 68 | 0 | 10 |
 | `addenda.py` | 5 | 0 | 1 |
 | `ai_lab.py` | 3 | 0 | 4 |
 | `analysis_jobs.py` | 6 | 0 | 2 |
 | `area.py` | 5 | 0 | 2 |
 | `audit_trail.py` | 8 | 0 | 1 |
-| `auth.py` | 19 | 0 | 2 |
+| `auth.py` | 23 | 0 | 2 |
 | `backup_restore.py` | 5 | 0 | 1 |
 | `bg_jobs.py` | 4 | 0 | 1 |
 | `briefing.py` | 11 | 0 | 5 |
@@ -158,7 +158,7 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `offer_basis.py` | 3 | 0 | 3 |
 | `offer_flow.py` | 23 | 0 | 4 |
 | `offer_print.py` | 3 | 0 | 2 |
-| `ops.py` | 10 | 0 | 1 |
+| `ops.py` | 11 | 0 | 1 |
 | `pilot.py` | 14 | 0 | 3 |
 | `postcalc.py` | 16 | 0 | 4 |
 | `profiles.py` | 12 | 0 | 1 |

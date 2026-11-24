@@ -295,6 +295,86 @@ def restore_org(directory, name, slug, target=None, password=None, confirm=False
     return out
 
 
+def copy_backup(directory, name, dest, target=None, actor=None):
+    """Satz an einen zweiten Ort kopieren (anderer Datenträger, eingehängter Speicher) und dort die Prüfsummen nachrechnen.
+
+    Kopiert wird in ``<ziel>/<name>.unfertig``, erst nach erfolgreicher Prüfung umbenannt. Ein vorhandener Satz gleichen
+    Namens am Ziel wird nicht überschrieben."""
+    folder = _set_dir(directory, name, target)
+    dest = Path(dest).expanduser().resolve()
+    if dest == folder.parent.resolve():
+        raise ValueError('Zweiter Ort ist derselbe Ordner wie die Sicherungssätze.')
+    final, work = dest / name, dest / f'{name}.unfertig'
+    if final.exists():
+        raise ValueError(f'Am Ziel gibt es „{name}“ schon – nichts überschrieben.')
+    manifest = json.loads((folder / 'manifest.json').read_text(encoding='utf-8'))
+    dest.mkdir(parents=True, exist_ok=True)
+    shutil.rmtree(work, ignore_errors=True)
+    try:
+        shutil.copytree(folder, work)
+        bad = [f['file'] for f in manifest['files'] if _sha256(work / f['file']) != f['sha256']]
+        if bad:
+            raise ValueError('Prüfsumme nach dem Kopieren falsch: ' + ', '.join(bad))
+        work.rename(final)
+    except BaseException:
+        shutil.rmtree(work, ignore_errors=True)
+        raise
+    total = sum(f['bytes'] for f in manifest['files'])
+    audit_trail.record(directory, actor or audit_trail.operator(), 'sicherung_kopiert', name, f'{len(manifest["files"])} Dateien, {total} Bytes')
+    return {'name': name, 'copied_to': str(final), 'files': len(manifest['files']), 'bytes': total, 'checksums_ok': True}
+
+
+def restore_installation(set_path, new_root, password=None, confirm=False):
+    """Ganze Installation aus einem Sicherungssatz in einen **leeren** Ordner wiederherstellen (Server verloren).
+
+    Prüft zuerst alle Prüfsummen, entschlüsselt dann das Verzeichnis und jede Organisation an ihren Platz, prüft
+    ``integrity_check`` und Zeilenzahlen gegen das Manifest und migriert jede Organisation auf das aktuelle Schema.
+    Ein vorhandener, nicht leerer Ordner wird nie überschrieben."""
+    from . import tenancy
+    from .server import prepare_database
+    folder = Path(set_path).expanduser().resolve()
+    if not (folder / 'manifest.json').exists():
+        raise LookupError(f'Kein Sicherungssatz in „{folder}“ (manifest.json fehlt).')
+    manifest = json.loads((folder / 'manifest.json').read_text(encoding='utf-8'))
+    if manifest.get('format') != BACKUP_FORMAT:
+        raise ValueError('Unbekanntes Format des Sicherungssatzes.')
+    if manifest['encrypted'] and not password:
+        raise ValueError('Verschlüsselter Satz: Passwort angeben (SIGNALDESK_SICHERUNG_PASSWORT).')
+    if confirm is not True:
+        raise ValueError('Wiederherstellung der ganzen Installation ausdrücklich bestätigen (--ja).')
+    root = Path(new_root).expanduser().resolve()
+    if root.exists() and any(root.iterdir()):
+        raise ValueError(f'Zielordner „{root}“ ist nicht leer – es wird nichts überschrieben.')
+    for f in manifest['files']:
+        path = (folder / f['file']).resolve()
+        if path.parent not in (folder, folder / 'orgs') or not path.exists() or _sha256(path) != f['sha256']:
+            raise ValueError(f"Datei {f['file']} fehlt oder Prüfsumme stimmt nicht – Satz nicht verwenden.")
+        if f['slug'] is not None:
+            tenancy.Directory.check_slug(f['slug'])
+    (root / 'orgs').mkdir(parents=True, exist_ok=True)
+    placed = []
+    for f in manifest['files']:
+        dst = root / 'organisationen.sqlite3' if f['slug'] is None else root / 'orgs' / f['slug'] / tenancy.DB_NAME
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory() as tmp:
+            shutil.copyfile(_plain(folder / f['file'], password, tmp), dst)
+        with contextlib.closing(sqlite3.connect(str(dst))) as c:
+            if c.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
+                raise ValueError(f"integrity_check fehlgeschlagen: {f['file']}")
+            counts = _counts(c)
+        diff = sorted(t for t, n in f['rows'].items() if counts.get(t) != n)
+        if diff:
+            raise ValueError(f"Zeilenzahlen weichen ab in {f['file']}: " + ', '.join(diff[:8]))
+        placed.append(f['slug'] or 'verzeichnis')
+    directory = tenancy.Directory(root)
+    for org in directory.list(include_archived=True):
+        prepare_database(Path(org['db_path']))
+    audit_trail.record(directory, audit_trail.operator(), 'installation_wiederhergestellt', manifest['name'],
+                       f"{len(placed) - 1} Organisationen aus {folder}")
+    return {'restored_from': manifest['name'], 'root': str(root), 'organizations': [p for p in placed if p != 'verzeichnis'],
+            'notice': 'Dienst mit --root auf diesen Ordner starten und /readyz prüfen.'}
+
+
 def prune_backups(directory, keep, target=None, actor=None):
     """Nur auf ausdrücklichen Aufruf: die ``keep`` neuesten vollständigen Sätze behalten, ältere entfernen.
     Der neueste geprüfte Satz bleibt immer erhalten."""
