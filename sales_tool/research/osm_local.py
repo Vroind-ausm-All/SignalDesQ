@@ -35,8 +35,8 @@ SKIP = {'amenity': {'parking', 'parking_space', 'parking_entrance', 'bench', 'sh
         'office': {'government', 'diplomatic', 'political_party', 'religion', 'association', 'ngo'},
         'shop': {'vacant'}}
 MAX_BLOB = 64 * 1024 * 1024
-INSERT_PLACE = ('INSERT OR REPLACE INTO osm_places(osm_id, name, kind_key, kind, street, zip, city, website, phone, opening_hours, lat, lon, import_id) '
-                'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)')
+INSERT_PLACE = ('INSERT OR REPLACE INTO osm_places(osm_id, name, kind_key, kind, street, zip, city, website, phone, opening_hours, lat, lon, import_id, '
+                'email_domain) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
 LICENSE = '© OpenStreetMap-Mitwirkende, ODbL 1.0'
 
 
@@ -59,6 +59,8 @@ def init_osm_local(conn):
     cols = {r[1] for r in conn.execute('PRAGMA table_info(osm_places)')}
     if 'zip_guess' not in cols:  # 2.0.0-dev8: PLZ aus der Nachbarschaft geschätzt (für Einträge ohne PLZ-Angabe)
         conn.execute("ALTER TABLE osm_places ADD COLUMN zip_guess TEXT NOT NULL DEFAULT ''")
+    if 'email_domain' not in cols:  # 2.0.0-dev66: nur die Domain der E-Mail-Adresse (Website-Suche), nie die Adresse selbst
+        conn.execute("ALTER TABLE osm_places ADD COLUMN email_domain TEXT NOT NULL DEFAULT ''")
     conn.execute('CREATE INDEX IF NOT EXISTS idx_osm_places_guess ON osm_places(zip_guess)')
 
 
@@ -370,6 +372,7 @@ def place_from_tags(typ, ident, tags, lat, lon):
     if tags.get('disused') == 'yes' or tags.get('abandoned') == 'yes' or any(k.startswith(('disused:', 'abandoned:', 'was:')) for k in tags):
         return None
     from ..lead_finder import clean_website
+    from .homepage import email_domain
     try:
         lat = float(lat) if lat is not None else None
         lon = float(lon) if lon is not None else None
@@ -383,7 +386,7 @@ def place_from_tags(typ, ident, tags, lat, lon):
             'zip': zip_ if re.fullmatch(r'\d{5}', zip_) else '', 'city': _clean(tags.get('addr:city'), 120),
             'website': clean_website(tags.get('website') or tags.get('contact:website')) or '',
             'phone': _clean(tags.get('phone') or tags.get('contact:phone'), 60), 'opening_hours': _clean(tags.get('opening_hours'), 200),
-            'lat': lat, 'lon': lon}
+            'email_domain': email_domain(tags.get('email') or tags.get('contact:email') or ''), 'lat': lat, 'lon': lon}
 
 
 def detect_kind(path, filename=''):
@@ -418,7 +421,7 @@ def import_file(conn, path, filename='', progress=None, cancelled=None):
             if p:
                 places += 1
                 rows.append((p['osm_id'], p['name'], p['kind_key'], p['kind'], p['street'], p['zip'], p['city'], p['website'], p['phone'],
-                             p['opening_hours'], p['lat'], p['lon'], imp))
+                             p['opening_hours'], p['lat'], p['lon'], imp, p['email_domain']))
             if len(rows) >= 2000:
                 conn.executemany(INSERT_PLACE, rows)
                 conn.commit()
@@ -537,7 +540,8 @@ def area_items(conn, ctx, area, haversine, limit=20000):
         items.append({'external_id': row['osm_id'], 'name': row['name'], 'website': row['website'], 'street': row['street'], 'zip': row['zip'],
                       'city': row['city'], 'industry': row['kind'].replace('_', ' '), 'industry_key': ikey, '_industry_matched': ok and bool(ctx.get('industries')),
                       '_in_postcode': bool(ctx.get('postcode_only')) and not row['zip'],  # PLZ aus der Nachbarschaft geschätzt
-                      'distance_km': dist, 'source_url': f"https://www.openstreetmap.org/{row['osm_id']}"})
+                      'distance_km': dist, 'source_url': f"https://www.openstreetmap.org/{row['osm_id']}",
+                      '_phone': row['phone'], '_email_domain': row['email_domain']})  # nur Abgleichsmerkmale für die Website-Suche
     return items, counts
 
 

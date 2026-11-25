@@ -987,7 +987,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 48  # 2.0.0-dev47 – bei Schemaänderungen erhöhen (Erlebnisstudien)
+SCHEMA_VERSION = 49  # 2.0.0-dev66 – bei Schemaänderungen erhöhen (Abgleichsmerkmale Website-Suche)
 
 
 def backup_before_migration(db):

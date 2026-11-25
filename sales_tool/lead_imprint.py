@@ -109,7 +109,12 @@ def suggestion_for(conn, lead_id):
     r = conn.execute(f"""SELECT * FROM discovery_candidates WHERE lead_id=? AND website<>'' AND website_status IN ({','.join('?' * len(SUGGESTION))})
                          ORDER BY id DESC LIMIT 1""", (lead_id, *SUGGESTION)).fetchone()
     if not r:
-        return None
+        # 2.0.0-dev66: Vorschlag aus dem Firmen-Bericht (Schritt „Website finden & zuordnen“), solange keine Website bekannt ist
+        lead = conn.execute('SELECT website FROM leads WHERE id=?', (lead_id,)).fetchone()
+        rep = conn.execute('SELECT id, refs_json FROM company_reports WHERE lead_id=? ORDER BY id DESC LIMIT 1', (lead_id,)).fetchone()
+        sug = json.loads(rep['refs_json'] or '{}').get('website_suggestion') if rep and lead and not lead['website'] else None
+        return {'report_id': rep['id'], 'website': sug['url'], 'evidence': 'Vorschlag aus dem Firmen-Bericht: ' + sug['evidence'],
+                'fields': []} if sug else None
     imp = json.loads(r['imprint_json'] or '{}')
     return {'candidate_id': r['id'], 'website': r['website'], 'evidence': r['website_evidence'],
             'fields': sorted(k for k, v in (imp.get('fields') or {}).items() if v and v.get('value'))}
@@ -123,9 +128,14 @@ def review_suggestion(conn, db_path, lead_id, decision):
         raise ValueError('Für diese Firma gibt es keinen offenen Website-Vorschlag.')
     if decision not in ('bestaetigen', 'ablehnen'):
         raise ValueError('Entscheidung: bestaetigen oder ablehnen.')
-    sw.review_website(conn, s['candidate_id'], {'decision': decision})
-    conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
-                 (lead_id, 'notiz', f"Website-Vorschlag {s['website']} " + ('von dir bestätigt.' if decision == 'bestaetigen' else 'von dir abgelehnt.')))
+    if 'report_id' in s:
+        from .report import decide_suggestion
+        decide_suggestion(conn, lead_id, {'decision': decision})  # prüft Sperren, überschreibt keine vorhandene Website
+    else:
+        sw.review_website(conn, s['candidate_id'], {'decision': decision})
+    if decision == 'ablehnen' or 'report_id' not in s:
+        conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
+                     (lead_id, 'notiz', f"Website-Vorschlag {s['website']} " + ('von dir bestätigt.' if decision == 'bestaetigen' else 'von dir abgelehnt.')))
     conn.commit()
     lead = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
     queued = None

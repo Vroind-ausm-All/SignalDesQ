@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-dev66 – Recherche: Website-Zuordnung mit mehreren Merkmalen, Firmen-Bericht auch ohne Website
+
+- **Website-Suche – „Domain gibt es nicht“ ist kein Fehler mehr:** Geratene Domains ohne DNS-Eintrag zählen nicht mehr als fehlgeschlagener Abruf. Treffer landen dadurch seltener grundlos auf „Prüfung fehlgeschlagen“. Funktioniert die Namensauflösung gar nicht (z. B. Firmennetz nur mit Proxy), meldet SignalDesk das ausdrücklich, statt „nicht gefunden“ zu schließen.
+- **Website-Suche – mehr und bessere Kandidaten:** Zuerst wird die Domain der E-Mail-Adresse aus OpenStreetMap geprüft (Freemail wie gmail.com oder web.de zählt nicht), danach weitere Schreibweisen: mit Rechtsform (`…-gmbh.de`), umgekehrte Wortfolge (`huber-elektro.de`), ohne „e“ bei Umlauten, Umlaut-Domain. Reine Gattungsbegriffe wie `elektro.de` werden nicht mehr abgefragt.
+- **Website-Suche – Marke und Firmenname:** Zugeordnet wird jetzt über Name, Anschrift, Telefon, E-Mail-Domain und Registernummer. Heißt der Betrieb im Impressum anders (z. B. „Elektro Huber“ ↔ „Huber Elektrotechnik e.K.“), passen aber Anschrift und Telefon, gibt es einen **Vorschlag** zum Bestätigen. Betriebe ohne Handelsregister können jetzt **belegt** sein, wenn Name, vollständige Anschrift und Telefon oder E-Mail-Domain übereinstimmen. Andere Registernummer, Rechtsform, PLZ oder Ort schließen eine Zuordnung weiterhin aus.
+- **Datensparsam:** Für den Abgleich speichert SignalDesk weder Telefonnummern noch E-Mail-Adressen, nur die E-Mail-Domain und einen Prüfwert der Telefonnummer. Für gesperrte Firmen nichts.
+- **Firmen-Bericht auch ohne Website:** Neuer erster Schritt „Website finden & zuordnen“. Eine belegte Website wird in das leere Feld eingetragen, danach läuft der Bericht vollständig. Einen Vorschlag bestätigst du im Bericht oder in der Firmenakte mit „Passt“ oder „Passt nicht“. Abgelehnte Domains werden nicht erneut vorgeschlagen, Domains auf der Sperrliste nie eingetragen.
+- **Firmen-Bericht „Auf einen Blick“:** Kurzfazit oben im Bericht mit Kernfakten und Herkunft, den wichtigsten Hinweisen mit Beleg, den Lücken (was fehlt und warum), dem Kontaktstatus („gefunden“ ist nicht „erlaubt“) und dem Alter des Berichts. Nach 90 Tagen gibt es den Hinweis „bitte neu erstellen“.
+- Bericht: [BERICHT_RECHERCHE_DEV66.md](docs/BERICHT_RECHERCHE_DEV66.md). Tests: neu `test_v2_website_matching.py` (19, inkl. Migration Schema 48 → 49), `test_v2_report_glance.py` (13), `e2e/test_report_glance_browser.py`. Die Wirkung auf die Trefferquote ist noch nicht an echten Firmen gemessen (Recherche-Benchmark).
+
 ## 2.0.0-dev65 – Welle 6: Wiederherstellung, Leerlauf, Referenzliste; Befunde der Sicherheitsprüfung (SDQ-029 bis SDQ-043)
 
 - **Neu für Betreiber – ganze Installation wiederherstellen:** `betreiber --root NEUER_ORDNER gesamt-wiederherstellen SATZ --ja` stellt Verzeichnis und alle Organisationen aus einem Sicherungssatz in einem leeren Ordner wieder her und prüft dabei Prüfsummen, Unversehrtheit und Zeilenzahlen. Ein Ordner mit Inhalt wird nie überschrieben.

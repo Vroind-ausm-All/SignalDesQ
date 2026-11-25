@@ -164,7 +164,8 @@ class ReportTests(ReportBase):
         ok = self.lead()
         r = rp.create_reports(self.conn, {'lead_ids': [no_web, blocked, ok, 9999]}, self.db, start=False)
         reasons = {s['lead_id']: s['reason'] for s in r['skipped']}
-        self.assertIn('keine Website', reasons[no_web])
+        # 2.0.0-dev66: ohne Website wird nicht mehr abgewiesen – der Bericht sucht die Website zuerst (test_v2_report_glance)
+        self.assertIn(no_web, [q['lead_id'] for q in r['queued']])
         self.assertEqual(reasons[blocked], 'gesperrt')
         self.assertEqual(reasons[9999], 'nicht gefunden')
         again = rp.create_reports(self.conn, {'lead_ids': [ok]}, self.db, start=False)

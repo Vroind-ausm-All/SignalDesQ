@@ -271,7 +271,9 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 
 - Betriebe ohne Rechtsform im Namen (z. B. „Elektro Müller“) werden nur übernommen, wenn „auch Betriebe ohne Rechtsform“ angehakt ist. Bei Handwerk ist das der größte Teil. Die Ergebniszeile nennt jetzt, wie viele aus welchem Grund ausgefiltert wurden.
 - Die Website-Suche läuft nur für übernommene neue Treffer (höchstens 100 je Suche). Ausgefilterte und schon bekannte Betriebe werden nicht gesucht.
-- Die Website-Suche rät Domains aus Name und Ort und prüft das Impressum. Betriebe mit ganz anderem Domainnamen (Abkürzung, Inhabername) findet sie nicht – dort hilft nur „Website eintragen“.
+- Die Website-Suche rät Domains aus Name und Ort, nutzt seit dev66 zusätzlich die E-Mail-Domain aus OpenStreetMap und prüft das Impressum. Betriebe mit ganz anderem Domainnamen (Abkürzung, Fantasiename) ohne E-Mail-Angabe in der Quelle findet sie nicht – dort hilft nur „Website eintragen“. E-Mail-Domain und Telefon gibt es nur aus OpenStreetMap, nicht aus GLEIF, Wikidata oder TED.
+- Der Abgleich über Anschrift und Telefon (dev66) ist nur an fiktiven Firmen geprüft, nicht an deiner Referenzliste gemessen. Der Telefon-Prüfwert ist eine Pseudonymisierung, keine Anonymisierung.
+- Firmen-Bericht ohne Website: Ohne gefundene oder bestätigte Website laufen nur Website-Suche und Paketabgleich; die übrigen Schritte stehen auf „übersprungen“.
 - Wie viele Betriebe im Auszug eine Website eingetragen haben, hängt von OpenStreetMap ab; im Handwerk ist das oft nur ein kleiner Teil. Das ist noch nicht an deinem Auszug gemessen (M21).
 
 ## Recherchepilot – Stichprobe von Hand prüfen (2.0.0-dev45)
