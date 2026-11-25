@@ -74,3 +74,10 @@ Rechtlich offen bleibt wie bisher: Ob ein Telefon-Prüfwert bei Einzelunternehme
 | Schema | `SCHEMA_VERSION` 48 → 49, Spalten per `ADD COLUMN` mit Vorgabewert, Migrationstest mit Sicherung |
 | Release-ZIP | `SignalDesk-2.0.0-dev66.zip`, 248 Dateien, enthält `research/homepage.py` |
 | Nicht geprüft | Windows/macOS (CI nach dem Push), echte Websites, Trefferquote an echter Referenzliste |
+
+### Nachtrag: CI-Fehler in `test_appearance_browser` (nicht durch diese Änderung, aber behoben)
+
+Die CI meldete beim ersten Lauf `('sand', 'dark', 'normal') != ('sand', 'dark', 'kompakt')`. Ursache: `theme.js` speicherte jede
+Änderung sofort; bei zwei schnellen Klicks überholte die Antwort der älteren Anfrage die neuere und setzte die Dichte zurück.
+Nachgestellt mit absichtlich verzögerter Antwort (`e2e/test_appearance_race_browser.py`): alter Code `['sand', 'normal']`,
+neuer Code `['sand', 'kompakt']`. Änderungen werden jetzt nacheinander gespeichert; nur die Antwort der letzten Anfrage wird übernommen.
