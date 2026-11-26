@@ -1,5 +1,31 @@
 # Changelog
 
+## 2.0.0-dev67 – Open-Intelligence-Plan R0–R7 eingearbeitet; Phase R0 (Baseline & Governance) abgeschlossen
+
+- **Neu – Phasenplan R0–R7 (Open-Intelligence-Plan):** Der Architektur- und Masterplan vom 25.11.2026 ist eingearbeitet. 56 Arbeitspakete in acht Phasen (Baseline & Governance, Quellen/Discovery/Identität, Extraktion, Dokumente, Organisationsgraph, Pilot, Staging & Sicherheit, Start), jeweils mit Abhängigkeiten, Abnahme, Verantwortlichem und Bezug auf vorhandene Module; dazu die Sicherheitsbefunde F01–F12, Kennzahlen, Technologieregister, Skills und offene Eigentümer-Entscheidungen. Gepflegt in `docs/plan/open_intelligence.json`, erzeugt als [MASTERPLAN_OPEN_INTELLIGENCE.md](docs/MASTERPLAN_OPEN_INTELLIGENCE.md) und als Abschnitt in der Roadmap (`python tools/plan_status.py --write`); `tests/test_plan_structure.py` prüft Abhängigkeiten, Zyklen, Nachweise und Aktualität.
+- **Versionswahrheit (R0.2):** README, Roadmap und Einschränkungen nennen wieder die aktuelle Version; ein Test hält das fest.
+- **Fehlerbehebung – Sperren gingen verloren (R0.7):** Wer eine ältere Sicherung wiederherstellte, verlor Sperren und Widersprüche, die
+  danach erfasst wurden – die Firma war wieder kontaktierbar. Jetzt werden alle Sperren des aktuellen Stands übernommen; die Meldung
+  nennt die Anzahl. Das gilt auch für das Zurückspielen einer Organisation durch den Betreiber.
+- **Fehlerbehebung – Recherche trotz Sperre (R0.7):** Wurde eine Firma gesperrt, während ihr Auftrag wartete (Website-Bewertung,
+  Karriereseite, KI-Analyse, Schnellprüfung, Ansprechpartner, Website-Suche, Impressum-Sammelprüfung), lief er trotzdem und rief ihre
+  Website ab. Die Sperre wird jetzt beim Ausführen geprüft; der Lauf endet mit „Gesperrt: …“.
+- **Recherche-Export:** neue Spalte „Kontaktsperre“ – auch wenn eine Firma nur über Domain oder Name auf der Sperrliste steht.
+- **Gate-Tests (R0.7):** `tests/test_gate_isolation.py` prüft Sperre und Mandantengrenze über Import, Hintergrundauftrag, Export und
+  Wiederherstellung (13 Fälle; 7 davon sind ohne die beiden Korrekturen rot).
+- **Sicherheitsbefunde F01–F12 (R0.6):** je Befund Verantwortliche, Gate-Tests (die Planprüfung stellt sicher, dass es sie gibt) und der
+  offene Nachweis; Ablauf der unabhängigen Nachprüfung in [SICHERHEITS_NACHPRUEFUNG.md](docs/SICHERHEITS_NACHPRUEFUNG.md).
+- **CI-Job „audit“ (R0.5):** pip-audit über alle Lockdateien, Gitleaks über Code und gesamte Historie, Ruff für Fehlerklassen.
+  Die Werkzeuge kommen aus `tools/requirements-lock-dev.txt` (Hashes) bzw. als Download mit fester Version und SHA-256; sie gelangen
+  weder ins Release-Paket noch in die SBOM. Der erste Lauf fand 17 bekannte Schwachstellen in filelock 4.1.0, das die Werkzeug-Lock
+  wegen Python 3.10 gewählt hatte – Prüfwerkzeuge werden jetzt nur für Python 3.12–3.13 aufgelöst (filelock 4.2.10, kein Fund).
+- **CLAUDE.md (R0.3):** elf verbindliche Regeln, jede mit der Stelle im Code und dem Test, der sie durchsetzt; `tests/test_claude_rules.py`
+  prüft die Verweise und dass kein Versand-Code existiert.
+- **Skills-Register (R0.4):** [SKILLS_REGISTRY.md](docs/SKILLS_REGISTRY.md) mit Projekt-Skills, Werkzeugen (Pin, Lizenz) und Kandidaten;
+  neuer Skill `dependency-security`; `tests/test_skills_registry.py`.
+- **Baseline (R0.1):** `tools/baseline.py` schreibt `docs/BASELINE_<version>.md` mit Commit, Zählern, übersprungenen Tests samt Grund
+  und Laufzeiten.
+
 ## 2.0.0-dev66 – Recherche: Website-Zuordnung mit mehreren Merkmalen, Firmen-Bericht auch ohne Website
 
 - **Website-Suche – „Domain gibt es nicht“ ist kein Fehler mehr:** Geratene Domains ohne DNS-Eintrag zählen nicht mehr als fehlgeschlagener Abruf. Treffer landen dadurch seltener grundlos auf „Prüfung fehlgeschlagen“. Funktioniert die Namensauflösung gar nicht (z. B. Firmennetz nur mit Proxy), meldet SignalDesk das ausdrücklich, statt „nicht gefunden“ zu schließen.
@@ -8,8 +34,6 @@
 - **Datensparsam:** Für den Abgleich speichert SignalDesk weder Telefonnummern noch E-Mail-Adressen, nur die E-Mail-Domain und einen Prüfwert der Telefonnummer. Für gesperrte Firmen nichts.
 - **Firmen-Bericht auch ohne Website:** Neuer erster Schritt „Website finden & zuordnen“. Eine belegte Website wird in das leere Feld eingetragen, danach läuft der Bericht vollständig. Einen Vorschlag bestätigst du im Bericht oder in der Firmenakte mit „Passt“ oder „Passt nicht“. Abgelehnte Domains werden nicht erneut vorgeschlagen, Domains auf der Sperrliste nie eingetragen.
 - **Firmen-Bericht „Auf einen Blick“:** Kurzfazit oben im Bericht mit Kernfakten und Herkunft, den wichtigsten Hinweisen mit Beleg, den Lücken (was fehlt und warum), dem Kontaktstatus („gefunden“ ist nicht „erlaubt“) und dem Alter des Berichts. Nach 90 Tagen gibt es den Hinweis „bitte neu erstellen“.
-- **Neu – Phasenplan R0–R7 (Open-Intelligence-Plan):** Der Architektur- und Masterplan vom 25.11.2026 ist eingearbeitet. 56 Arbeitspakete in acht Phasen (Baseline & Governance, Quellen/Discovery/Identität, Extraktion, Dokumente, Organisationsgraph, Pilot, Staging & Sicherheit, Start), jeweils mit Abhängigkeiten, Abnahme, Verantwortlichem und Bezug auf vorhandene Module; dazu die Sicherheitsbefunde F01–F12, Kennzahlen, Technologieregister, Skills und offene Eigentümer-Entscheidungen. Gepflegt in `docs/plan/open_intelligence.json`, erzeugt als [MASTERPLAN_OPEN_INTELLIGENCE.md](docs/MASTERPLAN_OPEN_INTELLIGENCE.md) und als Abschnitt in der Roadmap (`python tools/plan_status.py --write`); `tests/test_plan_structure.py` prüft Abhängigkeiten, Zyklen, Nachweise und Aktualität.
-- **Versionswahrheit (R0.2):** README, Roadmap und Einschränkungen nennen wieder die aktuelle Version; ein Test hält das fest.
 - **Fehlerbehebung – Darstellung:** Wer unter Einstellungen → Darstellung schnell hintereinander Theme und Dichte wählte, bekam manchmal die Dichte zurückgesetzt, weil die ältere Speicherantwort die neuere überholte. Änderungen werden jetzt nacheinander gespeichert (neuer Browser-Test `e2e/test_appearance_race_browser.py`).
 - Bericht: [BERICHT_RECHERCHE_DEV66.md](docs/BERICHT_RECHERCHE_DEV66.md). Tests: neu `test_v2_website_matching.py` (19, inkl. Migration Schema 48 → 49), `test_v2_report_glance.py` (13), `e2e/test_report_glance_browser.py`. Die Wirkung auf die Trefferquote ist noch nicht an echten Firmen gemessen (Recherche-Benchmark).
 

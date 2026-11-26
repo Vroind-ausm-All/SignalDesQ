@@ -283,14 +283,92 @@ def run_one(db_path, kinds=None):
         return _run_one(db_path, kinds)
 
 
+# 2.0.0-dev67 (R0.7): Auftragsart → Schlüssel des Laufs im Auftrag. SQL steht ausgeschrieben in _lead_of / _end_blocked
+# (Datenzugriffs-Inventar SDQ-010: jede Anweisung statisch lesbar, keine variablen Tabellennamen).
+LEAD_OF = {'website_audit': 'audit_id', 'career_scan': 'scan_id', 'ki_analyse': 'run_id', 'schnellpruefung': 'run_id',
+           'ansprechpartner': 'run_id', 'lead_imprint': 'lead_id'}
+# Der Firmen-Bericht prüft die Sperre je Schritt selbst und zeigt „übersprungen“ (report.run_report).
+UNGUARDED = {'report', 'sweep_source', 'sweep_finish', 'osm_import', 'catalog_import'}
+
+
+def _lead_of(conn, kind, ref):
+    if kind == 'lead_imprint':
+        return ref
+    if kind == 'website_audit':
+        row = conn.execute('SELECT lead_id FROM website_audits WHERE id=?', (ref,)).fetchone()
+    elif kind == 'career_scan':
+        row = conn.execute('SELECT lead_id FROM signal_scans WHERE id=?', (ref,)).fetchone()
+    elif kind == 'ki_analyse':
+        row = conn.execute('SELECT lead_id FROM analysis_runs WHERE id=?', (ref,)).fetchone()
+    elif kind == 'schnellpruefung':
+        row = conn.execute('SELECT lead_id FROM quick_scans WHERE id=?', (ref,)).fetchone()
+    elif kind == 'ansprechpartner':
+        row = conn.execute('SELECT lead_id FROM contact_research_runs WHERE id=?', (ref,)).fetchone()
+    else:
+        return None
+    return row['lead_id'] if row else None
+
+
+def _end_blocked(conn, kind, ref, msg):
+    args = (msg, ref)
+    if kind == 'website_audit':
+        conn.execute("UPDATE website_audits SET status='failed', error=?, finished_at=datetime('now') WHERE id=? AND status IN ('queued','running')", args)
+    elif kind == 'career_scan':
+        conn.execute("UPDATE signal_scans SET status='failed', error=?, finished_at=datetime('now') WHERE id=? AND status IN ('queued','running')", args)
+    elif kind == 'ki_analyse':
+        conn.execute("UPDATE analysis_runs SET status='failed', error=?, finished_at=datetime('now') WHERE id=? AND status IN ('queued','running')", args)
+    elif kind == 'schnellpruefung':
+        conn.execute("UPDATE quick_scans SET status='failed', error=?, finished_at=datetime('now') WHERE id=? AND status IN ('queued','running')", args)
+    elif kind == 'ansprechpartner':
+        conn.execute("UPDATE contact_research_runs SET status='failed', error=?, finished_at=datetime('now') WHERE id=? AND status IN ('queued','running')", args)
+
+
+def blocked_reason(conn, task, payload):
+    """Sperre beim AUSFÜHREN prüfen, nicht nur beim Anlegen: Eine Firma kann gesperrt werden, während ihr Schritt wartet.
+    Gibt den Grund zurück oder ''. Gesperrt heißt: kein Abruf ihrer Website, keine Recherche."""
+    from ..company_data import check_suppressed
+    from ..workday import contact_lock
+    kind = task['kind']
+    if kind in UNGUARDED:
+        return ''
+    if task['domain'] and check_suppressed(conn, website=task['domain']):
+        return f"Domain {task['domain']} steht auf der Sperrliste"
+    lead_id = _lead_of(conn, kind, payload.get(LEAD_OF[kind])) if kind in LEAD_OF and payload.get(LEAD_OF[kind]) is not None else None
+    if lead_id is not None:
+        lead = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
+        reason = contact_lock(conn, lead) if lead else ''
+        if reason:
+            return f'Firma ist {reason}'
+    if kind == 'website' and payload.get('cid') is not None:
+        cand = conn.execute('SELECT name, website, status FROM discovery_candidates WHERE id=?', (payload['cid'],)).fetchone()
+        if cand and (cand['status'] == 'gesperrt' or check_suppressed(conn, website=cand['website'], name=cand['name'])):
+            return 'Treffer steht auf der Sperrliste'
+    return ''
+
+
+def _mark_blocked(conn, task, payload, reason):
+    """Den Lauf der Firma sichtbar beenden (sonst stünde er dauerhaft auf „wartet“)."""
+    kind = task['kind']
+    if kind in LEAD_OF:
+        _end_blocked(conn, kind, payload.get(LEAD_OF[kind]), f'Gesperrt: {reason}'[:300])
+    elif kind == 'website' and payload.get('cid') is not None:
+        conn.execute("UPDATE discovery_candidates SET website_status='' WHERE id=? AND website_status IN ('wartet','laeuft')", (payload['cid'],))
+    conn.commit()
+
+
 def _run_one(db_path, kinds=None):
     from ..model import connect
     with connect(db_path) as conn:
         task = claim(conn, kinds)
         if not task:
             return False
+        payload = json.loads(task['payload_json'] or '{}')
+        reason = blocked_reason(conn, task, payload)
+        if reason:
+            _mark_blocked(conn, task, payload, reason)
+            _finish(conn, task, 'skipped', None, f'Gesperrt: {reason} – nicht ausgeführt.')
+            return True
     fn = HANDLERS.get(task['kind'])
-    payload = json.loads(task['payload_json'] or '{}')
     status, result, error, delay = 'done', None, '', None
     try:
         if not fn:

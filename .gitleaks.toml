@@ -1,0 +1,10 @@
+# Gitleaks-Konfiguration (R0.5, 2.0.0-dev67): Standardregeln plus eine enge Ausnahme.
+# Ausnahme: erfundene Test-Passphrasen der Form „…-Passphrase-<Zahl>“ (z. B. „Lange-Passphrase-42“). Bewusst KEINE Pfad-Ausnahme:
+# ein echter Schlüssel bleibt ein Fund, auch in tests/ (Gegenprobe siehe tests/test_ci_gates.py).
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Erfundene Test-Passphrasen"
+regexTarget = "match"
+regexes = ['''Passphrase-\d+''']

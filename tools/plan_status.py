@@ -46,6 +46,22 @@ def _path_of(entry):
     return p
 
 
+def _test_ref_problem(ref):
+    """„tests/datei.py::Klasse::test_name“ → '' wenn vorhanden, sonst der Grund."""
+    parts = ref.split('::')
+    if len(parts) != 3 or not parts[0].startswith('tests/') or not parts[2].startswith('test_'):
+        return 'Format tests/datei.py::Klasse::test_name'
+    path = ROOT / parts[0]
+    if not path.exists():
+        return 'Datei fehlt'
+    text = path.read_text(encoding='utf-8')
+    if not re.search(rf'^class {re.escape(parts[1])}\b', text, re.M):
+        return 'Klasse fehlt'
+    if not re.search(rf'^    def {re.escape(parts[2])}\(', text, re.M):
+        return 'Test fehlt'
+    return ''
+
+
 def validate(plan):
     """Gibt eine Liste von Fehlern zurück (leer = gültig)."""
     err = []
@@ -129,6 +145,16 @@ def validate(plan):
     for f in plan.get('sicherheitsbefunde', []):
         if not f.get('pakete') or any(x not in known for x in f['pakete']):
             err.append(f"{f['id']}: kein oder unbekanntes Paket")
+        if f.get('verantwortlich') not in OWNERS:
+            err.append(f"{f['id']}: Verantwortlich fehlt oder unbekannt")
+        if not f.get('gate_tests'):
+            err.append(f"{f['id']}: kein Gate-Test")
+        if not f.get('offen'):
+            err.append(f"{f['id']}: offener Nachweis nicht beschrieben (sonst „–“)")
+        for ref in f.get('gate_tests', []):
+            problem = _test_ref_problem(ref)
+            if problem:
+                err.append(f"{f['id']}: Gate-Test {ref}: {problem}")
     if [f['id'] for f in plan.get('sicherheitsbefunde', [])] != [f'F{i:02d}' for i in range(1, 13)]:
         err.append('Sicherheitsbefunde müssen genau F01–F12 abdecken')
     for k in plan.get('kennzahlen', []):
@@ -253,8 +279,12 @@ def render_masterplan(plan):
         L.append('')
     L += ['## Sicherheitsbefunde F01–F12', '',
           'Prüfbericht vom 24.11.2026 (geprüft auf dev64). Stand laut dev65-Dokumentation, nicht unabhängig nachgeprüft – das ist Paket R6.10.', '',
-          '| Befund | Thema | Stand dev65 | Pakete |', '|---|---|---|---|']
-    L += [f"| {f['id']} | {_cell(f['thema'])} | {_cell(f['stand_dev65'])} | {', '.join(f['pakete'])} |" for f in plan['sicherheitsbefunde']]
+          'Gate-Tests laufen in jeder CI; die Planprüfung stellt sicher, dass jeder genannte Test existiert. Weg der Nachprüfung: '
+          '[SICHERHEITS_NACHPRUEFUNG.md](SICHERHEITS_NACHPRUEFUNG.md).', '',
+          '| Befund | Thema | Stand dev65 | Verantwortlich | Gate-Tests | Offener Nachweis | Pakete |', '|---|---|---|---|---|---|---|']
+    L += [f"| {f['id']} | {_cell(f['thema'])} | {_cell(f['stand_dev65'])} | {f['verantwortlich']} | "
+          f"{_join(['`' + t.split('::', 1)[0].replace('tests/', '') + '` ' + t.split('::')[-1] for t in f['gate_tests']])} | {_cell(f['offen'])} | {', '.join(f['pakete'])} |"
+          for f in plan['sicherheitsbefunde']]
     L += ['', '**Release-Regel:** Keine öffentliche Registrierung oder Produktivfreigabe bei offenen hohen/kritischen Befunden, fehlender '
           'Gegenprüfung oder ungetesteter Wiederherstellung. SHA-256 allein authentifiziert keine Updates.', '',
           '## Kennzahlen und Gates', '', 'Vorgeschlagene Abnahmegrenzen, keine Ergebnisse; vom Eigentümer zu bestätigen (Entscheidung E4).', '',

@@ -1,7 +1,7 @@
 # Masterplan: Vom Vertriebsarbeitsplatz zur Open Intelligence Plattform
 
 > **Erzeugt aus [`plan/open_intelligence.json`](plan/open_intelligence.json) mit `python tools/plan_status.py --write` – nicht von Hand ändern.**
-> Quelle: [Architektur- und Masterplan vom 25.11.2026](quellen/SignalDesQ_Architektur_Masterplan_2026-11-25.pdf) · Referenzstand main 56632442 (2.0.0-dev65), Planstand 25.11.2026 · eingearbeitet in 2.0.0-dev66. Status je Paket: **offen** = noch nicht begonnen, **teilweise** = Grundlage im Code vorhanden, Abnahme noch nicht erfüllt, **erledigt** = umgesetzt und automatisch geprüft (mit Version und Nachweis) – nicht praxisvalidiert, **blockiert** = wartet auf eine Entscheidung oder einen Nachweis außerhalb des Engineerings.
+> Quelle: [Architektur- und Masterplan vom 25.11.2026](quellen/SignalDesQ_Architektur_Masterplan_2026-11-25.pdf) · Referenzstand main 56632442 (2.0.0-dev65), Planstand 25.11.2026 · eingearbeitet in 2.0.0-dev66 (R0 abgeschlossen in 2.0.0-dev67). Status je Paket: **offen** = noch nicht begonnen, **teilweise** = Grundlage im Code vorhanden, Abnahme noch nicht erfüllt, **erledigt** = umgesetzt und automatisch geprüft (mit Version und Nachweis) – nicht praxisvalidiert, **blockiert** = wartet auf eine Entscheidung oder einen Nachweis außerhalb des Engineerings.
 
 **Empfohlener Kurs.** Den lokalen Kern bewahren. Öffentliche Unternehmensdaten über kontrollierte Recherche, nachvollziehbare Belege und eine Organisationsansicht verwertbar machen. SaaS erst nach messbarem Produktnutzen und geschlossenen Sicherheits-Gates.
 
@@ -9,7 +9,7 @@
 
 **Wirtschaftlicher Kernindikator.** Kosten und Zeit je korrekt identifiziertem, relevantem und überprüftem Ansprechpartner. **Priorisierung:** Zuerst richtig finden, dann richtig zuordnen, erst danach visualisieren.
 
-**Stand aller 56 Arbeitspakete:** 22 offen · 23 teilweise · 2 erledigt · 9 blockiert.
+**Stand aller 56 Arbeitspakete:** 19 offen · 20 teilweise · 8 erledigt · 9 blockiert.
 
 ## Inhalt
 
@@ -64,7 +64,7 @@ flowchart LR
 
 | Phase | Name | Aufwand* | Beginnt nach | Ziel | Abnahme (Gate) | Pakete |
 |---|---|---|---|---|---|---|
-| **R0** | Baseline & Governance | 1–2 Wochen | – | Reproduzierbare Ausgangslage, eine Versionswahrheit, verbindliche Regeln, Skills und Sicherheits-Gates, bevor neue Recherchefunktionen entstehen. | Reproduzierbare Baseline (Unit, Browser, Python 3.10/3.13, CI-Matrix) mit Commit dokumentiert<br>Je Befund F01–F12 ein Verantwortlicher und ein Nachweisweg<br>README/ROADMAP/Einschränkungen nennen die aktuelle Version | 3 offen · 3 teilweise · 2 erledigt |
+| **R0** | Baseline & Governance | 1–2 Wochen | – | Reproduzierbare Ausgangslage, eine Versionswahrheit, verbindliche Regeln, Skills und Sicherheits-Gates, bevor neue Recherchefunktionen entstehen. | Reproduzierbare Baseline (Unit, Browser, Python 3.10/3.13, CI-Matrix) mit Commit dokumentiert<br>Je Befund F01–F12 ein Verantwortlicher und ein Nachweisweg<br>README/ROADMAP/Einschränkungen nennen die aktuelle Version | 8 erledigt |
 | **R1** | Quellen, Discovery & Identität | 2–3 Wochen | R0 | Nur erlaubte Quellen, gezielte Seitensuche auf bekannten Websites, verlässliche Firmenidentität und eine unabhängige Referenzliste. | Source Registry sperrt ungeprüfte Quellen<br>Domain-Referenztest auf der Referenzliste gemessen (Company Match Precision)<br>Keine Regression im Abruf (Benchmark tools/bench_fetch.py) | 3 offen · 3 teilweise · 1 blockiert |
 | **R2** | Extraktion & Kandidaten-Sichtung | 2–3 Wochen | R1 | Personen und Rollen aus strukturierten und unstrukturierten Seiten mit vollständigem Beleg; Sichtung ohne automatische CRM-Übernahme. | Präzision und Recall der Rollen auf der Referenzliste gemessen<br>Sperren erreichen Kandidaten<br>Kein Kandidat gelangt ohne menschliche Freigabe ins CRM | 3 offen · 3 teilweise |
 | **R3** | Dokumente & Konzernbeziehungen | 2–3 Wochen | R1 | PDF/XML/CSV sicher und isoliert auswerten; GLEIF-Level-2-Beziehungen als belegte Konzernkanten. Läuft parallel nach R1; nicht auf dem kritischen Pfad. | Dokumentgrenzen (Größe, Zeit, Seiten) erzwungen<br>Jeder Wert mit Seiten- bzw. Feldbeleg<br>Parser ohne Netz- und Dateisystemzugriff außerhalb seines Arbeitsordners | 4 offen · 1 teilweise |
@@ -83,40 +83,43 @@ flowchart LR
 
 | ID | Paket | Prio | Status | Verantwortlich | Abhängig von | Abnahme |
 |---|---|---|---|---|---|---|
-| **R0.1** | Baseline messen und dokumentieren | P0 | teilweise | Engineering | – | Baseline-Bericht mit Commit, Zählern und Laufzeiten<br>Kein übersprungener Browser-Test |
+| **R0.1** | Baseline messen und dokumentieren | P0 | erledigt | Engineering | – | Baseline-Bericht mit Commit, Zählern und Laufzeiten<br>Kein übersprungener Browser-Test |
 | **R0.2** | Versionswahrheit | P0 | erledigt | Engineering | – | Test schlägt fehl, wenn eine Statusquelle eine andere Version nennt |
-| **R0.3** | CLAUDE.md mit unverhandelbaren Regeln | P0 | offen | Engineering | – | Jede Regel verweist auf die Stelle im Code oder Test, die sie durchsetzt |
-| **R0.4** | Skills-Register und Skill dependency-security | P0 | offen | Engineering | – | Jeder Skill mit Auslöser, Ein-/Ausgabe, Abnahmetest und Grenzen<br>Externe Originale mit Commit gepinnt |
-| **R0.5** | Dependency- und Code-Gates in CI | P0 | offen | Engineering | R0.4 | CI rot bei bekannter Schwachstelle oder Geheimnis im Diff<br>Keine ungeprüften Downloads beim Start |
-| **R0.6** | Security-Gate-Matrix F01–F12 | P0 | teilweise | Engineering | – | Jeder Befund einem Paket und einem Verantwortlichen zugeordnet (automatisch geprüft)<br>Termin/Weg der externen Nachprüfung festgelegt |
-| **R0.7** | Gate-Tests Sperre und Mandant über alle Wege | P0 | teilweise | Engineering | – | Ein Test je Weg, der ohne die Regel rot wird |
+| **R0.3** | CLAUDE.md mit unverhandelbaren Regeln | P0 | erledigt | Engineering | – | Jede Regel verweist auf die Stelle im Code oder Test, die sie durchsetzt |
+| **R0.4** | Skills-Register und Skill dependency-security | P0 | erledigt | Engineering | – | Jeder Skill mit Auslöser, Ein-/Ausgabe, Abnahmetest und Grenzen<br>Externe Originale mit Commit gepinnt |
+| **R0.5** | Dependency- und Code-Gates in CI | P0 | erledigt | Engineering | R0.4 | CI rot bei bekannter Schwachstelle oder Geheimnis (Code und Historie)<br>Keine ungeprüften Downloads: Werkzeuge nur mit Hash bzw. SHA-256 |
+| **R0.6** | Security-Gate-Matrix F01–F12 | P0 | erledigt | Engineering | – | Jeder Befund mit Verantwortlichem, Gate-Tests (existieren, automatisch geprüft) und offenem Nachweis<br>Weg der externen Nachprüfung beschrieben (docs/SICHERHEITS_NACHPRUEFUNG.md); Termin ist Entscheidung E7 |
+| **R0.7** | Gate-Tests Sperre und Mandant über alle Wege | P0 | erledigt | Engineering | – | Ein Test je Weg, der ohne die Regel rot wird |
 | **R0.8** | Planstruktur und Phasenzuordnung | P0 | erledigt | Engineering | – | Strukturtest grün; generierte Dokumente aktuell |
 
 - **R0.1 Baseline messen und dokumentieren.** HEAD, Version, Unit- und Browser-Suite, Python 3.10/3.13, CI-Matrix, übersprungene Tests mit Grund, Laufzeiten; Ergebnis als docs/BASELINE_<version>.md.
   Baut auf: `tools/run_e2e.py`, `tools/perf_report.py`, `.github/workflows/tests.yml`, `.claude/skills/qa-release-gate`.
-  Neu: `docs/BASELINE_<version>.md`.
-  Stand: dev66: 954 Unit-Tests, 60/60 Browser-Tests, CI grün auf Linux und Windows (PR #47); Bericht noch nicht als eigenes Dokument.
+  Neu: `tools/baseline.py`, `docs/BASELINE_<version>.md`.
+  Stand: 2.0.0-dev67: tools/baseline.py führt Unit- (Python 3.13 und 3.10) und Browser-Suite aus und schreibt docs/BASELINE_2.0.0-dev67.md mit Commit, Zählern, Überspringungen mit Grund und Laufzeiten (tests/test_plan_structure.py prüft Aufbau).
 - **R0.2 Versionswahrheit.** README, ROADMAP und EINSCHRAENKUNGEN nennen die Version aus sales_tool/__init__.py; ein Test verhindert neue Abweichungen.
   Baut auf: `sales_tool/__init__.py`, `CHANGELOG.md`.
   Neu: `tests/test_plan_structure.py`.
   Stand: 2.0.0-dev66, tests/test_plan_structure.py (test_status_sources_name_current_version).
 - **R0.3 CLAUDE.md mit unverhandelbaren Regeln.** Regeln aus Abschnitt A des Masterauftrags und dieser Planquelle als CLAUDE.md; Verweis auf serverseitige Kontrollen (Sperren, Belege, Mandanten).
   Baut auf: `.claude/skills/privacy-and-contact-guardrails`.
-  Neu: `CLAUDE.md`.
+  Neu: `CLAUDE.md`, `tests/test_claude_rules.py`.
+  Stand: 2.0.0-dev67: CLAUDE.md mit 11 Regeln, jede mit Durchsetzungsstelle und Test; tests/test_claude_rules.py prüft, dass alle Verweise existieren und kein Versand-Code vorhanden ist.
 - **R0.4 Skills-Register und Skill dependency-security.** docs/SKILLS_REGISTRY.md: Auswahl externer Skills (Original-Repo, gepinnter Commit, Lizenz, Ausführungsrechte, Zweck); keine blind installierten Marketplaces, Hooks oder MCP-Server. Projekt-Skill dependency-security.
   Baut auf: `.claude/skills/`.
-  Neu: `docs/SKILLS_REGISTRY.md`, `.claude/skills/dependency-security/SKILL.md`.
+  Neu: `docs/SKILLS_REGISTRY.md`, `.claude/skills/dependency-security/SKILL.md`, `tests/test_skills_registry.py`.
+  Stand: 2.0.0-dev67: docs/SKILLS_REGISTRY.md (Projekt-Skills, Werkzeuge mit Pin und Lizenz, Kandidaten nicht installiert), Skill dependency-security; tests/test_skills_registry.py prüft Format und Registrierung.
 - **R0.5 Dependency- und Code-Gates in CI.** pip-audit bzw. OSV-Scanner gegen die Lockfiles, Gitleaks, Ruff (nur Fehlerklassen), Ergebnisse in CI; BESTANDTEILE.md um Advisory-Status ergänzen.
   Baut auf: `tools/make_lock.py`, `tools/make_sbom.py`, `docs/BESTANDTEILE.md`.
-  Neu: `.github/workflows` (Job „audit“).
+  Neu: `.github/workflows/tests.yml` (Job audit), `tools/requirements-lock-dev.txt`, .gitleaks.toml, `tests/test_ci_gates.py`.
+  Stand: 2.0.0-dev67: CI-Job „audit“ (pip-audit über alle Lockdateien, Ruff E9/F63/F7/F82, Gitleaks über Code und Historie mit Versions- und SHA-256-Pin); Werkzeuge aus tools/requirements-lock-dev.txt mit Hashes; tests/test_ci_gates.py. Erster Lauf fand filelock 4.1.0 mit 17 Schwachstellen in der Werkzeug-Lock → behoben (Python 3.12–3.13, filelock 4.2.10).
 - **R0.6 Security-Gate-Matrix F01–F12.** Je Befund des Prüfberichts vom 24.11.: Stand, Verantwortlicher, Gate-Test, offener Nachweis, Paket in R6. Planung der unabhängigen Nachprüfung.
-  Baut auf: `docs/SICHERHEITSPRUEFUNG_2026-11-24.md`, `docs/PRODUCT_MATURITY_AUDIT.md` (SDQ-033 bis SDQ-043).
-  Neu: Abschnitt „Sicherheitsbefunde“ dieser Planquelle.
-  Stand: Zuordnung F01–F12 in dieser Planquelle (dev66); Nachprüfungstermin offen.
+  Baut auf: `docs/SICHERHEITSPRUEFUNG_2026-11-24.md`, `docs/PRODUCT_MATURITY_AUDIT.md` (SDQ-033 bis SDQ-043), `tests/test_sdq033_pruefbericht.py`.
+  Neu: `docs/SICHERHEITS_NACHPRUEFUNG.md`, Felder verantwortlich/gate_tests/offen je Befund.
+  Stand: Matrix mit Verantwortlichen, Gate-Tests und offenem Nachweis je Befund in dieser Planquelle (Planprüfung prüft, dass jeder Test existiert); Ablauf in docs/SICHERHEITS_NACHPRUEFUNG.md (2.0.0-dev67, tests/test_plan_structure.py).
 - **R0.7 Gate-Tests Sperre und Mandant über alle Wege.** Negativtests: gesperrte Firma und fremde Organisation über Import, Hintergrundjob, Export, Restore und Recherche; Kennzahl „0 Tenant-/Sperrverletzungen“.
   Baut auf: `tests/test_sdq014_multi_tenant.py`, `tests/test_sprintS5_workday.py`, `sales_tool/company_data.py` (check_suppressed), `sales_tool/workday.py` (contact_lock).
-  Neu: `tests/test_gate_isolation.py`.
-  Stand: Mandantentrennung per HTTP und Browser (SDQ-014 bis SDQ-016), Kontaktsperre zentral (v1.18); Import-, Job-, Export- und Restore-Wege nicht einheitlich abgedeckt.
+  Neu: `tests/test_gate_isolation.py`, research/jobs.blocked_reason, backup_restore.keep_suppressions.
+  Stand: 2.0.0-dev67, tests/test_gate_isolation.py (13 Fälle: Import, Auftrag, Export, Wiederherstellung, Mandant; 7 davon ohne die dev67-Korrekturen rot).
 - **R0.8 Planstruktur und Phasenzuordnung.** Diese Planquelle, generierter Masterplan und Roadmap-Abschnitt, Strukturtest.
   Baut auf: `docs/ROADMAP.md`.
   Neu: `docs/plan/open_intelligence.json`, `tools/plan_status.py`, `docs/MASTERPLAN_OPEN_INTELLIGENCE.md`, `tests/test_plan_structure.py`.
@@ -368,20 +371,22 @@ flowchart LR
 
 Prüfbericht vom 24.11.2026 (geprüft auf dev64). Stand laut dev65-Dokumentation, nicht unabhängig nachgeprüft – das ist Paket R6.10.
 
-| Befund | Thema | Stand dev65 | Pakete |
-|---|---|---|---|
-| F01 | Einladungsbindung | behoben laut Doku (SDQ-033) | R0.6, R6.10 |
-| F02 | Sofortiger Session-Widerruf | behoben laut Doku (SDQ-034) | R0.6, R6.10 |
-| F03 | Zielbindung von Zugangsdaten | behoben laut Doku (SDQ-035) | R0.6, R6.10 |
-| F04 | Mandantenisolation der Recherche-Einstellungen | behoben laut Doku (SDQ-036) | R0.6, R0.7, R6.10 |
-| F05 | Egress, DNS-Rebinding auch CalDAV/IMAP | teilweise (SDQ-037) | R6.1 |
-| F06 | Restore: Signaturen, Schlüssel, Quarantäne | teilweise | R6.2 |
-| F07 | Lieferkette: Signatur, Python 3.10, Hash-Locks | teilweise (SDQ-038) | R0.5, R6.3 |
-| F08 | Proxy-Staging, Rate-Limit je Client | Code behoben (SDQ-039) | R6.4 |
-| F09 | Auth: MFA Admins, Passwortregeln, Seeds | teilweise (SDQ-041) | R6.5 |
-| F10 | Ressourcen: Kontingente, Lasttests | teilweise (SDQ-040) | R6.6 |
-| F11 | Export: DATEV-Probeimport, Formeltests | DATEV-Fix laut Doku (SDQ-042) | R5.6, R6.7 |
-| F12 | Audit/Recovery: Log-Anker, Alarm, Restore leer | teilweise (SDQ-043) | R6.8 |
+Gate-Tests laufen in jeder CI; die Planprüfung stellt sicher, dass jeder genannte Test existiert. Weg der Nachprüfung: [SICHERHEITS_NACHPRUEFUNG.md](SICHERHEITS_NACHPRUEFUNG.md).
+
+| Befund | Thema | Stand dev65 | Verantwortlich | Gate-Tests | Offener Nachweis | Pakete |
+|---|---|---|---|---|---|---|
+| F01 | Einladungsbindung | behoben laut Doku (SDQ-033) | Engineering | `test_sdq033_pruefbericht.py` test_other_account_cannot_take_invitation<br>`test_sdq033_pruefbericht.py` test_concurrent_use_creates_no_membership | unabhängige Regression (R6.10) | R0.6, R6.10 |
+| F02 | Sofortiger Session-Widerruf | behoben laut Doku (SDQ-034) | Engineering | `test_sdq033_pruefbericht.py` test_password_change_ends_org_session_on_second_device<br>`test_sdq033_pruefbericht.py` test_operator_reset_and_lock_end_sessions_in_all_orgs | unabhängige Regression (R6.10) | R0.6, R6.10 |
+| F03 | Zielbindung von Zugangsdaten | behoben laut Doku (SDQ-035) | Engineering | `test_sdq033_pruefbericht.py` test_sales_role_cannot_change_connectors<br>`test_sdq033_pruefbericht.py` test_target_change_forgets_password | kryptografische Zielbindung prüfen lassen (R6.10) | R0.6, R6.10 |
+| F04 | Mandantenisolation der Recherche-Einstellungen | behoben laut Doku (SDQ-036) | Engineering | `test_sdq033_pruefbericht.py` test_settings_are_per_organisation<br>`test_gate_isolation.py` test_job_of_one_org_never_runs_in_the_other | unabhängige Prüfung der Mandantenisolation (R6.10) | R0.6, R0.7, R6.10 |
+| F05 | Egress, DNS-Rebinding auch CalDAV/IMAP | teilweise (SDQ-037) | Betrieb | `test_sdq033_pruefbericht.py` test_hosted_org_cannot_choose_legacy_or_browser<br>`test_sdq033_pruefbericht.py` test_hosted_connector_targets_must_be_public<br>`test_sprintS1_fetch.py` test_dns_rebinding_blocked_by_pinning | Firewall/Netztrennung im Staging; DNS-Rebinding für CalDAV/IMAP (R6.1) | R6.1 |
+| F06 | Restore: Signaturen, Schlüssel, Quarantäne | teilweise | Engineering | `test_sdq033_pruefbericht.py` test_web_restore_blocked_in_server<br>`test_gate_isolation.py` test_restore_keeps_later_suppressions | signierte Manifeste, Schlüsselverwaltung, Quarantäne nach Restore (R6.2) | R6.2 |
+| F07 | Lieferkette: Signatur, Python 3.10, Hash-Locks | teilweise (SDQ-038) | Engineering | `test_sdq033_pruefbericht.py` test_team_lock_has_fixed_cryptography<br>`test_sdq033_pruefbericht.py` test_missing_lock_refuses_install | Release-Signatur/Attestierung; Entscheidung Python 3.10 (E5, R6.3); Advisory-Prüfung in CI (R0.5) | R0.5, R6.3 |
+| F08 | Proxy-Staging, Rate-Limit je Client | Code behoben (SDQ-039) | Betrieb | `test_sdq033_pruefbericht.py` test_forwarded_for_only_from_trusted_proxy<br>`test_sdq033_pruefbericht.py` test_untrusted_forwarded_for_is_ignored | Staging hinter echtem TLS-Proxy, Rate-Limit je Client messen (R6.4) | R6.4 |
+| F09 | Auth: MFA Admins, Passwortregeln, Seeds | teilweise (SDQ-041) | Engineering | `test_sdq033_pruefbericht.py` test_old_hash_upgraded_on_login_only | MFA-Pflicht Verwaltung, Mindestlänge, TOTP-Seeds verschlüsselt (R6.5; Entscheidung laut Prüfbericht) | R6.5 |
+| F10 | Ressourcen: Kontingente, Lasttests | teilweise (SDQ-040) | Engineering | `test_sdq033_pruefbericht.py` test_public_readiness_is_cached | Kontingente je Mandant, Lasttest mit Profil (R6.6) | R6.6 |
+| F11 | Export: DATEV-Probeimport, Formeltests | DATEV-Fix laut Doku (SDQ-042) | Engineering | `test_sdq033_pruefbericht.py` test_formula_starts_removed<br>`test_phase4_center.py` test_export_csv | DATEV-Probeimport (R5.6), Formeltests weiterer Exporte (R6.7) | R5.6, R6.7 |
+| F12 | Audit/Recovery: Log-Anker, Alarm, Restore leer | teilweise (SDQ-043) | Betrieb | `test_sdq033_pruefbericht.py` test_truncation_detected_with_anchor | externer Ablageort für Anker, Backup-Alarm, Restore auf leerem System geübt (R6.8) | R6.8 |
 
 **Release-Regel:** Keine öffentliche Registrierung oder Produktivfreigabe bei offenen hohen/kritischen Befunden, fehlender Gegenprüfung oder ungetesteter Wiederherstellung. SHA-256 allein authentifiziert keine Updates.
 
@@ -452,7 +457,7 @@ Skills steuern die Arbeit von Claude Code; sie sind keine Laufzeitfunktion und k
 |---|---|---|---|
 | privacy-and-contact-guardrails | vorhanden | Kontaktwege, Personen, Sperren, Importe, Entwürfe | R0.4 |
 | qa-release-gate | vorhanden | vor jedem Commit oder Release | R0.4 |
-| dependency-security | offen | neue Pakete oder Lockfile-Änderungen → SBOM, Advisory, Lizenz | R0.4 |
+| dependency-security | vorhanden | neue Pakete oder Lockfile-Änderungen → SBOM, Advisory, Lizenz | R0.4 |
 | research-source-policy | offen | neue Quelle oder Abruflogik → Rechte, Limits, SSRF, Offline | R1.2 |
 | research-benchmark | offen | neue Extraktion → reproduzierbarer Vergleich | R1.7 |
 | contact-entity-evidence | offen | Person/Rolle → Identität, Beleg, Kandidatenstatus | R2.6 |

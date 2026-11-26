@@ -26,7 +26,7 @@ from pathlib import Path, PurePosixPath
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 EXCLUDE_DIRS = ('tests/', 'tools/', '.github/', 'docs/bench/', 'docs/quellen/', 'ausgabe/', '.claude/')  # docs/quellen: Planungsunterlagen  # ausgabe/: fertige Pakete gehören nicht ins Paket
-EXCLUDE_FILES = ('.gitignore', '.gitattributes', '.source-date-epoch')
+EXCLUDE_FILES = ('.gitignore', '.gitattributes', '.source-date-epoch', 'requirements-dev.txt', '.gitleaks.toml', 'CLAUDE.md')
 # Neue, noch nicht eingecheckte Dateien müssen im lokalen Entwicklungs-Release enthalten sein.
 # Eine feste Liste verhindert, dass beliebige Nutzerdaten in das Paket geraten.
 RELEASE_ADDITIONS = ('sales_tool/research/service_profile.py', 'docs/MASTERPLAN_SOLOSELBSTAENDIGE.md',

@@ -113,6 +113,18 @@ class GeneratedDocsTests(unittest.TestCase):
             self.assertIn(f'**{pid}**', master)
         self.assertTrue((ROOT / ps.load()['quelle']).exists(), 'Quell-PDF des Plans liegt im Repository')
 
+    def test_baseline_report_exists_when_r01_done(self):
+        """R0.1: ein Baseline-Bericht mit Commit, Testläufen, Überspringungen mit Grund und Planstand."""
+        r01 = next(p for p in ps.load()['pakete'] if p['id'] == 'R0.1')
+        reports = sorted((ROOT / 'docs').glob('BASELINE_*.md'))
+        if r01['status'] != 'erledigt':
+            self.skipTest('R0.1 noch nicht erledigt')
+        self.assertTrue(reports, 'docs/BASELINE_<version>.md fehlt (python tools/baseline.py)')
+        text = reports[-1].read_text(encoding='utf-8')
+        for part in ('Commit `', '## Testläufe', '## Übersprungene Tests mit Grund', '## CI', '## Planstand'):
+            self.assertIn(part, text)
+        self.assertRegex(text, r'\| Unit \(`tests/`\) \| 3\.\d+')
+
     def test_status_sources_name_current_version(self):
         """R0.2 Versionswahrheit: Statusquellen nennen die Version aus sales_tool/__init__.py."""
         for rel, pattern in (('README.md', r'Stand (2\.0\.0-dev\d+)'), ('docs/ROADMAP.md', r'Stand (2\.0\.0-dev\d+)'),
