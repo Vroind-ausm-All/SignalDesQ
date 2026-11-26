@@ -1,6 +1,6 @@
 """Reproduzierbare Baseline (R0.1): Testzähler, Überspringungen mit Grund, Laufzeiten und Stand als Bericht.
 
-    python tools/baseline.py [--no-browser] [--python PFAD ...] [--ci TEXT] [--out docs/BASELINE_<version>.md]
+    python tools/baseline.py [--no-browser] [--python PFAD ...] [--ci TEXT] [--hinweis TEXT ...] [--out docs/BASELINE_<version>.md]
 
 - Unit-Suite (`tests/`) und Browser-Suite (`tests/e2e/`) laufen je in einem eigenen Prozess; gezählt wird, was wirklich lief.
 - `--python` (mehrfach): Unit-Suite zusätzlich mit weiteren Interpretern, z. B. der ältesten zugesagten Version 3.10.
@@ -28,8 +28,10 @@ sys.path[:0] = [ROOT, START]
 suite = unittest.defaultTestLoader.discover(START, top_level_dir=START)
 t0 = time.monotonic()
 res = unittest.TextTestRunner(stream=io.StringIO(), verbosity=0).run(suite)
+tail = lambda tb: ' | '.join(l.strip() for l in tb.strip().splitlines()[-3:])[:400]
 print(json.dumps({'found': suite.countTestCases(), 'run': res.testsRun, 'failures': [str(t) for t, _ in res.failures],
                   'errors': [str(t) for t, _ in res.errors], 'skipped': [[str(t), r] for t, r in res.skipped],
+                  'details': {str(t): tail(tb) for t, tb in res.failures + res.errors},
                   'seconds': round(time.monotonic() - t0, 1), 'python': sys.version.split()[0]}))
 '''
 
@@ -82,7 +84,10 @@ def report(data):
     L += [f'- {name}: `{t}` – {why}' for name, t, why in skips] or ['- keine']
     fails = [(name, t) for name, r, _ in data['suites'] for t in r['failures'] + r['errors']]
     if fails:
-        L += ['', '## Nicht bestanden', ''] + [f'- {name}: `{t}`' for name, t in fails]
+        details = {t: d for _, r, _ in data['suites'] for t, d in (r.get('details') or {}).items()}
+        L += ['', '## Nicht bestanden', ''] + [f'- {name}: `{t}`' + (f' – {details[t]}' if details.get(t) else '') for name, t in fails]
+    if data.get('notes'):
+        L += ['', '## Beobachtungen aus früheren Läufen', ''] + [f'- {n}' for n in data['notes']]
     L += ['', '## CI', '', data['ci'] or 'nicht angegeben (in diesem Lauf nicht gelesen).', '',
           '## Planstand (R0–R7)', '', '| Phase | offen | teilweise | erledigt | blockiert |', '|---|---|---|---|---|']
     L += [f"| {ph} | {c['offen']} | {c['teilweise']} | {c['erledigt']} | {c['blockiert']} |" for ph, c in data['plan'].items()]
@@ -95,6 +100,7 @@ def main(argv=None):
     ap.add_argument('--no-browser', action='store_true')
     ap.add_argument('--python', action='append', default=[])
     ap.add_argument('--ci', default='')
+    ap.add_argument('--hinweis', action='append', default=[], help='Beobachtung aus früheren Läufen (wird wörtlich übernommen)')
     ap.add_argument('--out', default='')
     a = ap.parse_args(argv)
     sys.path.insert(0, str(ROOT))
@@ -113,7 +119,7 @@ def main(argv=None):
         print(f"Browser: {r['run']} gelaufen, {len(r['skipped'])} übersprungen, {len(r['failures']) + len(r['errors'])} nicht bestanden, {r['seconds']} s", flush=True)
     data = {'date': dt.date.today().isoformat(), 'commit': git('rev-parse', '--short=12', 'HEAD') or 'unbekannt',
             'dirty': bool(git('status', '--porcelain', '--untracked-files=no')),
-            'system': f'{platform.system()} {platform.machine()}', 'suites': suites, 'ci': a.ci, 'plan': plan_counts(),
+            'system': f'{platform.system()} {platform.machine()}', 'suites': suites, 'ci': a.ci, 'plan': plan_counts(), 'notes': a.hinweis,
             'seconds': round(time.monotonic() - started, 1)}
     out = Path(a.out) if a.out else ROOT / 'docs' / f'BASELINE_{__version__}.md'
     out.write_text(report(data), encoding='utf-8')
