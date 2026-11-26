@@ -38,6 +38,10 @@ jobs:
         run: |
           for f in requirements-lock-*.txt; do
             echo "== $f"
+            # R2.5: Variante „nlp“ nur bis Python 3.13 (spaCy ohne Pakete für 3.14, VARIANT_PYTHONS in tools/make_lock.py)
+            if [ "$f" = requirements-lock-nlp.txt ] && python -c 'import sys; sys.exit(sys.version_info < (3, 14))'; then
+              echo "übersprungen: Variante nur bis Python 3.13"; continue
+            fi
             python -m pip install --dry-run --ignore-installed --require-hashes -q -r "$f"
           done
       - name: Tests

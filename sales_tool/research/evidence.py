@@ -100,3 +100,137 @@ def structured_evidence(org, source_url, source_html, checked_at=''):
             out.append(Evidence(field, value, source_url, f'{org.get("method")}: {key} = {value}', org.get('method') or 'jsonld',
                                 checked_at=checked_at or now(), content_hash=content_hash(source_html)).as_dict())
     return out
+
+
+# ---------------------------------------------------------------- Evidence-Vertrag v2 (Plan R2.3)
+#
+# Ein Beleg v2 sagt nicht nur „steht irgendwo im Text“, sondern WO: eine Fundstelle (Textspanne, JSON-Pfad oder PDF-Seite),
+# dazu URL, SHA-256 der Abrufbytes, Abruf- und Publikationsdatum, Extraktor mit Version, Rechtsträger und Prüfstatus.
+# Originalwert und normalisierter Wert bleiben getrennt. Ein Beleg ohne Fundstelle ist kein Beleg (check_ref → Fehler).
+# Wörtliche Belege werden deterministisch gegen den Quellinhalt geprüft (verify_ref): dieselbe Spanne muss denselben
+# Wortlaut ergeben bzw. derselbe JSON-Pfad denselben Wert.
+
+EVIDENCE_VERSION = 2
+LOCATOR_KINDS = ('text', 'json', 'pdf')
+REVIEW_STATES = ('ungeprueft', 'bestaetigt', 'verworfen')
+
+
+def text_hash(text):
+    return content_hash(text or '')
+
+
+def _span(text, value, start_hint=0, end_hint=None):
+    """Erste wörtliche Fundstelle von ``value`` in ``text`` (ab start_hint, optional bis end_hint) – exakt, nicht normalisiert."""
+    if not value or not text:
+        return None
+    pos = text.find(value, max(0, start_hint), end_hint if end_hint is not None else len(text))
+    if pos < 0:
+        return None
+    return pos, pos + len(value)
+
+
+def make_ref(field, value, source_url, extractor, locator, *, normalized='', chash='', fetched_at='', published_at='',
+             legal_entity='', review_status='ungeprueft'):
+    """Beleg v2 als dict. ``locator`` z. B. {'kind': 'text', 'basis': 'raw_text', 'start': 10, 'end': 22, 'quote': '…',
+    'text_hash': 'sha256:…'} oder {'kind': 'json', 'block': 0, 'path': ['employee', 1, 'name']}."""
+    return {'v': EVIDENCE_VERSION, 'field': field, 'value': str(value), 'normalized': str(normalized or ''), 'source_url': source_url,
+            'locator': dict(locator or {}), 'content_hash': chash or '', 'fetched_at': fetched_at or now(),
+            'published_at': published_at or '', 'extractor': extractor, 'legal_entity': str(legal_entity or ''),
+            'review_status': review_status}
+
+
+def text_ref(field, value, text, source_url, extractor, *, basis='raw_text', start_hint=0, end_hint=None, **kw):
+    """Beleg mit Textspanne – None, wenn der Wert nicht wörtlich im Text steht (dann gibt es keinen Beleg)."""
+    span = _span(text, str(value or ''), start_hint, end_hint)
+    if not span:
+        return None
+    a, b = span
+    return make_ref(field, value, source_url, extractor,
+                    {'kind': 'text', 'basis': basis, 'start': a, 'end': b, 'quote': text[a:b], 'text_hash': text_hash(text)}, **kw)
+
+
+def resolve_path(data, path):
+    cur = data
+    for step in path or []:
+        if isinstance(step, int) and isinstance(cur, list) and -len(cur) <= step < len(cur):
+            cur = cur[step]
+        elif isinstance(step, str) and isinstance(cur, dict) and step in cur:
+            cur = cur[step]
+        else:
+            raise KeyError(step)
+    return cur
+
+
+def json_ref(field, value, data, block, path, source_url, extractor, **kw):
+    """Beleg mit JSON-Pfad – None, wenn der Pfad nicht genau diesen Wert ergibt."""
+    try:
+        found = resolve_path(data, path)
+    except KeyError:
+        return None
+    if not isinstance(found, (str, int, float)) or str(found).strip() != str(value).strip():
+        return None
+    return make_ref(field, value, source_url, extractor, {'kind': 'json', 'block': int(block), 'path': list(path)}, **kw)
+
+
+def check_ref(ref):
+    """Vollständigkeit eines Belegs v2 (ohne Quellinhalt). Gibt eine Fehlerliste zurück – leer heißt vollständig."""
+    errors = []
+    if not isinstance(ref, dict) or ref.get('v') != EVIDENCE_VERSION:
+        return ['kein Beleg v2']
+    for key in ('field', 'value', 'source_url', 'extractor', 'fetched_at'):
+        if not str(ref.get(key) or '').strip():
+            errors.append(f'{key} fehlt')
+    loc = ref.get('locator') or {}
+    kind = loc.get('kind')
+    if kind not in LOCATOR_KINDS:
+        errors.append('Fundstelle fehlt')
+    elif kind == 'text':
+        if not (isinstance(loc.get('start'), int) and isinstance(loc.get('end'), int) and 0 <= loc['start'] < loc['end']):
+            errors.append('Textspanne ungültig')
+        if not loc.get('quote') or str(ref.get('value', '')) not in loc.get('quote', ''):
+            errors.append('Wortlaut passt nicht zum Wert')
+        if not str(loc.get('text_hash', '')).startswith('sha256:'):
+            errors.append('Prüfsumme des Textes fehlt')
+    elif kind == 'json':
+        if not isinstance(loc.get('path'), list) or not loc['path'] or not isinstance(loc.get('block'), int):
+            errors.append('JSON-Pfad ungültig')
+    elif kind == 'pdf':
+        if not (isinstance(loc.get('page'), int) and loc['page'] >= 1 and loc.get('quote')):
+            errors.append('PDF-Seite oder Wortlaut fehlt')
+    if ref.get('review_status', 'ungeprueft') not in REVIEW_STATES:
+        errors.append('Prüfstatus ungültig')
+    return errors
+
+
+def verify_ref(ref, text=None, blocks=None):
+    """Deterministische Gegenprüfung am Quellinhalt: ``text`` für Textspannen (dieselbe Basis wie beim Erzeugen),
+    ``blocks`` (Liste geparster JSON-LD-Blöcke) für JSON-Pfade. True nur, wenn Fundstelle und Wert übereinstimmen."""
+    if check_ref(ref):
+        return False
+    loc = ref['locator']
+    if loc['kind'] == 'text':
+        if text is None or text_hash(text) != loc['text_hash']:
+            return False
+        return text[loc['start']:loc['end']] == loc['quote'] and str(ref['value']) in loc['quote']
+    if loc['kind'] == 'json':
+        if blocks is None or not 0 <= loc['block'] < len(blocks):
+            return False
+        try:
+            found = resolve_path(blocks[loc['block']], loc['path'])
+        except KeyError:
+            return False
+        return str(found).strip() == str(ref['value']).strip()
+    if loc['kind'] == 'pdf':  # Seitentext: ``text`` ist der Text genau dieser Seite
+        return text is not None and loc['quote'] in text and str(ref['value']) in loc['quote']
+    return False
+
+
+def keep_with_refs(claim, required):
+    """Behält einen Claim nur, wenn jedes Pflichtfeld einen vollständigen Beleg v2 hat. → (claim | None, Fehler)."""
+    refs = claim.get('evidence_refs') or {}
+    problems = []
+    for name in required:
+        errs = check_ref(refs.get(name))
+        if errs:
+            problems.append(f'{name}: {", ".join(errs)}')
+    return (None, problems) if problems else (claim, [])

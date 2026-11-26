@@ -189,7 +189,7 @@ def review_queue(conn):
          'count': q("""SELECT COUNT(*) FROM website_findings f WHERE f.result='auffaellig' AND f.review_status='ungeprueft'
                        AND f.audit_id IN (SELECT MAX(id) FROM website_audits WHERE status='done' GROUP BY lead_id)"""), 'view': 'scoring'},
         {'key': 'facts', 'label': 'Ungeprüfte Feldbelege (Firmendaten)', 'count': q("SELECT COUNT(*) FROM company_facts WHERE status='ungeprueft'"), 'view': 'leads'},
-        {'key': 'contacts', 'label': 'Entscheider-Kandidaten prüfen', 'count': q("SELECT COUNT(*) FROM contact_candidates WHERE status='ungeprueft'")
+        {'key': 'contacts', 'label': 'Entscheider-Kandidaten prüfen', 'count': q("SELECT COUNT(*) FROM contact_candidates WHERE status IN ('kandidat','widerspruechlich')")
          + q("SELECT COUNT(*) FROM decision_contacts WHERE verification_status='ungeprueft'"), 'view': 'leads'},
         {'key': 'website_hypotheses', 'label': 'KI-/Regel-Befunde der URL-Recherche freigeben', 'count': q("SELECT COUNT(*) FROM findings WHERE review_status='ungeprueft'"), 'view': 'studio'},
         {'key': 'privacy', 'label': 'Art.-14-Information überfällig', 'count': q("""SELECT COUNT(*) FROM privacy_records WHERE art14_informed_at=''

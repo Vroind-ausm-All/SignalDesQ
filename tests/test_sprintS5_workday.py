@@ -196,6 +196,12 @@ class LockTests(DayBase):
             self.assertIn('Kontaktsperre', err['error'])
         st, err = self.call('PATCH', f'/api/leads/{lid}', {'stage': 'kontakt'})
         self.assertEqual(st, 409, err)
+        # R2.4: auch Personen-Kandidaten (Kontaktvorschläge aus der Recherche) – keine Recherche, kein Kandidat
+        self.assertEqual(self.call('POST', f'/api/leads/{lid}/contact-research', {'confirm_public_research': True})[0], 403)
+        from sales_tool import candidates as cd
+        cid, why = cd.store(self.conn, None, lid, {'full_name': 'Anna Sperr', 'job_title': 'Geschäftsführerin'})
+        self.assertIsNone(cid)
+        self.assertIn('gesperrt', why)
         # Action Center: keine Kontaktvorschläge, keine Freigabe
         from sales_tool import sales_integration as si
         self.assertEqual(si.suggest_actions(self.conn, lid), [])

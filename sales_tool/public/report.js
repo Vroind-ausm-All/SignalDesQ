@@ -76,8 +76,8 @@
         ${inh.channels.length ? `<h4>Öffentliche Kontaktwege der Firma</h4><ul class="rp-list">${inh.channels.map(c => `<li>${esc(c.label || c.type || '')}: ${esc(c.value || '')} ${link(c.source_url, 'Quelle')}</li>`).join('')}</ul>` : ''}
         <p class="muted">Gelesen: ${inh.pages.map(p => link(p.url, p.title || p.url)).join(' · ')}</p>${inh.warnings.length ? `<p class="muted">${inh.warnings.map(esc).join(' · ')}</p>` : ''}`
       : '<div class="empty">Website-Inhalte nicht gelesen.</div>';
-    const cand = d.candidates.length ? `<h4>Neue Kandidaten – bitte prüfen</h4>${d.candidates.map(c => `<div class="sales-item"><div><strong>${esc(c.full_name)}</strong><small>${esc(c.job_title || 'Funktion unbekannt')} · ${esc(c.role_hint || '')} ${link(c.source_url, 'Fundstelle')}${c.evidence ? ` · „${esc(c.evidence.slice(0, 120))}“` : ''}</small></div>
-        <div class="acc-btn-group"><button type="button" class="btn btn-primary" data-rp-cand="${c.id}" data-d="accept">Übernehmen</button><button type="button" class="btn btn-ghost" data-rp-cand="${c.id}" data-d="reject">Verwerfen</button></div></div>`).join('')}` : '';
+    const cand = d.candidates.length ? `<h4>Neue Kandidaten – bitte prüfen</h4>${d.candidates.map(c => `<div class="sales-item" data-candidate-status="${esc(c.status || '')}"><div><strong>${esc(c.full_name)}</strong><small>${esc(c.job_title || 'Funktion unbekannt')} · ${esc(c.role_hint || '')}${c.department && c.department !== 'unklar' ? ` · ${esc(c.department)}` : ''} ${link(c.source_url, 'Fundstelle')}${c.evidence ? ` · „${esc(c.evidence.slice(0, 120))}“` : ''}</small>${c.status === 'widerspruechlich' ? `<small class="warn-text">Widersprüchlich: ${esc(c.status_reason || '')}</small>` : ''}</div>
+        <div class="acc-btn-group"><button type="button" class="btn btn-primary" data-rp-cand="${c.id}" data-d="accept" data-conflict="${c.status === 'widerspruechlich' ? 1 : 0}">Übernehmen</button><button type="button" class="btn btn-ghost" data-rp-cand="${c.id}" data-d="reject">Verwerfen</button></div></div>`).join('')}` : '';
     const known = d.contacts.length ? `<h4>Im CRM</h4><ul class="rp-list">${d.contacts.map(c => `<li>${esc(c.full_name)} – ${esc(c.job_title || '')} <small>(${esc(c.verification_status || 'ungeprüft')})</small></li>`).join('')}</ul>` : '';
     const sig = ds.signals?.length ? `<ul class="rp-list">${ds.signals.map(s => `<li><b>${esc(s.title)}</b> <small>${esc(s.polarity === 'contra' ? 'Gegenhinweis' : 'Hinweis')} · ${esc(fmtDate((s.published_at || s.found_at || '').slice(0, 10)))}</small><br><small>„${esc((s.evidence || '').slice(0, 160))}“</small></li>`).join('')}</ul>` : '<div class="empty">Keine Kaufsignale gefunden.</div>';
     const hyp = ds.hypotheses?.length ? `<h4>Verknüpfte Hypothesen</h4><ul class="rp-list">${ds.hypotheses.map(h => `<li><b>${esc(h.hypothesis)}</b> <small>(${esc(h.strength)})</small>${h.counter.length ? `<br><small>Dagegen spricht: ${h.counter.map(esc).join('; ')}</small>` : ''}${h.missing.length ? `<br><small>Fehlt noch: ${h.missing.map(esc).join('; ')}</small>` : ''}</li>`).join('')}</ul>` : '';
@@ -155,7 +155,9 @@
       }
       const c = e.target.closest('[data-rp-cand]');
       if (c) {
-        try { await api(`/contact-candidates/${c.dataset.rpCand}/review`, 'POST', {decision: c.dataset.d}); toast(c.dataset.d === 'accept' ? 'Ansprechpartner übernommen – Funktion und Befugnis noch prüfen' : 'Verworfen'); load(current); }
+        const conflict = c.dataset.conflict === '1' && c.dataset.d === 'accept';
+        if (conflict && !confirm('Die Quelle nennt einen anderen Arbeitgeber. An der Quelle geprüft, dass die Person bei dieser Firma arbeitet?')) return;
+        try { await api(`/contact-candidates/${c.dataset.rpCand}/review`, 'POST', conflict ? {decision: 'accept', confirm_conflict: true} : {decision: c.dataset.d}); toast(c.dataset.d === 'accept' ? 'Ansprechpartner übernommen – Funktion und Befugnis noch prüfen' : 'Verworfen'); load(current); }
         catch (err) { toast(err.message, true); }
         return;
       }

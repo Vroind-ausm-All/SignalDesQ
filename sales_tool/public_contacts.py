@@ -33,9 +33,18 @@ def _role(title: str, offer: str) -> tuple[str, int]:
 
 
 def _lines(page):
+    """Nicht leere Zeilen mit Lage im Originaltext: [(bereinigte Zeile, Anfang, Ende)] – für Belege mit Textspanne (R2.3)."""
     raw = page.get('raw_text') or page.get('text') or ''
     # Website text is untrusted. Preserve line associations only, never treat as instructions.
-    return [re.sub(r'\s+', ' ', line).strip(' \u2022\t|') for line in raw.splitlines() if line.strip()][:700]
+    out, pos = [], 0
+    for line in raw.splitlines(keepends=True):
+        clean = re.sub(r'\s+', ' ', line).strip(' \u2022\t|')
+        if clean:
+            out.append((clean, pos, pos + len(line)))
+        pos += len(line)
+        if len(out) >= 700:
+            break
+    return out
 
 
 def _personal_phone(line: str) -> str:
@@ -46,21 +55,68 @@ def _personal_phone(line: str) -> str:
     return m.group(1).strip() if m else ''
 
 
+RULES_VERSION = 'regeln-personen-v2'
+
+
+def _rule_refs(raw, src, chash, name, role_label, mail, phone, a, b):
+    """Belege v2 für einen Regel-Fund: wörtlich im Originaltext zwischen a und b (Rollenzeile ± Nachbarzeile)."""
+    from .research import evidence as ev
+    meta = {'chash': chash}
+    refs = {'full_name': ev.text_ref('full_name', name, raw, src, RULES_VERSION, start_hint=a, end_hint=b, **meta),
+            'job_title': ev.text_ref('job_title', role_label, raw, src, RULES_VERSION, start_hint=a, end_hint=b, **meta)}
+    if mail:
+        refs['business_email'] = ev.text_ref('business_email', mail, raw, src, RULES_VERSION, start_hint=a, end_hint=b, **meta)
+    if phone:
+        refs['business_phone'] = ev.text_ref('business_phone', phone, raw, src, RULES_VERSION, start_hint=a, end_hint=b, **meta)
+    return {k: v for k, v in refs.items() if v}
+
+
+def _with_role(person, offer):
+    from .research import roles
+    norm = roles.normalize(person['job_title'])
+    responsibility, priority = _role(person['job_title'], offer)
+    if norm and responsibility == 'Rolle unklar':
+        responsibility, priority = norm['label'], 40 if norm['level'] == 'fach' else 55
+    person.update({'role_hint': responsibility, 'priority': priority, 'role_key': norm['role'] if norm else 'unklar',
+                   'department': norm['department'] if norm else 'unklar', 'role_level': norm['level'] if norm else ''})
+    return person
+
+
 def extract_public_contacts(crawl: dict, offer='pilot') -> dict:
     """Rules produce *candidates*, never verified decision makers.
 
-    A candidate needs an explicit role and a full name in a short adjoining
-    segment. Office contact points are separate from a person's direct number.
+    R2.1: strukturierte Personen (JSON-LD, Microdata, Tabellen, Karten – ``page['persons']`` aus dem Abruf) zuerst,
+    die Zeilenregeln als Rückfall. A candidate needs an explicit role and a full name in a short adjoining
+    segment, both with evidence v2 (Fundstelle). Office contact points are separate from a person's direct number.
     """
+    from .research import evidence as ev
+    from .research import roles
+    from .research.extractors.persons import business_email
     people, channels = [], []
     seen_people, seen_channels = set(), set()
+    dropped = 0
     for page in crawl.get('pages', [])[:5]:
         src = page.get('url','')
         if urlsplit(src).scheme != 'https':
             # HTTP pages can be read, but only HTTPS page citations are accepted for storing PII.
             continue
+        chash = page.get('content_hash') or ''
+        for sp in page.get('persons') or []:
+            key = sp['full_name'].casefold()
+            if key in seen_people or not (sp.get('evidence_refs', {}).get('full_name') and sp['evidence_refs'].get('job_title')):
+                continue
+            seen_people.add(key)
+            phone = sp.get('business_phone', '')
+            people.append(_with_role({'full_name': sp['full_name'], 'job_title': sp['job_title'], 'business_email': sp.get('business_email', ''),
+                                      'business_phone': phone, 'phone_type': 'ausdruecklich_publizierte_durchwahl' if phone else '',
+                                      'employer': sp.get('employer', ''), 'method': sp['method'], 'source_url': src,
+                                      'evidence': sp['evidence'][:350], 'evidence_refs': sp['evidence_refs'],
+                                      'locator_group': sp.get('locator_group', {}), 'status': 'kandidat'}, offer))
+        raw = page.get('raw_text') or page.get('text') or ''
+        if not chash:
+            chash = ev.content_hash(raw)
         lines = _lines(page)
-        for i,line in enumerate(lines):
+        for i,(line,l_start,l_end) in enumerate(lines):
             for kind,rx in (('email',EMAIL_RE),('telefon_veroeffentlicht',PHONE_RE)):
                 for m in rx.finditer(line):
                     value = m.group(1).strip()
@@ -72,18 +128,18 @@ def extract_public_contacts(crawl: dict, offer='pilot') -> dict:
                         channels.append({'type':kind,'value':value,'source_url':src,
                                          'evidence':line[:350]})
             role_match = ROLE_RE.search(line)
-            if not role_match:
+            if not role_match or roles.is_quote(line):  # R2.2: Zitate/Kundenstimmen nennen meist Personen anderer Firmen
                 continue
             # Same line and neighboring line only; headers/long paragraphs are too ambiguous.
-            options = [(line,0)]
+            options = [(line,0,l_start,l_end)]
             # Prefer role + name together, else a *name-only* adjacent line;
             # never steal a name from a different person's preceding role line.
-            if i+1<len(lines) and len(lines[i+1]) < 90 and not ROLE_RE.search(lines[i+1]):
-                options.append((lines[i+1],1))
-            if i and len(lines[i-1]) < 90 and not ROLE_RE.search(lines[i-1]):
-                options.append((lines[i-1],1))
+            if i+1<len(lines) and len(lines[i+1][0]) < 90 and not ROLE_RE.search(lines[i+1][0]):
+                options.append((lines[i+1][0],1,lines[i+1][1],lines[i+1][2]))
+            if i and len(lines[i-1][0]) < 90 and not ROLE_RE.search(lines[i-1][0]):
+                options.append((lines[i-1][0],1,lines[i-1][1],lines[i-1][2]))
             matched = None
-            for candidate,offset in options:
+            for candidate,offset,_a,_b in options:
                 if len(candidate)>170:continue
                 # Ignore names whose exact span is the role label itself.
                 for m in NAME_RE.finditer(candidate):
@@ -98,23 +154,44 @@ def extract_public_contacts(crawl: dict, offer='pilot') -> dict:
             name, offset=matched
             key=name.casefold()
             if key in seen_people:continue
-            seen_people.add(key)
             role_label=role_match.group(1)
-            responsibility, priority=_role(role_label,offer)
             # Do not assign general footer address to a named person. Same-line only.
-            exact_line = line if name in line else next((x for x,_ in options if name in x), '')
+            exact_line = line if name in line else next((x for x,*_ in options if name in x), '')
             p_mail = (EMAIL_RE.search(exact_line).group(1) if EMAIL_RE.search(exact_line) else '')
+            if p_mail and not business_email(p_mail, src):
+                p_mail = ''  # fremde Domain (z. B. Freemail) – mögliche Privatadresse, nicht übernehmen
             phone = _personal_phone(exact_line)
-            people.append({'full_name':name,'job_title':role_label,'role_hint':responsibility,
-                           'priority':priority,'business_email':p_mail,'business_phone':phone,
-                           'phone_type':'ausdruecklich_publizierte_durchwahl' if phone else '',
-                           'source_url':src,'evidence':line[:350],
-                           'status':'ungeprueft'})
+            a = min(o[2] for o in options); b = max(o[3] for o in options)
+            refs = _rule_refs(raw, src, chash, name, role_label, p_mail, phone, a, b)
+            if not (refs.get('full_name') and refs.get('job_title')):
+                dropped += 1  # nicht wörtlich im Originaltext auffindbar – kein Beleg, kein Kandidat
+                continue
+            seen_people.add(key)
+            people.append(_with_role({'full_name':name,'job_title':role_label,
+                           'business_email':p_mail if refs.get('business_email') else '','business_phone':phone if refs.get('business_phone') else '',
+                           'phone_type':'ausdruecklich_publizierte_durchwahl' if phone and refs.get('business_phone') else '',
+                           'employer':'','method':'regel','source_url':src,'evidence':line[:350],'evidence_refs':refs,
+                           'locator_group':{'kind':'text','basis':'raw_text','start':a,'end':b},
+                           'status':'kandidat'}, offer))
+    from .research.extractors import nlp
+    if nlp.enabled():  # R2.5: optional, Standard aus – nur zusätzliche Vorschläge mit Beleg, nie bestätigt
+        for page in crawl.get('pages', [])[:5]:
+            src = page.get('url', '')
+            if urlsplit(src).scheme != 'https':
+                continue
+            raw = page.get('raw_text') or page.get('text') or ''
+            for sp in nlp.persons(raw, src, page.get('content_hash') or ev.content_hash(raw)):
+                if sp['full_name'].casefold() in seen_people:
+                    continue
+                seen_people.add(sp['full_name'].casefold())
+                people.append(_with_role({**sp, 'phone_type': '', 'source_url': src, 'status': 'kandidat'}, offer))
     people.sort(key=lambda x:-x['priority'])
-    return {'people':people[:30], 'channels':channels[:40],
-            'notes':['Personen sind unbestätigte Recherchekandidaten; eine genannte Rolle belegt keine Budgethoheit.',
-                     'Zentrale Telefonnummern sind keine persönlichen Durchwahlen.',
-                     'Keine Kontaktdaten wurden geraten oder bei einem Datenhändler abgefragt.']}
+    notes = ['Personen sind unbestätigte Recherchekandidaten; eine genannte Rolle belegt keine Budgethoheit.',
+             'Zentrale Telefonnummern sind keine persönlichen Durchwahlen.',
+             'Keine Kontaktdaten wurden geraten oder bei einem Datenhändler abgefragt.']
+    if dropped:
+        notes.append(f'{dropped} Fund(e) ohne wörtliche Fundstelle verworfen.')
+    return {'people':people[:30], 'channels':channels[:40], 'notes':notes}
 
 
 def run_job(db_path: str | Path, run_id: int, lead_id: int, website: str, offer: str):
@@ -129,10 +206,8 @@ def run_job(db_path: str | Path, run_id: int, lead_id: int, website: str, offer:
                        finished_at=datetime('now') WHERE id=?""",
                        (json.dumps([{'url':p['url'],'title':p.get('title','')} for p in crawl['pages']],ensure_ascii=False),
                         json.dumps(output['channels'],ensure_ascii=False),json.dumps(crawl.get('warnings',[])+output['notes'],ensure_ascii=False),run_id))
-            for p in output['people']:
-                conn.execute("""INSERT INTO contact_candidates (run_id,lead_id,full_name,job_title,role_hint,priority,
-                 business_email,business_phone,phone_type,source_url,evidence) VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
-                 (run_id,lead_id, *(p[k] for k in ('full_name','job_title','role_hint','priority','business_email','business_phone','phone_type','source_url','evidence'))))
+            from .candidates import store_all
+            store_all(conn, run_id, lead_id, output['people'])  # R2.4: Sperre, Beleg, Frist – nie direkt ins CRM
             conn.commit()
     except Exception as exc:
         msg=str(exc)[:280] if isinstance(exc,ValueError) else 'Technischer Recherchefehler; Serverkonsole prüfen.'
@@ -165,31 +240,16 @@ _register()
 
 
 def list_runs(conn,lead_id):
+    from .candidates import view_row
     rows=[dict(r) for r in conn.execute('SELECT * FROM contact_research_runs WHERE lead_id=? ORDER BY id DESC LIMIT 10',(lead_id,))]
     for r in rows:
         for k in ('pages','channels','warnings'):
             r[k]=json.loads(r.pop(k+'_json') or '[]')
-        r['people']=[dict(p) for p in conn.execute('SELECT * FROM contact_candidates WHERE run_id=? ORDER BY priority DESC,id',(r['id'],))]
+        r['people']=[view_row(p) for p in conn.execute('SELECT * FROM contact_candidates WHERE run_id=? ORDER BY priority DESC,id',(r['id'],))]
     return rows
 
 
-def review_candidate(conn, candidate_id, decision):
-    if decision not in ('accept','reject'):
-        raise ValueError('Entscheidung muss accept oder reject sein.')
-    r=conn.execute('SELECT * FROM contact_candidates WHERE id=?',(candidate_id,)).fetchone()
-    if not r:raise ValueError('Recherchekandidat nicht gefunden.')
-    if r['status']!='ungeprueft':raise ValueError('Dieser Recherchekandidat wurde bereits bearbeitet.')
-    lead=conn.execute('SELECT permission,stage FROM leads WHERE id=?',(r['lead_id'],)).fetchone()
-    if not lead or lead['permission']=='nicht_kontaktieren' or lead['stage']=='gesperrt':
-        raise ValueError('Diese Firma ist gesperrt. Keine Übernahme möglich.')
-    status='abgelehnt' if decision=='reject' else 'freigegeben'
-    if decision=='accept':
-        exists=conn.execute('SELECT id FROM decision_contacts WHERE lead_id=? AND lower(full_name)=lower(?)',(r['lead_id'],r['full_name'])).fetchone()
-        if exists:raise ValueError('Diese Person ist bereits im CRM vorhanden. Keine Dublette angelegt.')
-        conn.execute('''INSERT INTO decision_contacts (lead_id,full_name,job_title,decision_role,source_url,
-                  note,business_phone,phone_type,data_provider,business_email)
-                  VALUES (?,?,?,?,?,?,?,?,?,?)''', (r['lead_id'],r['full_name'],r['job_title'],'unbekannt',r['source_url'],
-                  'Quelle manuell freigegeben; Entscheidungsbefugnis noch nicht bestätigt. '+r['evidence'][:300],
-                  r['business_phone'],r['phone_type'],'eigene_recherche',r['business_email']))
-    conn.execute("UPDATE contact_candidates SET status=? WHERE id=?",(status,candidate_id))
-    return {'status':status}
+def review_candidate(conn, candidate_id, decision, confirm_conflict=False):
+    """R2.4: Sichtung über ``candidates.review`` (Sperre, Beleg v2, kein Kontakt ohne Freigabe)."""
+    from .candidates import review
+    return review(conn, candidate_id, decision, confirm_conflict)

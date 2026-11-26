@@ -707,6 +707,8 @@ def make_handler(db_path, allowed_hosts=None):
                         conn.commit()
                         return self._send(200,result)
                     if method == 'DELETE' and not contact_match.group(2):
+                        from .candidates import purge_person
+                        purge_person(conn, person['lead_id'], person['full_name'])  # R2.4: Löschung erreicht Kandidaten
                         conn.execute('DELETE FROM decision_contacts WHERE id=?',(ident,));conn.commit()
                         return self._send(200,{'deleted':True})
                     if method == 'POST' and contact_match.group(2) in ('/preview','/reveal'):
@@ -723,7 +725,8 @@ def make_handler(db_path, allowed_hosts=None):
                             return self._error('Öffentliche Quellenrecherche ausdrücklich bestätigen.')
                         if not lead['website']:
                             return self._error('Zuerst die Unternehmenswebsite bei der Firma speichern.')
-                        if lead['permission']=='nicht_kontaktieren' or lead['stage']=='gesperrt':
+                        from .workday import contact_lock
+                        if contact_lock(conn, lead):  # R2.4: auch Sperrliste, nicht nur Phase/Widerspruch
                             return self._error('Diese Firma ist für Kontaktrecherche gesperrt.',403)
                         if conn.execute("SELECT id FROM contact_research_runs WHERE status IN ('queued','running') LIMIT 1").fetchone():
                             return self._error('Eine Kontaktrecherche läuft bereits.',409)
@@ -734,9 +737,9 @@ def make_handler(db_path, allowed_hosts=None):
                 candidate_match = re.fullmatch(r"/api/contact-candidates/(\d+)/review",route)
                 if candidate_match and method == 'POST':
                     data=self._body()
-                    if not isinstance(data,dict) or set(data)!={'decision'}:
+                    if not isinstance(data,dict) or 'decision' not in data or set(data)-{'decision','confirm_conflict'}:
                         return self._error('Entscheidung fehlt.')
-                    result=review_candidate(conn,int(candidate_match.group(1)),data['decision'])
+                    result=review_candidate(conn,int(candidate_match.group(1)),data['decision'],data.get('confirm_conflict') is True)
                     conn.commit()
                     return self._send(200,result)
                 analysis_match = re.fullmatch(r"/api/leads/(\d+)/analysis", route)
@@ -990,7 +993,7 @@ def make_handler(db_path, allowed_hosts=None):
     return Handler
 
 
-SCHEMA_VERSION = 49  # 2.0.0-dev66 – bei Schemaänderungen erhöhen (Abgleichsmerkmale Website-Suche)
+SCHEMA_VERSION = 50  # 2.0.0-dev70 – bei Schemaänderungen erhöhen (R2.4: Kandidatenstatus, Frist, Belege v2)
 
 
 def backup_before_migration(db):
@@ -1020,6 +1023,8 @@ def prepare_database(db):
             from .chances import ensure_first_chances
             ensure_first_chances(conn)  # 2.0.0-dev18: eine erste Chance je Firma mit Verkaufsbezug, Angebote und Termine zugeordnet
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
+        from .candidates import purge_expired
+        purge_expired(conn)  # R2.4: abgelaufene Personen-Kandidaten beim Start löschen
         research_jobs.recover(conn)  # v1.16: unterbrochene Auftragsschritte wieder einreihen (vor den fachlichen Wiederaufnahmen)
         from . import analysis_jobs, public_contacts, quickscan  # noqa: F401 – Auftragsarten registrieren
         from .bg_jobs import recover as recover_runs

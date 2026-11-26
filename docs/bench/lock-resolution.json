@@ -208,21 +208,365 @@
     "targets": 8,
     "license": "BSD-3-Clause"
    }
+  },
+  "nlp": {
+   "annotated-doc": {
+    "version": "0.0.6",
+    "uploaded": "2026-11-10",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "annotated-types": {
+    "version": "0.8.0",
+    "uploaded": "2026-07-23",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "anyio": {
+    "version": "4.16.0",
+    "uploaded": "2026-11-01",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "blis": {
+    "version": "1.3.4",
+    "uploaded": "2026-10-25",
+    "targets": 8,
+    "license": "BSD-3-Clause"
+   },
+   "catalogue": {
+    "version": "2.0.10",
+    "uploaded": "2023-09-25",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "certifi": {
+    "version": "2026.10.23",
+    "uploaded": "2026-10-23",
+    "targets": 8,
+    "license": "MPL-2.0"
+   },
+   "charset-normalizer": {
+    "version": "3.5.2",
+    "uploaded": "2026-09-30",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "click": {
+    "version": "8.5.1",
+    "uploaded": "2026-11-06",
+    "targets": 8,
+    "license": "BSD-3-Clause"
+   },
+   "cloudpathlib": {
+    "version": "0.26.0",
+    "uploaded": "2026-10-02",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "colorama": {
+    "version": "0.4.6",
+    "uploaded": "2022-10-25",
+    "targets": 4,
+    "license": "BSD-3-Clause"
+   },
+   "confection": {
+    "version": "1.3.4",
+    "uploaded": "2026-10-26",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "cymem": {
+    "version": "2.0.16",
+    "uploaded": "2026-10-24",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "exceptiongroup": {
+    "version": "1.3.1",
+    "uploaded": "2025-11-21",
+    "targets": 2,
+    "license": "MIT"
+   },
+   "h11": {
+    "version": "0.16.0",
+    "uploaded": "2025-04-24",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "httpcore": {
+    "version": "1.0.9",
+    "uploaded": "2025-04-24",
+    "targets": 8,
+    "license": "BSD-3-Clause"
+   },
+   "httpx": {
+    "version": "0.28.1",
+    "uploaded": "2024-12-06",
+    "targets": 8,
+    "license": "BSD-3-Clause"
+   },
+   "idna": {
+    "version": "3.20",
+    "uploaded": "2026-09-17",
+    "targets": 8,
+    "license": "BSD-3-Clause"
+   },
+   "jinja2": {
+    "version": "3.1.6",
+    "uploaded": "2025-03-05",
+    "targets": 8,
+    "license": "BSD-3-Clause"
+   },
+   "markdown-it-py": {
+    "version": "4.3.0",
+    "uploaded": "2026-11-10",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "markupsafe": {
+    "version": "3.0.4",
+    "uploaded": "2026-10-02",
+    "targets": 8,
+    "license": "BSD-3-Clause"
+   },
+   "mdurl": {
+    "version": "0.1.2",
+    "uploaded": "2022-08-14",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "murmurhash": {
+    "version": "1.0.16",
+    "uploaded": "2026-10-24",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "numpy": {
+    "version": "2.2.6",
+    "uploaded": "2025-05-17",
+    "targets": 8,
+    "license": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0"
+   },
+   "packaging": {
+    "version": "26.3",
+    "uploaded": "2026-08-04",
+    "targets": 8,
+    "license": "Apache-2.0 OR BSD-2-Clause"
+   },
+   "preshed": {
+    "version": "3.0.15",
+    "uploaded": "2026-10-25",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "pydantic": {
+    "version": "2.14.3",
+    "uploaded": "2026-11-05",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "pydantic-core": {
+    "version": "2.50.4",
+    "uploaded": "2026-11-05",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "pygments": {
+    "version": "2.21.0",
+    "uploaded": "2026-08-17",
+    "targets": 8,
+    "license": "BSD-2-Clause"
+   },
+   "requests": {
+    "version": "2.34.2",
+    "uploaded": "2026-05-14",
+    "targets": 8,
+    "license": "Apache-2.0"
+   },
+   "rich": {
+    "version": "15.0.0",
+    "uploaded": "2026-04-12",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "setuptools": {
+    "version": "84.2.1",
+    "uploaded": "2026-10-20",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "shellingham": {
+    "version": "1.5.4",
+    "uploaded": "2023-10-24",
+    "targets": 8,
+    "license": "ISC"
+   },
+   "smart-open": {
+    "version": "9.0.3",
+    "uploaded": "2026-11-09",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "spacy": {
+    "version": "3.8.18",
+    "uploaded": "2026-10-26",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "spacy-legacy": {
+    "version": "3.0.12",
+    "uploaded": "2023-01-23",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "spacy-loggers": {
+    "version": "1.0.5",
+    "uploaded": "2023-09-11",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "srsly": {
+    "version": "2.5.6",
+    "uploaded": "2026-11-03",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "thinc": {
+    "version": "8.3.14",
+    "uploaded": "2026-10-25",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "tqdm": {
+    "version": "4.70.1",
+    "uploaded": "2026-09-11",
+    "targets": 8,
+    "license": "MPL-2.0 AND MIT"
+   },
+   "typer": {
+    "version": "0.29.1",
+    "uploaded": "2026-11-11",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "typing-extensions": {
+    "version": "4.16.0",
+    "uploaded": "2026-07-02",
+    "targets": 8,
+    "license": "PSF-2.0"
+   },
+   "typing-inspection": {
+    "version": "0.4.5",
+    "uploaded": "2026-11-04",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "urllib3": {
+    "version": "2.8.0",
+    "uploaded": "2026-09-15",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "wasabi": {
+    "version": "1.1.3",
+    "uploaded": "2024-05-31",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "weasel": {
+    "version": "1.0.1",
+    "uploaded": "2026-10-26",
+    "targets": 8,
+    "license": "MIT"
+   },
+   "wrapt": {
+    "version": "2.5.2",
+    "uploaded": "2026-10-29",
+    "targets": 8,
+    "license": "BSD-2-Clause"
+   }
   }
  },
  "rounds": [
   {
-   "variant": "team",
+   "variant": "nlp",
    "round": 1,
    "constraints": {
-    "pycparser": "==3.11"
+    "annotated-doc": "<0.0.7",
+    "certifi": "<2026.11.20",
+    "charset-normalizer": "<3.5.3",
+    "exceptiongroup": "<1.3.2",
+    "numpy": "<2.5.5",
+    "packaging": "<26.4",
+    "pydantic": "<2.14.4",
+    "pydantic-core": "<2.50.5",
+    "smart-open": "<10.0.0",
+    "typer": "<0.29.3"
    }
   },
   {
-   "variant": "team",
+   "variant": "nlp",
    "round": 2,
    "constraints": {
-    "pycparser": "==3.11"
+    "annotated-doc": "<0.0.7",
+    "certifi": "<2026.11.20",
+    "charset-normalizer": "<3.5.3",
+    "exceptiongroup": "<1.3.2",
+    "numpy": "==2.2.6",
+    "packaging": "<26.4",
+    "pydantic": "<2.14.4",
+    "pydantic-core": "<2.50.5",
+    "smart-open": "<9.0.6",
+    "typer": "<0.29.2"
+   }
+  },
+  {
+   "variant": "nlp",
+   "round": 3,
+   "constraints": {
+    "annotated-doc": "<0.0.7",
+    "certifi": "<2026.11.20",
+    "charset-normalizer": "<3.5.3",
+    "exceptiongroup": "<1.3.2",
+    "numpy": "==2.2.6",
+    "packaging": "<26.4",
+    "pydantic": "<2.14.4",
+    "pydantic-core": "<2.50.5",
+    "smart-open": "<9.0.5",
+    "typer": "<0.29.2"
+   }
+  },
+  {
+   "variant": "nlp",
+   "round": 4,
+   "constraints": {
+    "annotated-doc": "<0.0.7",
+    "certifi": "<2026.11.20",
+    "charset-normalizer": "<3.5.3",
+    "exceptiongroup": "<1.3.2",
+    "numpy": "==2.2.6",
+    "packaging": "<26.4",
+    "pydantic": "<2.14.4",
+    "pydantic-core": "<2.50.5",
+    "smart-open": "<9.0.4",
+    "typer": "<0.29.2"
+   }
+  },
+  {
+   "variant": "nlp",
+   "round": 5,
+   "constraints": {
+    "annotated-doc": "<0.0.7",
+    "certifi": "<2026.11.20",
+    "charset-normalizer": "<3.5.3",
+    "exceptiongroup": "<1.3.2",
+    "numpy": "==2.2.6",
+    "packaging": "<26.4",
+    "pydantic": "<2.14.4",
+    "pydantic-core": "<2.50.5",
+    "smart-open": "<9.0.4",
+    "typer": "<0.29.2"
    }
   }
  ]

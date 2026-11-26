@@ -124,6 +124,15 @@ def derive_links(origin: str, links: list[dict], purpose: str = "website") -> li
     return [u for _, u in ordered[:MAX_PAGES-1]]
 
 
+def _structured_persons(page_html, url, chash):
+    """R2.1: Personen mit Funktion aus JSON-LD, Microdata, Tabellen und Karten – jede mit Beleg v2. Fehler sind kein Abbruch."""
+    try:
+        from .research.extractors import persons
+        return persons.extract(page_html, url, chash=chash)['persons']
+    except Exception:  # noqa: BLE001 – kaputte Seite darf den Abruf nicht stoppen
+        return []
+
+
 MIN_STATIC_TEXT = 200  # Zeichen: darunter gilt eine Seite als „ohne ausreichenden statischen Inhalt“
 
 
@@ -184,9 +193,13 @@ def light_crawl(url: str, purpose: str = "website") -> dict:
             if not clean:
                 raise CrawlError("Kein sichtbarer Seitentext.")
             from .research.extractors.content import main_text
-            main = main_text(decode_html(data) if isinstance(data, bytes) else data, final)
+            from .research.evidence import content_hash
+            page_html = decode_html(data) if isinstance(data, bytes) else data
+            main = main_text(page_html, final)
+            chash = content_hash(data)  # R2.3: SHA-256 der Abrufbytes
             pages.append({"url": final, "title": parsed["title"], "text": clean, "main_text": main["text"][:MAX_TEXT], "content_engine": main["engine"],
-                          "raw_text": text[:MAX_TEXT] if purpose in ("contacts", "full") else "",
+                          "raw_text": text[:MAX_TEXT] if purpose in ("contacts", "full") else "", "content_hash": chash,
+                          "persons": _structured_persons(page_html, final, chash) if purpose in ("contacts", "full") else [],
                           "headings": parsed["headings"], "form_count": parsed["forms"], "parser": parsed["engine"]})
             if len(pages) == 1:
                 found = derive_links(final, links, purpose)

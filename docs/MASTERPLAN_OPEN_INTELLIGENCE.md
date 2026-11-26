@@ -9,7 +9,7 @@
 
 **Wirtschaftlicher Kernindikator.** Kosten und Zeit je korrekt identifiziertem, relevantem und überprüftem Ansprechpartner. **Priorisierung:** Zuerst richtig finden, dann richtig zuordnen, erst danach visualisieren.
 
-**Stand aller 56 Arbeitspakete:** 16 offen · 19 teilweise · 12 erledigt · 9 blockiert.
+**Stand aller 56 Arbeitspakete:** 13 offen · 19 teilweise · 15 erledigt · 9 blockiert.
 
 ## Inhalt
 
@@ -66,7 +66,7 @@ flowchart LR
 |---|---|---|---|---|---|---|
 | **R0** | Baseline & Governance | 1–2 Wochen | – | Reproduzierbare Ausgangslage, eine Versionswahrheit, verbindliche Regeln, Skills und Sicherheits-Gates, bevor neue Recherchefunktionen entstehen. | Reproduzierbare Baseline (Unit, Browser, Python 3.10/3.13, CI-Matrix) mit Commit dokumentiert<br>Je Befund F01–F12 ein Verantwortlicher und ein Nachweisweg<br>README/ROADMAP/Einschränkungen nennen die aktuelle Version | 8 erledigt |
 | **R1** | Quellen, Discovery & Identität | 2–3 Wochen | R0 | Nur erlaubte Quellen, gezielte Seitensuche auf bekannten Websites, verlässliche Firmenidentität und eine unabhängige Referenzliste. | Source Registry sperrt ungeprüfte Quellen<br>Domain-Referenztest auf der Referenzliste gemessen (Company Match Precision)<br>Keine Regression im Abruf (Benchmark tools/bench_fetch.py) | 2 teilweise · 4 erledigt · 1 blockiert |
-| **R2** | Extraktion & Kandidaten-Sichtung | 2–3 Wochen | R1 | Personen und Rollen aus strukturierten und unstrukturierten Seiten mit vollständigem Beleg; Sichtung ohne automatische CRM-Übernahme. | Präzision und Recall der Rollen auf der Referenzliste gemessen<br>Sperren erreichen Kandidaten<br>Kein Kandidat gelangt ohne menschliche Freigabe ins CRM | 3 offen · 3 teilweise |
+| **R2** | Extraktion & Kandidaten-Sichtung | 2–3 Wochen | R1 | Personen und Rollen aus strukturierten und unstrukturierten Seiten mit vollständigem Beleg; Sichtung ohne automatische CRM-Übernahme. | Präzision und Recall der Rollen auf der Referenzliste gemessen<br>Sperren erreichen Kandidaten<br>Kein Kandidat gelangt ohne menschliche Freigabe ins CRM | 3 teilweise · 3 erledigt |
 | **R3** | Dokumente & Konzernbeziehungen | 2–3 Wochen | R1 | PDF/XML/CSV sicher und isoliert auswerten; GLEIF-Level-2-Beziehungen als belegte Konzernkanten. Läuft parallel nach R1; nicht auf dem kritischen Pfad. | Dokumentgrenzen (Größe, Zeit, Seiten) erzwungen<br>Jeder Wert mit Seiten- bzw. Feldbeleg<br>Parser ohne Netz- und Dateisystemzugriff außerhalb seines Arbeitsordners | 4 offen · 1 teilweise |
 | **R4** | Organisationsgraph, Buying Center & Dossier | 2–3 Wochen | R2 | Belegte Rollen-, Abteilungs- und Konzernbeziehungen in der Firmenakte; Buying Center und Sales-Dossier mit getrennten Bewertungen. | Null unbelegte bestätigte Kanten<br>UX-Test der Graph-Ansicht<br>Fit, Quellenqualität, Rollenrelevanz und bestätigter Bedarf getrennt | 5 offen · 2 teilweise |
 | **R5** | Lokaler Pilot (M21) | 2–3 Wochen | R4 | Messung an mindestens 100 Firmen und mit echten Pilotaufgaben; Fehler beheben; Kernabläufe regressionsgeprüft. | Referenzmessung an ≥ 100 Firmen gegen die Zielwerte<br>≥ 80 % der Pilotaufgaben ohne Hilfe, keine Datenverluste<br>Restore und fachliche Exporte (Angebot, Rechnung) regressionsgeprüft | 1 offen · 2 teilweise · 3 blockiert |
@@ -173,33 +173,36 @@ flowchart LR
 
 | ID | Paket | Prio | Status | Verantwortlich | Abhängig von | Abnahme |
 |---|---|---|---|---|---|---|
-| **R2.1** | Strukturierte Personendaten (JSON-LD, Microdata, Karten, Tabellen) | P0 | offen | Engineering | R1.3, R2.3 | Synthetische und Referenz-Fälle; jede Person mit Beleg (JSON-Pfad bzw. Textspanne) |
+| **R2.1** | Strukturierte Personendaten (JSON-LD, Microdata, Karten, Tabellen) | P0 | teilweise | Engineering | R1.3, R2.3 | Synthetische und Referenz-Fälle; jede Person mit Beleg (JSON-Pfad bzw. Textspanne) |
 | **R2.2** | Rollen normalisieren, Arbeitgeber belegen | P0 | teilweise | Engineering | R2.1 | Kontakt-/Rollenpräzision ≥ 95 %, Recall ≥ 70 % auf der Testmenge |
-| **R2.3** | Evidence-Vertrag v2 | P0 | teilweise | Engineering | – | Evidenzabdeckung 100 % für übernommene Claims<br>Beleg ohne Fundstelle wird verworfen (Test) |
-| **R2.4** | Kandidaten-Sichtung getrennt vom CRM | P0 | teilweise | Engineering | R2.2 | Kein Kandidat im CRM ohne Freigabe (Test mit gesperrter Firma) |
-| **R2.5** | Optionale lokale NLP (spaCy/GLiNER) im Vergleich | P1 | offen | Engineering | R2.1, R1.6 | Messbarer Gewinn gegenüber Regeln auf der Testmenge, sonst nicht einbauen |
-| **R2.6** | Skill contact-entity-evidence | P0 | offen | Engineering | R0.4 | Prüfpunkte mit Testpflicht für gesperrte Firma |
+| **R2.3** | Evidence-Vertrag v2 | P0 | erledigt | Engineering | – | Evidenzabdeckung 100 % für übernommene Claims<br>Beleg ohne Fundstelle wird verworfen (Test) |
+| **R2.4** | Kandidaten-Sichtung getrennt vom CRM | P0 | erledigt | Engineering | R2.2 | Kein Kandidat im CRM ohne Freigabe (Test mit gesperrter Firma) |
+| **R2.5** | Optionale lokale NLP (spaCy/GLiNER) im Vergleich | P1 | teilweise | Engineering | R2.1, R1.6 | Messbarer Gewinn gegenüber Regeln auf der Testmenge, sonst nicht einbauen |
+| **R2.6** | Skill contact-entity-evidence | P0 | erledigt | Engineering | R0.4 | Prüfpunkte mit Testpflicht für gesperrte Firma |
 
 - **R2.1 Strukturierte Personendaten (JSON-LD, Microdata, Karten, Tabellen).** JSON-LD Person/Organization (schemaorg als Referenz), Microdata, HTML-Karten und Tabellen; Regeln als Rückfall. Separat gelieferten person_jsonld-Prototyp prüfen (liegt nicht im Repo) und nur mit Belegvertrag und Regressionen übernehmen.
   Baut auf: `sales_tool/research/extractors/structured.py`, `sales_tool/public_contacts.py` (höchstens 5 Seiten).
   Neu: `sales_tool/research/extractors/persons.py`.
+  Stand: 2.0.0-dev70: sales_tool/research/extractors/persons.py – Personen aus JSON-LD (Person, auch employee/founder/member einer Organization, worksFor), Microdata (itemtype Person), Tabellen (Kopfzeile Name/Funktion oder genau ein Name und ein Titel je Zeile) und Team-Karten (genau ein Name je Karte); Zeilenregeln in public_contacts als Rückfall. Name UND Funktion je mit Beleg v2 aus demselben Objekt bzw. derselben Karte/Zeile (JSON-Pfad oder Textspanne im sichtbaren Text), Gegenprüfung persons.verify; keine Mobilnummern, keine E-Mail fremder Domains, keine Muster. Abruf hängt Personen und SHA-256 der Abrufbytes an jede Seite (light_crawl, Browser). tests/test_r2_persons.py; Messung tools/bench_persons.py → docs/bench/r2-persons.json (erfundene Testmenge: Präzision 9/9, Recall 9/12 gegenüber 2/4 und 2/12 der Zeilenregeln). Offen: Referenz-Fälle (R1.6, E3); person_jsonld-Prototyp liegt nicht vor – eigene Implementierung..
 - **R2.2 Rollen normalisieren, Arbeitgeber belegen.** Titel → normalisierte Rolle und Abteilung; Name und Rolle müssen zusammen belegt und dem richtigen Rechtsträger zugeordnet sein; keine abgeleiteten E-Mail-Muster, keine privaten Nummern.
   Baut auf: `sales_tool/contacts.py` (ROLE_SUGGESTIONS), `sales_tool/public_contacts.py`, `sales_tool/decision_finder.py`.
   Neu: role_claim (siehe R4.1).
-  Stand: Rollenregeln und Rollenvorschläge (public_contacts, contacts.ROLE_SUGGESTIONS), Prüfstatus in decision_finder; keine normalisierte Abteilung, kein Arbeitgeberbeleg.
+  Stand: 2.0.0-dev70: sales_tool/research/roles.py – Titel → normalisierte Rolle, Abteilung und Ebene (19 Regeln, unbekannte Titel bleiben „unklar“), gespeichert je Kandidat (role_key, department); Arbeitgeber: worksFor bzw. umgebende Organization aus JSON-LD, sonst Website der Firma; anderer genannter Arbeitgeber → Status „widersprüchlich“ (Übernahme nur mit ausdrücklicher Bestätigung); Zitate/Kundenstimmen erzeugen keine Kandidaten; keine E-Mail-Muster, keine Mobil- oder Freemail-Angaben. tests/test_r2_persons.py (RoleTests), tests/test_r2_candidates.py. Offen: Präzision ≥ 95 %/Recall ≥ 70 % auf der Referenzliste (R1.6) – auf erfundenen Seiten gemessen, siehe docs/bench/r2-persons.json..
 - **R2.3 Evidence-Vertrag v2.** Originalwert, Textspanne bzw. JSON-Pfad bzw. PDF-Seite, URL, SHA-256 der Abrufbytes, Abruf- und Publikationsdatum, Extraktorversion, Rechtsträger, Prüfstatus. Normalisierte Werte getrennt; wörtliche Belege deterministisch gegen den Quellinhalt geprüft.
   Baut auf: `sales_tool/research/evidence.py`, `sales_tool/company_data.py` (company_facts).
   Neu: evidence_ref (siehe R4.1).
-  Stand: Belegpflicht je Impressumsfeld seit Sprint 2 (v1.15); Textspanne/Extraktorversion fehlen.
+  Stand: 2.0.0-dev70: sales_tool/research/evidence.py – Beleg v2 mit Originalwert, normalisiertem Wert, Fundstelle (Textspanne mit Prüfsumme des Textes, JSON-Pfad oder PDF-Seite), URL, SHA-256 der Abrufbytes, Abruf- und Publikationsdatum, Extraktor mit Version, Rechtsträger und Prüfstatus; check_ref verwirft Belege ohne Fundstelle, verify_ref prüft wörtlich am Quellinhalt. Jeder Kandidat braucht Belege v2 für Name und Funktion (candidates.store), jede Übernahme ins CRM ebenso (candidates.review) – Evidenzabdeckung übernommener Personen-Claims 100 % durch Code erzwungen; Beleg wird beim CRM-Kontakt gespeichert (decision_contacts.evidence_json). tests/test_r2_evidence.py, tests/test_r2_candidates.py. Impressumsfelder nutzen weiter den Beleg v1 (validate_fields)..
 - **R2.4 Kandidaten-Sichtung getrennt vom CRM.** Status Kandidat, bestätigt, widersprüchlich, historisch, verworfen; TTL; Sperren, Löschung und Export erreichen Kandidaten; menschliche Freigabe vor CRM.
   Baut auf: `sales_tool/public_contacts.py` (contact_candidates, review_candidate), `sales_tool/quality.py` (Löschfristen).
   Neu: person_candidate (siehe R4.1).
-  Stand: Kandidaten werden nur nach Übernehmen zu Kontakten (Sprint C, tests/test_sprintC_report.py); Status nur ungeprüft/übernommen/abgelehnt, keine TTL.
+  Stand: 2.0.0-dev70: sales_tool/candidates.py – einziger Weg für Kandidaten (store) und ins CRM (review); Status kandidat, bestätigt, widersprüchlich, historisch, verworfen; Frist 180 Tage (Einstellung 30–730), danach gelöscht (Planer und Programmstart); Sperre (Phase, Widerspruch, Sperrliste, gesperrte E-Mail) verhindert Kandidat und Übernahme, neue Sperre, Sperre der Firma und Wiederherstellung löschen bestehende Kandidaten; Löschung eines CRM-Kontakts erreicht seine Kandidaten; Kandidaten im Organisations-Export (data_map). Migration Schema 50 (alte Status ungeprueft/freigegeben/abgelehnt abgebildet). tests/test_r2_candidates.py, tests/test_gate_isolation.py::RestoreGateTests::test_restore_does_not_bring_back_candidates_of_suppressed_company, tests/test_sprintS5_workday.py::LockTests::test_suppression_blocks_every_contact_path.
 - **R2.5 Optionale lokale NLP (spaCy/GLiNER) im Vergleich.** Nur nach Benchmark gegen die Regeln; Modelllizenz getrennt prüfen; Ausgabe nie automatisch als Person oder Arbeitgeber bestätigt.
   Baut auf: `sales_tool/ai_provider.py` (Ollama).
   Neu: optionales Profil „nlp“.
+  Stand: 2.0.0-dev70: Entscheidung des Eigentümers 26.11.2026: jetzt mit synthetischer Messung. sales_tool/research/extractors/nlp.py – optionales Profil „nlp“ (spaCy 3.8, de_core_news_sm 3.8.0), Schalter „nlp“ Standard aus, im Server für mehrere Organisationen gesperrt; schlägt nur PER-Namen neben einer bekannten Funktion vor, mit Beleg v2, nie bestätigt. requirements-nlp.txt, requirements-lock-nlp.txt (Python 3.10–3.13, spaCy ohne 3.14-Pakete), requirements-nlp-model.txt (Modell mit SHA-256). Messung docs/bench/r2-persons.json (erfundene Testmenge): Recall 12/12 statt 9/12, Präzision 12/12 wie 9/9, rund 200-fache Laufzeit; Vertrauensbereiche überlappen – Gewinn nicht belegt. GLiNER nicht geprüft (braucht PyTorch). tests/test_r2_nlp.py. Offen: Messung auf der Referenzliste (R1.6); Rechte an den Trainingsdaten des Modells (TIGER, WikiNER) für gewerblichen Einsatz (E8)..
 - **R2.6 Skill contact-entity-evidence.** Person/Rolle → Identität, Beleg, Kandidatenstatus, Sperren.
   Neu: `.claude/skills/contact-entity-evidence/SKILL.md`.
+  Stand: 2.0.0-dev70: .claude/skills/contact-entity-evidence/SKILL.md (neun Prüfpunkte mit Testpflicht für gesperrte Firma), docs/SKILLS_REGISTRY.md, tests/test_skills_registry.py.
 
 ### R3 – Dokumente & Konzernbeziehungen
 
@@ -463,7 +466,7 @@ Skills steuern die Arbeit von Claude Code; sie sind keine Laufzeitfunktion und k
 | dependency-security | vorhanden | neue Pakete oder Lockfile-Änderungen → SBOM, Advisory, Lizenz | R0.4 |
 | research-source-policy | vorhanden | neue Quelle oder Abruflogik → Rechte, Limits, SSRF, Offline | R1.2 |
 | research-benchmark | vorhanden | neue Extraktion → reproduzierbarer Vergleich | R1.7 |
-| contact-entity-evidence | offen | Person/Rolle → Identität, Beleg, Kandidatenstatus | R2.6 |
+| contact-entity-evidence | vorhanden | Person/Rolle → Identität, Beleg, Kandidatenstatus, Sperren | R2.6 |
 | document-intelligence | offen | PDF/XML/CSV → Isolation, Limits, Fundstellen | R3.5 |
 | organization-graph | offen | Beziehung → Typ, Beleg, Status, Zyklen, Export | R4.7 |
 | saas-operations | offen | Deployment → SBOM, Security, Restore, Mandantentests | R6.11 |
@@ -479,7 +482,7 @@ Skills steuern die Arbeit von Claude Code; sie sind keine Laufzeitfunktion und k
 | E5 | Eigentümer | Python-Support (3.10 behalten oder streichen) | R6.3 |
 | E6 | Betrieb | Hosting, Egress, TLS-Proxy, Quotas, Schlüsselverwahrung, Backup, Log-Anker | R6.1 |
 | E7 | Extern | Unabhängige Security-Nachprüfung F01–F12 je Artefaktdigest | R6.10 |
-| E8 | Recht | Datenschutz und Wettbewerbsrecht (Art. 14/21 DSGVO, § 7 UWG, AVV, Quellen-/Exportrechte) | R7.3 |
+| E8 | Recht | Datenschutz und Wettbewerbsrecht (Art. 14/21 DSGVO, § 7 UWG, AVV, Quellen-/Exportrechte) – dazu Rechte an den Trainingsdaten des NLP-Modells de_core_news_sm (TIGER, WikiNER) vor gewerblichem Einsatz (R2.5) | R7.3 |
 | E9 | Steuerberatung | DATEV-Probeimport, offizieller XRechnung-Validator | R5.6 |
 
 ## Bezug zur bisherigen Roadmap

@@ -157,8 +157,11 @@ def add_suppression(conn, kind, value, reason='', lead_id=None, display=None):
     if not norm or len(norm) < 3:
         return None
     disp = display or (' '.join(value) if isinstance(value, (tuple, list)) else str(value))
-    conn.execute('INSERT OR IGNORE INTO suppression_list(kind, value, display, reason, lead_id) VALUES (?,?,?,?,?)',
-                 (kind, norm, disp[:200], (reason or '')[:300], lead_id))
+    cur = conn.execute('INSERT OR IGNORE INTO suppression_list(kind, value, display, reason, lead_id) VALUES (?,?,?,?,?)',
+                       (kind, norm, disp[:200], (reason or '')[:300], lead_id))
+    if cur.rowcount:  # R2.4: eine neue Sperre erreicht auch Personen-Kandidaten
+        from .candidates import purge_locked
+        purge_locked(conn)
     return norm
 
 
@@ -179,6 +182,8 @@ def suppress_lead(conn, lead_id, reason='Widerspruch / Kontaktsperre'):
     if lead['business_email']:
         added.append(add_suppression(conn, 'email', lead['business_email'], reason, lead_id))
     _audit(conn, 'suppression', lead_id, 'lead_gesperrt', reason)
+    from .candidates import purge_lead
+    purge_lead(conn, lead_id, reason)  # R2.4: Kandidaten einer gesperrten Firma löschen (auch wenn keine neue Sperre entstand)
     return [a for a in added if a]
 
 

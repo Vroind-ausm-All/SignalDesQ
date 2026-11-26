@@ -5,14 +5,16 @@
 - browser_fallback: Seiten ohne statischen Text zusätzlich mit dem Browser (Playwright, JavaScript aus) lesen – nur wenn installiert
 - content: Haupttext-Leser 'stdlib' (Standard) oder 'trafilatura' (optional, requirements-research.txt)
 - mode: Recherchemodus der Organisation (R1.4): 'quick', 'deep' (Standard) oder 'org' – Budget je Auftragsschritt
+- nlp: Personennamen zusätzlich mit spaCy vorschlagen (R2.5, Standard aus, requirements-nlp.txt) – nie bestätigt, immer mit Beleg
 """
 from __future__ import annotations
 
 import threading
 
-DEFAULTS = {'fetcher': 'http', 'parser': 'stdlib', 'browser_fallback': True, 'content': 'stdlib', 'mode': 'deep'}  # Messung S1: Scrapling ohne Vorteil, 2,4× langsamer
+DEFAULTS = {'fetcher': 'http', 'parser': 'stdlib', 'browser_fallback': True, 'content': 'stdlib', 'mode': 'deep', 'nlp': False}  # Messung S1: Scrapling ohne Vorteil, 2,4× langsamer
 CHOICES = {'fetcher': ('http', 'legacy'), 'parser': ('auto', 'scrapling', 'stdlib'), 'browser_fallback': (True, False),
-           'content': ('stdlib', 'trafilatura'), 'mode': ('quick', 'deep', 'org')}  # mode: R1.4, Budget je Auftragsschritt
+           'content': ('stdlib', 'trafilatura'), 'mode': ('quick', 'deep', 'org'),  # mode: R1.4, Budget je Auftragsschritt
+           'nlp': (False, True)}  # R2.5: optionales Profil „nlp“ (spaCy), Standard aus
 KEY = 'research_settings'
 _LOCK = threading.Lock()
 # SDQ-036 (Prüfbericht F04): Schalter je Organisation. _BY_DB hält sie je Datenbank (wie der Offline-Schalter); _CURRENT gilt
@@ -114,8 +116,10 @@ def status():
         except Exception:  # noqa: BLE001
             version = '?'
     from .budget import modes
+    from .extractors import nlp
     return {'settings': get(), 'modes': modes(), 'parser_in_use': engine(), 'scrapling': {'installed': bool(version), 'version': version},
             'browser': {'installed': browser.available()}, 'trafilatura': {'installed': trafilatura_available()},
+            'nlp': {'installed': nlp.available(), 'model': nlp.MODEL},
             'notice': 'Abruf immer mit IP-Pinning, robots.txt (RFC 9309) und Größenbremsen. Scrapling dient nur der HTML-Auswertung; '
                       'sein eigener Abruf ist nicht eingebaut (Tarnung als Chrome und Google-Referer als Voreinstellung, kein IP-Pinning).'}
 

@@ -73,7 +73,13 @@ def crawl(initial, purpose, max_pages, max_text, robots_allowed, public_url, sam
                     clean = re.sub(r'\s+', ' ', str(data.get('text', ''))).strip()[:max_text]
                     if not clean:
                         raise CrawlError('Kein sichtbarer Seitentext.')
-                    pages.append({'url': final, 'title': str(data.get('title', ''))[:220], 'text': clean,
+                    extra = {}
+                    if purpose in ('contacts', 'full'):  # R2.1/R2.3: Personen aus dem gerenderten HTML, Prüfsumme des HTML
+                        from ...website_analyzer import _structured_persons
+                        from ..evidence import content_hash
+                        dom = page.content()
+                        extra = {'content_hash': content_hash(dom), 'persons': _structured_persons(dom, final, content_hash(dom))}
+                    pages.append({'url': final, 'title': str(data.get('title', ''))[:220], 'text': clean, **extra,
                                   'raw_text': str(data.get('text', ''))[:max_text] if purpose in ('contacts', 'full') else '',
                                   'headings': data.get('headings', [])[:25], 'form_count': int(data.get('forms', 0))})
                     if len(pages) == 1:

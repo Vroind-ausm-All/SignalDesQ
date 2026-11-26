@@ -170,15 +170,12 @@ def import_scan(conn, scan_id: int) -> dict:
                      (lid,json.dumps(result['site']['pages'],ensure_ascii=False),
                       json.dumps(result['contact_channels'],ensure_ascii=False),json.dumps(result['warnings'],ensure_ascii=False)))
     cid=cur.lastrowid
-    for p in result['decision_makers']['people']:
-        conn.execute('''INSERT INTO contact_candidates(run_id,lead_id,full_name,job_title,role_hint,priority,business_email,
-                        business_phone,phone_type,source_url,evidence) VALUES (?,?,?,?,?,?,?,?,?,?,?)''',
-                     (cid,lid,*(p[k] for k in ('full_name','job_title','role_hint','priority','business_email',
-                                             'business_phone','phone_type','source_url','evidence'))))
+    from .candidates import store_all
+    stored=store_all(conn,cid,lid,result['decision_makers']['people'])['stored']  # R2.4: Sperre, Beleg v2, Frist
     conn.execute('UPDATE quick_scans SET lead_id=? WHERE id=?',(lid,scan_id))
     return {'lead_id':lid,'existing':bool(found),'already_imported':False,
             'findings_pending_review':len(audit['findings']),
-            'contacts_pending_review':len(result['decision_makers']['people'])}
+            'contacts_pending_review':stored}
 
 
 def demo_report() -> dict:

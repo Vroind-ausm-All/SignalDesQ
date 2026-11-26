@@ -491,7 +491,7 @@
       "id": "R2.1",
       "titel": "Strukturierte Personendaten (JSON-LD, Microdata, Karten, Tabellen)",
       "prio": "P0",
-      "status": "offen",
+      "status": "teilweise",
       "verantwortlich": "Engineering",
       "inhalt": "JSON-LD Person/Organization (schemaorg als Referenz), Microdata, HTML-Karten und Tabellen; Regeln als Rückfall. Separat gelieferten person_jsonld-Prototyp prüfen (liegt nicht im Repo) und nur mit Belegvertrag und Regressionen übernehmen.",
       "basis": [
@@ -507,7 +507,8 @@
       ],
       "abnahme": [
         "Synthetische und Referenz-Fälle; jede Person mit Beleg (JSON-Pfad bzw. Textspanne)"
-      ]
+      ],
+      "nachweis": "2.0.0-dev70: sales_tool/research/extractors/persons.py – Personen aus JSON-LD (Person, auch employee/founder/member einer Organization, worksFor), Microdata (itemtype Person), Tabellen (Kopfzeile Name/Funktion oder genau ein Name und ein Titel je Zeile) und Team-Karten (genau ein Name je Karte); Zeilenregeln in public_contacts als Rückfall. Name UND Funktion je mit Beleg v2 aus demselben Objekt bzw. derselben Karte/Zeile (JSON-Pfad oder Textspanne im sichtbaren Text), Gegenprüfung persons.verify; keine Mobilnummern, keine E-Mail fremder Domains, keine Muster. Abruf hängt Personen und SHA-256 der Abrufbytes an jede Seite (light_crawl, Browser). tests/test_r2_persons.py; Messung tools/bench_persons.py → docs/bench/r2-persons.json (erfundene Testmenge: Präzision 9/9, Recall 9/12 gegenüber 2/4 und 2/12 der Zeilenregeln). Offen: Referenz-Fälle (R1.6, E3); person_jsonld-Prototyp liegt nicht vor – eigene Implementierung."
     },
     {
       "id": "R2.2",
@@ -530,13 +531,13 @@
       "abnahme": [
         "Kontakt-/Rollenpräzision ≥ 95 %, Recall ≥ 70 % auf der Testmenge"
       ],
-      "nachweis": "Rollenregeln und Rollenvorschläge (public_contacts, contacts.ROLE_SUGGESTIONS), Prüfstatus in decision_finder; keine normalisierte Abteilung, kein Arbeitgeberbeleg"
+      "nachweis": "2.0.0-dev70: sales_tool/research/roles.py – Titel → normalisierte Rolle, Abteilung und Ebene (19 Regeln, unbekannte Titel bleiben „unklar“), gespeichert je Kandidat (role_key, department); Arbeitgeber: worksFor bzw. umgebende Organization aus JSON-LD, sonst Website der Firma; anderer genannter Arbeitgeber → Status „widersprüchlich“ (Übernahme nur mit ausdrücklicher Bestätigung); Zitate/Kundenstimmen erzeugen keine Kandidaten; keine E-Mail-Muster, keine Mobil- oder Freemail-Angaben. tests/test_r2_persons.py (RoleTests), tests/test_r2_candidates.py. Offen: Präzision ≥ 95 %/Recall ≥ 70 % auf der Referenzliste (R1.6) – auf erfundenen Seiten gemessen, siehe docs/bench/r2-persons.json."
     },
     {
       "id": "R2.3",
       "titel": "Evidence-Vertrag v2",
       "prio": "P0",
-      "status": "teilweise",
+      "status": "erledigt",
       "verantwortlich": "Engineering",
       "inhalt": "Originalwert, Textspanne bzw. JSON-Pfad bzw. PDF-Seite, URL, SHA-256 der Abrufbytes, Abruf- und Publikationsdatum, Extraktorversion, Rechtsträger, Prüfstatus. Normalisierte Werte getrennt; wörtliche Belege deterministisch gegen den Quellinhalt geprüft.",
       "basis": [
@@ -551,13 +552,13 @@
         "Evidenzabdeckung 100 % für übernommene Claims",
         "Beleg ohne Fundstelle wird verworfen (Test)"
       ],
-      "nachweis": "Belegpflicht je Impressumsfeld seit Sprint 2 (v1.15); Textspanne/Extraktorversion fehlen"
+      "nachweis": "2.0.0-dev70: sales_tool/research/evidence.py – Beleg v2 mit Originalwert, normalisiertem Wert, Fundstelle (Textspanne mit Prüfsumme des Textes, JSON-Pfad oder PDF-Seite), URL, SHA-256 der Abrufbytes, Abruf- und Publikationsdatum, Extraktor mit Version, Rechtsträger und Prüfstatus; check_ref verwirft Belege ohne Fundstelle, verify_ref prüft wörtlich am Quellinhalt. Jeder Kandidat braucht Belege v2 für Name und Funktion (candidates.store), jede Übernahme ins CRM ebenso (candidates.review) – Evidenzabdeckung übernommener Personen-Claims 100 % durch Code erzwungen; Beleg wird beim CRM-Kontakt gespeichert (decision_contacts.evidence_json). tests/test_r2_evidence.py, tests/test_r2_candidates.py. Impressumsfelder nutzen weiter den Beleg v1 (validate_fields)."
     },
     {
       "id": "R2.4",
       "titel": "Kandidaten-Sichtung getrennt vom CRM",
       "prio": "P0",
-      "status": "teilweise",
+      "status": "erledigt",
       "verantwortlich": "Engineering",
       "inhalt": "Status Kandidat, bestätigt, widersprüchlich, historisch, verworfen; TTL; Sperren, Löschung und Export erreichen Kandidaten; menschliche Freigabe vor CRM.",
       "basis": [
@@ -573,13 +574,13 @@
       "abnahme": [
         "Kein Kandidat im CRM ohne Freigabe (Test mit gesperrter Firma)"
       ],
-      "nachweis": "Kandidaten werden nur nach Übernehmen zu Kontakten (Sprint C, tests/test_sprintC_report.py); Status nur ungeprüft/übernommen/abgelehnt, keine TTL"
+      "nachweis": "2.0.0-dev70: sales_tool/candidates.py – einziger Weg für Kandidaten (store) und ins CRM (review); Status kandidat, bestätigt, widersprüchlich, historisch, verworfen; Frist 180 Tage (Einstellung 30–730), danach gelöscht (Planer und Programmstart); Sperre (Phase, Widerspruch, Sperrliste, gesperrte E-Mail) verhindert Kandidat und Übernahme, neue Sperre, Sperre der Firma und Wiederherstellung löschen bestehende Kandidaten; Löschung eines CRM-Kontakts erreicht seine Kandidaten; Kandidaten im Organisations-Export (data_map). Migration Schema 50 (alte Status ungeprueft/freigegeben/abgelehnt abgebildet). tests/test_r2_candidates.py, tests/test_gate_isolation.py::RestoreGateTests::test_restore_does_not_bring_back_candidates_of_suppressed_company, tests/test_sprintS5_workday.py::LockTests::test_suppression_blocks_every_contact_path"
     },
     {
       "id": "R2.5",
       "titel": "Optionale lokale NLP (spaCy/GLiNER) im Vergleich",
       "prio": "P1",
-      "status": "offen",
+      "status": "teilweise",
       "verantwortlich": "Engineering",
       "inhalt": "Nur nach Benchmark gegen die Regeln; Modelllizenz getrennt prüfen; Ausgabe nie automatisch als Person oder Arbeitgeber bestätigt.",
       "basis": [
@@ -594,13 +595,14 @@
       ],
       "abnahme": [
         "Messbarer Gewinn gegenüber Regeln auf der Testmenge, sonst nicht einbauen"
-      ]
+      ],
+      "nachweis": "2.0.0-dev70: Entscheidung des Eigentümers 26.11.2026: jetzt mit synthetischer Messung. sales_tool/research/extractors/nlp.py – optionales Profil „nlp“ (spaCy 3.8, de_core_news_sm 3.8.0), Schalter „nlp“ Standard aus, im Server für mehrere Organisationen gesperrt; schlägt nur PER-Namen neben einer bekannten Funktion vor, mit Beleg v2, nie bestätigt. requirements-nlp.txt, requirements-lock-nlp.txt (Python 3.10–3.13, spaCy ohne 3.14-Pakete), requirements-nlp-model.txt (Modell mit SHA-256). Messung docs/bench/r2-persons.json (erfundene Testmenge): Recall 12/12 statt 9/12, Präzision 12/12 wie 9/9, rund 200-fache Laufzeit; Vertrauensbereiche überlappen – Gewinn nicht belegt. GLiNER nicht geprüft (braucht PyTorch). tests/test_r2_nlp.py. Offen: Messung auf der Referenzliste (R1.6); Rechte an den Trainingsdaten des Modells (TIGER, WikiNER) für gewerblichen Einsatz (E8)."
     },
     {
       "id": "R2.6",
       "titel": "Skill contact-entity-evidence",
       "prio": "P0",
-      "status": "offen",
+      "status": "erledigt",
       "verantwortlich": "Engineering",
       "inhalt": "Person/Rolle → Identität, Beleg, Kandidatenstatus, Sperren.",
       "basis": [],
@@ -612,7 +614,8 @@
       ],
       "abnahme": [
         "Prüfpunkte mit Testpflicht für gesperrte Firma"
-      ]
+      ],
+      "nachweis": "2.0.0-dev70: .claude/skills/contact-entity-evidence/SKILL.md (neun Prüfpunkte mit Testpflicht für gesperrte Firma), docs/SKILLS_REGISTRY.md, tests/test_skills_registry.py"
     },
     {
       "id": "R3.1",
@@ -1371,7 +1374,7 @@
     {
       "id": "E8",
       "verantwortlich": "Recht",
-      "thema": "Datenschutz und Wettbewerbsrecht (Art. 14/21 DSGVO, § 7 UWG, AVV, Quellen-/Exportrechte)",
+      "thema": "Datenschutz und Wettbewerbsrecht (Art. 14/21 DSGVO, § 7 UWG, AVV, Quellen-/Exportrechte) – dazu Rechte an den Trainingsdaten des NLP-Modells de_core_news_sm (TIGER, WikiNER) vor gewerblichem Einsatz (R2.5)",
       "benoetigt_fuer": "R7.3"
     },
     {
@@ -1841,9 +1844,9 @@
     },
     {
       "name": "contact-entity-evidence",
-      "status": "offen",
+      "status": "vorhanden",
       "paket": "R2.6",
-      "ausloeser": "Person/Rolle → Identität, Beleg, Kandidatenstatus"
+      "ausloeser": "Person/Rolle → Identität, Beleg, Kandidatenstatus, Sperren"
     },
     {
       "name": "document-intelligence",
