@@ -30,6 +30,7 @@ Feste Versionen mit SHA-256-Prüfsummen in `requirements-lock-*.txt`; installier
 | charset-normalizer | 3.5.2 | MIT | nlp, research | 2026-09-30 |
 | click | 8.5.1 | BSD-3-Clause | nlp | 2026-11-06 |
 | cloudpathlib | 0.26.0 | MIT | nlp | 2026-10-02 |
+| colorama | 0.4.6 | BSD-3-Clause | nlp (sys_platform == "win32") | 2022-10-25 |
 | confection | 1.3.4 | MIT | nlp | 2026-10-26 |
 | courlan | 1.4.0 | Apache-2.0 | research | 2026-06-01 |
 | cryptography | 50.0.2 | Apache-2.0 OR BSD-3-Clause | team | 2026-09-30 |

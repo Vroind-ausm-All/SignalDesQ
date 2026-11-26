@@ -12,6 +12,9 @@ Ergebnis: requirements-lock-<variante>.txt im Projektordner + docs/bench/lock-re
 `python_version < "3.11"` für den laufenden Interpreter aus, nicht für `--python-version` – unter 3.13 aufgelöst fehlte
 z. B. typing-extensions, das cryptography unter Python 3.10 braucht (Variante „team“ war dort nicht installierbar).
 Interpreter: `--interpreter 3.10=/pfad/python` oder automatisch über `uv python find` (mit pip versorgt per `uv venv --seed`).
+
+2.0.0-dev70: Plattform-Bedingungen (`platform_system == "Windows"`) werden zusätzlich für das Zielsystem geprüft und fehlende
+Abhängigkeiten nachgezogen (z. B. colorama für tqdm/click unter Windows).
 """
 from __future__ import annotations
 
@@ -122,9 +125,48 @@ def interpreter_for(python):
     return exe
 
 
+def _target_env(platform, python):
+    """Umgebung des Zielsystems für Bedingungen wie `platform_system == "Windows"` (pip wertet sie sonst für den laufenden
+    Rechner aus: unter Linux für Windows aufgelöst fehlte z. B. colorama, das tqdm und click unter Windows brauchen)."""
+    win = platform == 'windows'
+    return {'sys_platform': 'win32' if win else 'linux', 'platform_system': 'Windows' if win else 'Linux',
+            'os_name': 'nt' if win else 'posix', 'platform_machine': 'AMD64' if win else 'x86_64',
+            'python_version': python, 'python_full_version': f'{python}.0', 'implementation_name': 'cpython',
+            'platform_python_implementation': 'CPython', 'extra': ''}
+
+
+def _missing_for_target(install, platform, python):
+    """Abhängigkeiten, die auf dem Ziel gelten, aber in der Auflösung fehlen → Liste von Anforderungen ohne Bedingung."""
+    try:
+        from packaging.requirements import Requirement
+    except ImportError:  # pragma: no cover – pip bringt packaging immer mit
+        from pip._vendor.packaging.requirements import Requirement
+    env = _target_env(platform, python)
+    have = {i['metadata']['name'].lower().replace('_', '-') for i in install}
+    out = {}
+    for item in install:
+        for spec in item['metadata'].get('requires_dist') or []:
+            req = Requirement(spec)
+            key = req.name.lower().replace('_', '-')
+            if key in have or not req.marker or not req.marker.evaluate(env):
+                continue
+            out[key] = f'{req.name}{req.specifier}'
+    return out
+
+
 def resolve(req_files, constraints, platform, python):
+    extra = {}
+    for _ in range(4):
+        pins, err, missing = _resolve_once(req_files, constraints, platform, python, extra)
+        if pins is None or not missing.keys() - extra.keys():
+            return pins, err
+        extra.update(missing)
+    return None, [f'Zielabhängigkeiten nicht stabil: {sorted(extra)}']
+
+
+def _resolve_once(req_files, constraints, platform, python, extra):
     with tempfile.TemporaryDirectory() as tmp:
-        report, cons = Path(tmp) / 'r.json', Path(tmp) / 'c.txt'
+        report, cons, add = Path(tmp) / 'r.json', Path(tmp) / 'c.txt', Path(tmp) / 'a.txt'
         cons.write_text('\n'.join(f'{k}{v}' for k, v in sorted(constraints.items())) + '\n', encoding='utf-8')
         cmd = [interpreter_for(python), '-m', 'pip', 'install', '-q', '--dry-run', '--ignore-installed', '--report', str(report),
                '--python-version', python, '--implementation', 'cp', '--only-binary=:all:', '-c', str(cons)]
@@ -132,11 +174,15 @@ def resolve(req_files, constraints, platform, python):
             cmd += ['--platform', p]
         for f in req_files:
             cmd += ['-r', str(ROOT / f)]
+        if extra:
+            add.write_text('\n'.join(sorted(extra.values())) + '\n', encoding='utf-8')
+            cmd += ['-r', str(add)]
         r = subprocess.run(cmd, capture_output=True, text=True)
         if r.returncode != 0:
-            return None, [l for l in (r.stderr or r.stdout).strip().splitlines() if l.strip()][-12:]
-        d = json.loads(report.read_text(encoding='utf-8'))
-        return {i['metadata']['name'].lower().replace('_', '-'): i['metadata']['version'] for i in d['install']}, []
+            return None, [l for l in (r.stderr or r.stdout).strip().splitlines() if l.strip()][-12:], {}
+        install = json.loads(report.read_text(encoding='utf-8'))['install']
+        pins = {i['metadata']['name'].lower().replace('_', '-'): i['metadata']['version'] for i in install}
+        return pins, [], _missing_for_target(install, platform, python)
 
 
 def explicit_pins(req_files):

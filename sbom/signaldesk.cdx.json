@@ -1,7 +1,7 @@
 {
  "bomFormat": "CycloneDX",
  "specVersion": "1.5",
- "serialNumber": "urn:uuid:354bbcdd-7629-5840-9fd0-4ed9ed1e8ba0",
+ "serialNumber": "urn:uuid:07fdc44d-4a9b-57f1-9007-168014b13509",
  "version": 1,
  "metadata": {
   "tools": {
@@ -1853,6 +1853,49 @@
     {
      "type": "distribution",
      "url": "https://pypi.org/project/cloudpathlib/0.26.0/"
+    }
+   ]
+  },
+  {
+   "type": "library",
+   "bom-ref": "pkg:pypi/colorama@0.4.6",
+   "name": "colorama",
+   "version": "0.4.6",
+   "purl": "pkg:pypi/colorama@0.4.6",
+   "scope": "optional",
+   "licenses": [
+    {
+     "expression": "BSD-3-Clause"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"
+    },
+    {
+     "alg": "SHA-256",
+     "content": "4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"
+    }
+   ],
+   "properties": [
+    {
+     "name": "signaldesk:marker",
+     "value": "sys_platform == \"win32\""
+    },
+    {
+     "name": "signaldesk:released",
+     "value": "2022-10-25"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "nlp"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://pypi.org/project/colorama/0.4.6/"
     }
    ]
   },
@@ -9942,6 +9985,7 @@
     "pkg:pypi/charset-normalizer@3.5.2",
     "pkg:pypi/click@8.5.1",
     "pkg:pypi/cloudpathlib@0.26.0",
+    "pkg:pypi/colorama@0.4.6",
     "pkg:pypi/confection@1.3.4",
     "pkg:pypi/courlan@1.4.0",
     "pkg:pypi/cryptography@50.0.2",
