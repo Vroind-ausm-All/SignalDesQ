@@ -22,7 +22,19 @@
   Verbindung, 403 vom Server, Rollen, Mandantengrenze, Neustart), `tests/test_r1_budget.py` (8 Fälle) und
   `tests/e2e/test_r1_source_registry_browser.py`.
 
-## 2.0.0-dev68 – Passwortregel, zweiter Faktor empfohlen, Python 3.14 geprüft
+## 2.0.0-dev68 – Passwortregel, zweiter Faktor empfohlen, TOTP-Geheimnisse verschlüsselt, signierte Sicherungen, Python 3.14
+
+- **Ende von Python 3.10 angekündigt:** Starter und beide Server zeigen unter Python 3.10 einen Hinweis: Die nächste Version
+  braucht Python 3.11 oder neuer (empfohlen 3.14). 3.10 bekommt seit Oktober 2026 keine Sicherheitskorrekturen. Diese Version
+  läuft unter 3.10 noch unverändert (Entscheidung E5 vom 26.11.2026: erst ankündigen, im folgenden Release streichen).
+- **TOTP-Geheimnisse verschlüsselt (F09):** Im Verzeichnis `organisationen.sqlite3` steht das Geheimnis nur noch verschlüsselt,
+  an das Konto gebunden. Schlüssel `mfa.key` im Schlüsselordner neben dem Datenordner (`<root>.schluessel`, nie in Sicherungen).
+  Bestehende Klartext-Einträge werden beim ersten Start verschlüsselt. Fehlt der Schlüssel, startet der Dienst nicht und nennt
+  ihn; ein neuer wird dann nie still angelegt. Nur Standardbibliothek (Encrypt-then-MAC mit HMAC-SHA256), also in jeder Variante.
+- **Signierte Sicherungssätze (F06):** `manifest.sig` mit Ed25519 über das Manifest (Variante „team“). Prüfen, Zurückspielen und
+  Gesamtwiederherstellung lehnen falsche Signaturen immer ab, unsignierte Sätze nur mit `--unsigniert-zulassen` (im Protokoll).
+  Ersatzsystem: Kopie des Schlüsselordners zurücklegen oder `--oeffentlicher-schluessel DATEI`. Neuer Befehl `betreiber … schluessel`.
+  systemd-Vorlagen dürfen `/srv/signaldesk.schluessel` schreiben; Handbuch ergänzt. Tests: `tests/test_dev68_schluessel.py`.
 
 - **Passwortregel:** mindestens 12 Zeichen (bisher 10), Groß- und Kleinbuchstaben und mindestens ein Sonderzeichen. Gilt überall, wo ein
   Passwort gesetzt wird: Einrichtung, Benutzerverwaltung, Passwortwechsel, zentrale Konten, Registrierung, Einladung, Betreiber-Reset.
@@ -30,7 +42,7 @@
 - **Zweiter Faktor empfohlen:** In der Mehrmandanten-Installation zeigt die Anmeldung ohne zweiten Faktor danach „Zwei-Faktor-Anmeldung
   empfohlen“ mit „Jetzt einrichten“ und „Später“. Ohne Pflicht bleibt er freiwillig; die Antwort der Anmeldung trägt `suggest_2fa`.
 - **Python 3.14:** Unit-Tests und Probe-Installation aller Lockdateien laufen in der CI zusätzlich unter Python 3.14 (Windows, Linux);
-  lokal 998 Tests unter 3.14.6 und 3.15.0b4 grün. Python 3.10 bleibt unterstützt (Entscheidung offen); 3.15 scheitert nur an rapidfuzz
+  lokal 998 Tests unter 3.14.6 und 3.15.0b4 grün. 3.15 scheitert nur an rapidfuzz
   in der Variante „research“. `tools/make_lock.py` löst künftig auch für 3.14 auf.
 
 ## 2.0.0-dev67 – Open-Intelligence-Plan R0–R7 eingearbeitet; Phase R0 (Baseline & Governance) abgeschlossen

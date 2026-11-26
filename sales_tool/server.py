@@ -1154,6 +1154,9 @@ def main():
     if port != args.port:
         print(f"Port {args.port} ist belegt – weiche auf {port} aus.")
     print(f"SignalDesk läuft: {url}  |  Daten: {db}")
+    from .python_support import notice as python_notice
+    if python_notice():  # dev68: Ende von Python 3.10 ankündigen
+        print(python_notice())
     print("Dieses Fenster offen lassen, solange du SignalDesk nutzt. Beenden: Fenster schließen oder Strg+C.")
     if args.open_browser:
         open_browser_later(url)

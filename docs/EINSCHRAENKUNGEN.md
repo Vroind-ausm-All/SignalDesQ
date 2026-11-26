@@ -379,9 +379,14 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Leerzeichen zählen nicht als Sonderzeichen; Umlaute zählen als Buchstaben.
 - Den zweiten Faktor (TOTP) gibt es nur in der Mehrmandanten-Installation (zentrale Anmeldung). Dort wird er nach jeder Anmeldung ohne
   zweiten Faktor empfohlen; „Später“ führt weiter. Die Einzelplatz-Team-Anmeldung kennt keinen zweiten Faktor.
-- TOTP-Geheimnisse liegen weiter unverschlüsselt im Verzeichnis `organisationen.sqlite3`; Sicherungssätze sind nicht signiert
-  (Entscheidung offen, Prüfbericht F06/F09).
-- Python 3.14 ist in der CI (Windows, Linux) geprüft. Python 3.15 lief lokal mit 3.15.0b4 grün, ist aber nicht zugesagt: Die
+- TOTP-Geheimnisse sind verschlüsselt, der Schlüssel liegt aber auf demselben Server (eigener Ordner, eigene Rechte). Wer den
+  Server selbst übernimmt, kommt an beides; geschützt sind Kopien der Datenbank und Sicherungssätze. Einen Schlüsselwechsel
+  (Rotation) gibt es noch nicht als Befehl.
+- Die Signatur der Sicherungssätze braucht das Paket `cryptography` (Variante „team“); ohne es entstehen unsignierte Sätze. Der
+  private Signaturschlüssel liegt auf dem Server – er schützt gegen Änderungen am Ablageort der Sätze, nicht gegen jemanden mit
+  Zugriff auf den Server. Die Sicherung der Einzelplatz-Installation (`backup_restore`) ist nicht signiert.
+- Den Hinweis auf das Ende von Python 3.10 gibt es nur im Fenster bzw. Protokoll des Servers, nicht in der Oberfläche.
+- Python 3.10 wird im nächsten Release gestrichen (angekündigt). Python 3.14 ist in der CI (Windows, Linux) geprüft. Python 3.15 lief lokal mit 3.15.0b4 grün, ist aber nicht zugesagt: Die
   Recherche-Variante ist dort nicht installierbar (rapidfuzz 3.14.5 ohne Pakete für 3.15; die nächste Version unterstützt 3.10 nicht).
 
 ## Source Registry (2.0.0-dev69, Plan R1.1)

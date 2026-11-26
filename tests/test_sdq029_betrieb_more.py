@@ -8,6 +8,7 @@
 Alle Daten fiktiv."""
 import csv
 import json
+import shutil
 import sqlite3
 import sys
 import tempfile
@@ -24,7 +25,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / 'tests'))
 sys.path.insert(0, str(ROOT / 'tools'))
 
-from sales_tool import abrechnung, accounts, auth, backup_crypto, betreiber, ops, quality, tenancy  # noqa: E402
+from sales_tool import abrechnung, accounts, auth, backup_crypto, betreiber, ops, quality, schluessel, tenancy  # noqa: E402
 from sales_tool.model import connect  # noqa: E402
 from sales_tool.multi_server import make_multi_handler  # noqa: E402
 from sales_tool.research import benchmark as bm  # noqa: E402
@@ -194,6 +195,17 @@ class CopyBackupTests(Base):
 
 
 class RestoreInstallationTests(Base):
+    def setUp(self):
+        super().setUp()
+        self.new_root = self.base_dir / 'neu'
+
+    def _bring_keys(self, new_root):
+        """dev68: Auf dem Ersatzsystem legt der Betreiber die verwahrte Kopie des Schlüsselordners neben den neuen
+        Datenordner (öffentlicher Signaturschlüssel, Schlüssel der TOTP-Geheimnisse)."""
+        src = schluessel.key_dir(self.root)
+        if src.exists():
+            shutil.copytree(src, schluessel.key_dir(new_root))
+
     def _check_restored(self, new_root):
         d = tenancy.Directory(new_root)
         self.assertEqual(sorted(o['slug'] for o in d.list(include_archived=True)), ['alt', 'nord', 'sued'])
@@ -206,6 +218,7 @@ class RestoreInstallationTests(Base):
     def test_plain_set_into_empty_folder_and_server_answers(self):
         m = ops.backup_all(self.dir)
         new_root = self.base_dir / 'neu'
+        self._bring_keys(new_root)
         with self.assertRaisesRegex(ValueError, 'bestätigen'):
             ops.restore_installation(m['path'], new_root)
         self.assertFalse(new_root.exists())
@@ -241,6 +254,7 @@ class RestoreInstallationTests(Base):
     def test_encrypted_set_via_cli(self):
         m = ops.backup_all(self.dir, password=SET_PW)
         new_root = self.base_dir / 'neu'
+        self._bring_keys(new_root)
         with self.assertRaisesRegex(ValueError, 'Passwort'):
             ops.restore_installation(m['path'], new_root, confirm=True)
         with mock.patch.dict('os.environ', {'SIGNALDESK_SICHERUNG_PASSWORT': SET_PW}), \
@@ -252,6 +266,7 @@ class RestoreInstallationTests(Base):
     def test_cli_plain_set_does_not_ask_for_password(self):
         m = ops.backup_all(self.dir)
         new_root = self.base_dir / 'neu'
+        self._bring_keys(new_root)
         with mock.patch('getpass.getpass', side_effect=AssertionError('kein Passwort nötig')), \
                 mock.patch.dict('os.environ', {'SIGNALDESK_SICHERUNG_PASSWORT': ''}), mock.patch('sys.stdout', new=StringIO()) as so:
             code = betreiber.main(['--root', str(new_root), 'gesamt-wiederherstellen', m['path'], '--ja'])

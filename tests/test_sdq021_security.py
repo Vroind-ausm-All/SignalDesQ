@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / 'tests'))
 
-from sales_tool import accounts, audit_trail, auth, backup_crypto, tenancy, totp  # noqa: E402
+from sales_tool import accounts, audit_trail, auth, backup_crypto, schluessel, tenancy, totp  # noqa: E402
 from sales_tool.model import connect  # noqa: E402
 from sales_tool.multi_server import make_multi_handler  # noqa: E402
 from test_sdq014_multi_tenant import PW, Client  # noqa: E402
@@ -72,7 +72,10 @@ class TwoFactorHttpTests(unittest.TestCase):
 
     def secret(self):
         with self.dir._connect() as conn:
-            return conn.execute('SELECT secret FROM account_mfa').fetchone()['secret']
+            row = conn.execute('SELECT account_id, secret FROM account_mfa').fetchone()
+        # dev68: in der Datenbank steht das Geheimnis nur verschlüsselt (F09) – hier mit dem Server-Schlüssel geöffnet
+        self.assertTrue(row['secret'].startswith(schluessel.MFA_PREFIX))
+        return schluessel.unseal(self.dir.root, row['account_id'], row['secret'])
 
     def enable_2fa(self, c):
         """Einrichtung über die Oberfläche: Schlüssel holen, Code bestätigen. Gibt (Geheimnis, Wiederherstellungscodes)."""
