@@ -79,8 +79,7 @@ class CandidateReviewBrowserTests(unittest.TestCase):
                         self.assertTrue(any('anderen Arbeitgeber' in m for m in dialogs))
                         # alter Kandidat ohne Fundstelle: Übernahme abgelehnt, nichts im CRM
                         legacy.locator('[data-review-decision="accept"]').click()
-                        page.locator('.toast.show').wait_for()
-                        self.assertIn('Fundstelle', page.locator('.toast').inner_text())
+                        page.locator('.toast.show', has_text='Fundstelle').wait_for()  # vorige Meldung kann noch stehen
                         self.assertEqual(errors, [])
                         self.assertEqual(outside, [])
                     finally:
