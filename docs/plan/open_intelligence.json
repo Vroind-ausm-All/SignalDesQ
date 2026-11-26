@@ -404,7 +404,7 @@
       "id": "R1.4",
       "titel": "Recherchemodi und Jobbudgets",
       "prio": "P0",
-      "status": "teilweise",
+      "status": "erledigt",
       "verantwortlich": "Engineering",
       "inhalt": "Quick/Deep/Org mit 10/30/50 Seiten als Obergrenze; zusätzlich Zeit-, Byte-, Host- und Mandantenbudget; Drosselung, Retry-After, ETag/Last-Modified, Abbruch und Fortschritt; Fehler als Teilergebnis.",
       "basis": [
@@ -420,7 +420,7 @@
         "Budgetüberschreitung bricht sauber ab und zeigt Teilergebnis (Test)",
         "Keine unendlichen Wiederholungen"
       ],
-      "nachweis": "2.0.0-dev69: sales_tool/research/budget.py (Quick/Deep/Org = 10/30/50 Seiten, dazu Zeit-, Byte- und Hostgrenze je Auftragsschritt, gezählt in research.fetchers.fetch), research.jobs: aufgebrauchtes Budget endet mit Teilergebnis und wird nie wiederholt, Modus im Firmen-Bericht (mode); Modusauswahl unter „Website-Abruf & Auswertung“ als Vorgabe je Organisation; tests/test_r1_budget.py; offen: Mandantenbudget (zusammen mit Kontingenten), ETag/Last-Modified"
+      "nachweis": "2.0.0-dev69: sales_tool/research/budget.py (Quick/Deep/Org = 10/30/50 Seiten, dazu Zeit-, Byte- und Hostgrenze je Auftragsschritt, gezählt in research.fetchers.fetch), research.jobs: aufgebrauchtes Budget endet mit Teilergebnis und wird nie wiederholt, Modus im Firmen-Bericht (mode); Modusauswahl unter „Website-Abruf & Auswertung“ als Vorgabe je Organisation; tests/test_r1_budget.py. 2.0.0-dev71: Tagesbudget je Organisation (Mandantenbudget, Einstellung daily_pages, im Server für mehrere Organisationen Pflicht mit Vorgabe 1000 Seiten; Stand in app_settings research_usage, übersteht Neustart); aufgebraucht → Website-Aufträge warten bis morgen, ein unterbrochener Schritt wird ohne Versuchszählung verschoben; bedingte Abrufe mit ETag/Last-Modified (sales_tool/research/pagecache.py, nur im Speicher je Organisation, 304 → letzte Fassung, keine übertragenen Bytes); tests/test_r1_conditional_daily.py. Kontingente für Import, Speicher und Jobs bleiben bei R6.6"
     },
     {
       "id": "R1.5",
@@ -621,7 +621,7 @@
       "id": "R3.1",
       "titel": "Isolierter Dokument-Parser",
       "prio": "P0",
-      "status": "offen",
+      "status": "erledigt",
       "verantwortlich": "Engineering",
       "inhalt": "Eigener Prozess mit Zeit-, Größen-, Seiten- und Speicherlimits; keine externen Entitäten, kein Netz, keine aktiven Inhalte; Schutz vor PDF-/ZIP-Bomben und Pfadmanipulation.",
       "basis": [
@@ -636,7 +636,8 @@
       ],
       "abnahme": [
         "Angriffsbeispiele (XXE, Bombe, Pfad) werden abgewiesen (Test)"
-      ]
+      ],
+      "nachweis": "2.0.0-dev71: sales_tool/research/documents.py startet je Dokument einen eigenen Prozess (python -I -S sales_tool/docparse.py, leere Umgebung, leeres Arbeitsverzeichnis, Bytes nur über stdin, Zeitgrenze 30 s); im Kindprozess sperrt ein Prüf-Hook Netz, Prozesse und Schreibzugriffe, Speicher- und CPU-Grenze über resource unter Linux/macOS (Windows: nur Zeit- und Größengrenzen); Grenzen für Eingabe, entpackte Bytes, Seiten, Abschnitte, Elemente, Zeilen, ZIP-Einträge und Packrate; Angriffsbeispiele XXE, Entitäten-Bombe, Flate-Bombe, ZIP-Bombe, ZIP-Pfadmanipulation, verschlüsseltes PDF, aktive Inhalte, Zeitüberschreitung in tests/test_r3_documents.py. PDF-Impressum (imprint.pdf_to_text) liest jetzt über den Parser – vorher Flate ohne Größengrenze. Offen: CSV/ZIP-Katalogimport (sweep, research.catalog) noch nicht über den Parser"
     },
     {
       "id": "R3.2",
@@ -657,7 +658,7 @@
       "abnahme": [
         "Korrekte Seiten-/Feldbelege auf Testdokumenten"
       ],
-      "nachweis": "PDF-Impressum und große CSV/ZIP-Kataloge vorhanden (v1.14, v1.17); keine Isolation"
+      "nachweis": "PDF-Impressum und große CSV/ZIP-Kataloge vorhanden (v1.14, v1.17). 2.0.0-dev71: Abschnitte mit Fundstelle (PDF-Seite über den Seitenbaum inkl. Objektströme, XML-Pfad mit Position und Attribut, CSV-Zeile und Spalte, ZIP-Eintrag); Beleg v2 über documents.document_ref, Gegenprüfung documents.verify_document_ref, neue Fundstellenarten xml/csv/doc_text in research.evidence.check_ref; tests/test_r3_documents.py::LocatorTests. Offen: Texte mit eingebetteten Schriften/Hex-Kodierung (pypdf im Parser-Prozess, neue Abhängigkeit), Tabellen (pdfplumber), Belege in der Firmenakte mit R3.4"
     },
     {
       "id": "R3.3",
@@ -701,7 +702,7 @@
       "id": "R3.5",
       "titel": "Skill document-intelligence",
       "prio": "P1",
-      "status": "offen",
+      "status": "erledigt",
       "verantwortlich": "Engineering",
       "inhalt": "PDF/XML/CSV → Isolation, Limits, Fundstellen.",
       "basis": [],
@@ -713,7 +714,8 @@
       ],
       "abnahme": [
         "Prüfpunkte mit Angriffsbeispielen"
-      ]
+      ],
+      "nachweis": "2.0.0-dev71: .claude/skills/document-intelligence/SKILL.md (Prüfliste mit Angriffsbeispielen), tests/test_skills_registry.py"
     },
     {
       "id": "R4.1",
@@ -1850,7 +1852,7 @@
     },
     {
       "name": "document-intelligence",
-      "status": "offen",
+      "status": "vorhanden",
       "paket": "R3.5",
       "ausloeser": "PDF/XML/CSV → Isolation, Limits, Fundstellen"
     },

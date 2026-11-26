@@ -24,7 +24,7 @@ Skill unter `.claude/skills/` hier steht und das vorgeschriebene Format hat.
 | `research-source-policy` | neue Quelle oder Abruflogik | `tests/test_r1_source_registry.py` (Source Registry) | R1.2 | vorhanden (dev69) |
 | `research-benchmark` | neue Extraktion oder Zuordnung | `tools/research_benchmark.py`, `tests/test_sdq006_research_benchmark.py` | R1.7 | vorhanden (dev69) |
 | `contact-entity-evidence` | Person/Rolle → Identität, Beleg, Kandidatenstatus, Sperren | `tests/test_r2_candidates.py`, `tests/test_r2_persons.py`, `tests/test_r2_evidence.py` | R2.6 | vorhanden (dev70) |
-| `document-intelligence` | PDF/XML/CSV | isolierter Parser | R3.5 | geplant |
+| `document-intelligence` | PDF/XML/CSV/ZIP lesen, Werte aus Dokumenten | `tests/test_r3_documents.py` (isolierter Parser, Fundstellen) | R3.5 | vorhanden (dev71) |
 | `organization-graph` | Beziehungen, Graph | Invarianten R4.2 | R4.7 | geplant |
 | `saas-operations` | Deployment, Betrieb | Restore-, Mandanten-, Sicherheitstests | R6.11 | geplant |
 

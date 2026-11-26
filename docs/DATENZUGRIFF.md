@@ -2,7 +2,7 @@
 
 Automatisch erzeugt mit `tools/sql_inventory.py` aus dem Quelltext (SDQ-010). Nicht von Hand ändern.
 
-1497 SQL-Aufrufe in 72 Modulen: 1336 mit festem SQL-Text, 124 aus festen Teilen zusammengesetzt, 34 über eine Hilfsfunktion, 3 Hilfsfunktionen, die SQL nur weiterreichen, und 0 nicht statisch lesbar. 83 von 83 Tabellen der Hauptdatenbank werden im Quelltext namentlich angesprochen, dazu die Tabellen des Offline-Firmenkatalogs und des Mandantenverzeichnisses (je eigene Datei).
+1499 SQL-Aufrufe in 73 Modulen: 1338 mit festem SQL-Text, 124 aus festen Teilen zusammengesetzt, 34 über eine Hilfsfunktion, 3 Hilfsfunktionen, die SQL nur weiterreichen, und 0 nicht statisch lesbar. 83 von 83 Tabellen der Hauptdatenbank werden im Quelltext namentlich angesprochen, dazu die Tabellen des Offline-Firmenkatalogs und des Mandantenverzeichnisses (je eigene Datei).
 
 Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufbewahrung): `sales_tool/data_map.py`. „nur lesen“ nennt Module, die eine Tabelle lesen, aber nicht schreiben.
 
@@ -17,7 +17,7 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `action_dismissals` | Firmen und Kontakt | organisation | nein | kurz | – | sales_integration.py |
 | `activities` | Firmen und Kontakt | organisation | nein | fachlich | – | briefing.py, care.py, chances.py, customer_report.py, duplicates.py, followups.py, handover.py, imprint_batch.py, kickoff.py, lead_finder.py, lead_imprint.py, offer_flow.py, report.py, research_center.py, revisions.py, server.py, sweep.py, website_scorer.py, workday.py |
 | `analysis_runs` | Recherche | organisation | nein | kurz | ai_lab.py | analysis_jobs.py, quickscan.py, research/jobs.py, server.py |
-| `app_settings` | Betrieb | organisation | nein | fachlich | focus.py, research/sources.py | candidates.py, quality.py |
+| `app_settings` | Betrieb | organisation | nein | fachlich | focus.py, research/budget.py, research/sources.py | candidates.py, quality.py |
 | `audit_events` | Mandantenverzeichnis (eigene Datei) | zugang | nein | fachlich | – | audit_trail.py |
 | `audit_log` | Betrieb | organisation | nein | fachlich | – | accounting.py, company_data.py |
 | `batch_items` | Firmenfindung | organisation | nein | kurz | lead_imprint.py, report.py, research_center.py | imprint_batch.py, quality.py |
@@ -170,9 +170,10 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `reach.py` | 15 | 0 | 5 |
 | `report.py` | 53 | 0 | 14 |
 | `research/benchmark.py` | 2 | 0 | 0 |
+| `research/budget.py` | 1 | 0 | 1 |
 | `research/catalog.py` | 22 | 0 | 6 |
 | `research/homepage.py` | 2 | 0 | 2 |
-| `research/jobs.py` | 48 | 0 | 9 |
+| `research/jobs.py` | 49 | 0 | 9 |
 | `research/osm_local.py` | 21 | 0 | 2 |
 | `research/sources.py` | 2 | 0 | 2 |
 | `research_center.py` | 51 | 0 | 25 |
