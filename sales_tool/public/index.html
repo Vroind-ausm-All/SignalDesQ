@@ -795,7 +795,7 @@
    <div id="avTemplates"></div>
   </section>
    </section>
-   <section class="es-sec hidden" data-es="datenquellen" aria-label="Datenquellen" data-es-words="OpenStreetMap OSM Overpass GLEIF Katalog LEI Quellen prüfen Wikidata TED Website-Abruf Scrapling Trafilatura Browser Recherche-Technik">
+   <section class="es-sec hidden" data-es="datenquellen" aria-label="Datenquellen" data-es-words="OpenStreetMap OSM Overpass GLEIF Katalog LEI Quellen prüfen Freigabe Source Registry Wikidata TED Website-Abruf Scrapling Trafilatura Browser Recherche-Technik">
     <section class="panel sales-section fd-sources" id="datenquellen" aria-labelledby="fdSrcTitle"><span class="eyebrow">DATENQUELLEN · FÜR DIE FIRMENSUCHE</span><h2 id="fdSrcTitle">OpenStreetMap-Auszug, GLEIF-Katalog, Erreichbarkeit</h2>
   <p class="muted">Läuft manuell: einmal eine Datei einlesen, danach sucht „Finden → Neue Suche“ offline darin. Die öffentlichen Server sind meist überlastet.</p>
   <div class="ui-list">
@@ -814,6 +814,9 @@
    <div id="catImports" class="cat-imports"></div>
    <form id="catSearch" class="cat-search"><input name="q" placeholder="Firmenname (Umlaute egal)" aria-label="Firmenname"><input name="zip" placeholder="PLZ-Anfang, z. B. 70" inputmode="numeric" maxlength="5" aria-label="PLZ-Anfang"><input name="city" placeholder="Ort" aria-label="Ort"><button type="submit" class="btn btn-ghost">Im Katalog suchen</button></form>
    <div id="catResults" class="cat-results"></div></div></details>
+  <details class="ui-fold sw-check" id="srcBox"><summary><b>Freigaben (Source Registry)</b><span id="srcSummary">Welche Quellen SignalDesk abrufen darf – Prüfstand, Lizenz, Rechtsgrundlage, letzter Abruf.</span></summary><div class="ui-fold-body">
+   <p class="muted" id="srcNotice"></p>
+   <div id="srcRows" class="sw-check-rows"></div></div></details>
   <details class="ui-fold sw-check" id="swCheckBox"><summary><b>Quellen prüfen</b><span id="swCheckSummary">Sind GLEIF, Wikidata, OpenStreetMap und TED gerade erreichbar? Eine winzige Testanfrage je Quelle.</span></summary><div class="ui-fold-body">
    <div class="sw-check-head"><button type="button" class="btn btn-ghost" id="swCheck">Jetzt prüfen</button><span class="muted" id="swCheckNote"></span></div>
    <div id="swCheckRows" class="sw-check-rows"></div></div></details>
@@ -1012,6 +1015,7 @@
 <script src="/pilot.js" defer></script>
 <script src="/fachreview.js" defer></script>
 <script src="/studies.js" defer></script>
+<script src="/sources.js" defer></script>
 <script src="/einstellungen.js" defer></script>
 <script src="/nav.js" defer></script>
 <dialog id="lostDialog" class="lost-dialog"><form id="lostForm" class="sales-form"><h3>Warum verloren?</h3><p class="muted">Firma: <b id="lostCompany"></b>. Der Grund hilft dir später zu sehen, woran Chancen scheitern.</p>

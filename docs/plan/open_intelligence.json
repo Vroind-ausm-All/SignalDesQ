@@ -334,7 +334,7 @@
       "id": "R1.1",
       "titel": "Source Registry als zwingende Sperre",
       "prio": "P0",
-      "status": "teilweise",
+      "status": "erledigt",
       "verantwortlich": "Engineering",
       "inhalt": "Je Quelle: ID, Betreiber, Zweck, Zugriffsart, erlaubte Felder, Lizenz/Nutzungsbedingungen, Prüfdatum, Freigabe, Rate/TTL, Speicher- und Exportrechte, Rechtsgrundlage, Verantwortlicher. Ungeprüfte Quellen standardmäßig aus; Abrufstatus, Datenalter und Nichtverfügbarkeit sichtbar.",
       "basis": [
@@ -354,13 +354,13 @@
         "Abruf einer nicht freigegebenen Quelle wird serverseitig abgewiesen (Test)",
         "Quellenstatus in Einstellungen → Datenquellen"
       ],
-      "nachweis": "Provider-Beschreibung je Quelle seit dev58 (SDQ-008), noch keine Sperre"
+      "nachweis": "2.0.0-dev69: sales_tool/research/sources.py (Registry mit allen Pflichtfeldern, Sperre an lead_finder.fetch_source, research.fetchers.fetch und website_analyzer.public_url; nicht eingetragene und gesperrte Hosts nie abgerufen; je Organisation ausschaltbar, Einstellung source_policies statt eigener Tabelle), Einstellungen → Datenquellen → Freigaben, tests/test_r1_source_registry.py; E2 am 26.11.2026 entschieden: alle sechs abgerufenen Quellen freigegeben"
     },
     {
       "id": "R1.2",
       "titel": "Skill research-source-policy",
       "prio": "P0",
-      "status": "offen",
+      "status": "erledigt",
       "verantwortlich": "Engineering",
       "inhalt": "Prüfliste für neue Quellen und Abruflogik: Rechte, Limits, SSRF, Offline, Registry-Eintrag.",
       "basis": [],
@@ -372,7 +372,8 @@
       ],
       "abnahme": [
         "Auslöser, Prüfpunkte und Beispiel wie bei den bestehenden Skills"
-      ]
+      ],
+      "nachweis": "2.0.0-dev69: .claude/skills/research-source-policy/SKILL.md, tests/test_skills_registry.py"
     },
     {
       "id": "R1.3",
@@ -468,7 +469,7 @@
       "id": "R1.7",
       "titel": "Skill research-benchmark",
       "prio": "P1",
-      "status": "offen",
+      "status": "erledigt",
       "verantwortlich": "Engineering",
       "inhalt": "Neue Extraktion oder Zuordnung → reproduzierbarer Vergleich vor/nach auf derselben Testmenge.",
       "basis": [
@@ -482,7 +483,8 @@
       ],
       "abnahme": [
         "Skill verlangt Messung vor Freigabe einer neuen Extraktionsregel"
-      ]
+      ],
+      "nachweis": "2.0.0-dev69: .claude/skills/research-benchmark/SKILL.md, tests/test_skills_registry.py"
     },
     {
       "id": "R2.1",
@@ -1330,7 +1332,7 @@
     {
       "id": "E2",
       "verantwortlich": "Eigentümer",
-      "thema": "Zulässige Quellen (Freigaben in der Source Registry)",
+      "thema": "Zulässige Quellen (Freigaben in der Source Registry) – entschieden 26.11.2026: Wikidata, OpenStreetMap/Overpass, Nominatim, GLEIF, TED und öffentliche Firmen-Websites freigegeben",
       "benoetigt_fuer": "R1.1"
     },
     {
@@ -1821,13 +1823,13 @@
     },
     {
       "name": "research-source-policy",
-      "status": "offen",
+      "status": "vorhanden",
       "paket": "R1.2",
       "ausloeser": "neue Quelle oder Abruflogik → Rechte, Limits, SSRF, Offline"
     },
     {
       "name": "research-benchmark",
-      "status": "offen",
+      "status": "vorhanden",
       "paket": "R1.7",
       "ausloeser": "neue Extraktion → reproduzierbarer Vergleich"
     },

@@ -37,6 +37,7 @@ from .quality import route_quality, start_scheduler
 from .today import route_today
 from .source_check import route_source_check
 from .research.settings import route_research, load as load_research_settings
+from .research import sources as research_sources
 from .research import jobs as research_jobs
 from .sweep import route_sweep, recover_sweeps, dedupe_candidates
 from .duplicates import route_duplicates
@@ -229,7 +230,7 @@ def validate(fields: dict, partial=False):
 
 STATIC_FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
     "/style.css": ("style.css", "text/css"), "/theme.js": ("theme.js", "text/javascript"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
-    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/care.js": ("care.js", "text/javascript"), "/messages.js": ("messages.js", "text/javascript"), "/kurzbericht.js": ("kurzbericht.js", "text/javascript"), "/search.js": ("search.js", "text/javascript"), "/aktepage.js": ("aktepage.js", "text/javascript"), "/calendar.js": ("calendar.js", "text/javascript"), "/pilot.js": ("pilot.js", "text/javascript"), "/fachreview.js": ("fachreview.js", "text/javascript"), "/studies.js": ("studies.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/finden.js": ("finden.js", "text/javascript"), "/angebote.js": ("angebote.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/offerflow.js": ("offerflow.js", "text/javascript"), "/chances.js": ("chances.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/nav.js": ("nav.js", "text/javascript"), "/einstellungen.js": ("einstellungen.js", "text/javascript"), "/leadlist.js": ("leadlist.js", "text/javascript"), "/uikit.js": ("uikit.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/offer.css": ("offer.css", "text/css"), "/print.js": ("print.js", "text/javascript")}
+    "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/care.js": ("care.js", "text/javascript"), "/messages.js": ("messages.js", "text/javascript"), "/kurzbericht.js": ("kurzbericht.js", "text/javascript"), "/search.js": ("search.js", "text/javascript"), "/aktepage.js": ("aktepage.js", "text/javascript"), "/calendar.js": ("calendar.js", "text/javascript"), "/pilot.js": ("pilot.js", "text/javascript"), "/fachreview.js": ("fachreview.js", "text/javascript"), "/studies.js": ("studies.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/finden.js": ("finden.js", "text/javascript"), "/angebote.js": ("angebote.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/offerflow.js": ("offerflow.js", "text/javascript"), "/chances.js": ("chances.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/nav.js": ("nav.js", "text/javascript"), "/einstellungen.js": ("einstellungen.js", "text/javascript"), "/leadlist.js": ("leadlist.js", "text/javascript"), "/uikit.js": ("uikit.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/offer.css": ("offer.css", "text/css"), "/print.js": ("print.js", "text/javascript"), "/sources.js": ("sources.js", "text/javascript")}
 
 LOOPBACK_HOSTS = frozenset({'127.0.0.1', 'localhost', '::1'})
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
@@ -464,6 +465,8 @@ def make_handler(db_path, allowed_hosts=None):
                 if lead_imprint.route_lead_imprint(self, conn, method, route, query, db_path):
                     return
                 if netpolicy.route_netpolicy(self, conn, method, route):
+                    return
+                if research_sources.route_sources(self, conn, method, route, self.user):  # R1.1 Source Registry
                     return
                 if route_restore(self, conn, method, route, query, db_path):
                     return
@@ -1028,6 +1031,7 @@ def prepare_database(db):
         recover_reports(conn)
         load_research_settings(conn)  # v1.15: Schalter für Abruf/Auswertung
         netpolicy.load(conn)  # v1.19: Offline-Modus
+        research_sources.load(conn)  # 2.0.0-dev69 (R1.1): ausgeschaltete Quellen dieser Organisation
         conn.commit()
     return backup
 

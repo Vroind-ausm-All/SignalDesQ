@@ -37,6 +37,8 @@ ADMIN_ONLY = (r'/api/auth/users.*', r'/api/auth/settings', r'/api/quality/settin
 # Zugänge zu Kalender und Postfach einrichten oder ändern: nur Verwaltung (SDQ-035, Prüfbericht F03). Ansehen, Testen,
 # Abgleichen und Entwürfe ablegen bleiben für den Vertrieb.
 ADMIN_WRITE = {('POST', '/api/caldav'), ('POST', '/api/imap')}
+# R1.1 (2.0.0-dev69): Quellen ein- oder ausschalten nur durch die Verwaltung; ansehen dürfen alle angemeldeten Rollen.
+ADMIN_WRITE_PATTERNS = (r'/api/sources/.+',)
 ACCOUNTING = r'/api/accounting/.*|/rechnung/.*'
 SELF_SERVICE = {('POST', '/api/auth/logout'), ('POST', '/api/auth/password')}
 
@@ -357,6 +359,8 @@ def allowed(role, method, route):
     if role == 'admin':
         return True
     if any(re.fullmatch(p, route) for p in ADMIN_ONLY) or (method, route) in ADMIN_WRITE:
+        return False
+    if method not in ('GET', 'HEAD') and any(re.fullmatch(p, route) for p in ADMIN_WRITE_PATTERNS):
         return False
     if method in ('GET', 'HEAD'):
         return True

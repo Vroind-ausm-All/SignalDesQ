@@ -34,8 +34,14 @@ def public_url(url: str) -> str:
     Seit v1.15 verbindet der HTTP-Abruf sich zusätzlich genau mit der hier geprüften Adresse (IP-Pinning), sodass eine
     zweite DNS-Antwort nicht mehr auf ein internes Ziel zeigen kann. Für den Team-Betrieb bleibt ein Netzwerkfilter sinnvoll.
     """
+    from .research import sources
     from .research.safe_urls import public_url as _public_url
-    return _public_url(url)
+    norm = _public_url(url)
+    try:
+        sources.check_url(norm)  # R1.1: Source Registry – gesperrte oder ausgeschaltete Quellen nie abrufen
+    except sources.SourceBlocked as exc:
+        raise CrawlError(str(exc)) from exc
+    return norm
 
 
 def same_company_host(a: str, b: str) -> bool:

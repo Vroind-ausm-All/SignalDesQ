@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev68. **Ab dev66 gilt für die Weiterentwicklung der Open-Intelligence-Plan mit den Phasen R0–R7** (Architektur- und
+Stand 2.0.0-dev69. **Ab dev66 gilt für die Weiterentwicklung der Open-Intelligence-Plan mit den Phasen R0–R7** (Architektur- und
 Masterplan vom 25.11.2026, [`MASTERPLAN_OPEN_INTELLIGENCE.md`](MASTERPLAN_OPEN_INTELLIGENCE.md)); sein Status wird in
 [`plan/open_intelligence.json`](plan/open_intelligence.json) gepflegt und unten als Abschnitt erzeugt. Die Maßnahmen M01–M39
 stammen aus dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Etappen A–E) und seinen zwei Ergänzungen
@@ -39,14 +39,14 @@ bestehen; neue Funktionen dürfen weder die Zahl der Menüpunkte noch die Länge
 
 ## Open-Intelligence-Plan R0–R7 (ab 2.0.0-dev66)
 
-Phasenplan aus dem Architektur- und Masterplan vom 25.11.2026. Vollständige Pakete, Abnahmen und Zuordnungen: [MASTERPLAN_OPEN_INTELLIGENCE.md](MASTERPLAN_OPEN_INTELLIGENCE.md); Status wird in [`plan/open_intelligence.json`](plan/open_intelligence.json) gepflegt. Stand aller 56 Pakete: 19 offen · 20 teilweise · 8 erledigt · 9 blockiert.
+Phasenplan aus dem Architektur- und Masterplan vom 25.11.2026. Vollständige Pakete, Abnahmen und Zuordnungen: [MASTERPLAN_OPEN_INTELLIGENCE.md](MASTERPLAN_OPEN_INTELLIGENCE.md); Status wird in [`plan/open_intelligence.json`](plan/open_intelligence.json) gepflegt. Stand aller 56 Pakete: 17 offen · 19 teilweise · 11 erledigt · 9 blockiert.
 
 | Phase | Name | Beginnt nach | Pakete | Startbereit (Abhängigkeiten erledigt, P0 zuerst) | Gate |
 |---|---|---|---|---|---|
 | **R0** | Baseline & Governance | – | 8 erledigt | – (wartet auf Vorphasen) | Reproduzierbare Baseline (Unit, Browser, Python 3.10/3.13, CI-Matrix) mit Commit dokumentiert |
-| **R1** | Quellen, Discovery & Identität | R0 | 3 offen · 3 teilweise · 1 blockiert | R1.1 Source Registry als zwingende Sperre, R1.4 Recherchemodi und Jobbudgets, R1.5 Firmenidentität: Rechtsträger, Marke, Domain | Source Registry sperrt ungeprüfte Quellen |
+| **R1** | Quellen, Discovery & Identität | R0 | 1 offen · 2 teilweise · 3 erledigt · 1 blockiert | R1.4 Recherchemodi und Jobbudgets, R1.5 Firmenidentität: Rechtsträger, Marke, Domain | Source Registry sperrt ungeprüfte Quellen |
 | **R2** | Extraktion & Kandidaten-Sichtung | R1 | 3 offen · 3 teilweise | R2.3 Evidence-Vertrag v2, R2.6 Skill contact-entity-evidence | Präzision und Recall der Rollen auf der Referenzliste gemessen |
-| **R3** | Dokumente & Konzernbeziehungen | R1 | 4 offen · 1 teilweise | R3.5 Skill document-intelligence | Dokumentgrenzen (Größe, Zeit, Seiten) erzwungen |
+| **R3** | Dokumente & Konzernbeziehungen | R1 | 4 offen · 1 teilweise | R3.1 Isolierter Dokument-Parser, R3.5 Skill document-intelligence | Dokumentgrenzen (Größe, Zeit, Seiten) erzwungen |
 | **R4** | Organisationsgraph, Buying Center & Dossier | R2 | 5 offen · 2 teilweise | R4.7 Skill organization-graph | Null unbelegte bestätigte Kanten |
 | **R5** | Lokaler Pilot (M21) | R4 | 1 offen · 2 teilweise · 3 blockiert | – (wartet auf Vorphasen) | Referenzmessung an ≥ 100 Firmen gegen die Zielwerte |
 | **R6** | Staging & Sicherheit | R0 | 2 offen · 8 teilweise · 2 blockiert | R6.1 Egress Default-Deny und Fetch-Gateway (F05), R6.2 Signierte Restore-Manifeste und Quarantäne (F06), R6.4 Staging hinter TLS-Proxy (F08) | Unabhängige Security-Nachprüfung je Commit/Artefaktdigest bestanden |

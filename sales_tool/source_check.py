@@ -20,7 +20,7 @@ _LOCK = threading.Lock()
 
 def _gleif(ua):
     q = {'filter[fulltext]': 'Stuttgart', 'filter[entity.legalAddress.country]': 'DE', 'filter[entity.status]': 'ACTIVE', 'page[size]': 1}
-    d = lf.FETCH(lf.GLEIF_URL + urllib.parse.urlencode(q), ua, accept='application/vnd.api+json', timeout=TIMEOUT)
+    d = lf.fetch_source(lf.GLEIF_URL + urllib.parse.urlencode(q), ua, accept='application/vnd.api+json', timeout=TIMEOUT)
     rec = (d.get('data') or [{}])[0]
     ent = (rec.get('attributes') or {}).get('entity') or {}
     missing = [k for k, ok in (('legalName', ent.get('legalName')), ('legalAddress.city', (ent.get('legalAddress') or {}).get('city')),
@@ -40,7 +40,7 @@ def _wikidata(ua):
 
 
 def _nominatim(ua):
-    d = lf.FETCH('https://nominatim.openstreetmap.org/search?' + urllib.parse.urlencode(
+    d = lf.fetch_source('https://nominatim.openstreetmap.org/search?' + urllib.parse.urlencode(
         {'format': 'json', 'countrycodes': 'de', 'limit': 1, 'postalcode': '70173'}), ua, timeout=TIMEOUT)
     hit = d[0] if isinstance(d, list) and d else {}
     return ([] if hit.get('lat') and hit.get('lon') else ['lat/lon']), 'nur als Rückfall für unbekannte Orte (das Ortsverzeichnis liegt offline vor)'
@@ -48,7 +48,7 @@ def _nominatim(ua):
 
 def _overpass_server(server):
     def check(ua):
-        d = lf.FETCH(server, ua, data=urllib.parse.urlencode({'data': '[out:json][timeout:10];node(1);out ids;'}).encode(),
+        d = lf.fetch_source(server, ua, data=urllib.parse.urlencode({'data': '[out:json][timeout:10];node(1);out ids;'}).encode(),
                      content_type='application/x-www-form-urlencoded', timeout=TIMEOUT)
         return ([] if 'elements' in d else ['elements']), urllib.parse.urlsplit(server).hostname
     return check
@@ -58,7 +58,7 @@ def _ted(ua):
     body = {'query': 'classification-cpv IN (72413000) AND place-of-performance IN (DEU) AND publication-date>=20240101',
             'fields': ['publication-number', 'buyer-name', 'buyer-city', 'buyer-post-code'], 'page': 1, 'limit': 1,
             'scope': 'ALL', 'paginationMode': 'PAGE_NUMBER'}
-    d = lf.FETCH('https://api.ted.europa.eu/v3/notices/search', ua, data=json.dumps(body).encode(), content_type='application/json', timeout=TIMEOUT)
+    d = lf.fetch_source('https://api.ted.europa.eu/v3/notices/search', ua, data=json.dumps(body).encode(), content_type='application/json', timeout=TIMEOUT)
     n = (d.get('notices') or [{}])[0]
     missing = [f for f in ('publication-number', 'buyer-name', 'buyer-city') if f not in n]
     return missing, f"{d.get('totalNoticeCount', '?')} Bekanntmachungen erreichbar"

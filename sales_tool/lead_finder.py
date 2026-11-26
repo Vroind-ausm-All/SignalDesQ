@@ -199,6 +199,18 @@ def _http(url, user_agent, data=None, content_type=None, accept='application/jso
 
 
 FETCH = _http  # in Tests ersetzbar
+
+
+def fetch_source(url, user_agent, **kw):
+    """R1.1: jeder Abruf einer offenen Schnittstelle geht hier durch – erst die Source Registry, dann FETCH."""
+    from .research import sources
+    try:
+        sources.check_api_url(url)
+    except sources.SourceBlocked as exc:
+        err = SourceError(str(exc), retryable=False)
+        err.blocked = True
+        raise err from exc
+    return FETCH(url, user_agent, **kw)
 SLEEP = __import__('time').sleep
 
 
@@ -322,9 +334,9 @@ def wikidata_sparql(query, ua, retries=1, min_gap=0.0):
         _wikidata_gate(min_gap)
         try:
             if len(params) > 6000:
-                return FETCH('https://query.wikidata.org/sparql', ua, data=params.encode(), content_type='application/x-www-form-urlencoded',
+                return fetch_source('https://query.wikidata.org/sparql', ua, data=params.encode(), content_type='application/x-www-form-urlencoded',
                              accept='application/sparql-results+json')
-            return FETCH('https://query.wikidata.org/sparql?' + params, ua, accept='application/sparql-results+json')
+            return fetch_source('https://query.wikidata.org/sparql?' + params, ua, accept='application/sparql-results+json')
         except SourceError as exc:
             if 'HTTP 429' in str(exc):
                 now = CLOCK()
@@ -413,7 +425,7 @@ def overpass(query, ua):
                           'später „Fehlgeschlagene Quellen erneut abfragen“.', retry_after=wait, retryable=False)
     for server in servers:
         try:
-            return FETCH(server, ua, data=urllib.parse.urlencode({'data': query}).encode(),
+            return fetch_source(server, ua, data=urllib.parse.urlencode({'data': query}).encode(),
                          content_type='application/x-www-form-urlencoded', timeout=OVERPASS_TIMEOUT)
         except SourceError as exc:
             errors.append(f"{urllib.parse.urlsplit(server).hostname}: {exc}")
@@ -476,7 +488,7 @@ def gleif_page(ua, city='', postcode='', keyword='', page=1, size=200, attempt_f
         if keyword and 'filter[fulltext]' not in q:
             q['filter[fulltext]'] = keyword
         try:
-            data = FETCH(GLEIF_URL + urllib.parse.urlencode(q), ua, accept='application/vnd.api+json')
+            data = fetch_source(GLEIF_URL + urllib.parse.urlencode(q), ua, accept='application/vnd.api+json')
             data['_filters'] = sorted(filters)
             data['_attempt'] = idx
             return data
@@ -575,7 +587,7 @@ def search_ted(params, ua):
             'fields': ['publication-number', 'notice-title', 'buyer-name', 'publication-date', 'deadline-receipt-tender-date-lot',
                        'buyer-city', 'buyer-post-code', 'place-of-performance-city-lot', 'place-of-performance-post-code-lot'],
             'page': 1, 'limit': min(limit, 100), 'scope': 'ACTIVE', 'paginationMode': 'PAGE_NUMBER'}
-    data = FETCH('https://api.ted.europa.eu/v3/notices/search', ua, data=json.dumps(body).encode(), content_type='application/json')
+    data = fetch_source('https://api.ted.europa.eu/v3/notices/search', ua, data=json.dumps(body).encode(), content_type='application/json')
     items = []
     for n in data.get('notices', []):
         pub = str(n.get('publication-number', ''))
@@ -921,7 +933,7 @@ def route_lead_finder(h, conn, method, route, query):
         try:
             h._send(201, run_search(conn, h._body()))
         except SourceError as exc:
-            h._error(str(exc), 502)
+            h._error(str(exc), 403 if getattr(exc, 'blocked', False) else 502)
         return True
     if route == '/api/lead-finder/runs' and method == 'GET':
         h._send(200, run_rows(conn))

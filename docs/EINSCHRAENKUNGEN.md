@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev68)
+# Bekannte Einschränkungen (Stand 2.0.0-dev69)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -383,3 +383,14 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
   (Entscheidung offen, Prüfbericht F06/F09).
 - Python 3.14 ist in der CI (Windows, Linux) geprüft. Python 3.15 lief lokal mit 3.15.0b4 grün, ist aber nicht zugesagt: Die
   Recherche-Variante ist dort nicht installierbar (rapidfuzz 3.14.5 ohne Pakete für 3.15; die nächste Version unterstützt 3.10 nicht).
+
+## Source Registry (2.0.0-dev69, Plan R1.1)
+
+- Die sechs Quellen, die SignalDesk selbst abruft (Wikidata, OpenStreetMap/Overpass, Nominatim, GLEIF, TED, öffentliche
+  Firmen-Websites), hat der Eigentümer am 26.11.2026 freigegeben (E2). Die Lizenz- und Limitangaben im Eintrag sind Stand 2026-11
+  und nicht live bei den Anbietern geprüft; ändern sich Nutzungsbedingungen, merkt SignalDesk das nicht von selbst.
+- Die Sperre greift an den Abrufwegen (`lead_finder.fetch_source`, `research.fetchers.fetch`, `website_analyzer.public_url`).
+  Lokale Dateiimporte (GLEIF-Golden-Copy, OSM-Auszug, eigene Listen) rufen nichts ab und stehen deshalb nicht in der Registry.
+- Ausschalten wirkt je Organisation sofort für neue Abrufe; ein Abruf, der schon läuft, wird nicht abgebrochen.
+- Die Ausschalt-Einstellung liegt in `app_settings` (`source_policies`) statt in einer eigenen Tabelle; das Schema bleibt bei 49.
+  Eine Wiederherstellung bringt den Stand der Sicherung zurück.

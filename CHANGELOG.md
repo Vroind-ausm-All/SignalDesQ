@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.0.0-dev69 – R1: Source Registry als Sperre, Skills für Quellen und Messung
+
+- **Neu – Source Registry (Plan R1.1):** `sales_tool/research/sources.py` beschreibt jede Quelle, die SignalDesk selbst abruft, mit
+  Betreiber, Zweck, Zugriffsart, Hosts, erlaubten Feldern, Lizenz, Nutzungsbedingungen, Prüfdatum, Prüfstand, Rate/TTL, Speicher- und
+  Exportrecht, Rechtsgrundlage und Verantwortlichem. Der Server weist jeden Abruf einer nicht eingetragenen, gesperrten oder
+  ausgeschalteten Quelle ab, bevor eine Verbindung entsteht: offene Schnittstellen über `lead_finder.fetch_source` (auch Ortssuche
+  und Quellen-Check), Websites über `research.fetchers.fetch` und – für Browser-Abruf und Website-Bewertung – `website_analyzer.public_url`.
+  LinkedIn, XING, Suchmaschinen, Google Maps, Branchenbücher und Handelsregister sind als „nur manuell“ eingetragen und werden nie
+  abgerufen, auch nicht als vermeintliche Firmen-Website. Eine Suche bei ausgeschalteter Quelle antwortet mit 403.
+- **Einstellungen → Datenquellen → Freigaben:** je Quelle Prüfstand, Lizenz, Rechtsgrundlage, Grenzen, letzter Erfolg und letzter Fehler.
+  Die Verwaltung kann erlaubte Quellen je Organisation aus- und wieder einschalten (Audit-Eintrag); andere Rollen sehen nur.
+  Die sechs abgerufenen Quellen hat der Eigentümer am 26.11.2026 freigegeben (Entscheidung E2); eine neue Quelle startet „ungeprüft“ und aus.
+- **Skills (Plan R1.2, R1.7):** `research-source-policy` (Prüfliste für neue Quellen und Abruflogik) und `research-benchmark`
+  (Messung vor und nach jeder neuen Extraktions- oder Zuordnungsregel); im Skills-Register eingetragen.
+- **Tests:** `tests/test_r1_source_registry.py` (16 Fälle: vollständige Einträge, jede genutzte Adresse eingetragen, Sperre vor jeder
+  Verbindung, 403 vom Server, Rollen, Mandantengrenze, Neustart) und `tests/e2e/test_r1_source_registry_browser.py`.
+
 ## 2.0.0-dev68 – Passwortregel, zweiter Faktor empfohlen, Python 3.14 geprüft
 
 - **Passwortregel:** mindestens 12 Zeichen (bisher 10), Groß- und Kleinbuchstaben und mindestens ein Sonderzeichen. Gilt überall, wo ein

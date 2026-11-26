@@ -2,7 +2,7 @@
 
 Automatisch erzeugt mit `tools/sql_inventory.py` aus dem Quelltext (SDQ-010). Nicht von Hand ändern.
 
-1472 SQL-Aufrufe in 70 Modulen: 1312 mit festem SQL-Text, 123 aus festen Teilen zusammengesetzt, 34 über eine Hilfsfunktion, 3 Hilfsfunktionen, die SQL nur weiterreichen, und 0 nicht statisch lesbar. 83 von 83 Tabellen der Hauptdatenbank werden im Quelltext namentlich angesprochen, dazu die Tabellen des Offline-Firmenkatalogs und des Mandantenverzeichnisses (je eigene Datei).
+1474 SQL-Aufrufe in 71 Modulen: 1314 mit festem SQL-Text, 123 aus festen Teilen zusammengesetzt, 34 über eine Hilfsfunktion, 3 Hilfsfunktionen, die SQL nur weiterreichen, und 0 nicht statisch lesbar. 83 von 83 Tabellen der Hauptdatenbank werden im Quelltext namentlich angesprochen, dazu die Tabellen des Offline-Firmenkatalogs und des Mandantenverzeichnisses (je eigene Datei).
 
 Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufbewahrung): `sales_tool/data_map.py`. „nur lesen“ nennt Module, die eine Tabelle lesen, aber nicht schreiben.
 
@@ -17,7 +17,7 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `action_dismissals` | Firmen und Kontakt | organisation | nein | kurz | – | sales_integration.py |
 | `activities` | Firmen und Kontakt | organisation | nein | fachlich | – | briefing.py, care.py, chances.py, customer_report.py, duplicates.py, followups.py, handover.py, imprint_batch.py, kickoff.py, lead_finder.py, lead_imprint.py, offer_flow.py, report.py, research_center.py, revisions.py, server.py, sweep.py, website_scorer.py, workday.py |
 | `analysis_runs` | Recherche | organisation | nein | kurz | ai_lab.py | analysis_jobs.py, quickscan.py, research/jobs.py, server.py |
-| `app_settings` | Betrieb | organisation | nein | fachlich | focus.py | quality.py |
+| `app_settings` | Betrieb | organisation | nein | fachlich | focus.py, research/sources.py | quality.py |
 | `audit_events` | Mandantenverzeichnis (eigene Datei) | zugang | nein | fachlich | – | audit_trail.py |
 | `audit_log` | Betrieb | organisation | nein | fachlich | – | accounting.py, company_data.py |
 | `batch_items` | Firmenfindung | organisation | nein | kurz | lead_imprint.py, report.py, research_center.py | imprint_batch.py, quality.py |
@@ -43,7 +43,7 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `discovery_dismissed` | Firmenfindung | organisation | nein | fachlich | – | sweep.py |
 | `discovery_keys` | Firmenfindung | organisation | nein | kurz | research/catalog.py | quality.py, sweep.py |
 | `discovery_not_same` | Firmenfindung | organisation | nein | fachlich | – | sweep.py |
-| `discovery_runs` | Firmenfindung | organisation | nein | kurz | research_center.py, today.py | lead_finder.py, sweep.py |
+| `discovery_runs` | Firmenfindung | organisation | nein | kurz | research/sources.py, research_center.py, today.py | lead_finder.py, sweep.py |
 | `dunning_notices` | Rechnung und Steuer | organisation | nein | gobd | – | accounting.py |
 | `einvoice_documents` | Rechnung und Steuer | organisation | nein | gobd | accounting.py | einvoice.py |
 | `entities` | Firmenkatalog (eigene Datei) | installation | nein | kurz | – | research/catalog.py |
@@ -173,6 +173,7 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `research/homepage.py` | 2 | 0 | 2 |
 | `research/jobs.py` | 47 | 0 | 9 |
 | `research/osm_local.py` | 21 | 0 | 2 |
+| `research/sources.py` | 2 | 0 | 2 |
 | `research_center.py` | 51 | 0 | 25 |
 | `revisions.py` | 7 | 0 | 3 |
 | `sales_integration.py` | 42 | 0 | 11 |
