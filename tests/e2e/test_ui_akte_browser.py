@@ -180,7 +180,13 @@ class UiAkteBrowserTests(unittest.TestCase):
                         page.locator('#lfAgreed').wait_for()
                         self.assertIn('suche=Fiktiv', page.url)
                         page.locator('#closeModal').click()
-                        page.locator('#viewLeads').wait_for(state='visible')
+                        try:
+                            page.locator('#viewLeads').wait_for(state='visible')
+                        except Exception as exc:  # selten (Baseline dev67): Zustand mitgeben, damit die Ursache sichtbar wird
+                            state = page.evaluate('''() => JSON.stringify({hash: location.hash, view: typeof currentView !== 'undefined' ? currentView : null,
+                                leads: document.getElementById('viewLeads').className, body: document.body.className,
+                                modalHidden: document.getElementById('modal').classList.contains('hidden'), history: history.length})''')
+                            raise AssertionError(f'Firmenliste nach „← Firmen“ nicht sichtbar: {state}') from exc
                         page.wait_for_function('() => document.querySelectorAll("#leadRows tr.ui-row").length === 3')
                         self.assertEqual(page.input_value('#leadSearch'), 'Fiktiv')
                         self.assertIn('suche=Fiktiv', page.url)

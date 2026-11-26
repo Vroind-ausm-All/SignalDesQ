@@ -23,6 +23,7 @@
   prüft die Verweise und dass kein Versand-Code existiert.
 - **Skills-Register (R0.4):** [SKILLS_REGISTRY.md](docs/SKILLS_REGISTRY.md) mit Projekt-Skills, Werkzeugen (Pin, Lizenz) und Kandidaten;
   neuer Skill `dependency-security`; `tests/test_skills_registry.py`.
+- **Tests – Wettläufe behoben:** Zwei Tests prüften, bevor der Server-Thread nach der Antwort fertig war (abgelehnter Anfragekörper, Zugriffsprotokoll) und waren deshalb in der vollen Suite gelegentlich rot. Beide warten jetzt; nachgestellt mit künstlicher Verzögerung (alt rot, neu grün). Ein seltener Fehler im Browser-Test der Firmenakte ist noch offen (siehe Einschränkungen).
 - **Baseline (R0.1):** `tools/baseline.py` schreibt `docs/BASELINE_<version>.md` mit Commit, Zählern, übersprungenen Tests samt Grund
   und Laufzeiten.
 

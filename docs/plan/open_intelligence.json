@@ -170,7 +170,7 @@
         "Baseline-Bericht mit Commit, Zählern und Laufzeiten",
         "Kein übersprungener Browser-Test"
       ],
-      "nachweis": "2.0.0-dev67: tools/baseline.py führt Unit- (Python 3.13 und 3.10) und Browser-Suite aus und schreibt docs/BASELINE_2.0.0-dev67.md mit Commit, Zählern, Überspringungen mit Grund und Laufzeiten (tests/test_plan_structure.py prüft Aufbau)"
+      "nachweis": "2.0.0-dev67: tools/baseline.py (Unit Python 3.13 und 3.10, Browser) → docs/BASELINE_2.0.0-dev67.md mit Commit, Zählern, Überspringungen samt Grund, Fehlermeldungen und Laufzeiten. Vier Läufe deckten zwei Wettläufe in Tests auf (behoben) und einen seltenen Fehler im Browser-Test test_company_file_page (offen, siehe R5.4)"
     },
     {
       "id": "R0.2",
@@ -937,7 +937,7 @@
       "abnahme": [
         "T01–T15 grün nach der letzten Migration"
       ],
-      "nachweis": "T01–T15 bestanden (ROADMAP), vor den R4-Migrationen"
+      "nachweis": "T01–T15 bestanden (ROADMAP), vor den R4-Migrationen. Offen: test_ui_akte_browser.test_company_file_page schlägt selten fehl („← Firmen“ zeigt die Liste nicht; 2 von 4 Baseline-Läufen, 1 von 6 Einzelläufen, 0 in CI); Test gibt seit dev67 den Zustand aus"
     },
     {
       "id": "R5.5",

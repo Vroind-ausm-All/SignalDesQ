@@ -95,7 +95,7 @@ flowchart LR
 - **R0.1 Baseline messen und dokumentieren.** HEAD, Version, Unit- und Browser-Suite, Python 3.10/3.13, CI-Matrix, übersprungene Tests mit Grund, Laufzeiten; Ergebnis als docs/BASELINE_<version>.md.
   Baut auf: `tools/run_e2e.py`, `tools/perf_report.py`, `.github/workflows/tests.yml`, `.claude/skills/qa-release-gate`.
   Neu: `tools/baseline.py`, `docs/BASELINE_<version>.md`.
-  Stand: 2.0.0-dev67: tools/baseline.py führt Unit- (Python 3.13 und 3.10) und Browser-Suite aus und schreibt docs/BASELINE_2.0.0-dev67.md mit Commit, Zählern, Überspringungen mit Grund und Laufzeiten (tests/test_plan_structure.py prüft Aufbau).
+  Stand: 2.0.0-dev67: tools/baseline.py (Unit Python 3.13 und 3.10, Browser) → docs/BASELINE_2.0.0-dev67.md mit Commit, Zählern, Überspringungen samt Grund, Fehlermeldungen und Laufzeiten. Vier Läufe deckten zwei Wettläufe in Tests auf (behoben) und einen seltenen Fehler im Browser-Test test_company_file_page (offen, siehe R5.4).
 - **R0.2 Versionswahrheit.** README, ROADMAP und EINSCHRAENKUNGEN nennen die Version aus sales_tool/__init__.py; ein Test verhindert neue Abweichungen.
   Baut auf: `sales_tool/__init__.py`, `CHANGELOG.md`.
   Neu: `tests/test_plan_structure.py`.
@@ -279,7 +279,7 @@ flowchart LR
 - **R5.3 Fehlerbehebung aus Messung und Pilot.** Korrekturpaket je Fehlerklasse mit Regressionstest.
 - **R5.4 Regression Export, Angebot, Rechnung, Restore.** Abnahmefälle T01–T15 und Restore-Szenario nach allen Schemaänderungen aus R1–R4.
   Baut auf: `tests/test_scenario_t15_restore.py`, `tests/e2e/`.
-  Stand: T01–T15 bestanden (ROADMAP), vor den R4-Migrationen.
+  Stand: T01–T15 bestanden (ROADMAP), vor den R4-Migrationen. Offen: test_ui_akte_browser.test_company_file_page schlägt selten fehl („← Firmen“ zeigt die Liste nicht; 2 von 4 Baseline-Läufen, 1 von 6 Einzelläufen, 0 in CI); Test gibt seit dev67 den Zustand aus.
 - **R5.5 Effizienz und Kosten je geprüftem Kontakt.** p50/p95 Zeit, Requests, CPU/RAM, Prüferzeit; Kosten je geprüftem Kontakt aus Messwerten, keine Euro-Prognose ohne Lastprofil.
   Baut auf: `tools/perf_report.py`, `tools/bench_fetch.py`, `docs/bench/`.
   Stand: Leistungsbericht seit v1.19 (Abruf, große Bestände); Kontaktkosten fehlen.
