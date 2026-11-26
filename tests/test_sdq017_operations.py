@@ -126,7 +126,10 @@ class HealthAndLogTests(Base):
 
     def test_unauthorized_logged_as_warning(self):
         Client(self.base).call('/api/leads')
-        entry = self.lines()[-1]
+        deadline = time.time() + 5  # die Zeile entsteht erst nach der Antwort (unter Last zu früh gelesen – Baseline dev67)
+        while not any(x['route'] == '/api/leads' for x in self.lines()) and time.time() < deadline:
+            time.sleep(0.05)
+        entry = next(x for x in self.lines() if x['route'] == '/api/leads')
         self.assertEqual((entry['status'], entry['level']), (401, 'warning'))
 
     def test_route_label(self):
