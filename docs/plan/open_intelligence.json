@@ -1349,13 +1349,15 @@
       "id": "E5",
       "verantwortlich": "Eigentümer",
       "thema": "Python-Support (3.10 behalten oder streichen)",
-      "benoetigt_fuer": "R6.3"
+      "benoetigt_fuer": "R6.3",
+      "entschieden": "26.11.2026: in 2.0.0-dev68 ankündigen (Hinweis beim Start), im folgenden Release streichen; dann 3.11–3.15, empfohlen 3.14"
     },
     {
       "id": "E6",
       "verantwortlich": "Betrieb",
       "thema": "Hosting, Egress, TLS-Proxy, Quotas, Schlüsselverwahrung, Backup, Log-Anker",
-      "benoetigt_fuer": "R6.1"
+      "benoetigt_fuer": "R6.1",
+      "entschieden": "26.11.2026 (Teil Schlüssel): TOTP-Seeds mit Server-Schlüssel in eigener Datei, Sicherungen mit Ed25519 signiert; Verwahrung der Kopie beim Betreiber"
     },
     {
       "id": "E7",
@@ -1463,9 +1465,10 @@
       "verantwortlich": "Engineering",
       "gate_tests": [
         "tests/test_sdq033_pruefbericht.py::ResearchSettingsTests::test_web_restore_blocked_in_server",
-        "tests/test_gate_isolation.py::RestoreGateTests::test_restore_keeps_later_suppressions"
+        "tests/test_gate_isolation.py::RestoreGateTests::test_restore_keeps_later_suppressions",
+        "tests/test_dev68_schluessel.py::SignedBackupTests::test_manifest_rewritten_with_matching_checksums_is_refused"
       ],
-      "offen": "signierte Manifeste, Schlüsselverwaltung, Quarantäne nach Restore (R6.2)"
+      "offen": "Quarantäne von Sitzungen/Aufträgen nach Restore (R6.2); Manifest-Signatur Ed25519 seit dev68 (Entscheidung 26.11.2026)"
     },
     {
       "id": "F07",
@@ -1480,7 +1483,7 @@
         "tests/test_sdq033_pruefbericht.py::SupplyChainTests::test_team_lock_has_fixed_cryptography",
         "tests/test_sdq033_pruefbericht.py::SupplyChainTests::test_missing_lock_refuses_install"
       ],
-      "offen": "Release-Signatur/Attestierung; Entscheidung Python 3.10 (E5, R6.3); Advisory-Prüfung in CI (R0.5)"
+      "offen": "Release-Signatur/Attestierung; Python 3.10 seit dev68 angekündigt, Streichung im folgenden Release (E5, R6.3); Advisory-Prüfung in CI (R0.5)"
     },
     {
       "id": "F08",
@@ -1505,9 +1508,11 @@
       ],
       "verantwortlich": "Engineering",
       "gate_tests": [
-        "tests/test_sdq033_pruefbericht.py::PasswordHashTests::test_old_hash_upgraded_on_login_only"
+        "tests/test_sdq033_pruefbericht.py::PasswordHashTests::test_old_hash_upgraded_on_login_only",
+        "tests/test_dev68_schluessel.py::MfaKeyTests::test_secret_never_in_plain_text_and_key_outside_data",
+        "tests/test_dev68_passwort_zweitfaktor.py::PasswordRuleTests::test_every_way_to_set_a_password_checks_the_rule"
       ],
-      "offen": "MFA-Pflicht Verwaltung, Mindestlänge, TOTP-Seeds verschlüsselt (R6.5; Entscheidung laut Prüfbericht)"
+      "offen": "MFA-Pflicht für die Verwaltung (offen); seit dev68: Passwortregel 12 Zeichen mit Groß/Klein und Sonderzeichen, zweiter Faktor empfohlen, TOTP-Seeds mit getrenntem Server-Schlüssel verschlüsselt"
     },
     {
       "id": "F10",

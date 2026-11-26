@@ -175,13 +175,18 @@ def backup_all(directory, target=None, password=None, actor=None):
                     'version': __version__, 'encrypted': password is not None, 'organizations': sum(1 for f in files if f['slug']),
                     'seconds': round(time.monotonic() - started, 2), 'files': files}
         (work / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=1), encoding='utf-8')
+        # dev68 (F06): Manifest signieren (Ed25519, Schlüssel im getrennten Schlüsselordner). Das Manifest enthält die
+        # Prüfsummen aller Dateien – die Signatur deckt damit den ganzen Satz. Ohne „cryptography“ bleibt der Satz unsigniert.
+        from . import schluessel
+        signed = schluessel.sign_manifest(directory.root, work) if schluessel.signing_available() else ''
         work.rename(root / name)
     except BaseException:
         shutil.rmtree(work, ignore_errors=True)  # nur der eigene, unfertige Ordner dieses Laufs
         raise
     audit_trail.record(directory, actor or audit_trail.operator(), 'sicherung_angelegt', name,
-                       f"{manifest['organizations']} Organisation{'en' if manifest['organizations'] != 1 else ''}{', verschlüsselt' if password is not None else ''}")
-    return {**manifest, 'path': str(root / name)}
+                       f"{manifest['organizations']} Organisation{'en' if manifest['organizations'] != 1 else ''}{', verschlüsselt' if password is not None else ''}"
+                       f"{', signiert ' + signed if signed else ', unsigniert'}")
+    return {**manifest, 'path': str(root / name), 'signature': signed}
 
 
 def list_backups(directory, target=None):
@@ -212,10 +217,22 @@ def _plain(path, password, tmp):
     return _plain_copy(path, password, tmp)
 
 
-def verify_backup(directory, name, target=None, password=None, actor=None):
-    """Wiederherstellungstest eines Satzes. Schreibt das Ergebnis nach ``pruefung.json`` und gibt es zurück."""
+def _signature(directory_root, folder, public_key_path=None, allow_unsigned=False):
+    from . import schluessel
+    return schluessel.check_signature(folder, directory_root, public_key_path, allow_unsigned)
+
+
+def verify_backup(directory, name, target=None, password=None, actor=None, public_key_path=None, allow_unsigned=False):
+    """Wiederherstellungstest eines Satzes. Schreibt das Ergebnis nach ``pruefung.json`` und gibt es zurück.
+
+    dev68: zuerst die Signatur (``schluessel.check_signature``); eine falsche oder fehlende Signatur macht den Test rot."""
     from .model import init_db
+    from .schluessel import SignatureError
     folder = _set_dir(directory, name, target)
+    try:
+        signature = _signature(directory.root, folder, public_key_path, allow_unsigned)
+    except SignatureError as exc:
+        signature = {'status': 'fehler', 'problem': str(exc)}
     manifest = json.loads((folder / 'manifest.json').read_text(encoding='utf-8'))
     if manifest.get('format') != BACKUP_FORMAT:
         raise ValueError('Unbekanntes Format des Sicherungssatzes.')
@@ -261,10 +278,13 @@ def verify_backup(directory, name, target=None, password=None, actor=None):
         except (ValueError, sqlite3.DatabaseError, OSError) as exc:
             r['problem'] = str(exc)[:300]
     report = {'name': name, 'checked_at': dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds'), 'version': __version__,
-              'ok': all(r['ok'] for r in results), 'files': results, 'seconds': round(time.monotonic() - started, 2)}
+              'ok': all(r['ok'] for r in results) and signature['status'] != 'fehler', 'signature': signature,
+              'files': results, 'seconds': round(time.monotonic() - started, 2)}
     (folder / 'pruefung.json').write_text(json.dumps(report, ensure_ascii=False, indent=1), encoding='utf-8')
     audit_trail.record(directory, actor or audit_trail.operator(), 'sicherung_geprueft', name,
-                       'in Ordnung' if report['ok'] else 'FEHLER: ' + '; '.join(f"{r['file']}: {r['problem']}" for r in results if not r['ok']))
+                       'in Ordnung' if report['ok'] else 'FEHLER: ' + '; '.join(
+                           ([f"Signatur: {signature['problem']}"] if signature['status'] == 'fehler' else [])
+                           + [f"{r['file']}: {r['problem']}" for r in results if not r['ok']]))
     return report
 
 
@@ -275,10 +295,12 @@ def last_verified_backup(directory, target=None):
     return None
 
 
-def restore_org(directory, name, slug, target=None, password=None, confirm=False, actor=None):
-    """Eine Organisation aus einem Sicherungssatz zurückspielen (der Satz wird vorher geprüft)."""
+def restore_org(directory, name, slug, target=None, password=None, confirm=False, actor=None, public_key_path=None,
+                allow_unsigned=False):
+    """Eine Organisation aus einem Sicherungssatz zurückspielen (der Satz wird vorher geprüft, dev68: auch seine Signatur)."""
     from .backup_restore import restore
     folder = _set_dir(directory, name, target)
+    signature = _signature(directory.root, folder, public_key_path, allow_unsigned)
     manifest = json.loads((folder / 'manifest.json').read_text(encoding='utf-8'))
     entry = next((f for f in manifest['files'] if f['slug'] == slug), None)
     if not entry:
@@ -291,8 +313,9 @@ def restore_org(directory, name, slug, target=None, password=None, confirm=False
     org = directory.get(slug)
     out = restore(org['db_path'], source, password=password, confirm=True)
     audit_trail.record(directory, actor or audit_trail.operator(), 'organisation_zurueckgespielt', slug,
-                       f"aus {name}; vorher gesichert: {Path(out['safety_backup']).name if out.get('safety_backup') else '–'}")
-    return out
+                       f"aus {name}; Signatur: {signature['status']}; vorher gesichert: "
+                       f"{Path(out['safety_backup']).name if out.get('safety_backup') else '–'}")
+    return {**out, 'signature': signature}
 
 
 def copy_backup(directory, name, dest, target=None, actor=None):
@@ -324,7 +347,7 @@ def copy_backup(directory, name, dest, target=None, actor=None):
     return {'name': name, 'copied_to': str(final), 'files': len(manifest['files']), 'bytes': total, 'checksums_ok': True}
 
 
-def restore_installation(set_path, new_root, password=None, confirm=False):
+def restore_installation(set_path, new_root, password=None, confirm=False, public_key_path=None, allow_unsigned=False):
     """Ganze Installation aus einem Sicherungssatz in einen **leeren** Ordner wiederherstellen (Server verloren).
 
     Prüft zuerst alle Prüfsummen, entschlüsselt dann das Verzeichnis und jede Organisation an ihren Platz, prüft
@@ -351,6 +374,8 @@ def restore_installation(set_path, new_root, password=None, confirm=False):
             raise ValueError(f"Datei {f['file']} fehlt oder Prüfsumme stimmt nicht – Satz nicht verwenden.")
         if f['slug'] is not None:
             tenancy.Directory.check_slug(f['slug'])
+    # dev68: Signatur mit dem öffentlichen Schlüssel (Datei oder Schlüsselordner neben dem neuen Datenordner)
+    signature = _signature(root, folder, public_key_path, allow_unsigned)
     (root / 'orgs').mkdir(parents=True, exist_ok=True)
     placed = []
     for f in manifest['files']:
@@ -370,8 +395,9 @@ def restore_installation(set_path, new_root, password=None, confirm=False):
     for org in directory.list(include_archived=True):
         prepare_database(Path(org['db_path']))
     audit_trail.record(directory, audit_trail.operator(), 'installation_wiederhergestellt', manifest['name'],
-                       f"{len(placed) - 1} Organisationen aus {folder}")
+                       f"{len(placed) - 1} Organisationen aus {folder}; Signatur: {signature['status']}")
     return {'restored_from': manifest['name'], 'root': str(root), 'organizations': [p for p in placed if p != 'verzeichnis'],
+            'signature': signature,
             'notice': 'Dienst mit --root auf diesen Ordner starten und /readyz prüfen.'}
 
 

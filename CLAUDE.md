@@ -63,3 +63,5 @@ Test, der rot wird, wenn die Regel fehlt. `tests/test_claude_rules.py` prüft, d
   (`tests/test_plan_structure.py` prüft das). Nach Versionswechsel `python tools/make_sbom.py`.
 - Netzwerk in Tests nur über Attrappen; keine echten Firmen-Websites abrufen.
 - Keine Modellkennungen in Commits, Kommentaren oder Doku.
+- Keine Verlinkungen zu Claude, zum Chat oder zu Projekt-Threads/Sitzungen in GitHub: nicht in PR-Beschreibungen, Kommentaren,
+  Reviews oder Commit-Nachrichten (auch keine Zuschreibungs- oder Sitzungszeilen). Vorgabe des Eigentümers vom 26.11.2026.

@@ -41,7 +41,8 @@ RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 CapabilityBoundingSet=
 SystemCallArchitectures=native
 UMask=0077
-ReadWritePaths=/srv/signaldesk /var/log/signaldesk
+# /srv/signaldesk.schluessel: TOTP-Schlüssel und Signaturschlüssel, getrennt von den Daten (dev68)
+ReadWritePaths=/srv/signaldesk /var/log/signaldesk /srv/signaldesk.schluessel
 ReadOnlyPaths=/var/backups/signaldesk
 
 [Install]
