@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev54)
+# Bekannte Einschränkungen (Stand 2.0.0-dev67)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -365,3 +365,9 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Etappe E ist damit abgeschlossen. Nicht umgebaut wurden Pipeline, Datenpflege, Kontakt & Termine, Kaufsignale, Recherche & Berichte, die Analysen-Unteransichten und Import; sie folgen den Regeln nur über Kopfzeile, Reiter und gemeinsame Klassen. „Spalten ▾“ fehlt in den Listen von Angeboten und Abrechnen.
 - Geprüft in Chromium (Playwright) bei 1280 × 720 und 390 × 844; nicht auf echten Geräten und nicht in anderen Browsern.
 
+## Bekannter seltener Testfehler (2.0.0-dev67)
+
+- Der Browser-Test „Firmenakte“ (`tests/e2e/test_ui_akte_browser.py`, Rückweg „← Firmen“ zur gefilterten Liste) schlug in 2 von 4
+  Baseline-Läufen und 1 von 6 Einzelläufen fehl, in der CI bisher nie: Nach dem Schließen der Akte blieb die Firmenliste unsichtbar.
+  Mit zusätzlicher Beobachtung und unter künstlicher Last ließ er sich nicht nachstellen (26 Läufe grün). Der Test ist nicht gelockert;
+  er meldet im Fehlerfall Adresse, Ansicht und Zustand, damit die Ursache beim nächsten Auftreten feststeht (Plan R5.4).

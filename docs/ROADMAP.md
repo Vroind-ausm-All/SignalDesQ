@@ -1,10 +1,13 @@
 # Roadmap
 
-Stand 2.0.0-dev54. Abgeglichen mit dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Maßnahmen M01–M26 in vier
-Etappen A–D) und seit dev16 mit zwei Ergänzungen vom selben Tag: dem Bewertungsmodell für Websites (Maßnahmen M27–M34, geprüft auf
-dev11) und einem Leitfaden zum Kundenonboarding (geprüft auf dev13; daraus M35–M39). Keines der drei Dokumente liegt im Repository. Rollen der Dokumente: **diese Datei** führt den Status jeder künftigen
-Maßnahme, [`CHANGELOG.md`](../CHANGELOG.md) beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise,
-[`LAUNCH_AUDIT.md`](LAUNCH_AUDIT.md) ist eine **historische** Bestandsaufnahme von dev1.
+Stand 2.0.0-dev67. **Ab dev66 gilt für die Weiterentwicklung der Open-Intelligence-Plan mit den Phasen R0–R7** (Architektur- und
+Masterplan vom 25.11.2026, [`MASTERPLAN_OPEN_INTELLIGENCE.md`](MASTERPLAN_OPEN_INTELLIGENCE.md)); sein Status wird in
+[`plan/open_intelligence.json`](plan/open_intelligence.json) gepflegt und unten als Abschnitt erzeugt. Die Maßnahmen M01–M39
+stammen aus dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Etappen A–E) und seinen zwei Ergänzungen
+(Bewertungsmodell M27–M34, Leitfaden Kundenonboarding M35–M39); offene M-Maßnahmen sind den R-Paketen zugeordnet (M21 → R1.6/R5.1/R5.2,
+M22 → R1.1/R1.5). Rollen der Dokumente: **diese Datei** zusammen mit der Planquelle führt den Status, [`CHANGELOG.md`](../CHANGELOG.md)
+beschreibt Änderungen, [`SELF_REVIEW_LOG.md`](SELF_REVIEW_LOG.md) die Nachweise, [`LAUNCH_AUDIT.md`](LAUNCH_AUDIT.md) ist eine
+**historische** Bestandsaufnahme von dev1.
 
 Die Suche bleibt grundsätzlich ohne festgelegte Branche. Jede Stufe endet mit einem lauffähigen Stand, Tests unter Python 3.10
 und 3.13 und Browser-Tests. **Regel nach jeder Etappe (aus dem Review):** nur erweitern, wenn die vereinbarten Abnahmefälle
@@ -31,6 +34,29 @@ bestehen; neue Funktionen dürfen weder die Zahl der Menüpunkte noch die Länge
 | Leitfaden Onboarding: Umfang je Leistung (Korrekturen, Nutzungsrechte, Quelldateien, Betrieb, Schnittstellen), 40/60 nur Vorgabe | **übernommen** in dev16 (M12) | Korrekturschleifen als Feld je Leistung, Prüfpunkte je Leistungsbereich intern im Angebot, Anzahlung als Einstellung. |
 | Leitfaden Onboarding: Versandfassung, Übergang nach Annahme (P0) | **übernommen** als M35, M36 (erledigt in dev17) | Beide vor dem Modellumbau M13, weil sie heute schon falsche Signale geben können (Entwurfshinweis im Export, weiterlaufende Nachfassaufgaben). |
 | Leitfaden Onboarding: eigene Kundenansicht | **zurückgestellt** | Erst bei echtem Bedarf; ein verständlicher Export bleibt die Alternative. |
+
+<!-- plan:roadmap:begin (erzeugt von tools/plan_status.py) -->
+
+## Open-Intelligence-Plan R0–R7 (ab 2.0.0-dev66)
+
+Phasenplan aus dem Architektur- und Masterplan vom 25.11.2026. Vollständige Pakete, Abnahmen und Zuordnungen: [MASTERPLAN_OPEN_INTELLIGENCE.md](MASTERPLAN_OPEN_INTELLIGENCE.md); Status wird in [`plan/open_intelligence.json`](plan/open_intelligence.json) gepflegt. Stand aller 56 Pakete: 19 offen · 20 teilweise · 8 erledigt · 9 blockiert.
+
+| Phase | Name | Beginnt nach | Pakete | Startbereit (Abhängigkeiten erledigt, P0 zuerst) | Gate |
+|---|---|---|---|---|---|
+| **R0** | Baseline & Governance | – | 8 erledigt | – (wartet auf Vorphasen) | Reproduzierbare Baseline (Unit, Browser, Python 3.10/3.13, CI-Matrix) mit Commit dokumentiert |
+| **R1** | Quellen, Discovery & Identität | R0 | 3 offen · 3 teilweise · 1 blockiert | R1.1 Source Registry als zwingende Sperre, R1.4 Recherchemodi und Jobbudgets, R1.5 Firmenidentität: Rechtsträger, Marke, Domain | Source Registry sperrt ungeprüfte Quellen |
+| **R2** | Extraktion & Kandidaten-Sichtung | R1 | 3 offen · 3 teilweise | R2.3 Evidence-Vertrag v2, R2.6 Skill contact-entity-evidence | Präzision und Recall der Rollen auf der Referenzliste gemessen |
+| **R3** | Dokumente & Konzernbeziehungen | R1 | 4 offen · 1 teilweise | R3.5 Skill document-intelligence | Dokumentgrenzen (Größe, Zeit, Seiten) erzwungen |
+| **R4** | Organisationsgraph, Buying Center & Dossier | R2 | 5 offen · 2 teilweise | R4.7 Skill organization-graph | Null unbelegte bestätigte Kanten |
+| **R5** | Lokaler Pilot (M21) | R4 | 1 offen · 2 teilweise · 3 blockiert | – (wartet auf Vorphasen) | Referenzmessung an ≥ 100 Firmen gegen die Zielwerte |
+| **R6** | Staging & Sicherheit | R0 | 2 offen · 8 teilweise · 2 blockiert | R6.1 Egress Default-Deny und Fetch-Gateway (F05), R6.2 Signierte Restore-Manifeste und Quarantäne (F06), R6.4 Staging hinter TLS-Proxy (F08) | Unabhängige Security-Nachprüfung je Commit/Artefaktdigest bestanden |
+| **R7** | Öffentlicher Start | R5, R6 | 1 offen · 1 teilweise · 3 blockiert | – (wartet auf Vorphasen) | Alle Gates erfüllt |
+
+Kritischer Pfad: R0 → R1 → R2 → R4 → R5 → Freigabe. R3 läuft nach R1 parallel, R6-Betriebsmaßnahmen beginnen früh. Kein öffentlicher Start vor bestandener R6-Nachprüfung.
+
+**Wartet auf Entscheidungen oder Nachweise außerhalb des Engineerings:** R1.6 (Eigentümer); R5.1 (Eigentümer); R5.2 (Eigentümer); R5.6 (Steuerberatung); R6.10 (Extern); R6.12 (Eigentümer); R7.2 (Eigentümer); R7.3 (Recht); R7.5 (Eigentümer).
+
+<!-- plan:roadmap:end -->
 
 ## Status je Maßnahme
 
@@ -163,7 +189,7 @@ Bankumsatz-Import mit Abgleich, Belegupload mit Prüfsumme, GiroCode, Vorlage Ve
 
 ## Später – SaaS
 
-Erst nach einem bestandenen lokalen Piloten und nachgewiesener Zahlungsbereitschaft (Entscheidung E1 in [`ARCHITECTURE_DECISIONS.md`](ARCHITECTURE_DECISIONS.md)). Nötig sind dann: Trennung nach Organisation, PostgreSQL, getrennte Recherche-Worker mit Budgets, Anmeldung über OIDC, Überwachung, externe Sicherungen, Datenschutzprüfung, Abrechnung über einen etablierten Anbieter, Darstellung je Nutzer statt je Installation. Ein Plan dafür (`SAAS_LAUNCH_PLAN.md`) ist noch nicht geschrieben.
+Seit dev66 als Phasen R6 (Staging & Sicherheit) und R7 (öffentlicher Start) im Open-Intelligence-Plan geführt; die Liste unten ist der ältere Stand. Erst nach einem bestandenen lokalen Piloten und nachgewiesener Zahlungsbereitschaft (Entscheidung E1 in [`ARCHITECTURE_DECISIONS.md`](ARCHITECTURE_DECISIONS.md)). Nötig sind dann: Trennung nach Organisation, PostgreSQL, getrennte Recherche-Worker mit Budgets, Anmeldung über OIDC, Überwachung, externe Sicherungen, Datenschutzprüfung, Abrechnung über einen etablierten Anbieter, Darstellung je Nutzer statt je Installation. Ein Plan dafür (`SAAS_LAUNCH_PLAN.md`) ist noch nicht geschrieben.
 
 **Kein öffentlicher Start**, bevor Mandantentrennung, Rechteprüfung, Anmeldung, Sicherung und Wiederherstellung sowie die Datenschutzprüfung nachweislich bestanden sind.
 

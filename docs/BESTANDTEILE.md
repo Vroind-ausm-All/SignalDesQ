@@ -1,6 +1,6 @@
 # Bestandteile und Lizenzen (SBOM)
 
-Automatisch erzeugt mit `tools/make_sbom.py` für SignalDesk 2.0.0-dev66 (maschinenlesbar: `sbom/signaldesk.cdx.json`, CycloneDX 1.5). Nicht von Hand ändern.
+Automatisch erzeugt mit `tools/make_sbom.py` für SignalDesk 2.0.0-dev67 (maschinenlesbar: `sbom/signaldesk.cdx.json`, CycloneDX 1.5). Nicht von Hand ändern.
 
 **SignalDesk selbst:** MIT-Lizenz, Kern ohne Fremdpakete (nur Python-Standardbibliothek).
 
@@ -43,7 +43,7 @@ Feste Versionen mit SHA-256-Prüfsummen in `requirements-lock-*.txt`; installier
 | six | 1.17.0 | MIT | research | 2024-12-04 |
 | tld | 0.13.2 | MPL-1.1 OR GPL-2.0-only OR LGPL-2.1-or-later | research | 2026-03-06 |
 | trafilatura | 2.3.1 | Apache-2.0 | research | 2026-10-06 |
-| typing-extensions | 4.16.0 | PSF-2.0 | browser, research | 2026-07-02 |
+| typing-extensions | 4.16.0 | PSF-2.0 | browser, research, team (python_version < "3.11") | 2026-07-02 |
 | tzdata | 2026.5 | Apache-2.0 | research | 2026-10-03 |
 | tzlocal | 5.4.5 | MIT | research | 2026-10-22 |
 | urllib3 | 2.8.0 | MIT | research | 2026-09-15 |

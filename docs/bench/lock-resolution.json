@@ -1,5 +1,5 @@
 {
- "cutoff": "2026-11-10T00:00:00",
+ "cutoff": "2026-11-12T00:00:00",
  "pythons": [
   "3.10",
   "3.11",
@@ -55,6 +55,12 @@
     "uploaded": "2026-10-09",
     "targets": 8,
     "license": "BSD-3-Clause"
+   },
+   "typing-extensions": {
+    "version": "4.16.0",
+    "uploaded": "2026-07-02",
+    "targets": 2,
+    "license": "PSF-2.0"
    }
   },
   "research": {

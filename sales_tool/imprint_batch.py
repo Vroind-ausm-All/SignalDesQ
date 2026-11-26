@@ -199,6 +199,17 @@ def _next_item(db_path, run_id):
 def _process(db_path, item_id, include_persons):
     with connect(db_path) as conn:
         item = conn.execute('SELECT * FROM batch_items WHERE id=?', (item_id,)).fetchone()
+        # 2.0.0-dev67 (R0.7): Sperre vor dem Abruf erneut prüfen – sie kann entstanden sein, während der Eintrag wartete
+        blocked = check_suppressed(conn, website=item['domain'], name=item['company_hint'])
+        if not blocked and item['lead_id']:
+            from .workday import contact_lock
+            lead = conn.execute('SELECT * FROM leads WHERE id=?', (item['lead_id'],)).fetchone()
+            blocked = bool(lead and contact_lock(conn, lead))
+        if blocked:
+            conn.execute("""UPDATE batch_items SET status='gesperrt', error='Auf der Sperrliste – nicht abgerufen.', finished_at=datetime('now')
+                            WHERE id=?""", (item_id,))
+            conn.commit()
+            return
     status, error, result, log = 'done', '', None, []
     try:
         result = imprint.research_domain(item['domain'], include_persons=include_persons)

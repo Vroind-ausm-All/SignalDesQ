@@ -12,6 +12,7 @@ import sqlite3
 import sys
 import tempfile
 import threading
+import time
 import unittest
 from http.server import ThreadingHTTPServer
 from io import StringIO
@@ -277,6 +278,11 @@ class RejectedBodyTests(Base):
             with mock.patch.object(multi_server, 'drain_request', side_effect=spy):
                 status, _, _ = Client(f'http://127.0.0.1:{srv.server_port}').call(
                     '/api/zentral/login', 'POST', body, headers={'Origin': 'http://evil.example'})
+                # Die 403-Antwort geht vor dem Nachlesen hinaus; der Server-Thread trägt erst danach ein.
+                # Unter Last (volle Suite) kam die Prüfung sonst zu früh (Baseline dev67) – kurz warten statt raten.
+                deadline = time.monotonic() + 5
+                while not seen and time.monotonic() < deadline:
+                    time.sleep(0.02)
         finally:
             srv.shutdown()
             srv.server_close()

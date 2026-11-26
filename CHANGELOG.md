@@ -1,5 +1,33 @@
 # Changelog
 
+## 2.0.0-dev67 – Open-Intelligence-Plan R0–R7 eingearbeitet; Phase R0 (Baseline & Governance) abgeschlossen
+
+- **Neu – Phasenplan R0–R7 (Open-Intelligence-Plan):** Der Architektur- und Masterplan vom 25.11.2026 ist eingearbeitet. 56 Arbeitspakete in acht Phasen (Baseline & Governance, Quellen/Discovery/Identität, Extraktion, Dokumente, Organisationsgraph, Pilot, Staging & Sicherheit, Start), jeweils mit Abhängigkeiten, Abnahme, Verantwortlichem und Bezug auf vorhandene Module; dazu die Sicherheitsbefunde F01–F12, Kennzahlen, Technologieregister, Skills und offene Eigentümer-Entscheidungen. Gepflegt in `docs/plan/open_intelligence.json`, erzeugt als [MASTERPLAN_OPEN_INTELLIGENCE.md](docs/MASTERPLAN_OPEN_INTELLIGENCE.md) und als Abschnitt in der Roadmap (`python tools/plan_status.py --write`); `tests/test_plan_structure.py` prüft Abhängigkeiten, Zyklen, Nachweise und Aktualität.
+- **Versionswahrheit (R0.2):** README, Roadmap und Einschränkungen nennen wieder die aktuelle Version; ein Test hält das fest.
+- **Fehlerbehebung – Sperren gingen verloren (R0.7):** Wer eine ältere Sicherung wiederherstellte, verlor Sperren und Widersprüche, die
+  danach erfasst wurden – die Firma war wieder kontaktierbar. Jetzt werden alle Sperren des aktuellen Stands übernommen; die Meldung
+  nennt die Anzahl. Das gilt auch für das Zurückspielen einer Organisation durch den Betreiber.
+- **Fehlerbehebung – Recherche trotz Sperre (R0.7):** Wurde eine Firma gesperrt, während ihr Auftrag wartete (Website-Bewertung,
+  Karriereseite, KI-Analyse, Schnellprüfung, Ansprechpartner, Website-Suche, Impressum-Sammelprüfung), lief er trotzdem und rief ihre
+  Website ab. Die Sperre wird jetzt beim Ausführen geprüft; der Lauf endet mit „Gesperrt: …“.
+- **Recherche-Export:** neue Spalte „Kontaktsperre“ – auch wenn eine Firma nur über Domain oder Name auf der Sperrliste steht.
+- **Gate-Tests (R0.7):** `tests/test_gate_isolation.py` prüft Sperre und Mandantengrenze über Import, Hintergrundauftrag, Export und
+  Wiederherstellung (13 Fälle; 7 davon sind ohne die beiden Korrekturen rot).
+- **Sicherheitsbefunde F01–F12 (R0.6):** je Befund Verantwortliche, Gate-Tests (die Planprüfung stellt sicher, dass es sie gibt) und der
+  offene Nachweis; Ablauf der unabhängigen Nachprüfung in [SICHERHEITS_NACHPRUEFUNG.md](docs/SICHERHEITS_NACHPRUEFUNG.md).
+- **CI-Job „audit“ (R0.5):** pip-audit über alle Lockdateien, Gitleaks über Code und gesamte Historie, Ruff für Fehlerklassen.
+  Die Werkzeuge kommen aus `tools/requirements-lock-dev.txt` (Hashes) bzw. als Download mit fester Version und SHA-256; sie gelangen
+  weder ins Release-Paket noch in die SBOM. Der erste Lauf fand 17 bekannte Schwachstellen in filelock 4.1.0, das die Werkzeug-Lock
+  wegen Python 3.10 gewählt hatte – Prüfwerkzeuge werden jetzt nur für Python 3.12–3.13 aufgelöst (filelock 4.2.10, kein Fund).
+- **Fehlerbehebung – Variante „team“ unter Python 3.10 nicht installierbar:** `tools/make_lock.py` löste alle Python-Versionen mit dem laufenden Interpreter auf; pip wertet Bedingungen wie `python_version < "3.11"` aber für diesen aus. So fehlte `typing-extensions`, das `cryptography` unter 3.10 braucht – die Installation brach ab. Jetzt wird jede Version mit einem Interpreter genau dieser Version aufgelöst; die Team-Lock enthält `typing-extensions` (nur Python 3.10). Neu in jedem Unit-Job der CI (Windows/Linux, 3.10/3.13): Probe-Installation aller Lockdateien. Lokal geprüft unter 3.10, 3.11, 3.12 und 3.13.
+- **CLAUDE.md (R0.3):** elf verbindliche Regeln, jede mit der Stelle im Code und dem Test, der sie durchsetzt; `tests/test_claude_rules.py`
+  prüft die Verweise und dass kein Versand-Code existiert.
+- **Skills-Register (R0.4):** [SKILLS_REGISTRY.md](docs/SKILLS_REGISTRY.md) mit Projekt-Skills, Werkzeugen (Pin, Lizenz) und Kandidaten;
+  neuer Skill `dependency-security`; `tests/test_skills_registry.py`.
+- **Tests – Wettläufe behoben:** Zwei Tests prüften, bevor der Server-Thread nach der Antwort fertig war (abgelehnter Anfragekörper, Zugriffsprotokoll) und waren deshalb in der vollen Suite gelegentlich rot. Beide warten jetzt; nachgestellt mit künstlicher Verzögerung (alt rot, neu grün). Ein seltener Fehler im Browser-Test der Firmenakte ist noch offen (siehe Einschränkungen).
+- **Baseline (R0.1):** `tools/baseline.py` schreibt `docs/BASELINE_<version>.md` mit Commit, Zählern, übersprungenen Tests samt Grund
+  und Laufzeiten.
+
 ## 2.0.0-dev66 – Recherche: Website-Zuordnung mit mehreren Merkmalen, Firmen-Bericht auch ohne Website
 
 - **Website-Suche – „Domain gibt es nicht“ ist kein Fehler mehr:** Geratene Domains ohne DNS-Eintrag zählen nicht mehr als fehlgeschlagener Abruf. Treffer landen dadurch seltener grundlos auf „Prüfung fehlgeschlagen“. Funktioniert die Namensauflösung gar nicht (z. B. Firmennetz nur mit Proxy), meldet SignalDesk das ausdrücklich, statt „nicht gefunden“ zu schließen.

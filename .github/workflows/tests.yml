@@ -3,6 +3,7 @@
 # install:  Release-ZIP bauen und auf einer frischen Maschine einrichten, starten, sichern, wiederherstellen, neu starten
 # e2e:      alle Browser-Tests in Chromium (Variante „browser“); übersprungene Tests gelten als Fehler
 # release:  ZIP byte-gleich reproduzierbar, SBOM und Lockdateien aktuell
+# audit:    bekannte Schwachstellen (pip-audit), Geheimnisse in Code und Historie (Gitleaks), Fehlerklassen im Code (Ruff) – R0.5
 name: tests
 
 on:
@@ -32,6 +33,13 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
         with:
           python-version: ${{ matrix.python }}
+      - name: Lockdateien auf diesem System installierbar (Probelauf, dev67)
+        shell: bash
+        run: |
+          for f in requirements-lock-*.txt; do
+            echo "== $f"
+            python -m pip install --dry-run --ignore-installed --require-hashes -q -r "$f"
+          done
       - name: Tests
         run: python -m unittest discover -s tests
 
@@ -98,3 +106,36 @@ jobs:
         with:
           name: release-zip
           path: a/
+
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4 (fest gepinnt, SDQ-038)
+        with:
+          fetch-depth: 0  # ganze Historie für Gitleaks
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        with:
+          python-version: "3.12"
+      - name: Prüfwerkzeuge (feste Versionen mit Prüfsummen)
+        run: python -m pip install --require-hashes -r tools/requirements-lock-dev.txt
+      - name: Bekannte Schwachstellen in allen Lockdateien (pip-audit)
+        run: |
+          for f in requirements-lock-*.txt tools/requirements-lock-dev.txt; do
+            echo "== $f"
+            pip-audit --require-hashes --disable-pip --progress-spinner off -r "$f"
+          done
+      - name: Fehlerklassen im Code (Ruff)
+        run: ruff check --select E9,F63,F7,F82 --output-format github sales_tool tools tests
+      - name: Geheimnisse in Code und Historie (Gitleaks)
+        env:
+          GITLEAKS_VERSION: "8.28.0"
+          GITLEAKS_SHA256: "a65b5253807a68ac0cafa4414031fd740aeb55f54fb7e55f386acb52e6a840eb"
+        run: |
+          mkdir -p "$RUNNER_TEMP/gitleaks" && cd "$RUNNER_TEMP/gitleaks"
+          curl -sSfL -o gitleaks.tar.gz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz gitleaks
+          cd "$GITHUB_WORKSPACE"
+          "$RUNNER_TEMP/gitleaks/gitleaks" git . --config .gitleaks.toml --redact --no-banner
+          "$RUNNER_TEMP/gitleaks/gitleaks" dir . --config .gitleaks.toml --redact --no-banner

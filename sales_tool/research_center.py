@@ -321,10 +321,15 @@ def export_csv(conn):
     rows = overview(conn, include_closed=True)['leads']
     buf = io.StringIO()
     w = csv.writer(buf, delimiter=';', lineterminator='\r\n')
-    w.writerow(['Firma', 'Website', 'Phase', 'Rechtsstatus', 'Recherchepriorität', 'Grundlage', 'Recherchestand %', 'Nächster Schritt', 'Website-Gesamt',
-                'Belegabdeckung %', 'Kaufsignale', 'davon Gegenhinweise', 'Top-Hypothese', 'Entscheider geprüft', 'Firmendaten %'])
+    from .workday import contact_lock
+    w.writerow(['Firma', 'Website', 'Phase', 'Rechtsstatus', 'Kontaktsperre', 'Recherchepriorität', 'Grundlage', 'Recherchestand %', 'Nächster Schritt',
+                'Website-Gesamt', 'Belegabdeckung %', 'Kaufsignale', 'davon Gegenhinweise', 'Top-Hypothese', 'Entscheider geprüft', 'Firmendaten %'])
     for r in rows:
-        vals = [r['company'], r['website'], r['stage'], r['permission'], '' if r['priority'] is None else r['priority'], r['priority_basis'], r['readiness_pct'],
+        # 2.0.0-dev67 (R0.7): Sperre erreicht den Export – auch wenn sie nur über Domain/Name auf der Sperrliste steht
+        lead = conn.execute('SELECT * FROM leads WHERE id=?', (r['lead_id'],)).fetchone()
+        lock = contact_lock(conn, lead) if lead else ''
+        vals = [r['company'], r['website'], r['stage'], r['permission'], f'GESPERRT: {lock}' if lock else 'nein',
+                '' if r['priority'] is None else r['priority'], r['priority_basis'], r['readiness_pct'],
                 r['next_step']['label'], '' if r['website_overall'] is None else r['website_overall'], '' if r['website_coverage'] is None else r['website_coverage'],
                 r['signals'], r['signals_contra'], (r['hypothesis'] or {}).get('hypothesis', ''), r['decision_checked'], r['data_pct']]
         w.writerow(["'" + v if isinstance(v, str) and v[:1] in '=+-@' else v for v in vals])

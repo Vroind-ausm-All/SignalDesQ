@@ -16,6 +16,7 @@ Kommandozeile (wenn SignalDesk nicht mehr startet):
 from __future__ import annotations
 
 import argparse
+import contextlib
 import datetime as dt
 import getpass
 import re
@@ -107,8 +108,56 @@ def _plain_copy(src, password, tmp):
     return out
 
 
+def current_suppressions(db_path):
+    """Alle Sperren des aktuellen Stands als Sperrlisten-Einträge (2.0.0-dev67, R0.7): die Sperrliste selbst und die Merkmale
+    jeder Firma mit Widerspruch oder Phase „gesperrt“. Eine ältere Sicherung kennt spätere Sperren nicht – ohne Übernahme wäre
+    eine gesperrte Firma nach dem Wiederherstellen wieder kontaktierbar."""
+    from .company_data import normalize_domain, normalize_name, normalize_register
+    if not Path(db_path).exists():
+        return []
+    out = []
+    try:
+        with contextlib.closing(sqlite3.connect(f'file:{Path(db_path).as_posix()}?mode=ro', uri=True)) as c:
+            c.row_factory = sqlite3.Row
+            tables = {r[0] for r in c.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            if 'suppression_list' in tables:
+                out += [(r['kind'], r['value'], r['display'], r['reason']) for r in c.execute('SELECT kind, value, display, reason FROM suppression_list')]
+            if 'leads' in tables:
+                cols = {r[1] for r in c.execute('PRAGMA table_info(leads)')}
+                need = {'website', 'company', 'legal_name', 'register_court', 'register_number', 'business_email', 'permission', 'stage'}
+                if need <= cols:
+                    for r in c.execute("SELECT * FROM leads WHERE permission='nicht_kontaktieren' OR stage='gesperrt'"):
+                        why = f"Sperre von „{r['company']}“ (vor dem Wiederherstellen)"
+                        probes = [('domain', normalize_domain(r['website']), r['website']), ('name', normalize_name(r['company']), r['company']),
+                                  ('name', normalize_name(r['legal_name']), r['legal_name']),
+                                  ('register', normalize_register(r['register_court'], r['register_number']), f"{r['register_court']} {r['register_number']}".strip()),
+                                  ('email', (r['business_email'] or '').strip().lower(), r['business_email'])]
+                        out += [(k, v, d or v, why) for k, v, d in probes if v and len(v) >= 3]
+    except sqlite3.DatabaseError:
+        return []  # beschädigter Stand: nichts lesbar, Sicherung liegt als Kopie bereit
+    return out
+
+
+def keep_suppressions(db_path, entries):
+    """Sperren in den wiederhergestellten Stand übernehmen. Gibt die Zahl neu eingetragener Sperren zurück."""
+    if not entries:
+        return 0
+    from .model import connect
+    with connect(db_path) as conn:
+        before = conn.execute('SELECT COUNT(*) FROM suppression_list').fetchone()[0]
+        conn.executemany('INSERT OR IGNORE INTO suppression_list(kind, value, display, reason) VALUES (?,?,?,?)',
+                         [(k, v, (d or '')[:200], (r or '')[:300]) for k, v, d, r in entries])
+        added = conn.execute('SELECT COUNT(*) FROM suppression_list').fetchone()[0] - before
+        if added:
+            from .company_data import _audit
+            _audit(conn, 'suppression', None, 'sperren_uebernommen', f'{added} Sperre(n) aus dem Stand vor dem Wiederherstellen übernommen')
+        conn.commit()
+    return added
+
+
 def restore(db_path, source, password=None, confirm=False):
-    """Stellt `source` (Pfad) als aktuelle Datenbank `db_path` wieder her. Gibt eine Zusammenfassung zurück."""
+    """Stellt `source` (Pfad) als aktuelle Datenbank `db_path` wieder her. Gibt eine Zusammenfassung zurück.
+    Sperren des aktuellen Stands bleiben erhalten (Sperrliste, Widersprüche) – ein Wiederherstellen hebt keine Sperre auf."""
     from .accounting_api import create_backup
     from .server import prepare_database
     if confirm is not True:
@@ -123,6 +172,7 @@ def restore(db_path, source, password=None, confirm=False):
             if lost:
                 raise ValueError('Abgelehnt (GoBD): In der Sicherung fehlen festgeschriebene Rechnungen, die es jetzt gibt: '
                                  + ', '.join(lost[:10]) + (' …' if len(lost) > 10 else '') + '. Eine neuere Sicherung wählen.')
+        keep = current_suppressions(db_path) if current else []
         safety = None
         if db_path.exists() and current:
             safety = create_backup(db_path)['path']
@@ -152,11 +202,14 @@ def restore(db_path, source, password=None, confirm=False):
                 Path(str(db_path) + suffix).unlink(missing_ok=True)
             shutil.copyfile(plain, db_path)
     prepare_database(db_path)  # auf das aktuelle Schema migrieren, Aufträge wieder aufnehmen
+    kept = keep_suppressions(db_path, keep)
     after = inspect(db_path)
     return {'restored': True, 'from': Path(source).name, 'safety_backup': safety, 'current_was_broken': broken,
             'before': {k: current[k] for k in ('leads', 'invoices')} if current else None,
             'after': {k: after[k] for k in ('leads', 'invoices', 'proposals', 'tasks')}, 'schema': after['schema'],
-            'notice': 'Wiederhergestellt. Der vorherige Stand liegt als Sicherung „…-vor-wiederherstellung“ bereit.'}
+            'kept_suppressions': kept,
+            'notice': 'Wiederhergestellt. Der vorherige Stand liegt als Sicherung „…-vor-wiederherstellung“ bereit.'
+                      + (f' {kept} Sperre(n) aus dem bisherigen Stand wurden übernommen – Wiederherstellen hebt keine Sperre auf.' if kept else '')}
 
 
 def restore_named(db_path, name, password=None, confirm=False):

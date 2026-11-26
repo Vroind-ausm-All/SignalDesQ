@@ -7,6 +7,11 @@ Gewählt wird je Paket eine Version, die auf ALLEN Zielen installierbar ist, und
 `--cooldown-days` Tage alt sind (Schutz vor frisch kompromittierten Releases). In die Lockdatei kommen die
 SHA-256-Prüfsummen aller Dateien dieser Version (pip prüft beim Installieren mit --require-hashes).
 Ergebnis: requirements-lock-<variante>.txt im Projektordner + docs/bench/lock-resolution.json (Protokoll).
+
+2.0.0-dev67: Jede Python-Version wird mit einem Interpreter GENAU dieser Version aufgelöst. pip wertet Bedingungen wie
+`python_version < "3.11"` für den laufenden Interpreter aus, nicht für `--python-version` – unter 3.13 aufgelöst fehlte
+z. B. typing-extensions, das cryptography unter Python 3.10 braucht (Variante „team“ war dort nicht installierbar).
+Interpreter: `--interpreter 3.10=/pfad/python` oder automatisch über `uv python find` (mit pip versorgt per `uv venv --seed`).
 """
 from __future__ import annotations
 
@@ -20,7 +25,27 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-VARIANTS = {'browser': ['requirements-ai.txt'], 'team': ['requirements-team.txt'], 'research': ['requirements-research.txt']}
+VARIANTS = {'browser': ['requirements-ai.txt'], 'team': ['requirements-team.txt'], 'research': ['requirements-research.txt'],
+            'dev': ['requirements-dev.txt']}
+# R0.5 (2.0.0-dev67): Prüfwerkzeuge der CI – eigene Ablage unter tools/, damit sie weder ins Release noch in die SBOM gelangen
+DEV_VARIANTS = {'dev'}
+
+
+# Prüfwerkzeuge laufen nur in der CI (Python 3.12) und bei der Entwicklung – nicht bei Nutzern mit Python 3.10.
+# Sonst erzwänge 3.10 alte, verwundbare Versionen (z. B. filelock < 4.2.1, gefunden von pip-audit).
+VARIANT_PYTHONS = {'dev': ('3.12', '3.13')}
+
+
+def pythons_for(name):
+    return VARIANT_PYTHONS.get(name, PYTHONS)
+
+
+def lock_path(name):
+    return ROOT / 'tools' / f'requirements-lock-{name}.txt' if name in DEV_VARIANTS else ROOT / f'requirements-lock-{name}.txt'
+
+
+def resolution_path(name):
+    return ROOT / 'tools' / f'lock-resolution-{name}.json' if name in DEV_VARIANTS else ROOT / 'docs' / 'bench' / 'lock-resolution.json'
 PYTHONS = ('3.10', '3.11', '3.12', '3.13')
 PLATFORMS = {'windows': ['win_amd64'],
              'linux': ['manylinux_2_28_x86_64', 'manylinux_2_17_x86_64', 'manylinux2014_x86_64', 'manylinux1_x86_64', 'linux_x86_64']}
@@ -69,11 +94,39 @@ def vkey(v):
     return out
 
 
+INTERPRETERS = {}
+_VENVS = tempfile.TemporaryDirectory(prefix='signaldesk-lock-')
+
+
+def _has_pip(exe):
+    return subprocess.run([exe, '-m', 'pip', '--version'], capture_output=True).returncode == 0
+
+
+def interpreter_for(python):
+    """Interpreter der Zielversion mit pip – sonst Abbruch (lieber kein Lock als ein falsches)."""
+    if python in INTERPRETERS:
+        return INTERPRETERS[python]
+    if f'{sys.version_info.major}.{sys.version_info.minor}' == python:
+        INTERPRETERS[python] = sys.executable
+        return sys.executable
+    venv = Path(_VENVS.name) / f'py{python}'
+    try:
+        subprocess.run(['uv', 'venv', '-q', '--seed', '--python', python, str(venv)], check=True, capture_output=True)
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise SystemExit(f'Kein Python {python} gefunden – mit „--interpreter {python}=/pfad/python“ angeben '
+                         f'oder „uv python install {python}“ ausführen. ({exc})')
+    exe = str(venv / ('Scripts/python.exe' if sys.platform == 'win32' else 'bin/python'))
+    if not _has_pip(exe):
+        raise SystemExit(f'Python {python} ohne pip: {exe}')
+    INTERPRETERS[python] = exe
+    return exe
+
+
 def resolve(req_files, constraints, platform, python):
     with tempfile.TemporaryDirectory() as tmp:
         report, cons = Path(tmp) / 'r.json', Path(tmp) / 'c.txt'
         cons.write_text('\n'.join(f'{k}{v}' for k, v in sorted(constraints.items())) + '\n', encoding='utf-8')
-        cmd = [sys.executable, '-m', 'pip', 'install', '-q', '--dry-run', '--ignore-installed', '--report', str(report),
+        cmd = [interpreter_for(python), '-m', 'pip', 'install', '-q', '--dry-run', '--ignore-installed', '--report', str(report),
                '--python-version', python, '--implementation', 'cp', '--only-binary=:all:', '-c', str(cons)]
         for p in PLATFORMS[platform]:
             cmd += ['--platform', p]
@@ -104,7 +157,7 @@ def lock_variant(name, req_files, cutoff, log):
     for rnd in range(8):
         results, errors = {}, []
         for plat in PLATFORMS:
-            for py in PYTHONS:
+            for py in pythons_for(name):
                 res, err = resolve(req_files, constraints, plat, py)
                 if res is None:
                     errors.append(f'{plat} {py}: {err}')
@@ -134,9 +187,10 @@ def lock_variant(name, req_files, cutoff, log):
 
 
 def write_lock(name, req_files, pins, platforms, cutoff):
-    every = {f'{plat}-py{py}' for plat in PLATFORMS for py in PYTHONS}
+    pys_all = pythons_for(name)
+    every = {f'{plat}-py{py}' for plat in PLATFORMS for py in pys_all}
     lines = [f'# SignalDesk – Installationsvariante „{name}“ (erzeugt mit tools/make_lock.py, nicht von Hand ändern)',
-             f'# Quelle: {", ".join(req_files)} · Ziele: Windows x64 und Linux x64, Python {PYTHONS[0]}–{PYTHONS[-1]}',
+             f'# Quelle: {", ".join(req_files)} · Ziele: Windows x64 und Linux x64, Python {pys_all[0]}–{pys_all[-1]}',
              f'# Nur Versionen, die vor {cutoff[:10]} veröffentlicht wurden. Installation: pip install --require-hashes -r <diese Datei>', '']
     for p in sorted(pins):
         v = pins[p]
@@ -150,12 +204,12 @@ def write_lock(name, req_files, pins, platforms, cutoff):
                 conds.append('sys_platform == "win32"')
             elif plats == ['linux']:
                 conds.append('sys_platform == "linux"')
-            if set(pys) != set(PYTHONS):
-                conds.append(f'python_version < "{_next_minor(pys[-1])}"' if pys[0] == PYTHONS[0] else f'python_version >= "{pys[0]}"')
+            if set(pys) != set(pys_all):
+                conds.append(f'python_version < "{_next_minor(pys[-1])}"' if pys[0] == pys_all[0] else f'python_version >= "{pys[0]}"')
             marker = ' ; ' + ' and '.join(conds) if conds else ''
         lines.append(f'{p}=={v}{marker} \\')
         lines += [f'    --hash=sha256:{h}' + (' \\' if i < len(hashes) - 1 else '') for i, h in enumerate(hashes)]
-    (ROOT / f'requirements-lock-{name}.txt').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    lock_path(name).write_text('\n'.join(lines) + '\n', encoding='utf-8')
 
 
 def _next_minor(v):
@@ -166,21 +220,29 @@ def _next_minor(v):
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('--cooldown-days', type=int, default=14)
-    ap.add_argument('--variants', default=','.join(VARIANTS))
+    ap.add_argument('--variants', default=','.join(v for v in VARIANTS if v not in DEV_VARIANTS))
     ap.add_argument('--today', default=dt.date.today().isoformat())
+    ap.add_argument('--interpreter', action='append', default=[], help='VERSION=PFAD, z. B. 3.10=/usr/bin/python3.10 (mit pip)')
     a = ap.parse_args(argv)
+    for item in a.interpreter:
+        ver, _, path = item.partition('=')
+        if not _has_pip(path):
+            raise SystemExit(f'--interpreter {item}: kein pip')
+        INTERPRETERS[ver] = path
     cutoff = (dt.date.fromisoformat(a.today) - dt.timedelta(days=a.cooldown_days)).isoformat() + 'T00:00:00'
-    res_path = ROOT / 'docs' / 'bench' / 'lock-resolution.json'
-    old = json.loads(res_path.read_text(encoding='utf-8')) if res_path.exists() else {}
-    log, summary = [], dict(old.get('variants') or {})
-    for name in a.variants.split(','):
-        pins, platforms = lock_variant(name, VARIANTS[name], cutoff, log)
-        write_lock(name, VARIANTS[name], pins, platforms, cutoff)
-        summary[name] = {p: {'version': v, 'uploaded': uploaded(p, v)[:10], 'targets': len(platforms[p]),
-                             'license': license_of(p)} for p, v in sorted(pins.items())}
-        print(f"{name}: {', '.join(f'{p}=={v}' for p, v in sorted(pins.items()))}")
-    res_path.write_text(json.dumps({'cutoff': cutoff, 'pythons': PYTHONS, 'platforms': list(PLATFORMS),
-                                                                              'variants': summary, 'rounds': log}, indent=1, ensure_ascii=False) + '\n', encoding='utf-8')
+    names = a.variants.split(',')
+    for res_path in dict.fromkeys(resolution_path(n) for n in names):  # Produkt- und Prüfwerkzeug-Varianten getrennt protokollieren
+        group = [n for n in names if resolution_path(n) == res_path]
+        old = json.loads(res_path.read_text(encoding='utf-8')) if res_path.exists() else {}
+        log, summary = [], dict(old.get('variants') or {})
+        for name in group:
+            pins, platforms = lock_variant(name, VARIANTS[name], cutoff, log)
+            write_lock(name, VARIANTS[name], pins, platforms, cutoff)
+            summary[name] = {p: {'version': v, 'uploaded': uploaded(p, v)[:10], 'targets': len(platforms[p]),
+                                 'license': license_of(p)} for p, v in sorted(pins.items())}
+            print(f"{name}: {', '.join(f'{p}=={v}' for p, v in sorted(pins.items()))}")
+        res_path.write_text(json.dumps({'cutoff': cutoff, 'pythons': pythons_for(group[0]), 'platforms': list(PLATFORMS),
+                                        'variants': summary, 'rounds': log}, indent=1, ensure_ascii=False) + '\n', encoding='utf-8')
 
 
 if __name__ == '__main__':

@@ -1,0 +1,3 @@
+# Prüfwerkzeuge für die CI (R0.5) – nicht Teil von SignalDesk. Lock: tools/requirements-lock-dev.txt (tools/make_lock.py --variants dev)
+pip-audit
+ruff
