@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev67. **Ab dev66 gilt für die Weiterentwicklung der Open-Intelligence-Plan mit den Phasen R0–R7** (Architektur- und
+Stand 2.0.0-dev68. **Ab dev66 gilt für die Weiterentwicklung der Open-Intelligence-Plan mit den Phasen R0–R7** (Architektur- und
 Masterplan vom 25.11.2026, [`MASTERPLAN_OPEN_INTELLIGENCE.md`](MASTERPLAN_OPEN_INTELLIGENCE.md)); sein Status wird in
 [`plan/open_intelligence.json`](plan/open_intelligence.json) gepflegt und unten als Abschnitt erzeugt. Die Maßnahmen M01–M39
 stammen aus dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Etappen A–E) und seinen zwei Ergänzungen

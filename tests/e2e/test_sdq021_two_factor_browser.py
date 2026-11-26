@@ -92,5 +92,61 @@ class TwoFactorBrowserTests(unittest.TestCase):
                 server.server_close()
 
 
+    def test_optional_suggestion_later_and_setup(self):
+        """dev68: ohne Pflicht wird der zweite Faktor nach der Anmeldung empfohlen; „Später“ führt hinein, „Jetzt einrichten“ richtet ein."""
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
+            d = tenancy.Directory(Path(tmp) / 'm')
+            org = d.create('nord', 'Nord')
+            with connect(org['db_path']) as conn:
+                conn.execute("INSERT INTO leads(company, stage) VALUES ('Nord Fiktiv GmbH', 'neu')")
+                conn.commit()
+            accounts.create_account(d, 'erika', PW, 'Erika Beispiel')
+            accounts.set_membership(d, 'erika', 'nord', 'vertrieb')
+            server = ThreadingHTTPServer(('127.0.0.1', 0), make_multi_handler(d))
+            threading.Thread(target=server.serve_forever, daemon=True).start()
+            base = f'http://127.0.0.1:{server.server_port}'
+            try:
+                with sync_playwright() as playwright:
+                    browser = playwright.chromium.launch(executable_path=os.environ.get('PLAYWRIGHT_CHROMIUM_EXECUTABLE') or None)
+                    try:
+                        page = browser.new_page(viewport={'width': 390, 'height': 844})
+                        errors = []
+                        page.on('pageerror', lambda exc: errors.append(str(exc)))
+
+                        def login():
+                            page.goto(base + '/anmelden')
+                            page.fill('#zLogin [name=username]', 'erika')
+                            page.fill('#zLogin [name=password]', PW)
+                            page.click('#zLogin button[type=submit]')
+                            page.locator('#zSuggest >> visible=true').wait_for()
+
+                        login()
+                        page.click('#zSuggestLater')
+                        page.wait_for_url(base + '/')  # freiwillig: direkt hinein
+                        page.goto(base + '/#/firmen')
+                        page.locator('text=Nord Fiktiv GmbH >> visible=true').first.wait_for()
+                        page.context.clear_cookies()
+                        login()  # ohne zweiten Faktor: wieder gefragt
+                        page.click('#zSuggestYes')
+                        page.locator('#zSetup >> visible=true').wait_for()
+                        page.locator('#zSetupWhy', has_text='zusätzlich einen Code').wait_for()
+                        page.fill('#zSetupStart [name=password]', PW)
+                        page.click('#zSetupStart button[type=submit]')
+                        page.locator('[data-z-secret] >> visible=true').wait_for()
+                        secret = page.locator('[data-z-secret]').inner_text().replace(' ', '')
+                        page.fill('#zSetupConfirm [name=code]', totp.code(secret))
+                        page.click('#zSetupConfirm button[type=submit]')
+                        page.locator('#zCodeList li').first.wait_for()
+                        page.click('#zCodesDone')
+                        page.locator('[data-z-org="nord"]').wait_for()
+                        page.locator('#zMfaState', has_text='an').wait_for(state='attached')
+                        self.assertEqual(errors, [])
+                    finally:
+                        browser.close()
+            finally:
+                server.shutdown()
+                server.server_close()
+
+
 if __name__ == '__main__':
     unittest.main()

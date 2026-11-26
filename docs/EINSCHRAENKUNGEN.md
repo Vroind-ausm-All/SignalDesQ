@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev67)
+# Bekannte Einschränkungen (Stand 2.0.0-dev68)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -6,7 +6,7 @@ Der Masterplan verlangt für Sprint 6 „dokumentierte offene Einschränkungen�
 Ausweg. Sie wird mit jeder Version aktualisiert.
 
 ## Installation und Betrieb
-- **Python muss vorhanden sein.** Die Startdatei findet Python 3.10–3.13 und bietet unter Windows die Installation über winget an. Ein eigenständiges Paket mit eingebautem Python (z. B. PyInstaller) gibt es nicht.
+- **Python muss vorhanden sein.** Die Startdatei findet Python 3.10 oder neuer (geprüft bis 3.14) und bietet unter Windows die Installation über winget an. Ein eigenständiges Paket mit eingebautem Python (z. B. PyInstaller) gibt es nicht.
   - Grund: Größe, Virenscanner-Fehlalarme bei gepackten Programmen, und Updates wären schwerer.
 - **Chromium ist nicht über Prüfsummen gesperrt.** Die Python-Pakete stehen mit festen Versionen und Prüfsummen in `requirements-lock-*.txt`. Chromium für die Browser-Prüfung lädt dagegen `playwright install chromium` beim ersten Start. Playwright prüft diesen Download selbst; er braucht aber Internet, auch beim Offline-Paket.
   - Ausweg: Variante „basis“. Website-Recherche per HTTP funktioniert ohne Browser.
@@ -371,3 +371,15 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
   Baseline-Läufen und 1 von 6 Einzelläufen fehl, in der CI bisher nie: Nach dem Schließen der Akte blieb die Firmenliste unsichtbar.
   Mit zusätzlicher Beobachtung und unter künstlicher Last ließ er sich nicht nachstellen (26 Läufe grün). Der Test ist nicht gelockert;
   er meldet im Fehlerfall Adresse, Ansicht und Zustand, damit die Ursache beim nächsten Auftreten feststeht (Plan R5.4).
+
+## Passwortregel, zweiter Faktor, Python-Versionen (2.0.0-dev68)
+
+- Die neue Passwortregel (mindestens 12 Zeichen, Groß- und Kleinbuchstaben, ein Sonderzeichen) gilt beim Setzen und Ändern. Bestehende,
+  kürzere Passwörter bleiben gültig; einen Zwang zum Wechsel bei der nächsten Anmeldung gibt es nicht.
+- Leerzeichen zählen nicht als Sonderzeichen; Umlaute zählen als Buchstaben.
+- Den zweiten Faktor (TOTP) gibt es nur in der Mehrmandanten-Installation (zentrale Anmeldung). Dort wird er nach jeder Anmeldung ohne
+  zweiten Faktor empfohlen; „Später“ führt weiter. Die Einzelplatz-Team-Anmeldung kennt keinen zweiten Faktor.
+- TOTP-Geheimnisse liegen weiter unverschlüsselt im Verzeichnis `organisationen.sqlite3`; Sicherungssätze sind nicht signiert
+  (Entscheidung offen, Prüfbericht F06/F09).
+- Python 3.14 ist in der CI (Windows, Linux) geprüft. Python 3.15 lief lokal mit 3.15.0b4 grün, ist aber nicht zugesagt: Die
+  Recherche-Variante ist dort nicht installierbar (rapidfuzz 3.14.5 ohne Pakete für 3.15; die nächste Version unterstützt 3.10 nicht).

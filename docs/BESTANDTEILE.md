@@ -1,6 +1,6 @@
 # Bestandteile und Lizenzen (SBOM)
 
-Automatisch erzeugt mit `tools/make_sbom.py` für SignalDesk 2.0.0-dev67 (maschinenlesbar: `sbom/signaldesk.cdx.json`, CycloneDX 1.5). Nicht von Hand ändern.
+Automatisch erzeugt mit `tools/make_sbom.py` für SignalDesk 2.0.0-dev68 (maschinenlesbar: `sbom/signaldesk.cdx.json`, CycloneDX 1.5). Nicht von Hand ändern.
 
 **SignalDesk selbst:** MIT-Lizenz, Kern ohne Fremdpakete (nur Python-Standardbibliothek).
 
@@ -8,7 +8,7 @@ Automatisch erzeugt mit `tools/make_sbom.py` für SignalDesk 2.0.0-dev67 (maschi
 
 | Bestandteil | Version | Lizenz | Nötig? | Hinweis |
 |---|---|---|---|---|
-| CPython | 3.10–3.13 | PSF-2.0 | ja | Python-Laufzeit (vom Nutzer installiert bzw. per winget/python.org) |
+| CPython | 3.10–3.14 | PSF-2.0 | ja | Python-Laufzeit (vom Nutzer installiert bzw. per winget/python.org) |
 | Chromium (Playwright-Download) | zur Playwright-Version passend | BSD-3-Clause | optional | Nur Variante browser/team/voll: Browser für JavaScript-Seiten, lädt `playwright install chromium` |
 | gemeinden_de.json | 2026-11-06 | CC-BY-4.0 | ja | GeoNames Postal Codes DE (https://download.geonames.org/export/zip/) |
 

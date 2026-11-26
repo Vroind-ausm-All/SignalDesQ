@@ -320,7 +320,10 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                 acc = accounts.central_account(directory, tok)
                 cookies += self._enter_cookies(acc, active[0]['slug'])
                 entered = active[0]['slug']
-            return self._send(200, {**self._view(view), 'stage': 'voll', 'entered': entered}, cookies)
+            # dev68: zweiter Faktor ist empfohlen, aber (ohne Pflicht) freiwillig – die Oberfläche fragt nach jeder Anmeldung
+            # ohne zweiten Faktor, ob er jetzt eingerichtet werden soll („Später“ führt weiter wie bisher).
+            return self._send(200, {**self._view(view), 'stage': 'voll', 'entered': entered,
+                                    'suggest_2fa': not view['two_factor']}, cookies)
 
         def _central(self, method, route):
             token = self._cookies().get(accounts.CENTRAL_COOKIE, '')
@@ -367,7 +370,7 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
                 view = accounts.account_view(directory, acc['username'])
                 return self._send(200, {'logged_in': True, 'stage': 'voll', **self._view(view),
                                         'two_factor': view['two_factor'], 'recovery_codes_left': view['recovery_codes_left'],
-                                        'require_2fa': accounts.require_2fa(directory),
+                                        'require_2fa': accounts.require_2fa(directory), 'suggest_2fa': not view['two_factor'],
                                         'current': self._cookies().get(accounts.ORG_COOKIE, '')})
             if route == '/api/zentral/code' and method == 'POST':
                 b = self._body()

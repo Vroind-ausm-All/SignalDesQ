@@ -20,7 +20,7 @@
     <label>Name der Organisation<input name="org_name" autocomplete="organization" required minlength="2" maxlength="120"></label>
     <label>Benutzername<input name="username" autocomplete="username" required minlength="3" maxlength="40" pattern="[A-Za-z0-9._\-]{3,40}"></label>
     <label>Dein Name (optional)<input name="display_name" autocomplete="name" maxlength="80"></label>
-    <label>Passwort (mind. 10 Zeichen)<input name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="200"></label>
+    <label>Passwort (mind. 12 Zeichen, Groß- und Kleinbuchstaben, ein Sonderzeichen)<input name="password" type="password" autocomplete="new-password" required minlength="12" maxlength="200"></label>
     <button type="submit" class="btn btn-primary">Registrieren</button>
     <button type="button" class="btn btn-ghost" data-z-back>Zur Anmeldung</button>
   </form>
@@ -32,7 +32,7 @@
       <p class="muted small">Neues Konto anlegen – oder <button type="button" class="text-button" data-z-back>mit vorhandenem Konto anmelden</button>, danach den Link erneut öffnen.</p>
       <label>Benutzername<input name="username" autocomplete="username" required minlength="3" maxlength="40"></label>
       <label>Dein Name (optional)<input name="display_name" autocomplete="name" maxlength="80"></label>
-      <label>Passwort (mind. 10 Zeichen)<input name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="200"></label>
+      <label>Passwort (mind. 12 Zeichen, Groß- und Kleinbuchstaben, ein Sonderzeichen)<input name="password" type="password" autocomplete="new-password" required minlength="12" maxlength="200"></label>
       <button type="submit" class="btn btn-primary">Konto anlegen und beitreten</button>
     </form>
   </section>
@@ -76,6 +76,13 @@
       <button type="button" class="btn btn-primary" id="zCodesDone">Gespeichert – weiter</button>
     </div>
   </section>
+  <section id="zSuggest" class="hidden zentral-setup" aria-live="polite">
+    <h2>Zwei-Faktor-Anmeldung empfohlen</h2>
+    <p>Dein Konto ist bisher nur mit dem Passwort geschützt. Mit einem zweiten Faktor fragt SignalDesk nach dem Passwort zusätzlich einen Code aus einer Authenticator-App ab. Wird das Passwort bekannt, kommt so trotzdem niemand hinein.</p>
+    <p class="muted small">Freiwillig: Du kannst das jederzeit später unter „Zwei-Faktor-Anmeldung“ einrichten. Bis dahin fragen wir bei jeder Anmeldung nach.</p>
+    <button type="button" class="btn btn-primary" id="zSuggestYes">Jetzt einrichten</button>
+    <button type="button" class="btn btn-ghost" id="zSuggestLater">Später</button>
+  </section>
   <section id="zOrgs" class="hidden" aria-live="polite">
     <p class="muted" id="zWho"></p>
     <h2>Organisation wählen</h2>
@@ -84,7 +91,7 @@
     <details class="zentral-pw"><summary>Passwort ändern</summary>
       <form id="zPw">
         <label>Bisheriges Passwort<input name="old" type="password" autocomplete="current-password" required maxlength="200"></label>
-        <label>Neues Passwort (mind. 10 Zeichen)<input name="new" type="password" autocomplete="new-password" required minlength="10" maxlength="200"></label>
+        <label>Neues Passwort (mind. 12 Zeichen, Groß- und Kleinbuchstaben, ein Sonderzeichen)<input name="new" type="password" autocomplete="new-password" required minlength="12" maxlength="200"></label>
         <button type="submit" class="btn btn-ghost">Passwort ändern</button>
       </form>
     </details>

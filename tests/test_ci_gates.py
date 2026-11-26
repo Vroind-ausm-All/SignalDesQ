@@ -41,7 +41,7 @@ class CiGateTests(unittest.TestCase):
         """dev67: Variante „team“ war unter Python 3.10 nicht installierbar (typing-extensions fehlte) – die CI prüfte nur 3.12."""
         unit = job('unit')
         self.assertIn('os: [windows-latest, ubuntu-latest]', unit)
-        self.assertIn('python: ["3.10", "3.13"]', unit)
+        self.assertIn('python: ["3.10", "3.13", "3.14"]', unit)  # älteste, bisher neueste und neueste zugesagte Version (dev68)
         self.assertRegex(unit, r'for f in requirements-lock-\*\.txt; do')
         self.assertIn('pip install --dry-run --ignore-installed --require-hashes', unit)
         self.assertLess(unit.index('--dry-run'), unit.index('unittest discover'))

@@ -1,6 +1,6 @@
 # SignalDesk – Kunden finden, bewerten, erreichen, abrechnen (lokal)
 
-> **Stand 2.0.0-dev67: Entwicklungsstand, kein fertiges Release.** Geprüft mit automatischen Tests unter Linux und Windows (Python 3.10, 3.13) und im Browser. Weiterentwicklung nach Phasen R0–R7: [`docs/MASTERPLAN_OPEN_INTELLIGENCE.md`](docs/MASTERPLAN_OPEN_INTELLIGENCE.md). Erste Messung an echten Quellen: [`docs/PRAXISTEST_70191.md`](docs/PRAXISTEST_70191.md); Website-Zuordnung noch ungemessen. Vor der Nutzung vorhandener Daten eine Sicherung erstellen.
+> **Stand 2.0.0-dev68: Entwicklungsstand, kein fertiges Release.** Geprüft mit automatischen Tests unter Linux und Windows (Python 3.10, 3.13, 3.14) und im Browser. Weiterentwicklung nach Phasen R0–R7: [`docs/MASTERPLAN_OPEN_INTELLIGENCE.md`](docs/MASTERPLAN_OPEN_INTELLIGENCE.md). Erste Messung an echten Quellen: [`docs/PRAXISTEST_70191.md`](docs/PRAXISTEST_70191.md); Website-Zuordnung noch ungemessen. Vor der Nutzung vorhandener Daten eine Sicherung erstellen.
 
 SignalDesk ist ein Vertriebsarbeitsplatz für Soloselbstständige und kleine Dienstleister. Es läuft auf deinem Rechner, speichert alles in einer lokalen Datei und versendet nichts.
 
@@ -57,7 +57,7 @@ python -m sales_tool
 python -m unittest discover -s tests
 ```
 
-- Der Kern braucht nur die Python-Standardbibliothek (3.10 bis 3.13). Zusatzpakete je Variante stehen mit Prüfsummen in `requirements-lock-*.txt`.
+- Der Kern braucht nur die Python-Standardbibliothek (3.10 bis 3.14). Zusatzpakete je Variante stehen mit Prüfsummen in `requirements-lock-*.txt`.
 - Daten liegen außerhalb des Programmordners in `~/.akquise-tool/`.
 - SignalDesk bindet nur `127.0.0.1`. Nicht ohne TLS-Proxy und Login öffentlich betreiben, siehe [`docs/BETRIEB_UND_TEAM.md`](docs/BETRIEB_UND_TEAM.md).
 - Prüfverfahren vor jedem Commit: `.claude/skills/qa-release-gate/SKILL.md`.
