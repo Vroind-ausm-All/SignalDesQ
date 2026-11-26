@@ -152,7 +152,7 @@ flowchart LR
 - **R1.4 Recherchemodi und Jobbudgets.** Quick/Deep/Org mit 10/30/50 Seiten als Obergrenze; zusätzlich Zeit-, Byte-, Host- und Mandantenbudget; Drosselung, Retry-After, ETag/Last-Modified, Abbruch und Fortschritt; Fehler als Teilergebnis.
   Baut auf: `sales_tool/research/jobs.py`, `sales_tool/research/policy.py`, `sales_tool/bg_jobs.py`.
   Neu: Budget-Objekt je research_run.
-  Stand: Abruflimits je Anfrage und persistente Aufträge seit v1.15/v1.16; kein globales Jobbudget.
+  Stand: 2.0.0-dev69: sales_tool/research/budget.py (Quick/Deep/Org = 10/30/50 Seiten, dazu Zeit-, Byte- und Hostgrenze je Auftragsschritt, gezählt in research.fetchers.fetch), research.jobs: aufgebrauchtes Budget endet mit Teilergebnis und wird nie wiederholt, Modus im Firmen-Bericht (mode), tests/test_r1_budget.py; offen: Mandantenbudget, ETag/Last-Modified, Modusauswahl in der Oberfläche.
 - **R1.5 Firmenidentität: Rechtsträger, Marke, Domain.** Identität über LEI, Registergericht+Nummer, Domain+Adresse; Marke und Rechtsträger getrennt; kein Merge bei Konflikt; unbekannte Domain manuell klären.
   Baut auf: `sales_tool/research/identity.py`, `sales_tool/research/homepage.py`, `sales_tool/sweep.py` (counter_evidence), `sales_tool/duplicates.py`.
   Neu: organization_ref (siehe R4.1).

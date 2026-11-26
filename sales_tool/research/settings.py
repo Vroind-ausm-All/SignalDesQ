@@ -112,7 +112,8 @@ def status():
             version = scrapling.__version__
         except Exception:  # noqa: BLE001
             version = '?'
-    return {'settings': get(), 'parser_in_use': engine(), 'scrapling': {'installed': bool(version), 'version': version},
+    from .budget import modes
+    return {'settings': get(), 'modes': modes(), 'parser_in_use': engine(), 'scrapling': {'installed': bool(version), 'version': version},
             'browser': {'installed': browser.available()}, 'trafilatura': {'installed': trafilatura_available()},
             'notice': 'Abruf immer mit IP-Pinning, robots.txt (RFC 9309) und Größenbremsen. Scrapling dient nur der HTML-Auswertung; '
                       'sein eigener Abruf ist nicht eingebaut (Tarnung als Chrome und Google-Referer als Voreinstellung, kein IP-Pinning).'}

@@ -72,8 +72,10 @@ def lead_for_url(conn, url):
 
 
 def create_reports(conn, data, db_path, start=True):
-    if not isinstance(data, dict) or set(data) - {'lead_ids', 'url'} or not (data.get('lead_ids') or data.get('url')):
-        raise ValueError('Erwartet: {lead_ids: [...]} oder {url}.')
+    if not isinstance(data, dict) or set(data) - {'lead_ids', 'url', 'mode'} or not (data.get('lead_ids') or data.get('url')):
+        raise ValueError('Erwartet: {lead_ids: [...]} oder {url}, optional mode (quick, deep, org).')
+    from .research import budget
+    mode = budget.validate_mode(data.get('mode'))  # R1.4: Recherchemodus = Budget je Firma
     created_lead = None
     if data.get('url'):
         if not isinstance(data['url'], str):
@@ -98,18 +100,18 @@ def create_reports(conn, data, db_path, start=True):
             cur = conn.execute('INSERT INTO company_reports(lead_id, steps_json) VALUES (?,?)', (lid, json.dumps(steps, ensure_ascii=False)))
             queued.append({'report_id': cur.lastrowid, 'lead_id': lid})
     conn.commit()
-    job = _report_job(conn, [q['report_id'] for q in queued], db_path, start) if queued else None
+    job = _report_job(conn, [q['report_id'] for q in queued], db_path, start, mode) if queued else None
     return {'queued': queued, 'skipped': skipped, 'created_lead': created_lead, 'job_id': job['id'] if job else None}
 
 
-def _report_job(conn, rids, db_path, start):
+def _report_job(conn, rids, db_path, start, mode=None):
     """v1.16 (Sprint 3): ein persistenter Auftrag, ein Schritt je Firma; je Website-Domain höchstens ein Schritt gleichzeitig."""
     rows = conn.execute(f'''SELECT r.id, l.company, l.website FROM company_reports r JOIN leads l ON l.id=r.lead_id
                             WHERE r.id IN ({','.join('?' * len(rids))})''', rids).fetchall()
     tasks = [{'key': f'report:{r["id"]}', 'kind': 'report', 'label': r['company'][:120], 'domain': normalize_domain(r['website']) or '',
               'payload': {'report_id': r['id']}, 'max_attempts': 2} for r in rows]
     job, _ = jobs.submit(conn, 'report', f'Firmen-Berichte ({len(tasks)} Firma/Firmen)' if len(tasks) != 1 else f'Firmen-Bericht: {rows[0]["company"]}'[:200],
-                         tasks, db_path=db_path, start=start, priority=4)
+                         tasks, db_path=db_path, start=start, priority=4, params={'mode': mode} if mode else None)
     _LAST['db'] = db_path
     return job
 

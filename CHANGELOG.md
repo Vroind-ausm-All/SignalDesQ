@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0-dev69 – R1: Source Registry als Sperre, Skills für Quellen und Messung
+## 2.0.0-dev69 – R1: Source Registry als Sperre, Jobbudgets, Skills für Quellen und Messung
 
 - **Neu – Source Registry (Plan R1.1):** `sales_tool/research/sources.py` beschreibt jede Quelle, die SignalDesk selbst abruft, mit
   Betreiber, Zweck, Zugriffsart, Hosts, erlaubten Feldern, Lizenz, Nutzungsbedingungen, Prüfdatum, Prüfstand, Rate/TTL, Speicher- und
@@ -12,10 +12,15 @@
 - **Einstellungen → Datenquellen → Freigaben:** je Quelle Prüfstand, Lizenz, Rechtsgrundlage, Grenzen, letzter Erfolg und letzter Fehler.
   Die Verwaltung kann erlaubte Quellen je Organisation aus- und wieder einschalten (Audit-Eintrag); andere Rollen sehen nur.
   Die sechs abgerufenen Quellen hat der Eigentümer am 26.11.2026 freigegeben (Entscheidung E2); eine neue Quelle startet „ungeprüft“ und aus.
+- **Neu – Recherchemodi und Jobbudgets (Plan R1.4):** `sales_tool/research/budget.py`. Jeder Auftragsschritt hat ein Budget:
+  Quick 10, Deep 30 (Standard), Org 50 Seiten, dazu Zeit (180/600/900 s), Bytes (20/60/100 MB) und verschiedene Hosts (10/20/30).
+  Gezählt wird in `research.fetchers.fetch`. Ist das Budget aufgebraucht, endet der Schritt mit Teilergebnis und Hinweis
+  „Budget … erreicht – Teilergebnis“; er wird nie mit frischem Budget wiederholt. Der Firmen-Bericht nimmt `mode` (quick, deep, org).
 - **Skills (Plan R1.2, R1.7):** `research-source-policy` (Prüfliste für neue Quellen und Abruflogik) und `research-benchmark`
   (Messung vor und nach jeder neuen Extraktions- oder Zuordnungsregel); im Skills-Register eingetragen.
 - **Tests:** `tests/test_r1_source_registry.py` (16 Fälle: vollständige Einträge, jede genutzte Adresse eingetragen, Sperre vor jeder
-  Verbindung, 403 vom Server, Rollen, Mandantengrenze, Neustart) und `tests/e2e/test_r1_source_registry_browser.py`.
+  Verbindung, 403 vom Server, Rollen, Mandantengrenze, Neustart), `tests/test_r1_budget.py` (8 Fälle) und
+  `tests/e2e/test_r1_source_registry_browser.py`.
 
 ## 2.0.0-dev68 – Passwortregel, zweiter Faktor empfohlen, Python 3.14 geprüft
 

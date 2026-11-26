@@ -368,12 +368,20 @@ def _run_one(db_path, kinds=None):
             _mark_blocked(conn, task, payload, reason)
             _finish(conn, task, 'skipped', None, f'Gesperrt: {reason} – nicht ausgeführt.')
             return True
+        job = conn.execute('SELECT params_json FROM research_jobs WHERE id=?', (task['job_id'],)).fetchone()
+        try:
+            mode = (json.loads(job['params_json'] or '{}') if job else {}).get('mode')
+        except ValueError:
+            mode = None
     fn = HANDLERS.get(task['kind'])
     status, result, error, delay = 'done', None, '', None
+    from . import budget
+    spent = budget.Budget.for_mode(mode)  # R1.4: ein Budget je Schritt
     try:
         if not fn:
             raise ValueError(f'Unbekannte Auftragsart „{task["kind"]}“.')
-        result = fn(db_path, payload, Context(db_path, task)) or {}
+        with budget.use(spent):
+            result = fn(db_path, payload, Context(db_path, task)) or {}
         if isinstance(result, dict) and result.get('_status') in ('failed', 'skipped'):
             status, error = result.pop('_status'), str(result.pop('_error', ''))
     except Retry as exc:
@@ -382,6 +390,13 @@ def _run_one(db_path, kinds=None):
         status, error = 'skipped', str(exc)
     except Exception as exc:  # noqa: BLE001 – ein Schritt darf den Auftrag nie stoppen
         status, error = 'failed', f'{exc.__class__.__name__}: {exc}'
+    if spent.exhausted:
+        # Ein aufgebrauchtes Budget wird nicht wiederholt (sonst endlose Versuche mit frischem Budget); das Teilergebnis bleibt.
+        if status == 'retry':
+            status, delay = 'failed', None
+        note = f'Budget „{budget.MODES[spent.mode]["label"]}“ erreicht ({spent.exhausted}) – Teilergebnis.'
+        error = f'{error} · {note}' if error else note
+        result = {**(result if isinstance(result, dict) else {}), 'budget': spent.summary()}
     with connect(db_path) as conn:
         _finish(conn, conn.execute('SELECT * FROM research_tasks WHERE id=?', (task['id'],)).fetchone(), status, result, error, delay)
     return True

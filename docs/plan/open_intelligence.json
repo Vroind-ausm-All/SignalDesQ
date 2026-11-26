@@ -419,7 +419,7 @@
         "Budgetüberschreitung bricht sauber ab und zeigt Teilergebnis (Test)",
         "Keine unendlichen Wiederholungen"
       ],
-      "nachweis": "Abruflimits je Anfrage und persistente Aufträge seit v1.15/v1.16; kein globales Jobbudget"
+      "nachweis": "2.0.0-dev69: sales_tool/research/budget.py (Quick/Deep/Org = 10/30/50 Seiten, dazu Zeit-, Byte- und Hostgrenze je Auftragsschritt, gezählt in research.fetchers.fetch), research.jobs: aufgebrauchtes Budget endet mit Teilergebnis und wird nie wiederholt, Modus im Firmen-Bericht (mode), tests/test_r1_budget.py; offen: Mandantenbudget, ETag/Last-Modified, Modusauswahl in der Oberfläche"
     },
     {
       "id": "R1.5",

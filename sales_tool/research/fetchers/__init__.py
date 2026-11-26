@@ -26,4 +26,13 @@ def fetch(url, policy=None, origin=None, fetcher=None):
     except sources.SourceBlocked as exc:
         from .base import FetchError
         raise FetchError(str(exc), kind='source') from exc
-    return get_fetcher(fetcher).fetch(url, policy or pol.DEFAULT_POLICY, origin)
+    from urllib.parse import urlsplit
+
+    from .. import budget
+    b = budget.current()  # R1.4: Seiten-, Zeit-, Byte- und Hostbudget des laufenden Auftragsschritts
+    if b is not None:
+        b.before(urlsplit(url).hostname)
+    res = get_fetcher(fetcher).fetch(url, policy or pol.DEFAULT_POLICY, origin)
+    if b is not None:
+        b.after(len(res.body or b''))
+    return res

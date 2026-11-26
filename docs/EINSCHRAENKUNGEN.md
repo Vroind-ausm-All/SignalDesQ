@@ -394,3 +394,11 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Ausschalten wirkt je Organisation sofort für neue Abrufe; ein Abruf, der schon läuft, wird nicht abgebrochen.
 - Die Ausschalt-Einstellung liegt in `app_settings` (`source_policies`) statt in einer eigenen Tabelle; das Schema bleibt bei 49.
   Eine Wiederherstellung bringt den Stand der Sicherung zurück.
+
+## Recherchemodi und Jobbudgets (2.0.0-dev69, Plan R1.4)
+
+- Das Budget gilt je Auftragsschritt (eine Firma, eine Quelle), nicht je Organisation; ein Mandantenbudget fehlt noch (R6.6).
+- Gezählt werden Website-Abrufe über `research.fetchers.fetch`; robots.txt-Abrufe und offene Schnittstellen zählen nicht mit
+  (für Schnittstellen gelten Abstand, Tageslimit und Cache des Lead-Finders).
+- Eine Zeitgrenze bricht keinen laufenden Abruf ab; sie greift vor dem nächsten. ETag/Last-Modified werden noch nicht genutzt.
+- Den Modus wählt bisher nur die Schnittstelle (`mode` beim Firmen-Bericht); die Oberfläche nutzt den Standard „Deep“.
