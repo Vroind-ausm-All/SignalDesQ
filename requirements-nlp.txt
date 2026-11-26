@@ -1,0 +1,8 @@
+# Optional ab 2.0.0-dev70 (Plan R2.5): Profil „nlp“ – Personennamen zusätzlich mit spaCy vorschlagen (Schalter unter
+# Einstellungen → Datenquellen → „Website-Abruf & Auswertung“, Standard aus). Ohne diese Pakete arbeitet SignalDesk mit
+# strukturierten Daten und Regeln. Messung (erfundene Seiten, keine echten Firmen): docs/bench/r2-persons.json.
+# Feste Versionen mit Prüfsummen: requirements-lock-nlp.txt (tools/make_lock.py). spaCy hat keine Pakete für Python 3.14 –
+# das Profil gibt es nur für Python 3.10–3.13.
+spacy>=3.8,<3.9            # MIT (zieht thinc, blis, cymem, preshed, murmurhash, srsly, wasabi, catalogue, confection, typer, pydantic, numpy … nach)
+click>=8.1,<9              # BSD-3-Clause – spaCy importiert click, neuere typer-Versionen bringen es nicht mehr mit
+# Modellgewichte: de_core_news_sm 3.8.0 liegt nicht auf PyPI – eigene Datei mit Prüfsumme: requirements-nlp-model.txt.

@@ -22,7 +22,7 @@ CALDAV_PORTS = (443,)
 IMAP_PORTS = (993,)
 
 
-LIMITS = {'fetcher': ('http',), 'browser_fallback': (False,)}
+LIMITS = {'fetcher': ('http',), 'browser_fallback': (False,), 'nlp': (False,)}  # R2.5: kein Sprachmodell im Server für mehrere Organisationen
 
 
 def register(db_path):

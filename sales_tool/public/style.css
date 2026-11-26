@@ -1199,3 +1199,4 @@ body.nav-open .sidebar :focus-visible{outline:2px solid var(--on-dark-accent);ou
 .lf-page .activity-form .btn{height:var(--ctl);padding:0 var(--s4);font-size:13px}
 .ui-card .audit-title .btn,.rp-modal-bar.ui-card .btn,.lf-page .form-actions .btn,.lf-page .contact-actions .btn{height:var(--ctl);padding:0 var(--s4);font-size:13px}
 .lf-agreed-d>span+span::before{content:'· ';color:var(--faint)}
+.warn-text{color:var(--warn-fg);font-size:12px;display:block;margin:4px 0}

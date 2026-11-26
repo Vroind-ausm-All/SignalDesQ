@@ -1,0 +1,198 @@
+[
+ {
+  "id": "holzbau-ried",
+  "split": "abstimmung",
+  "url": "https://www.holzbau-ried.example/team",
+  "html": "<html><head><title>Team</title></head><body><nav>Startseite Leistungen Kontakt</nav><h1>Unser Team</h1><p>Geschäftsführer: Tobias Ried</p><p>Marketingleitung: Sandra Ried</p><p>Zentrale: 0711 000001</p><footer>Impressum Datenschutz info@holzbau-ried.example</footer></body></html>",
+  "gold": [
+   [
+    "Tobias Ried",
+    "geschaeftsfuehrung"
+   ],
+   [
+    "Sandra Ried",
+    "marketing_leitung"
+   ]
+  ]
+ },
+ {
+  "id": "kanzlei-mertens",
+  "split": "abstimmung",
+  "url": "https://www.kanzlei-mertens.example/team",
+  "html": "<html><head><title>Team</title></head><body><nav>Startseite Leistungen Kontakt</nav><h1>Ansprechpartner</h1><div class=\"team-member\"><h3>Dr. Helga Mertens</h3><p>Inhaberin</p></div><div class=\"team-member\"><h3>Jonas Albers</h3><p>Leitung Personal</p></div><div class=\"team-member\"><h3>Mira Sommer</h3><p>Einkauf</p></div><footer>Impressum Datenschutz info@kanzlei-mertens.example</footer></body></html>",
+  "gold": [
+   [
+    "Helga Mertens",
+    "inhaber"
+   ],
+   [
+    "Jonas Albers",
+    "personal_leitung"
+   ],
+   [
+    "Mira Sommer",
+    "einkauf"
+   ]
+  ]
+ },
+ {
+  "id": "metallform-weiss",
+  "split": "abstimmung",
+  "url": "https://www.metallform-weiss.example/team",
+  "html": "<html><head><title>Team</title><script type=\"application/ld+json\">{\"@context\": \"https://schema.org\", \"@type\": \"Organization\", \"name\": \"Metallform Weiss GmbH\", \"employee\": [{\"@type\": \"Person\", \"name\": \"Clara Weiss\", \"jobTitle\": \"Geschäftsführerin\"}, {\"@type\": \"Person\", \"name\": \"Ole Brandt\", \"jobTitle\": \"Head of IT\"}]}</script></head><body><nav>Startseite Leistungen Kontakt</nav><h1>Management</h1><p>Wir sind ein Familienunternehmen.</p><footer>Impressum Datenschutz info@metallform-weiss.example</footer></body></html>",
+  "gold": [
+   [
+    "Clara Weiss",
+    "geschaeftsfuehrung"
+   ],
+   [
+    "Ole Brandt",
+    "it_leitung"
+   ]
+  ]
+ },
+ {
+  "id": "druckerei-vogt",
+  "split": "abstimmung",
+  "url": "https://www.druckerei-vogt.example/team",
+  "html": "<html><head><title>Team</title></head><body><nav>Startseite Leistungen Kontakt</nav><table><tr><th>Name</th><th>Funktion</th></tr><tr><td>Paul Vogt</td><td>Geschäftsführer</td></tr><tr><td>Lina Hahn</td><td>Vertriebsleiterin</td></tr><tr><td>Eva Lorenz</td><td>Prokuristin</td></tr></table><footer>Impressum Datenschutz info@druckerei-vogt.example</footer></body></html>",
+  "gold": [
+   [
+    "Paul Vogt",
+    "geschaeftsfuehrung"
+   ],
+   [
+    "Lina Hahn",
+    "vertrieb_leitung"
+   ],
+   [
+    "Eva Lorenz",
+    "prokura"
+   ]
+  ]
+ },
+ {
+  "id": "agentur-blau",
+  "split": "abstimmung",
+  "url": "https://www.agentur-blau.example/team",
+  "html": "<html><head><title>Team</title></head><body><nav>Startseite Leistungen Kontakt</nav><p>Seit 2019 führt Nina Blau als Geschäftsführerin die Agentur. Unterstützt wird sie von Timo Kraft, unserem Head of Marketing.</p><blockquote>„Großartige Zusammenarbeit!“ – Peter Klein, Geschäftsführer der Fremdfirma AG</blockquote><footer>Impressum Datenschutz info@agentur-blau.example</footer></body></html>",
+  "gold": [
+   [
+    "Nina Blau",
+    "geschaeftsfuehrung"
+   ],
+   [
+    "Timo Kraft",
+    "marketing_leitung"
+   ]
+  ]
+ },
+ {
+  "id": "elektro-sand",
+  "split": "abstimmung",
+  "url": "https://www.elektro-sand.example/team",
+  "html": "<html><head><title>Team</title></head><body><nav>Startseite Leistungen Kontakt</nav><div class=\"mitarbeiter\"><strong>Ralf Sand</strong><br>Inhaber und Elektromeister</div><div class=\"mitarbeiter\"><strong>Unsere Leistungen</strong><br>Vertrieb und Service</div><footer>Impressum Datenschutz info@elektro-sand.example</footer></body></html>",
+  "gold": [
+   [
+    "Ralf Sand",
+    "inhaber"
+   ]
+  ]
+ },
+ {
+  "id": "praezision-lang",
+  "split": "test",
+  "url": "https://www.praezision-lang.example/team",
+  "html": "<html><head><title>Team</title></head><body><nav>Startseite Leistungen Kontakt</nav><h2>Geschäftsleitung</h2><p>Martin Lang</p><p>Geschäftsführer</p><h2>Vertrieb</h2><p>Leitung Vertrieb: Anke Busch</p><footer>Impressum Datenschutz info@praezision-lang.example</footer></body></html>",
+  "gold": [
+   [
+    "Martin Lang",
+    "geschaeftsfuehrung"
+   ],
+   [
+    "Anke Busch",
+    "vertrieb_leitung"
+   ]
+  ]
+ },
+ {
+  "id": "logistik-nord",
+  "split": "test",
+  "url": "https://www.logistik-nord.example/team",
+  "html": "<html><head><title>Team</title></head><body><nav>Startseite Leistungen Kontakt</nav><div itemscope itemtype=\"https://schema.org/Person\"><span itemprop=\"name\">Sven Nord</span><span itemprop=\"jobTitle\">Vorstandsvorsitzender</span></div><div itemscope itemtype=\"https://schema.org/Person\"><span itemprop=\"name\">Kira Wolff</span><span itemprop=\"jobTitle\">Chief Financial Officer</span></div><footer>Impressum Datenschutz info@logistik-nord.example</footer></body></html>",
+  "gold": [
+   [
+    "Sven Nord",
+    "vorstand"
+   ],
+   [
+    "Kira Wolff",
+    "finanzen_leitung"
+   ]
+  ]
+ },
+ {
+  "id": "software-pfeil",
+  "split": "test",
+  "url": "https://www.software-pfeil.example/team",
+  "html": "<html><head><title>Team</title></head><body><nav>Startseite Leistungen Kontakt</nav><ul class=\"team\"><li class=\"person\"><h4>Dana Pfeil</h4><span>Gründerin &amp; CEO</span></li><li class=\"person\"><h4>Felix Roth</h4><span>CTO</span></li><li class=\"person\"><h4>Jana von Berg</h4><span>Marketing Managerin</span></li></ul><footer>Impressum Datenschutz info@software-pfeil.example</footer></body></html>",
+  "gold": [
+   [
+    "Dana Pfeil",
+    "vorstand"
+   ],
+   [
+    "Felix Roth",
+    "it_leitung"
+   ],
+   [
+    "Jana von Berg",
+    "marketing"
+   ]
+  ]
+ },
+ {
+  "id": "bau-kern",
+  "split": "test",
+  "url": "https://www.bau-kern.example/team",
+  "html": "<html><head><title>Team</title></head><body><nav>Startseite Leistungen Kontakt</nav><p>Ihr Ansprechpartner für Großprojekte ist Bernd Kern, Betriebsleiter am Standort Süd.</p><p>Die Buchhaltung erreichen Sie unter buchhaltung@bau-kern.example.</p><footer>Impressum Datenschutz info@bau-kern.example</footer></body></html>",
+  "gold": [
+   [
+    "Bernd Kern",
+    "betrieb_leitung"
+   ]
+  ]
+ },
+ {
+  "id": "optik-stern",
+  "split": "test",
+  "url": "https://www.optik-stern.example/team",
+  "html": "<html><head><title>Team</title></head><body><nav>Startseite Leistungen Kontakt</nav><table><tr><td>Lea Stern</td><td>Inhaberin, Augenoptikermeisterin</td></tr><tr><td>Tom Stern</td><td>Einkaufsleiter</td></tr></table><p>Kundenstimme: „Sehr gute Beratung“ – Marta Fink</p><footer>Impressum Datenschutz info@optik-stern.example</footer></body></html>",
+  "gold": [
+   [
+    "Lea Stern",
+    "inhaber"
+   ],
+   [
+    "Tom Stern",
+    "einkauf_leitung"
+   ]
+  ]
+ },
+ {
+  "id": "reinigung-klar",
+  "split": "test",
+  "url": "https://www.reinigung-klar.example/team",
+  "html": "<html><head><title>Team</title></head><body><nav>Startseite Leistungen Kontakt</nav><h1>Wir über uns</h1><p>Geschäftsführung</p><p>Olga Klar</p><p>Personalleitung</p><p>Ben Yilmaz</p><footer>Impressum Datenschutz info@reinigung-klar.example</footer></body></html>",
+  "gold": [
+   [
+    "Olga Klar",
+    "geschaeftsfuehrung"
+   ],
+   [
+    "Ben Yilmaz",
+    "personal_leitung"
+   ]
+  ]
+ }
+]

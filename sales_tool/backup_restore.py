@@ -148,6 +148,8 @@ def keep_suppressions(db_path, entries):
         conn.executemany('INSERT OR IGNORE INTO suppression_list(kind, value, display, reason) VALUES (?,?,?,?)',
                          [(k, v, (d or '')[:200], (r or '')[:300]) for k, v, d, r in entries])
         added = conn.execute('SELECT COUNT(*) FROM suppression_list').fetchone()[0] - before
+        from .candidates import purge_locked
+        purge_locked(conn)  # R2.4: Sperren erreichen auch Kandidaten aus dem wiederhergestellten Stand
         if added:
             from .company_data import _audit
             _audit(conn, 'suppression', None, 'sperren_uebernommen', f'{added} Sperre(n) aus dem Stand vor dem Wiederherstellen übernommen')

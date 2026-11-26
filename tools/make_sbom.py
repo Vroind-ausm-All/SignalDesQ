@@ -27,6 +27,9 @@ RUNTIME = [
      'description': 'Python-Laufzeit (vom Nutzer installiert bzw. per winget/python.org)', 'type': 'platform'},
     {'name': 'Chromium (Playwright-Download)', 'version': 'zur Playwright-Version passend', 'license': 'BSD-3-Clause', 'scope': 'optional',
      'description': 'Nur Variante browser/team/voll: Browser für JavaScript-Seiten, lädt `playwright install chromium`', 'type': 'application'},
+    {'name': 'de_core_news_sm (spaCy-Modell)', 'version': '3.8.0', 'license': 'MIT', 'scope': 'optional', 'type': 'machine-learning-model',
+     'description': 'Nur Profil „nlp“ (R2.5): requirements-nlp-model.txt mit SHA-256; Trainingsdaten TIGER, Tiger2Dep, WikiNER – '
+                    'Rechte für gewerblichen Einsatz ungeklärt (E8)'},
 ]
 DATA_SOURCES = [
     ('GLEIF API / Golden Copy', 'https://api.gleif.org/', 'CC0-1.0'),
@@ -119,7 +122,7 @@ def markdown(bom):
             '## Laufzeit und mitgelieferte Daten', '', '| Bestandteil | Version | Lizenz | Nötig? | Hinweis |', '|---|---|---|---|---|']
     lic = lambda c: c['licenses'][0].get('expression') or c['licenses'][0].get('license', {}).get('id') or c['licenses'][0].get('license', {}).get('name')
     for c in bom['components']:
-        if c['type'] in ('platform', 'application', 'data'):
+        if c['type'] in ('platform', 'application', 'data', 'machine-learning-model'):
             rows.append(f"| {c['name']} | {c['version']} | {lic(c)} | {'ja' if c['scope'] == 'required' else 'optional'} | {c.get('description', '')} |")
     rows += ['', '## Python-Pakete je Installationsvariante', '',
              'Feste Versionen mit SHA-256-Prüfsummen in `requirements-lock-*.txt`; installiert nur, wenn die Variante es verlangt.', '',

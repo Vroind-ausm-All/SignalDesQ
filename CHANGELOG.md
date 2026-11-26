@@ -1,5 +1,41 @@
 # Changelog
 
+## 2.0.0-dev70 – R2: Personen mit Beleg aus strukturierten Seiten, Rollen normalisiert, Kandidaten-Sichtung getrennt vom CRM, optionales NLP-Profil
+
+- **Neu – Evidence-Vertrag v2 (Plan R2.3):** `sales_tool/research/evidence.py` beschreibt jeden Beleg mit Originalwert,
+  normalisiertem Wert, Fundstelle (Textspanne mit Prüfsumme des Textes, JSON-Pfad oder PDF-Seite), URL, SHA-256 der Abrufbytes,
+  Abruf- und Publikationsdatum, Extraktor mit Version, Rechtsträger und Prüfstatus. `check_ref` verwirft Belege ohne Fundstelle,
+  `verify_ref` prüft wörtlich am Quellinhalt. Der Abruf hängt an jede Seite die SHA-256-Prüfsumme der Abrufbytes.
+- **Neu – Personen aus strukturierten Seitenteilen (Plan R2.1):** `sales_tool/research/extractors/persons.py` liest Personen mit
+  Funktion aus JSON-LD (auch als Mitarbeiter einer Organization, mit `worksFor`), Microdata, Tabellen und Team-Karten; die
+  Zeilenregeln bleiben Rückfall und tragen jetzt ebenfalls Belege mit Textspanne. Name und Funktion stammen immer aus derselben
+  Stelle. Keine Mobilnummern, keine E-Mail-Adressen fremder Domains (z. B. Freemail), keine Muster. Zitate und Kundenstimmen
+  erzeugen keine Kandidaten.
+- **Neu – Rollen und Abteilung (Plan R2.2):** `sales_tool/research/roles.py` ordnet Titel einer Rolle, Abteilung und Ebene zu
+  (Geschäftsführung, Vorstand, Inhaber, Prokura, Leitung Marketing/Vertrieb/IT/Personal/Finanzen/Einkauf/Betrieb, Fachrollen);
+  unbekannte Titel bleiben „unklar“. Nennt die Quelle einen anderen Arbeitgeber, ist der Kandidat „widersprüchlich“.
+- **Neu – Kandidaten-Sichtung (Plan R2.4):** `sales_tool/candidates.py` ist der einzige Weg, Kandidaten anzulegen und ins CRM zu
+  übernehmen. Status Kandidat, bestätigt, widersprüchlich, historisch, verworfen; Kandidaten laufen nach 180 Tagen ab. Gesperrte
+  Firmen (auch über die Sperrliste) und gesperrte E-Mail-Adressen bekommen keine Kandidaten; eine neue Sperre, die Sperre einer
+  Firma und eine Wiederherstellung löschen bestehende Kandidaten; die Löschung eines CRM-Kontakts erreicht seine Kandidaten.
+  Eine Übernahme braucht Belege mit Fundstelle; der Beleg wird beim CRM-Kontakt gespeichert. In der Firmenakte und im
+  Firmen-Bericht: Status, Abteilung, Belegart und „Nicht mehr dort (historisch)“.
+- **Behoben – Sperre bei Personen-Recherche:** Der Start der Ansprechpartner-Recherche und die Übernahme eines Kandidaten prüften
+  nur Phase und Widerspruch, nicht die Sperrliste. Jetzt gilt `workday.contact_lock` (Regel 1 in CLAUDE.md).
+- **Neu – optionales Profil „nlp“ (Plan R2.5, Entscheidung des Eigentümers vom 26.11.2026):** `sales_tool/research/extractors/nlp.py`
+  schlägt mit spaCy (`de_core_news_sm`) zusätzliche Namen neben bekannten Funktionen vor – mit Beleg, nie bestätigt. Schalter
+  „Personennamen per NLP“ unter „Website-Abruf & Auswertung“, Standard aus, im Server für mehrere Organisationen gesperrt.
+  Installation: `requirements-lock-nlp.txt` und `requirements-nlp-model.txt` (Python 3.10–3.13). Entfernen: Pakete deinstallieren,
+  der Schalter wirkt dann nicht mehr.
+- **Messung (erfundene Seiten, keine echten Firmen):** `tools/bench_persons.py` → `docs/bench/r2-persons.json`. Testmenge
+  (6 Seiten, 12 Personen): Zeilenregeln wie bisher Präzision 2/4, Recall 2/12; mit R2.1 Präzision 9/9, Recall 9/12; mit NLP
+  Präzision 12/12, Recall 12/12 bei rund 200-facher Laufzeit. Die Vertrauensbereiche von R2.1 und NLP überlappen – der Gewinn des
+  NLP-Profils ist nicht belegt. Auf der Abstimmmenge fand die Regel ein Zitat als Person; behoben.
+- **Skill `contact-entity-evidence` (Plan R2.6):** Prüfliste für Personen, Rollen, Belege, Kandidatenstatus und Sperren.
+- **Schema 50:** neue Spalten an `contact_candidates` (Rolle, Abteilung, Methode, Arbeitgeber, Belege, Frist) und
+  `decision_contacts.evidence_json`; alte Status werden abgebildet (ungeprueft → kandidat, freigegeben → bestätigt, abgelehnt → verworfen).
+- **Offen:** Messung auf der Referenzliste (R1.6, E3) für R2.1, R2.2 und R2.5; Rechte an den Trainingsdaten des NLP-Modells (E8).
+
 ## 2.0.0-dev69 – R1: Source Registry als Sperre, Discovery, Jobbudgets, Identitätskonflikte, Skills für Quellen und Messung
 
 - **Neu – Source Registry (Plan R1.1):** `sales_tool/research/sources.py` beschreibt jede Quelle, die SignalDesk selbst abruft, mit

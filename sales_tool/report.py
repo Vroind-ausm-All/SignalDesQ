@@ -296,18 +296,8 @@ def _step_inhalte(conn, db_path, lead):
                           VALUES (?, 'done', ?, ?, ?, datetime('now'))""",
                        (lead['id'], json.dumps(result['site']['pages'], ensure_ascii=False), json.dumps(result['contact_channels'], ensure_ascii=False),
                         json.dumps(result['warnings'], ensure_ascii=False))).lastrowid
-    new_people = 0
-    for p in result['decision_makers']['people']:
-        known = conn.execute('''SELECT 1 FROM decision_contacts WHERE lead_id=? AND lower(full_name)=lower(?)
-                                UNION SELECT 1 FROM contact_candidates WHERE lead_id=? AND lower(full_name)=lower(?) AND status<>'abgelehnt' ''',
-                             (lead['id'], p['full_name'], lead['id'], p['full_name'])).fetchone()
-        if known:
-            continue
-        conn.execute("""INSERT INTO contact_candidates (run_id, lead_id, full_name, job_title, role_hint, priority, business_email, business_phone,
-                        phone_type, source_url, evidence) VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
-                     (run, lead['id'], *(p.get(k, '') for k in ('full_name', 'job_title', 'role_hint', 'priority', 'business_email', 'business_phone',
-                                                                  'phone_type', 'source_url', 'evidence'))))
-        new_people += 1
+    from .candidates import store_all
+    new_people = store_all(conn, run, lead['id'], result['decision_makers']['people'])['stored']  # R2.4: Sperre, Beleg v2, Frist
     conn.commit()
     mode = 'ohne Browser' if crawl.get('renderer') == 'html' else 'mit Browser'
     return 'fertig', (f"{len(result['site']['pages'])} Seiten {mode} gelesen · {len(result['audit']['findings'])} belegte Beobachtungen · "
@@ -436,8 +426,10 @@ def report_view(conn, rid=None, lead_id=None):
                           'service_profile': (r.get('audit') or {}).get('service_profile'),
                           'channels': r.get('contact_channels', [])[:8], 'pages': (r.get('site') or {}).get('pages', [])[:6],
                           'warnings': r.get('warnings', [])[:5]}
-    out['candidates'] = [dict(c) for c in conn.execute("""SELECT id, full_name, job_title, role_hint, source_url, evidence, business_email, business_phone
-                                                          FROM contact_candidates WHERE lead_id=? AND status='ungeprueft' ORDER BY priority DESC, id LIMIT 12""", (lid,))]
+    out['candidates'] = [dict(c) for c in conn.execute("""SELECT id, full_name, job_title, role_hint, department, method, status, status_reason, source_url,
+                                                                 evidence, business_email, business_phone
+                                                          FROM contact_candidates WHERE lead_id=? AND status IN ('kandidat','widerspruechlich')
+                                                          ORDER BY status='widerspruechlich', priority DESC, id LIMIT 12""", (lid,))]
     out['contacts'] = [dict(c) for c in conn.execute('SELECT id, full_name, job_title, verification_status, source_url FROM decision_contacts WHERE lead_id=?', (lid,))]
     from .sales_integration import stored_recommendations
     out['offers'] = [{'package': r['package'], 'title': r['title'], 'status': r['status'], 'hints': r['hints'][:3], 'confirmed': r['confirmed'][:3]}

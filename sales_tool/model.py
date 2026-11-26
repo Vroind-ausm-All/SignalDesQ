@@ -170,7 +170,7 @@ def init_db(conn: sqlite3.Connection):
       full_name TEXT NOT NULL,job_title TEXT DEFAULT '',role_hint TEXT DEFAULT '',
       priority INTEGER DEFAULT 0,business_email TEXT DEFAULT '',business_phone TEXT DEFAULT '',
       phone_type TEXT DEFAULT '',source_url TEXT NOT NULL,evidence TEXT DEFAULT '',
-      status TEXT DEFAULT 'ungeprueft'
+      status TEXT DEFAULT 'kandidat'
     );
     CREATE TABLE IF NOT EXISTS quick_scans (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -229,6 +229,8 @@ def init_db(conn: sqlite3.Connection):
     init_area(conn)
     from .research.jobs import init_jobs
     init_jobs(conn)  # v1.16: persistente Recherche-Aufträge
+    from .candidates import init_candidates
+    init_candidates(conn)  # 2.0.0-dev70 (R2.4): Kandidatenstatus, Frist, Belege v2
     init_sweep(conn)
     init_report(conn)
     from .duplicates import init_duplicates

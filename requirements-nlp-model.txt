@@ -1,0 +1,6 @@
+# Modellgewichte für das Profil „nlp“ (Plan R2.5), fest mit SHA-256 (selbst geprüft am 26.11.2026).
+# Installation NACH requirements-lock-nlp.txt: pip install --require-hashes --no-deps -r requirements-nlp-model.txt
+# Lizenz laut Modell-Metadaten: MIT. Trainingsdaten laut Metadaten: TIGER Corpus, Tiger2Dep, WikiNER – deren Lizenzen
+# sind eigene Bedingungen; die rechtliche Bewertung für den gewerblichen Einsatz steht aus (Entscheidung E8).
+de_core_news_sm @ https://github.com/explosion/spacy-models/releases/download/de_core_news_sm-3.8.0/de_core_news_sm-3.8.0-py3-none-any.whl \
+    --hash=sha256:fec69fec52b1780f2d269d5af7582a5e28028738bd3190532459aeb473bfa3e7

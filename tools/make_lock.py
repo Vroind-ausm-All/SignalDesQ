@@ -26,14 +26,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 VARIANTS = {'browser': ['requirements-ai.txt'], 'team': ['requirements-team.txt'], 'research': ['requirements-research.txt'],
-            'dev': ['requirements-dev.txt']}
+            'nlp': ['requirements-nlp.txt'], 'dev': ['requirements-dev.txt']}
 # R0.5 (2.0.0-dev67): Prüfwerkzeuge der CI – eigene Ablage unter tools/, damit sie weder ins Release noch in die SBOM gelangen
 DEV_VARIANTS = {'dev'}
 
 
 # Prüfwerkzeuge laufen nur in der CI (Python 3.12) und bei der Entwicklung – nicht bei Nutzern mit Python 3.10.
 # Sonst erzwänge 3.10 alte, verwundbare Versionen (z. B. filelock < 4.2.1, gefunden von pip-audit).
-VARIANT_PYTHONS = {'dev': ('3.12', '3.13')}
+VARIANT_PYTHONS = {'dev': ('3.12', '3.13'), 'nlp': ('3.10', '3.11', '3.12', '3.13')}  # R2.5: spaCy ohne Pakete für 3.14
 
 
 def pythons_for(name):

@@ -213,6 +213,10 @@ def erase_expired_person(conn, record_id, data):
     removed = 0
     if rec['contact_id']:
         conn.execute('UPDATE tasks SET contact_id=NULL WHERE contact_id=?', (rec['contact_id'],))
+        person = conn.execute('SELECT lead_id, full_name FROM decision_contacts WHERE id=?', (rec['contact_id'],)).fetchone()
+        if person:  # R2.4: Löschung erreicht auch Kandidaten-Einträge derselben Person
+            from .candidates import purge_person
+            purge_person(conn, person['lead_id'], person['full_name'])
         removed = conn.execute('DELETE FROM decision_contacts WHERE id=?', (rec['contact_id'],)).rowcount
     conn.execute('DELETE FROM privacy_records WHERE id=?', (record_id,))
     # Nachweis der Löschung ohne Personendaten (Rechenschaftspflicht, Art. 5 Abs. 2 DSGVO)
@@ -584,6 +588,9 @@ def scheduler_tick(db_path, paused=None):
     if paused and paused():
         return None
     with connect(db_path) as conn:
+        from .candidates import purge_expired
+        if purge_expired(conn):  # R2.4: Frist für Personen-Kandidaten
+            conn.commit()
         return run_due(conn, db_path)
 
 

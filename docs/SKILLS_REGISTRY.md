@@ -1,6 +1,6 @@
 # Skills- und Werkzeugregister (R0.4)
 
-Stand 2.0.0-dev69. Skills steuern die Arbeit von Claude Code; sie sind **keine Laufzeitfunktion und keine Sicherheitsgrenze** –
+Stand 2.0.0-dev70. Skills steuern die Arbeit von Claude Code; sie sind **keine Laufzeitfunktion und keine Sicherheitsgrenze** –
 die Regeln setzt das Programm durch (siehe [`CLAUDE.md`](../CLAUDE.md)). Dieses Register ist die einzige Stelle, an der
 Skills, externe Skill-Sammlungen und Entwicklungswerkzeuge aufgenommen werden. `tests/test_skills_registry.py` prüft, dass jeder
 Skill unter `.claude/skills/` hier steht und das vorgeschriebene Format hat.
@@ -23,7 +23,7 @@ Skill unter `.claude/skills/` hier steht und das vorgeschriebene Format hat.
 | `dependency-security` | neue/geänderte Abhängigkeit, Lockdatei, CI-Werkzeug | `tests/test_ci_gates.py`, CI-Job „audit“, SBOM | R0.4 | vorhanden (dev67) |
 | `research-source-policy` | neue Quelle oder Abruflogik | `tests/test_r1_source_registry.py` (Source Registry) | R1.2 | vorhanden (dev69) |
 | `research-benchmark` | neue Extraktion oder Zuordnung | `tools/research_benchmark.py`, `tests/test_sdq006_research_benchmark.py` | R1.7 | vorhanden (dev69) |
-| `contact-entity-evidence` | Person/Rolle → Identität, Beleg, Kandidatenstatus | Belegvertrag v2 | R2.6 | geplant |
+| `contact-entity-evidence` | Person/Rolle → Identität, Beleg, Kandidatenstatus, Sperren | `tests/test_r2_candidates.py`, `tests/test_r2_persons.py`, `tests/test_r2_evidence.py` | R2.6 | vorhanden (dev70) |
 | `document-intelligence` | PDF/XML/CSV | isolierter Parser | R3.5 | geplant |
 | `organization-graph` | Beziehungen, Graph | Invarianten R4.2 | R4.7 | geplant |
 | `saas-operations` | Deployment, Betrieb | Restore-, Mandanten-, Sicherheitstests | R6.11 | geplant |

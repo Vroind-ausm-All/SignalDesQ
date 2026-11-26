@@ -298,11 +298,16 @@ async function loadContactResearch(leadId){
     `Recherche abgeschlossen · ${r.pages.length} Seiten · ${r.people.length} Namenskandidaten · ${r.channels.length} Kontaktpunkte`;
   const more=r.pages.map(p=>`<a href="${escapeHTML(p.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(p.title||p.url)}</a>`).join(' · ');
   const channelHTML=r.channels.length?r.channels.map(c=>`<div><small>${c.type==='email'?'Veröffentlichte E-Mail':'Veröffentlichte Telefonnummer (Zuordnung zur Person offen)'}</small> <strong>${escapeHTML(c.value)}</strong> · <a href="${escapeHTML(c.source_url)}" target="_blank" rel="noopener noreferrer">Quelle ↗</a></div>`).join(''):'<p class="muted">Keine öffentlich publizierten geschäftlichen Kontaktpunkte erkannt.</p>';
-  const peopleHTML=r.people.length?r.people.map(p=>`<article class="contact-card"><div class="contact-card-head"><div><strong>${escapeHTML(p.full_name)}</strong><small>${escapeHTML(p.job_title)} · ${escapeHTML(p.role_hint)} · Priorität ${p.priority}/100 (keine Entscheidungsvollmacht)</small></div><span class="pill">${escapeHTML(p.status)}</span></div>
+  const candText={kandidat:'Kandidat',ungeprueft:'Kandidat',widerspruechlich:'Widersprüchlich',bestaetigt:'Ins CRM übernommen',freigegeben:'Ins CRM übernommen',historisch:'Historisch',verworfen:'Verworfen',abgelehnt:'Verworfen'};
+  const methodText={jsonld:'strukturierte Daten (JSON-LD)',microdata:'strukturierte Daten (Microdata)',tabelle:'Tabelle',karte:'Team-Karte',regel:'Textregel'};
+  const openCand=s=>['kandidat','widerspruechlich','ungeprueft'].includes(s);
+  const peopleHTML=r.people.length?r.people.map(p=>`<article class="contact-card" data-candidate-status="${escapeHTML(p.status)}"><div class="contact-card-head"><div><strong>${escapeHTML(p.full_name)}</strong><small>${escapeHTML(p.job_title)} · ${escapeHTML(p.role_hint)}${p.department&&p.department!=='unklar'?' · Abteilung '+escapeHTML(p.department):''} · Priorität ${p.priority}/100 (keine Entscheidungsvollmacht)</small></div><span class="pill">${escapeHTML(candText[p.status]||p.status)}</span></div>
+    ${p.status_reason?`<p class="warn-text">${escapeHTML(p.status_reason)}</p>`:''}
+    <p><small>${p.evidence_v2?`Fundstelle belegt (${escapeHTML(methodText[p.method]||p.method||'Regel')})`:'Beleg ohne Fundstelle (ältere Recherche) – erneut recherchieren, um zu übernehmen'}${p.expires_at?` · Kandidat läuft ab am ${escapeHTML(String(p.expires_at).slice(0,10))}`:''}</small></p>
     ${p.business_email?`<p>Auf Person bezogene veröffentlichte E-Mail: ${escapeHTML(p.business_email)}</p>`:''}
     ${p.business_phone?`<p>Explizit veröffentlichte Durchwahl: ${escapeHTML(p.business_phone)}</p>`:''}
     <p><small>Beleg: ${escapeHTML(p.evidence)}</small></p><a href="${escapeHTML(p.source_url)}" target="_blank" rel="noopener noreferrer">Quelle prüfen ↗</a>
-    ${p.status==='ungeprueft'?`<div class="contact-actions"><button type="button" class="btn btn-primary" data-public-review="${p.id}" data-review-decision="accept">Geprüft: ins CRM übernehmen</button><button type="button" class="btn btn-ghost" data-public-review="${p.id}" data-review-decision="reject">Verwerfen</button></div>`:''}
+    ${openCand(p.status)?`<div class="contact-actions"><button type="button" class="btn btn-primary" data-public-review="${p.id}" data-review-decision="accept" data-review-conflict="${p.status==='widerspruechlich'?1:0}">Geprüft: ins CRM übernehmen</button><button type="button" class="btn btn-ghost" data-public-review="${p.id}" data-review-decision="historic">Nicht mehr dort (historisch)</button><button type="button" class="btn btn-ghost" data-public-review="${p.id}" data-review-decision="reject">Verwerfen</button></div>`:''}
   </article>`).join(''):'<p class="muted">Kein Name mit klarer beruflicher Rollenangabe gefunden. Team/Impressum manuell prüfen oder Recherche erweitern.</p>';
   $('#contactResearchResults').innerHTML=(r.status==='done'?`<h4>Öffentliche Kontaktwege</h4>${channelHTML}<h4>Gefundene Personen (manuell prüfen)</h4>${peopleHTML}<p class="muted">Gelesene Seiten: ${more}</p>`:'')+
     (r.warnings?.length?`<p class="muted">Hinweise: ${escapeHTML(r.warnings.join(' · '))}</p>`:'');
@@ -317,8 +322,10 @@ async function startContactResearch(){if(!currentLeadId)return;
 }
 async function reviewPublicCandidate(btn){if(!currentLeadId)return;
  const decision=btn.dataset.reviewDecision;
- if(decision==='accept'&&!confirm('Hast du Name, Firma und Funktion auf der verlinkten Website geprüft? Erst danach wird die Person ins CRM übernommen.'))return;
- btn.disabled=true;try{await api(`/contact-candidates/${btn.dataset.publicReview}/review`,'POST',{decision});await Promise.all([loadContactResearch(currentLeadId),loadDecisionContacts(currentLeadId)]);toast(decision==='accept'?'Überprüfter Kandidat ins CRM übernommen':'Kandidat verworfen')}
+ const conflict=btn.dataset.reviewConflict==='1';
+ if(decision==='accept'&&!confirm(conflict?'Die Quelle nennt einen anderen Arbeitgeber. Hast du an der Quelle geprüft, dass die Person bei dieser Firma arbeitet? Erst danach wird sie ins CRM übernommen.':'Hast du Name, Firma und Funktion auf der verlinkten Website geprüft? Erst danach wird die Person ins CRM übernommen.'))return;
+ const body=conflict&&decision==='accept'?{decision,confirm_conflict:true}:{decision};
+ btn.disabled=true;try{await api(`/contact-candidates/${btn.dataset.publicReview}/review`,'POST',body);await Promise.all([loadContactResearch(currentLeadId),loadDecisionContacts(currentLeadId)]);toast(decision==='accept'?'Überprüfter Kandidat ins CRM übernommen':decision==='historic'?'Als historisch markiert':'Kandidat verworfen')}
  catch(e){toast(e.message,true)}finally{btn.disabled=false}
 }
 

@@ -2,7 +2,7 @@
 
 Automatisch erzeugt mit `tools/sql_inventory.py` aus dem Quelltext (SDQ-010). Nicht von Hand ändern.
 
-1478 SQL-Aufrufe in 71 Modulen: 1318 mit festem SQL-Text, 123 aus festen Teilen zusammengesetzt, 34 über eine Hilfsfunktion, 3 Hilfsfunktionen, die SQL nur weiterreichen, und 0 nicht statisch lesbar. 83 von 83 Tabellen der Hauptdatenbank werden im Quelltext namentlich angesprochen, dazu die Tabellen des Offline-Firmenkatalogs und des Mandantenverzeichnisses (je eigene Datei).
+1497 SQL-Aufrufe in 72 Modulen: 1336 mit festem SQL-Text, 124 aus festen Teilen zusammengesetzt, 34 über eine Hilfsfunktion, 3 Hilfsfunktionen, die SQL nur weiterreichen, und 0 nicht statisch lesbar. 83 von 83 Tabellen der Hauptdatenbank werden im Quelltext namentlich angesprochen, dazu die Tabellen des Offline-Firmenkatalogs und des Mandantenverzeichnisses (je eigene Datei).
 
 Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufbewahrung): `sales_tool/data_map.py`. „nur lesen“ nennt Module, die eine Tabelle lesen, aber nicht schreiben.
 
@@ -17,7 +17,7 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `action_dismissals` | Firmen und Kontakt | organisation | nein | kurz | – | sales_integration.py |
 | `activities` | Firmen und Kontakt | organisation | nein | fachlich | – | briefing.py, care.py, chances.py, customer_report.py, duplicates.py, followups.py, handover.py, imprint_batch.py, kickoff.py, lead_finder.py, lead_imprint.py, offer_flow.py, report.py, research_center.py, revisions.py, server.py, sweep.py, website_scorer.py, workday.py |
 | `analysis_runs` | Recherche | organisation | nein | kurz | ai_lab.py | analysis_jobs.py, quickscan.py, research/jobs.py, server.py |
-| `app_settings` | Betrieb | organisation | nein | fachlich | focus.py, research/sources.py | quality.py |
+| `app_settings` | Betrieb | organisation | nein | fachlich | focus.py, research/sources.py | candidates.py, quality.py |
 | `audit_events` | Mandantenverzeichnis (eigene Datei) | zugang | nein | fachlich | – | audit_trail.py |
 | `audit_log` | Betrieb | organisation | nein | fachlich | – | accounting.py, company_data.py |
 | `batch_items` | Firmenfindung | organisation | nein | kurz | lead_imprint.py, report.py, research_center.py | imprint_batch.py, quality.py |
@@ -32,11 +32,11 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `company_facts` | Recherche | organisation | nein | fachlich | research_center.py, workday.py | company_data.py, quality.py |
 | `company_reports` | Recherche | organisation | nein | kurz | lead_imprint.py, research/homepage.py, research_center.py, today.py, workday.py | report.py |
 | `company_settings` | Rechnung und Steuer | organisation | ja | gobd | company_data.py, lead_finder.py | accounting.py |
-| `contact_candidates` | Firmen und Kontakt | organisation | ja | fachlich | research_center.py | public_contacts.py, quickscan.py, report.py |
+| `contact_candidates` | Firmen und Kontakt | organisation | ja | fachlich | public_contacts.py, report.py, research_center.py | candidates.py |
 | `contact_research_runs` | Firmen und Kontakt | organisation | nein | kurz | research_center.py | public_contacts.py, quickscan.py, report.py, research/jobs.py, server.py |
 | `customer_reports` | Angebote und Projekte | organisation | nein | fachlich | – | customer_report.py |
 | `day_closings` | Firmen und Kontakt | organisation | nein | fachlich | – | workday.py |
-| `decision_contacts` | Firmen und Kontakt | organisation | ja | fachlich | messages.py, qualification.py, report.py, research_center.py | decision_finder.py, imprint_batch.py, public_contacts.py, quality.py, sales_integration.py, server.py |
+| `decision_contacts` | Firmen und Kontakt | organisation | ja | fachlich | messages.py, qualification.py, report.py, research_center.py | candidates.py, decision_finder.py, imprint_batch.py, quality.py, sales_integration.py, server.py |
 | `directory_settings` | Mandantenverzeichnis (eigene Datei) | installation | nein | fachlich | – | accounts.py |
 | `discovery` | Bedarf und Chancen | organisation | nein | fachlich | ai_lab.py, briefing.py, chances.py, qualification.py, research_center.py, sales_integration.py, today.py | server.py, workday.py |
 | `discovery_candidates` | Firmenfindung | organisation | nein | kurz | company_data.py, lead_imprint.py, pilot.py, qualification.py, research/catalog.py, research/homepage.py, research_center.py, today.py, workday.py | lead_finder.py, quality.py, research/jobs.py, sweep.py |
@@ -64,7 +64,7 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `kickoff_items` | Angebote und Projekte | organisation | ja | fachlich | – | kickoff.py |
 | `kickoffs` | Angebote und Projekte | organisation | nein | fachlich | – | kickoff.py |
 | `lead_not_duplicate` | Firmen und Kontakt | organisation | nein | fachlich | – | duplicates.py |
-| `leads` | Firmen und Kontakt | organisation | ja | fachlich | accounting.py, ai_lab.py, backup_restore.py, caldav.py, calendar_feed.py, care.py, customer_report.py, decision_finder.py, expert_review.py, focus.py, handover.py, imap_drafts.py, kickoff.py, messages.py, model.py, offer_print.py, postcalc.py, public_contacts.py, qualification.py, reach.py, research/jobs.py, sales_integration.py, search.py, studies.py, website_scorer.py | buying_signals.py, chances.py, company_data.py, duplicates.py, imprint_batch.py, lead_finder.py, lead_imprint.py, offer_flow.py, quality.py, quickscan.py, report.py, research_center.py, sales_workspace.py, server.py, sweep.py, today.py, workday.py |
+| `leads` | Firmen und Kontakt | organisation | ja | fachlich | accounting.py, ai_lab.py, backup_restore.py, caldav.py, calendar_feed.py, candidates.py, care.py, customer_report.py, decision_finder.py, expert_review.py, focus.py, handover.py, imap_drafts.py, kickoff.py, messages.py, model.py, offer_print.py, postcalc.py, qualification.py, reach.py, research/jobs.py, sales_integration.py, search.py, studies.py, website_scorer.py | buying_signals.py, chances.py, company_data.py, duplicates.py, imprint_batch.py, lead_finder.py, lead_imprint.py, offer_flow.py, quality.py, quickscan.py, report.py, research_center.py, sales_workspace.py, server.py, sweep.py, today.py, workday.py |
 | `login_failures` | Mandantenverzeichnis (eigene Datei) | zugang | nein | fachlich | – | accounts.py |
 | `mail_drafts` | Firmen und Kontakt | organisation | nein | fachlich | server.py, workday.py | imap_drafts.py, sales_workspace.py |
 | `meetings` | Firmen und Kontakt | organisation | nein | fachlich | caldav.py, calendar_feed.py, focus.py, messages.py, reach.py, sales_integration.py, today.py, workday.py | chances.py, sales_workspace.py, server.py |
@@ -131,6 +131,7 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `buying_signals.py` | 43 | 0 | 10 |
 | `caldav.py` | 11 | 0 | 4 |
 | `calendar_feed.py` | 1 | 0 | 2 |
+| `candidates.py` | 27 | 0 | 4 |
 | `care.py` | 12 | 0 | 6 |
 | `chances.py` | 33 | 0 | 6 |
 | `company_data.py` | 36 | 0 | 7 |
@@ -162,12 +163,12 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `pilot.py` | 14 | 0 | 3 |
 | `postcalc.py` | 16 | 0 | 4 |
 | `profiles.py` | 12 | 0 | 1 |
-| `public_contacts.py` | 11 | 0 | 4 |
+| `public_contacts.py` | 5 | 0 | 2 |
 | `qualification.py` | 25 | 0 | 11 |
-| `quality.py` | 58 | 0 | 18 |
-| `quickscan.py` | 12 | 0 | 6 |
+| `quality.py` | 59 | 0 | 18 |
+| `quickscan.py` | 11 | 0 | 5 |
 | `reach.py` | 15 | 0 | 5 |
-| `report.py` | 55 | 0 | 14 |
+| `report.py` | 53 | 0 | 14 |
 | `research/benchmark.py` | 2 | 0 | 0 |
 | `research/catalog.py` | 22 | 0 | 6 |
 | `research/homepage.py` | 2 | 0 | 2 |

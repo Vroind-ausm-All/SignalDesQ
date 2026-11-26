@@ -176,6 +176,22 @@ class RestoreGateTests(GateBase):
         self.assertTrue(self.conn.execute("SELECT 1 FROM suppression_list WHERE kind='name' AND display='Ganz Andere Fiktiv GmbH'").fetchone(),
                         'auch Sperrlisten-Einträge ohne Firma bleiben')
 
+    def test_restore_does_not_bring_back_candidates_of_suppressed_company(self):
+        # R2.4: Kandidaten aus dem alten Stand einer inzwischen gesperrten Firma werden beim Wiederherstellen gelöscht
+        lid = self.lead(business_email='info@gesperrt-beispiel.example')
+        run = self.conn.execute("INSERT INTO contact_research_runs(lead_id, status) VALUES (?, 'done')", (lid,)).lastrowid
+        self.conn.execute("INSERT INTO contact_candidates(run_id, lead_id, full_name, job_title, source_url) VALUES (?,?,?,?,?)",
+                          (run, lid, 'Erika Fiktiv', 'Geschäftsführerin', 'https://gesperrt-beispiel.example/team'))
+        self.conn.commit()
+        backup = create_backup(self.db)['path']
+        suppress_lead(self.conn, lid, 'Widerspruch nach der Sicherung')
+        self.conn.commit()
+        self.assertEqual(self.conn.execute('SELECT COUNT(*) FROM contact_candidates').fetchone()[0], 0)
+        self.conn.close()
+        backup_restore.restore(self.db, backup, confirm=True)
+        self.conn = connect(self.db)
+        self.assertEqual(self.conn.execute('SELECT COUNT(*) FROM contact_candidates WHERE lead_id=?', (lid,)).fetchone()[0], 0)
+
     def test_restore_without_suppressions_changes_nothing(self):
         self.lead('Frei Beispiel GmbH', 'https://frei-beispiel.example')
         backup = create_backup(self.db)['path']

@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev69)
+# Bekannte Einschränkungen (Stand 2.0.0-dev70)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -419,3 +419,22 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 
 - Die Abnahme „Precision ≥ 95 % auf der Referenzliste“ steht aus, bis die Referenzliste vorliegt (R1.6).
 - Das Registergericht wird nur aus Text wie „Amtsgericht Stuttgart“ oder „AG Stuttgart“ erkannt; fehlt es auf einer Seite, gilt die Nummer allein.
+
+## Personen, Rollen und Kandidaten (2.0.0-dev70, Plan R2)
+
+- Präzision und Recall der Rollen sind nur auf erfundenen Seiten gemessen (`docs/bench/r2-persons.json`); die Abnahme
+  „Präzision ≥ 95 %, Recall ≥ 70 %“ braucht die Referenzliste (R1.6, Entscheidung E3).
+- Strukturierte Personen kommen aus JSON-LD, Microdata, Tabellen und Team-Karten. Eine Karte mit mehreren Namen wird ausgelassen,
+  ebenso Personen ohne Funktionsangabe. Text, der nur per JavaScript erscheint, fehlt ohne Browser-Rückfall.
+- Die Zeilenregeln kennen weniger Titel als die Rollen-Normalisierung (z. B. „Leitung Vertrieb: …“, „Personalleitung“ als eigene Zeile);
+  in der Messung fehlten dadurch drei von zwölf Personen.
+- Rollen sind nach Titel normalisiert, nicht nach Zuständigkeit; „Teamleitung“ u. ä. bekommt keine Abteilung. Eine Rolle ist nie
+  eine Entscheidungsbefugnis.
+- Der Arbeitgeber gilt als belegt, wenn die Seite zur Website der Firma gehört oder JSON-LD ihn nennt. Ein abweichender Name macht
+  den Kandidaten „widersprüchlich“; ähnliche Schreibweisen (Marke statt Rechtsträger) können das auslösen.
+- Kandidaten aus Recherchen vor 2.0.0-dev70 haben keinen Beleg mit Fundstelle und lassen sich nicht übernehmen – Firma neu recherchieren.
+- Kandidaten werden nach 180 Tagen gelöscht (einstellbar 30–730 Tage); die Frist ist nur über die Schnittstelle einstellbar.
+- Optionales NLP-Profil (spaCy): nur Python 3.10–3.13, rund 200-mal langsamer als die Regeln; der Mehrwert ist auf erfundenen Seiten
+  nicht belegt (Vertrauensbereiche überlappen). Die Rechte an den Trainingsdaten des Modells (TIGER, WikiNER) für gewerblichen
+  Einsatz sind ungeklärt (E8). Im Server für mehrere Organisationen ist das Profil gesperrt. GLiNER wurde nicht geprüft.
+- Ein separat erwähnter „person_jsonld“-Prototyp lag nicht vor; die JSON-LD-Auswertung ist eine eigene Implementierung.
