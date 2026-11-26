@@ -21,7 +21,7 @@ jobs:
   unit:
     name: unit (${{ matrix.os }}, Python ${{ matrix.python }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
+    timeout-minutes: 45  # Windows braucht für die ganze Suite gut 25 Minuten (Linux 5–7)
     strategy:
       fail-fast: false
       matrix:
