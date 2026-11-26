@@ -25,7 +25,10 @@ ROLES = {
 }
 SESSION_HOURS = 12
 COOKIE = 'sd_session'
-MIN_PASSWORD = 10
+MIN_PASSWORD = 12
+# Passwortregel (2.0.0-dev68): mindestens 12 Zeichen, Groß- und Kleinbuchstaben und ein Sonderzeichen. Gilt beim Setzen
+# und Ändern; bestehende Passwörter bleiben gültig, bis sie geändert werden.
+PASSWORD_RULE = f'mindestens {MIN_PASSWORD} Zeichen, Groß- und Kleinbuchstaben und ein Sonderzeichen'
 _FAILS = {}
 _FAIL_LOCK = threading.Lock()
 MAX_FAILS, FAIL_WINDOW = 5, 15 * 60
@@ -91,9 +94,19 @@ def verify_password(password, stored):
 _DUMMY_HASH = hash_password(secrets.token_hex(8))
 
 
+def _is_special(ch):
+    """Sonderzeichen: weder Buchstabe noch Ziffer noch Leerraum (z. B. - _ ! ? # € §)."""
+    return not ch.isalnum() and not ch.isspace()
+
+
 def _check_password_policy(password, username=''):
     if not isinstance(password, str) or len(password) < MIN_PASSWORD or len(password) > 200:
-        raise ValueError(f'Passwort: mindestens {MIN_PASSWORD} Zeichen.')
+        raise ValueError(f'Passwort: {PASSWORD_RULE}.')
+    missing = [what for what, ok in (('ein Großbuchstabe', any(c.isupper() for c in password)),
+                                     ('ein Kleinbuchstabe', any(c.islower() for c in password)),
+                                     ('ein Sonderzeichen', any(_is_special(c) for c in password))) if not ok]
+    if missing:
+        raise ValueError(f'Passwort: {PASSWORD_RULE}. Es fehlt: {", ".join(missing)}.')
     if username and username.casefold() in password.casefold():
         raise ValueError('Das Passwort darf den Benutzernamen nicht enthalten.')
     if len(set(password)) < 5:

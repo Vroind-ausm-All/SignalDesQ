@@ -5,7 +5,7 @@
     python tools/plan_status.py --check    # Fehler, wenn die Planquelle ungültig oder ein erzeugtes Dokument veraltet ist
 
 Quelle: docs/plan/open_intelligence.json (einzige Stelle, an der Status, Abhängigkeiten und Abnahmen gepflegt werden).
-Nur Standardbibliothek; läuft unter Python 3.10 bis 3.13.
+Nur Standardbibliothek; läuft unter Python 3.10 bis 3.14.
 """
 from __future__ import annotations
 

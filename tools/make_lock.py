@@ -2,7 +2,7 @@
 
 python tools/make_lock.py [--cooldown-days 14] [--variants browser,team,research]
 
-Je Installationsvariante wird mit pip für alle Zielsysteme aufgelöst (Windows x64 und Linux x64, Python 3.10–3.13).
+Je Installationsvariante wird mit pip für alle Zielsysteme aufgelöst (Windows x64 und Linux x64, Python 3.10–3.14).
 Gewählt wird je Paket eine Version, die auf ALLEN Zielen installierbar ist, und nur Versionen, die mindestens
 `--cooldown-days` Tage alt sind (Schutz vor frisch kompromittierten Releases). In die Lockdatei kommen die
 SHA-256-Prüfsummen aller Dateien dieser Version (pip prüft beim Installieren mit --require-hashes).
@@ -46,7 +46,7 @@ def lock_path(name):
 
 def resolution_path(name):
     return ROOT / 'tools' / f'lock-resolution-{name}.json' if name in DEV_VARIANTS else ROOT / 'docs' / 'bench' / 'lock-resolution.json'
-PYTHONS = ('3.10', '3.11', '3.12', '3.13')
+PYTHONS = ('3.10', '3.11', '3.12', '3.13', '3.14')
 PLATFORMS = {'windows': ['win_amd64'],
              'linux': ['manylinux_2_28_x86_64', 'manylinux_2_17_x86_64', 'manylinux2014_x86_64', 'manylinux1_x86_64', 'linux_x86_64']}
 _PYPI = {}

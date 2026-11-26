@@ -23,7 +23,7 @@ sys.path.insert(0, str(ROOT))
 LICENSE_FALLBACK = {'greenlet': 'MIT AND PSF-2.0', 'pyee': 'MIT', 'cffi': 'MIT-0', 'pycparser': 'BSD-3-Clause',
                     'cryptography': 'Apache-2.0 OR BSD-3-Clause', 'typing-extensions': 'PSF-2.0', 'playwright': 'Apache-2.0'}
 RUNTIME = [
-    {'name': 'CPython', 'version': '3.10–3.13', 'license': 'PSF-2.0', 'scope': 'required',
+    {'name': 'CPython', 'version': '3.10–3.14', 'license': 'PSF-2.0', 'scope': 'required',
      'description': 'Python-Laufzeit (vom Nutzer installiert bzw. per winget/python.org)', 'type': 'platform'},
     {'name': 'Chromium (Playwright-Download)', 'version': 'zur Playwright-Version passend', 'license': 'BSD-3-Clause', 'scope': 'optional',
      'description': 'Nur Variante browser/team/voll: Browser für JavaScript-Seiten, lädt `playwright install chromium`', 'type': 'application'},

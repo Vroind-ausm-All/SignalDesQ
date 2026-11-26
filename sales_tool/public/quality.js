@@ -72,7 +72,7 @@
     if (!auth.has_users) {
       box.innerHTML = `<p class="muted">${esc(auth.notice)}</p><form id="qSetupForm" class="sales-form"><b>Administration anlegen</b>
         <div class="sales-row"><label>Benutzername<input name="username" required minlength="3" maxlength="40" autocomplete="username"></label><label>Anzeigename<input name="display_name" maxlength="80"></label></div>
-        <label>Passwort (mind. 10 Zeichen)<input name="password" type="password" required minlength="10" maxlength="200" autocomplete="new-password"></label>
+        <label>Passwort (mind. 12 Zeichen, Groß- und Kleinbuchstaben, ein Sonderzeichen)<input name="password" type="password" required minlength="12" maxlength="200" autocomplete="new-password"></label>
         <button type="submit" class="btn btn-ghost">Administration anlegen & anmelden</button></form>`;
       return;
     }
@@ -86,10 +86,10 @@
           <div class="acc-btn-group"><select data-q-role="${u.id}" aria-label="Rolle">${Object.keys(auth.roles).map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r}</option>`).join('')}</select>
           <button type="button" class="btn btn-ghost" data-q-active="${u.id}" data-on="${u.active ? 0 : 1}">${u.active ? 'Deaktivieren' : 'Aktivieren'}</button></div></div>`).join('')}</div>
         <form id="qUserForm" class="sales-form"><b>Benutzer anlegen</b><div class="sales-row"><label>Benutzername<input name="username" required minlength="3" maxlength="40"></label><label>Rolle<select name="role">${Object.entries(auth.roles).map(([k, v]) => `<option value="${k}" ${k === 'vertrieb' ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></label></div>
-        <div class="sales-row"><label>Anzeigename<input name="display_name" maxlength="80"></label><label>Startpasswort (mind. 10 Zeichen)<input name="password" type="password" required minlength="10" maxlength="200" autocomplete="new-password"></label></div>
+        <div class="sales-row"><label>Anzeigename<input name="display_name" maxlength="80"></label><label>Startpasswort (mind. 12 Zeichen, Groß- und Kleinbuchstaben, ein Sonderzeichen)<input name="password" type="password" required minlength="12" maxlength="200" autocomplete="new-password"></label></div>
         <button type="submit" class="btn btn-ghost">Benutzer anlegen</button></form>`;
     }
-    if (me) html += `<form id="qPwForm" class="sales-form"><b>Eigenes Passwort ändern</b><div class="sales-row"><label>Bisher<input name="old_password" type="password" required autocomplete="current-password"></label><label>Neu (mind. 10 Zeichen)<input name="new_password" type="password" required minlength="10" autocomplete="new-password"></label></div><button type="submit" class="btn btn-ghost">Passwort ändern</button></form>`;
+    if (me) html += `<form id="qPwForm" class="sales-form"><b>Eigenes Passwort ändern</b><div class="sales-row"><label>Bisher<input name="old_password" type="password" required autocomplete="current-password"></label><label>Neu (mind. 12 Zeichen, Groß- und Kleinbuchstaben, ein Sonderzeichen)<input name="new_password" type="password" required minlength="12" autocomplete="new-password"></label></div><button type="submit" class="btn btn-ghost">Passwort ändern</button></form>`;
     box.innerHTML = html;
   }
 

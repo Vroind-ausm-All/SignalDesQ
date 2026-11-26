@@ -3,7 +3,7 @@
 (function () {
   const $ = s => document.querySelector(s);
   const msg = t => { $('#zMsg').textContent = t || ''; };
-  const views = ['#zLogin', '#zCode', '#zSetup', '#zOrgs', '#zRegister', '#zInvite', '#zTeam'];
+  const views = ['#zLogin', '#zCode', '#zSetup', '#zSuggest', '#zOrgs', '#zRegister', '#zInvite', '#zTeam'];
   const KEY = 'sd_einladung';
   const store = {get: () => { try { return sessionStorage.getItem(KEY) || ''; } catch (e) { return ''; } },
     set: v => { try { v ? sessionStorage.setItem(KEY, v) : sessionStorage.removeItem(KEY); } catch (e) { /* ohne Speicher */ } }};
@@ -41,10 +41,10 @@
       list.appendChild(li);
     }
     $('#zNone').classList.toggle('hidden', s.organizations.length > 0);
-    $('#zMfaState').textContent = s.two_factor ? 'an' : 'aus';
+    $('#zMfaState').textContent = s.two_factor ? 'an' : 'aus (empfohlen: einrichten)';
     $('#zMfaInfo').textContent = s.two_factor
       ? 'Noch ' + s.recovery_codes_left + ' Wiederherstellungscodes übrig.' + (s.require_2fa ? ' In dieser Installation Pflicht.' : '')
-      : 'Schützt das Konto, wenn das Passwort bekannt wird.';
+      : 'Empfohlen: schützt das Konto, wenn das Passwort bekannt wird. Freiwillig, solange die Installation ihn nicht vorschreibt.';
     $('#zMfaOn').classList.toggle('hidden', !!s.two_factor);
     $('#zMfaOff').classList.toggle('hidden', !s.two_factor || !!s.require_2fa);
     const admin = $('#zAdminOrgs');
@@ -101,7 +101,15 @@
     if (s.stage === 'einrichtung') return showSetup(true);
     show('#zLogin');
   }
+  // dev68: Nach der Anmeldung ohne zweiten Faktor wird er empfohlen (nicht verpflichtend). „Später“ geht weiter wie bisher.
+  let suggestNext = null;
   function afterLogin(r) {
+    if (r.stage === 'voll' && r.suggest_2fa) {
+      suggestNext = r.entered ? () => { location.href = '/'; } : () => refresh();
+      show('#zSuggest');
+      $('#zSuggestYes').focus();
+      return null;
+    }
     if (r.entered) { location.href = '/'; return null; }
     if (r.stage === 'zweitfaktor') { show('#zCode'); $('#zCode').code.focus(); return null; }
     if (r.stage === 'einrichtung') { showSetup(true); return null; }
@@ -172,6 +180,14 @@
     await refresh();
   });
   $('#zMfaOn').addEventListener('click', () => { msg(''); showSetup(false); });
+  // Nach der Einrichtung enden die ohne zweiten Faktor geöffneten Sitzungen; „Gespeichert – weiter“ zeigt die Organisationen.
+  $('#zSuggestYes').addEventListener('click', () => { msg(''); suggestNext = null; showSetup(false); });
+  $('#zSuggestLater').addEventListener('click', async () => {
+    msg('');
+    const next = suggestNext || (() => refresh());
+    suggestNext = null;
+    try { await next(); } catch (err) { msg(err.message); }
+  });
   $('#zMfaOff').addEventListener('submit', async e => {
     e.preventDefault();
     const f = e.target;

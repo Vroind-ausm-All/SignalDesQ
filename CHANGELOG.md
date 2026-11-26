@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0-dev68 – Passwortregel, zweiter Faktor empfohlen, Python 3.14 geprüft
+
+- **Passwortregel:** mindestens 12 Zeichen (bisher 10), Groß- und Kleinbuchstaben und mindestens ein Sonderzeichen. Gilt überall, wo ein
+  Passwort gesetzt wird: Einrichtung, Benutzerverwaltung, Passwortwechsel, zentrale Konten, Registrierung, Einladung, Betreiber-Reset.
+  Die Meldung nennt, was fehlt. Bestehende Passwörter bleiben gültig. Formulare nennen die Regel (`tests/test_dev68_passwort_zweitfaktor.py`).
+- **Zweiter Faktor empfohlen:** In der Mehrmandanten-Installation zeigt die Anmeldung ohne zweiten Faktor danach „Zwei-Faktor-Anmeldung
+  empfohlen“ mit „Jetzt einrichten“ und „Später“. Ohne Pflicht bleibt er freiwillig; die Antwort der Anmeldung trägt `suggest_2fa`.
+- **Python 3.14:** Unit-Tests und Probe-Installation aller Lockdateien laufen in der CI zusätzlich unter Python 3.14 (Windows, Linux);
+  lokal 998 Tests unter 3.14.6 und 3.15.0b4 grün. Python 3.10 bleibt unterstützt (Entscheidung offen); 3.15 scheitert nur an rapidfuzz
+  in der Variante „research“. `tools/make_lock.py` löst künftig auch für 3.14 auf.
+
 ## 2.0.0-dev67 – Open-Intelligence-Plan R0–R7 eingearbeitet; Phase R0 (Baseline & Governance) abgeschlossen
 
 - **Neu – Phasenplan R0–R7 (Open-Intelligence-Plan):** Der Architektur- und Masterplan vom 25.11.2026 ist eingearbeitet. 56 Arbeitspakete in acht Phasen (Baseline & Governance, Quellen/Discovery/Identität, Extraktion, Dokumente, Organisationsgraph, Pilot, Staging & Sicherheit, Start), jeweils mit Abhängigkeiten, Abnahme, Verantwortlichem und Bezug auf vorhandene Module; dazu die Sicherheitsbefunde F01–F12, Kennzahlen, Technologieregister, Skills und offene Eigentümer-Entscheidungen. Gepflegt in `docs/plan/open_intelligence.json`, erzeugt als [MASTERPLAN_OPEN_INTELLIGENCE.md](docs/MASTERPLAN_OPEN_INTELLIGENCE.md) und als Abschnitt in der Roadmap (`python tools/plan_status.py --write`); `tests/test_plan_structure.py` prüft Abhängigkeiten, Zyklen, Nachweise und Aktualität.

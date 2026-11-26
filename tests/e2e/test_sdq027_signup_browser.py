@@ -57,6 +57,8 @@ class SignupBrowserTests(unittest.TestCase):
                         self.assertEqual(page.input_value('#zLogin [name=username]'), 'erika')
                         page.fill('#zLogin [name=password]', PW)
                         page.click('#zLogin button[type=submit]')
+                        page.locator('#zSuggest >> visible=true').wait_for()  # dev68: zweiter Faktor empfohlen
+                        page.click('#zSuggestLater')
                         page.wait_for_url(base + '/')
                         page.goto(base + '/anmelden')
                         page.click('[data-z-team="studio-nord"]')

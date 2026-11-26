@@ -51,6 +51,9 @@ class MultiTenantBrowserTests(unittest.TestCase):
                         page.locator('#zMsg', has_text='falsch').wait_for()
                         page.fill('#zLogin [name=password]', PW)
                         page.click('#zLogin button[type=submit]')
+                        # dev68: ohne zweiten Faktor wird er empfohlen – „Später“ führt zur Auswahl der Organisation
+                        page.locator('#zSuggest >> visible=true').wait_for()
+                        page.click('#zSuggestLater')
                         page.locator('[data-z-org="nord"]').wait_for()
                         self.assertEqual(page.locator('[data-z-org]').count(), 2)
                         page.click('[data-z-org="nord"]')
