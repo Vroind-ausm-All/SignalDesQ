@@ -19,6 +19,23 @@ class UnsafeURL(CrawlError):
     kind = 'ssrf'
 
 
+class DomainMissing(CrawlError):
+    """Der Name hat keinen DNS-Eintrag (NXDOMAIN/NODATA). Für die Website-Suche heißt das: Diese Domain gibt es nicht –
+    kein Abruffehler. Nur sicher, wenn die Namensauflösung grundsätzlich funktioniert (siehe ``dns_available``)."""
+    kind = 'dns_missing'
+
+
+class DnsUnavailable(CrawlError):
+    """Namensauflösung vorübergehend gestört (Zeitüberschreitung, Server nicht erreichbar) – ein echter Abruffehler."""
+    kind = 'dns'
+
+
+# „Name unbekannt“ bzw. „keine Adresse“ – unter Linux/macOS als EAI_*, unter Windows als WSAHOST_NOT_FOUND/WSANO_DATA
+_NO_NAME = {c for c in (getattr(socket, 'EAI_NONAME', None), getattr(socket, 'EAI_NODATA', None), 11001, 11004) if c is not None}
+_DNS_PROBE = ('denic.de', 'example.com')
+_DNS_STATE = {'at': -1e9, 'ok': True}
+
+
 def check_url(url, ports=(80, 443)):
     """Syntaktische Prüfung ohne DNS. Gibt die normalisierte URL zurück."""
     if not isinstance(url, str) or len(url) > 2048:
@@ -45,8 +62,12 @@ def resolve_public(host, port):
     """Löst den Namen EINMAL auf und prüft jede Adresse. Gibt die geprüften Adressen (Reihenfolge des Resolvers) zurück."""
     try:
         infos = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
-    except (socket.gaierror, UnicodeError) as exc:
-        raise CrawlError('Domain konnte nicht aufgelöst werden.') from exc
+    except UnicodeError as exc:  # kein gültiger Domainname – kann es nicht geben
+        raise DomainMissing('Ungültiger Domainname.') from exc
+    except socket.gaierror as exc:
+        if exc.errno in _NO_NAME:
+            raise DomainMissing('Domain existiert nicht (kein DNS-Eintrag).') from exc
+        raise DnsUnavailable('Domain konnte nicht aufgelöst werden (Namensauflösung gestört).') from exc
     ips = []
     for info in infos:
         ip = info[4][0]
@@ -59,8 +80,27 @@ def resolve_public(host, port):
         if ip not in ips:
             ips.append(ip)
     if not ips:
-        raise CrawlError('Domain konnte nicht aufgelöst werden.')
+        raise DomainMissing('Domain hat keine Adresse.')
     return ips
+
+
+def dns_available(max_age=300):
+    """Funktioniert die Namensauflösung überhaupt? Ohne DNS (z. B. Firmennetz nur mit Proxy) meldet jeder Name „unbekannt“ –
+    dann darf „Domain existiert nicht“ nicht als Ergebnis gelten. Fragt zwei bekannte Namen ab (keine Firmendaten), 5 Minuten gemerkt."""
+    import time
+    now = time.monotonic()
+    if now - _DNS_STATE['at'] < max_age:
+        return _DNS_STATE['ok']
+    ok = False
+    for host in _DNS_PROBE:
+        try:
+            socket.getaddrinfo(host, 443, type=socket.SOCK_STREAM)
+            ok = True
+            break
+        except (OSError, UnicodeError):
+            continue
+    _DNS_STATE.update(at=now, ok=ok)
+    return ok
 
 
 def public_url(url):

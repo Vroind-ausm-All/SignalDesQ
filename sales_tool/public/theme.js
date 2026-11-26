@@ -36,11 +36,19 @@
     options=data;current=Object.assign({},DEFAULT,data.appearance);writeLocal(current);apply();render();
   }
 
-  async function set(change){
+  // 2.0.0-dev66: Änderungen nacheinander speichern. Bei schnellen Klicks (Theme, dann Dichte) überholte sonst die
+  // Antwort der älteren Anfrage die neuere und setzte die Dichte zurück (CI: test_appearance_browser).
+  let queue=Promise.resolve(),pending=0;
+  function set(change){
     const before=current;
     current=Object.assign({},current,change);apply();writeLocal(current);
-    try{take(await request('PUT',change))}
-    catch(e){current=before;apply();writeLocal(current);if(window.toast)window.toast(e.message,true)}
+    pending++;
+    queue=queue.then(()=>request('PUT',change)).then(data=>{if(pending===1)take(data)},e=>{
+      // Fehler: zurück auf den gespeicherten Stand des Servers (sonst auf den Stand vor dieser Änderung)
+      current=before;apply();writeLocal(current);if(window.toast)window.toast(e.message,true);
+      return request('GET').then(take).catch(()=>{});
+    }).finally(()=>{pending--});
+    return queue;
   }
 
   function syncControls(){

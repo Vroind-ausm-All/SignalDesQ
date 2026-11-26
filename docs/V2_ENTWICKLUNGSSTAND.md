@@ -10,7 +10,7 @@ Basis ist SignalDesk 1.19. Dieser Stand wird für die fachliche und technische W
 - **Website-Scoring:** Ein fehlender Portal-Link gilt als unbekannt. Die neue Logik verwendet eine neue Score-Version; historische Werte und Gewichte bleiben erhalten.
 
 ## Was noch offen ist
-Die automatische Suche findet nicht zuverlässig abweichende Marken-Domains. Die Suche benötigt hierfür weitere Quellen sowie eine unabhängige Qualitätsmessung. Suchbegriffe und Seitenbudget sind begrenzt; ein Fund ist eine Beobachtung, keine Bestätigung von Verkaufsbedarf. Mehrere ältere Recherchemodule verwenden eigene Worker. Recruiting-Verläufe erkennen weder jede inhaltliche Änderung noch sicher geschlossene Anzeigen.
+Die automatische Suche findet nicht zuverlässig abweichende Marken-Domains (seit 2.0.0-dev66 besser über E-Mail-Domain, Anschrift und Telefon aus OpenStreetMap, aber nicht gemessen). Die Suche benötigt hierfür weitere Quellen sowie eine unabhängige Qualitätsmessung. Suchbegriffe und Seitenbudget sind begrenzt; ein Fund ist eine Beobachtung, keine Bestätigung von Verkaufsbedarf. Mehrere ältere Recherchemodule verwenden eigene Worker. Recruiting-Verläufe erkennen weder jede inhaltliche Änderung noch sicher geschlossene Anzeigen.
 
 Der gewünschte Praxistest für Handwerk im Raum Stuttgart konnte hier nicht durchgeführt werden: Die Cloud-Netzwerkrichtlinie blockierte die vorgesehenen Quellen mit HTTP 403. Die automatisierten Tests verwenden fiktive Websites und belegen keine Trefferquote auf echten Betrieben. Windows-Installation, Update und Wiederherstellung wurden für diesen Entwicklungsstand nicht erneut auf einem Windows-Gerät geprüft.
 

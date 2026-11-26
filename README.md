@@ -30,7 +30,7 @@ Ganz automatisch beim Herunterladen kann nichts starten: Browser und Betriebssys
 |---|---|
 | **Heute** | Die drei nächsten Schritte mit Grund und Frist; Eingang für verpasste Anrufe mit Rückruffrist, „als Nächstes kontaktieren“, Auslastung, Wiedervorlage; Tagesplan und Tagesabschluss zum Aufklappen; „Erste Schritte“ für den Einstieg |
 | **Firmen finden** | GLEIF, Wikidata und TED gleichzeitig, OpenStreetMap offline aus einem lokalen Auszug; ohne Dubletten; PLZ-genau, ganze Stadt oder Umkreis; großer GLEIF-Katalog offline; Suchprofile mit Budget |
-| **Recherchieren** | Firmen-Bericht mit einem Klick: Impressum, Website-Bewertung, Inhalte, Karriereseite, Kaufsignale – jede Angabe mit Fundstelle |
+| **Recherchieren** | Firmen-Bericht mit einem Klick: Website finden (auch über E-Mail-Domain, Anschrift und Telefon), Impressum, Website-Bewertung, Inhalte, Karriereseite, Kaufsignale – jede Angabe mit Fundstelle, oben ein Kurzfazit mit Lücken |
 | **Bewerten** | Zielkundenprofil; Passung vor dem Gespräch (A, B, C), Qualifizierung danach, K.-o.-Kriterien; Unbekanntes zählt nicht als schlecht |
 | **Erreichen** | Belegte Kontaktwege, Anrufversuche mit Zeitfenster, Wiedervorlage nach „nicht erreicht“, eigene Zeiten, Terminvorschläge, Textbausteine |
 | **Verkaufen** | Pipeline, Firmenakte mit Reitern, Bedarf bestätigen, Festpreisangebote aus einem Katalog mit 26 Leistungen, Verlustgründe, Nachkalkulation mit tatsächlichen Stunden |

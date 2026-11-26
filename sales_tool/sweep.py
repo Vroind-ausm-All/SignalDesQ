@@ -31,6 +31,7 @@ from . import tenancy
 from . import industries as ind
 from . import lead_finder as lf
 from .research import catalog
+from .research import homepage
 from .research import identity as ident
 from .research import jobs
 from . import legal_forms as lfm
@@ -70,7 +71,7 @@ def init_sweep(conn):
                        ('contact_json', "TEXT NOT NULL DEFAULT '{}'"), ('updated_at', "TEXT NOT NULL DEFAULT ''"),
                        ('imprint_json', "TEXT NOT NULL DEFAULT '{}'"), ('org_kind', "TEXT NOT NULL DEFAULT ''"),
                        ('dup_of', 'INTEGER'), ('dup_score', 'REAL'), ('dup_reason', "TEXT NOT NULL DEFAULT ''"), ('possible_lead_id', 'INTEGER'),
-                       ('merged_into', 'INTEGER')):
+                       ('merged_into', 'INTEGER'), ('match_hints_json', "TEXT NOT NULL DEFAULT '{}'")):
         if name not in cols:
             conn.execute(f'ALTER TABLE discovery_candidates ADD COLUMN {name} {decl}')
     conn.execute('CREATE INDEX IF NOT EXISTS idx_discovery_cand_sweep ON discovery_candidates(sweep_id, status)')
@@ -318,6 +319,9 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None, cindex=N
             if item.get('website') and not existing['website']:
                 upd['website_status'] = 'quelle'
                 upd['website_evidence'] = f"Website laut {lf.SOURCES.get(source, {}).get('title', source)}"
+            new_hints = homepage.hints_from(item.get('_phone', ''), item.get('_email', ''), item.get('_email_domain', ''))
+            if new_hints:  # 2.0.0-dev66: nur E-Mail-Domain und Telefon-Prüfwert, nie die Nummer oder Adresse selbst
+                upd['match_hints_json'] = json.dumps(homepage.merge_hints(_hints(existing), new_hints))
             if item.get('employees') and int(item['employees']) > (existing['employees'] or 0):
                 upd['employees'] = int(item['employees'])
             if item.get('industry') and item['industry'] not in (existing['industry'] or ''):
@@ -360,7 +364,8 @@ def store_items(conn, sweep_id, run_id, source, items, ctx, index=None, cindex=N
                 'dup_of': possible[1] if possible and status == 'neu' else None,
                 'dup_score': (possible[2] if possible else (maybe_lead[1] if maybe_lead else None)),
                 'dup_reason': (possible[3] if possible else (f'evtl. schon als Firma: {maybe_lead[2]}' if maybe_lead else ''))[:200],
-                'possible_lead_id': maybe_lead[0] if maybe_lead else None}
+                'possible_lead_id': maybe_lead[0] if maybe_lead else None,
+                'match_hints_json': '{}' if blocked else json.dumps(homepage.hints_from(item.get('_phone', ''), item.get('_email', ''), item.get('_email_domain', '')))}
         cur = conn.execute(f"INSERT INTO discovery_candidates ({','.join(cols)}) VALUES ({','.join('?' for _ in cols)})", tuple(cols.values()))
         _add_keys(conn, cur.lastrowid, keys)
         if not cols['dup_of']:
@@ -837,7 +842,9 @@ def _run_osm(conn, sid, run_id, ctx, area, ua, index):
                       'industry_key': ikey or next((ind.from_osm(k, tags[k]) for k in ('craft', 'office', 'shop', 'amenity', 'healthcare', 'industrial', 'tourism', 'leisure') if tags.get(k)), ''),
                       '_in_postcode': bool(ctx.get('postcode_only')),  # aus dem PLZ-Gebiet abgefragt, auch wenn am Eintrag keine PLZ steht
                       'distance_km': round(ar.haversine(c['lat'], c['lon'], lat, lon), 1) if lat and lon else None,
-                      'source_url': f"https://www.openstreetmap.org/{el.get('type', 'node')}/{el.get('id', '')}"})
+                      'source_url': f"https://www.openstreetmap.org/{el.get('type', 'node')}/{el.get('id', '')}",
+                      # nur für den Website-Abgleich; gespeichert werden E-Mail-Domain und Telefon-Prüfwert (research/homepage.py)
+                      '_phone': tags.get('phone') or tags.get('contact:phone') or '', '_email': tags.get('email') or tags.get('contact:email') or ''})
     counts = store_items(conn, sid, run_id, 'osm', items, ctx, index)
     return counts, (f"{len(items)} Einträge in PLZ {ctx['postcode_only']}" if ctx.get('postcode_only') else f'{len(items)} Einträge im Umkreis') + (f' ({len(errors)} von {len(chunks)} Teilabfragen überlastet)' if errors else '')
 
@@ -1407,9 +1414,10 @@ def _names_match(a, b):
     return len(short) >= 5 and short in long_ and len(_name_words(short_name)) >= 2
 
 
-def counter_evidence(cand, fields):
+def counter_evidence(cand, fields, ignore_name=False):
     """SDQ-007: harte Gegenbelege zwischen Firma und Impressum. Gibt den ersten Grund zurück oder ''.
-    Jeder Gegenbeleg schließt eine Zuordnung aus – auch als Vorschlag (Grundsatz aus research/identity.py)."""
+    Jeder Gegenbeleg schließt eine Zuordnung aus – auch als Vorschlag (Grundsatz aus research/identity.py).
+    ignore_name: abweichenden Namen überspringen (2.0.0-dev66, Marke ↔ Firmenname – Entscheidung in research/homepage.py)."""
     from .company_data import normalize_register
     from .research import identity
     val = lambda k: ((fields.get(k) or {}).get('value') or '')
@@ -1422,7 +1430,7 @@ def counter_evidence(cand, fields):
         observed = normalize_register(val('register_court'), reg)
         if expected and observed and expected != observed:
             return f"anderes Registergericht im Impressum ({val('register_court')})"
-    if normalize_name(cand['name']) and normalize_name(val('legal_name')) and not _names_match(cand['name'], val('legal_name')):
+    if not ignore_name and normalize_name(cand['name']) and normalize_name(val('legal_name')) and not _names_match(cand['name'], val('legal_name')):
         return f"anderer Firmenname im Impressum ({val('legal_name')[:80]})"
     fa = identity.legal_family(cand['name']) or identity.legal_family(_cget(cand, 'legal_form'))
     fb = identity.legal_family(val('legal_name')) or identity.legal_family(val('legal_form'))
@@ -1436,84 +1444,84 @@ def counter_evidence(cand, fields):
     return ''
 
 
-def _match(cand, fields):
-    """Stufen (SDQ-007): 'belegt' (Registernummer und -gericht und Name stimmen) · 'wahrscheinlich' (nur Vorschlag, Mensch
-    bestätigt) · None (keine Zuordnung). Gibt (Stufe, Begründung) zurück; bei None nennt die Begründung den Gegenbeleg."""
-    from .company_data import normalize_register
-    val = lambda k: ((fields.get(k) or {}).get('value') or '')
-    why_not = counter_evidence(cand, fields)
-    if why_not:
-        return None, why_not
-    reg = re.sub(r'\s+', '', val('register_number').upper())
-    wanted_reg = re.sub(r'\s+', '', (cand['register_id'] or '').upper())
-    names_match = _names_match(cand['name'], val('legal_name'))
-    if reg and wanted_reg == reg:
-        expected = normalize_register(_cget(cand, 'register_court'), wanted_reg)
-        observed = normalize_register(val('register_court'), reg)
-        if expected and observed and names_match:
-            return 'belegt', f"Registernummer und Registergericht stimmen überein: {val('register_number')} · {val('register_court')}"
-        return 'wahrscheinlich', f"Registernummer {val('register_number')} stimmt überein; Registergericht oder Firmenname nicht sicher verglichen"
-    if names_match and (not cand['zip'] or val('zip') == cand['zip']):
-        return 'wahrscheinlich', f"Firmenname{' und PLZ' if cand['zip'] else ''} im Impressum stimmen überein"
-    return None, 'Impressum ohne passenden Firmennamen oder Registernummer'
+def _match(cand, fields, hints=None, site_domain=''):
+    """Stufen (SDQ-007): 'belegt' · 'wahrscheinlich' (nur Vorschlag, Mensch bestätigt) · None (keine Zuordnung).
+    Gibt (Stufe, Begründung) zurück; bei None nennt die Begründung den Gegenbeleg. Seit 2.0.0-dev66 mit mehreren Merkmalen
+    (Anschrift, Telefon-Prüfwert, E-Mail-Domain) – siehe research/homepage.py."""
+    from .research import homepage
+    status, why, _ = homepage.assess(cand, fields, hints, site_domain)
+    return status, why
+
+
+def _hints(cand):
+    try:
+        h = json.loads(_cget(cand, 'match_hints_json') or '{}')
+    except ValueError:
+        return {}
+    return h if isinstance(h, dict) else {}
 
 
 def find_website(conn, cid):
-    """Prüft naheliegende Domains über das Impressum. Nur öffentliche Seiten, mit robots.txt und SSRF-Schutz."""
-    from . import imprint
+    """Prüft naheliegende Domains über das Impressum. Nur öffentliche Seiten, mit robots.txt und SSRF-Schutz.
+    2.0.0-dev66: Kandidaten auch aus der E-Mail-Domain der Quelle und weiteren Namensvarianten; eine Domain ohne DNS-Eintrag
+    ist kein Abruffehler („gibt es nicht“); Zuordnung über Name, Anschrift, Telefon-Prüfwert und E-Mail-Domain."""
     cand = conn.execute('SELECT * FROM discovery_candidates WHERE id=?', (cid,)).fetchone()
-    tried = []
-    errors = 0
-    inspected = 0
+    hints = _hints(cand)
     rejected = set(json.loads(cand['imprint_json'] or '{}').get('rejected_domains', []))
-    against = []  # SDQ-007: Domain mit Gegenbeleg – wird im Beleg genannt, damit die Ablehnung nachvollziehbar ist
-    targets = [cand['website']] if cand['website'] else [d for d in domain_guesses(cand['name'], cand['city']) if d not in rejected]
-    for dom in targets:
-        tried.append(dom)
-        try:
-            res = imprint.research_domain(dom, include_persons=False)
-        except Exception:  # Fehler bedeutet nicht, dass die Website nicht existiert.
-            errors += 1
-            continue
-        inspected += 1
-        if res.get('status') != 'ok':
-            continue
-        status, why = _match(cand, res.get('fields') or {})
-        if not status and why:
-            against.append(f'{dom}: {why}')
-        if status:
-            f = res['fields']
-            contact = {k: (f.get(k) or {}).get('value') for k in ('business_phone', 'business_email') if (f.get(k) or {}).get('value')}
-            if res.get('imprint_url'):
-                contact['imprint_url'] = res['imprint_url']
-            web = lf.clean_website(res.get('home_url') or dom)
-            imp = {'imprint_url': res.get('imprint_url') or '', 'source_type': res.get('source_type') or 'impressum_html', 'checked_at': res.get('checked_at', ''),
-                   'fields': {k: {'value': v.get('value'), 'excerpt': (v.get('excerpt') or '')[:300]} for k, v in f.items() if v and v.get('value')},
-                   'rejected_domains': sorted(rejected), 'guessed': not cand['website']}
-            if status == 'wahrscheinlich':  # Empfehlung A: nur ein Vorschlag – nichts aus dem Impressum in die Firma schreiben
-                why = f'Vorschlag: {why} – bitte prüfen'
-            conn.execute('''UPDATE discovery_candidates SET website=?, website_status=?, website_evidence=?, contact_json=?, imprint_json=?,
-                            register_id=CASE WHEN register_id='' AND ?='belegt' THEN ? ELSE register_id END, updated_at=? WHERE id=?''',
-                         (web, status, why, json.dumps(contact, ensure_ascii=False), json.dumps(imp, ensure_ascii=False), status,
-                          (f.get('register_number') or {}).get('value') or '', _now(), cid))
-            conn.commit()
-            return {'status': status, 'website': web, 'evidence': why}
-    if errors:
-        why = (f'{inspected} Domain(s) geprüft, {errors} Abruf(e) fehlgeschlagen – '
+    guessed = homepage.candidate_domains(cand['name'], cand['city'], hints, rejected)
+    targets = [(cand['website'], 'laut Quelle')] if cand['website'] else list(guessed)
+
+    def on_missing(index, dom):
+        if cand['website'] and index == 0:  # angegebene Website gibt es nicht (mehr) – Namensvarianten prüfen
+            targets.extend(g for g in guessed if g[0] != lf.normalize_domain(dom))
+    r = homepage.search(cand, targets, hints, on_missing=on_missing)
+    tried, missing, errors, inspected, against = r['tried'], r['missing'], r['errors'], r['inspected'], r['against']
+    if r['status']:
+        status, why, res, dom = r['status'], r['why'], r['res'], r['domain']
+        f = res['fields']
+        contact = {k: (f.get(k) or {}).get('value') for k in ('business_phone', 'business_email') if (f.get(k) or {}).get('value')}
+        if res.get('imprint_url'):
+            contact['imprint_url'] = res['imprint_url']
+        web = lf.clean_website(res.get('home_url') or dom)
+        imp = {'imprint_url': res.get('imprint_url') or '', 'source_type': res.get('source_type') or 'impressum_html', 'checked_at': res.get('checked_at', ''),
+               'fields': {k: {'value': v.get('value'), 'excerpt': (v.get('excerpt') or '')[:300]} for k, v in f.items() if v and v.get('value')},
+               'rejected_domains': sorted(rejected), 'guessed': not cand['website'] or dom != cand['website'], 'domain_origin': r['origin']}
+        if status == 'wahrscheinlich':  # Empfehlung A: nur ein Vorschlag – nichts aus dem Impressum in die Firma schreiben
+            why = f'Vorschlag: {why} – bitte prüfen'
+        conn.execute('''UPDATE discovery_candidates SET website=?, website_status=?, website_evidence=?, contact_json=?, imprint_json=?,
+                        register_id=CASE WHEN register_id='' AND ?='belegt' THEN ? ELSE register_id END, updated_at=? WHERE id=?''',
+                     (web, status, why[:300], json.dumps(contact, ensure_ascii=False), json.dumps(imp, ensure_ascii=False), status,
+                      (f.get('register_number') or {}).get('value') or '', _now(), cid))
+        conn.commit()
+        return {'status': status, 'website': web, 'evidence': why}
+    if r['dns_down']:
+        why = 'Namensauflösung (DNS) nicht verfügbar – Website-Zuordnung nicht möglich; Netzwerk prüfen und später erneut versuchen.'
+    else:
+        why = (f'{inspected} Website(s) geprüft, {len(missing)} Domain(s) existieren nicht, {errors} Abruf(e) fehlgeschlagen – '
                'Website-Zuordnung unvollständig; später erneut versuchen.')
-        conn.execute("UPDATE discovery_candidates SET website_status='pruefung_fehlgeschlagen', website_evidence=? WHERE id=?", (why, cid))
+    if errors:
+        conn.execute("UPDATE discovery_candidates SET website_status='pruefung_fehlgeschlagen', website_evidence=? WHERE id=?", (why[:300], cid))
         conn.commit()
         return {'status': 'pruefung_fehlgeschlagen', 'tried': tried, 'evidence': why}
-    if cand['website']:
+    if cand['website'] and cand['website'] not in missing and lf.normalize_domain(cand['website']) not in missing:
         conn.execute("UPDATE discovery_candidates SET website_status='nicht_bestaetigt', website_evidence=? WHERE id=?",
                      (('Website geprüft, aber Firma nicht eindeutig zuzuordnen – bitte selbst prüfen'
                        + (' · Gegenbeleg: ' + '; '.join(against) if against else ''))[:300], cid))
+        conn.commit()
+        return {'status': 'nicht_bestaetigt', 'tried': tried}
+    existing = [d for d in tried if d not in missing]
+    text = (f'Keine passende Website: {inspected} vorhandene Website(s) geprüft'
+            + (f', {len(missing)} geratene Domain(s) gibt es nicht' if missing else '')
+            + (' · Gegenbeleg: ' + '; '.join(against) if against else '')  # Gegenbeleg vor der Liste – Text wird gekürzt
+            + (f' · Domains: {", ".join(existing)}' if existing else ''))
+    if cand['website']:
+        conn.execute("UPDATE discovery_candidates SET website='', website_status='nicht_gefunden', website_evidence=? WHERE id=?",
+                     (('Angegebene Website existiert nicht (mehr). ' + text)[:300], cid))
     else:
         conn.execute("UPDATE discovery_candidates SET website_status='nicht_gefunden', website_evidence=? WHERE id=?",
-                     ((f'Geprüft: {inspected}; Abrufe fehlgeschlagen: {errors}. Domains: ' + ', '.join(tried)
-                       + (' · Gegenbeleg: ' + '; '.join(against) if against else ''))[:300] if tried else 'Kein sinnvoller Domainname ableitbar', cid))
+                     (text[:300] if tried else 'Kein sinnvoller Domainname ableitbar', cid))
     conn.commit()
-    return {'status': 'nicht_gefunden', 'tried': tried}
+    return {'status': 'nicht_gefunden', 'tried': tried, 'missing': missing}
 
 
 CONFIRMED_WEB = ('quelle', 'belegt', 'bestaetigt')

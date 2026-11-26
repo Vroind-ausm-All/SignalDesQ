@@ -1,6 +1,8 @@
 """Firmen-Bericht mit einem Klick (Sprint C).
 
 Ein Auftrag je Firma erledigt nacheinander, was bisher in fünf Bereichen einzeln angestoßen werden musste:
+0. Website finden & zuordnen (2.0.0-dev66): Firmen ohne Website werden nicht mehr abgewiesen – der Bericht sucht die Website
+   über research/homepage.py. Nur eine belegte Zuordnung wird eingetragen, ein Vorschlag wartet auf „Passt / Passt nicht“.
 1. Impressum & Firmendaten (Impressumsprüfung – Übernahme bleibt eine bewusste Entscheidung),
 2. Website-Bewertung (Scorer v2; mit Browser inkl. Screenshots, sonst HTML-Rückfall),
 3. Website-Inhalte & Ansprechpartner (URL-Recherche: belegte Beobachtungen, Fragen, öffentliche Ansprechpartner),
@@ -21,9 +23,11 @@ from . import website_scorer as ws
 from .research import jobs
 from .company_data import find_duplicate, normalize_domain, check_suppressed
 
-STEPS = (('impressum', 'Impressum & Firmendaten'), ('website', 'Website-Bewertung'), ('inhalte', 'Website-Inhalte & Ansprechpartner'),
+STEPS = (('webfinden', 'Website finden & zuordnen'), ('impressum', 'Impressum & Firmendaten'), ('website', 'Website-Bewertung'), ('inhalte', 'Website-Inhalte & Ansprechpartner'),
          ('signale', 'Karriereseite & Kaufsignale'), ('verknuepfen', 'Signale verknüpfen & passende Pakete'))
 MAX_BATCH = 50
+NEEDS_WEBSITE = ('impressum', 'website', 'inhalte', 'signale')
+STALE_DAYS = 90
 _LAST = {}
 _WORKER = {'thread': None}
 _LOCK = threading.Lock()
@@ -87,8 +91,6 @@ def create_reports(conn, data, db_path, start=True):
             skipped.append({'lead_id': lid, 'reason': 'nicht gefunden'})
         elif lead['stage'] == 'gesperrt' or lead['permission'] == 'nicht_kontaktieren':
             skipped.append({'lead_id': lid, 'reason': 'gesperrt'})
-        elif not lead['website']:
-            skipped.append({'lead_id': lid, 'reason': 'keine Website – zuerst Website ergänzen oder in „Firmen finden“ suchen'})
         elif conn.execute("SELECT 1 FROM company_reports WHERE lead_id=? AND status IN ('queued','running')", (lid,)).fetchone():
             skipped.append({'lead_id': lid, 'reason': 'Bericht läuft bereits'})
         else:
@@ -188,11 +190,72 @@ def _set(conn, rid, key, **kw):
     steps = json.loads(row['steps_json'])
     refs = json.loads(row['refs_json'])
     ref = kw.pop('ref', None)
-    steps[key].update(kw)
+    steps.setdefault(key, {'label': dict(STEPS).get(key, key), 'status': 'wartet'}).update(kw)  # ältere Berichte ohne neuen Schritt
     if ref:
         refs.update(ref)
     conn.execute('UPDATE company_reports SET steps_json=?, refs_json=? WHERE id=?', (json.dumps(steps, ensure_ascii=False), json.dumps(refs, ensure_ascii=False), rid))
     conn.commit()
+
+
+def _step_webfinden(conn, db_path, lead):
+    """Website suchen, wenn die Firma keine hat. Eingetragen wird nur eine belegte Zuordnung (Empfehlung A) in ein LEERES Feld."""
+    from .lead_finder import clean_website
+    from .research import homepage
+    if lead['website']:
+        return 'fertig', f"Website laut Firmendaten: {normalize_domain(lead['website'])}", {}
+    cand, hints, rejected = homepage.lead_profile(conn, lead)
+    targets = homepage.candidate_domains(lead['company'], lead['city'] or '', hints, rejected)
+    if not targets:
+        return 'hinweis', 'Aus dem Firmennamen lässt sich keine Domain ableiten – Website bitte selbst eintragen.', {}
+    r = homepage.search(cand, targets, hints)
+    if r['status']:
+        web = clean_website(r['res'].get('home_url') or r['domain'])
+        if check_suppressed(conn, website=web):
+            return 'übersprungen', f'{normalize_domain(web)} steht auf der Sperrliste – nicht eingetragen.', {}
+        if r['status'] == 'belegt':
+            if conn.execute("UPDATE leads SET website=?, updated_at=datetime('now') WHERE id=? AND website=''", (web, lead['id'])).rowcount:
+                conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
+                             (lead['id'], 'notiz', f"Website gefunden und belegt: {web} ({r['why'][:200]})"))
+            conn.commit()
+            return 'fertig', f"{normalize_domain(web)} belegt: {r['why']}", {}
+        return 'hinweis', f"Vorschlag {normalize_domain(web)}: {r['why']} – bitte bestätigen", {
+            'website_suggestion': {'url': web, 'evidence': r['why'][:300], 'imprint_url': r['res'].get('imprint_url') or ''}}
+    if r['errors']:
+        why = ('Namensauflösung (DNS) nicht verfügbar' if r['dns_down'] else f"{r['errors']} Abruf(e) fehlgeschlagen")
+        return 'fehler', f"Website-Suche unvollständig: {why} – später erneut versuchen.", {}
+    detail = f"Keine passende Website: {r['inspected']} vorhandene geprüft, {len(r['missing'])} geratene Domain(s) gibt es nicht"
+    if r['against']:
+        detail += ' · Gegenbeleg: ' + '; '.join(r['against'][:2])
+    return 'hinweis', detail, {}
+
+
+def decide_suggestion(conn, lead_id, data):
+    """Website-Vorschlag aus dem Bericht bestätigen oder ablehnen. Bestätigt wird nur in ein leeres Website-Feld.
+    Über HTTP: POST /api/leads/{id}/website-suggestion (lead_imprint.review_suggestion – gleicher Weg wie in der Firmenakte)."""
+    if not isinstance(data, dict) or set(data) != {'decision'} or data['decision'] not in ('bestaetigen', 'ablehnen'):
+        raise ValueError('Erwartet: {decision: bestaetigen | ablehnen}.')
+    lead = conn.execute('SELECT * FROM leads WHERE id=?', (lead_id,)).fetchone()
+    if not lead:
+        raise LookupError('Firma nicht gefunden.')
+    row = conn.execute('SELECT id, refs_json FROM company_reports WHERE lead_id=? ORDER BY id DESC LIMIT 1', (lead_id,)).fetchone()
+    refs = json.loads(row['refs_json']) if row else {}
+    sug = refs.get('website_suggestion')
+    if not sug:
+        raise ValueError('Kein offener Website-Vorschlag.')
+    if lead['stage'] == 'gesperrt' or lead['permission'] == 'nicht_kontaktieren' or check_suppressed(conn, website=sug['url'], name=lead['company']):
+        raise ValueError('Firma oder Domain gesperrt – Vorschlag wird nicht übernommen.')
+    refs.pop('website_suggestion')
+    if data['decision'] == 'bestaetigen':
+        if lead['website']:
+            raise ValueError('Die Firma hat bereits eine Website – sie wird nicht überschrieben.')
+        conn.execute("UPDATE leads SET website=?, updated_at=datetime('now') WHERE id=?", (sug['url'], lead_id))
+        conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
+                     (lead_id, 'notiz', f"Website-Vorschlag bestätigt: {sug['url']} ({sug['evidence'][:200]})"))
+    else:
+        refs['rejected_domains'] = sorted(set(refs.get('rejected_domains', [])) | {normalize_domain(sug['url'])})
+    conn.execute('UPDATE company_reports SET refs_json=? WHERE id=?', (json.dumps(refs, ensure_ascii=False), row['id']))
+    conn.commit()
+    return {'lead_id': lead_id, 'website': sug['url'] if data['decision'] == 'bestaetigen' else '', 'decision': data['decision']}
 
 
 def _step_impressum(conn, db_path, lead):
@@ -271,7 +334,7 @@ def _step_verknuepfen(conn, db_path, lead):
     return 'fertig', f"{hyps} Hypothese(n) · {len(m['recommendations'])} passende Paket(e), unverbindlich bis zur Bedarfsklärung", {}
 
 
-RUNNERS = {'impressum': _step_impressum, 'website': _step_website, 'inhalte': _step_inhalte, 'signale': _step_signale, 'verknuepfen': _step_verknuepfen}
+RUNNERS = {'webfinden': _step_webfinden, 'impressum': _step_impressum, 'website': _step_website, 'inhalte': _step_inhalte, 'signale': _step_signale, 'verknuepfen': _step_verknuepfen}
 
 
 def run_report(db_path, rid):
@@ -286,6 +349,9 @@ def run_report(db_path, rid):
             current = json.loads(conn.execute('SELECT steps_json FROM company_reports WHERE id=?', (rid,)).fetchone()['steps_json'])
             if current.get(key, {}).get('status') in ('fertig', 'hinweis'):
                 continue
+            if key in NEEDS_WEBSITE and not lead['website']:
+                _set(conn, rid, key, status='übersprungen', detail='Keine bestätigte Website – Schritt braucht die Website der Firma.')
+                continue
             _set(conn, rid, key, status='läuft')
             try:
                 status, detail, ref = RUNNERS[key](conn, db_path, lead)
@@ -297,7 +363,7 @@ def run_report(db_path, rid):
                 _set(conn, rid, key, status='fehler', detail=f'Unerwarteter Fehler: {exc.__class__.__name__}')
         steps = json.loads(conn.execute('SELECT steps_json FROM company_reports WHERE id=?', (rid,)).fetchone()['steps_json'])
         ok = sum(1 for s in steps.values() if s['status'] == 'fertig')
-        failed = any(s['status'] == 'fehler' for s in steps.values())
+        failed = any(s['status'] in ('fehler', 'übersprungen') for s in steps.values())  # ohne Website nur teilweise geprüft
         state = ('teilweise' if failed else 'fertig') if ok else 'fehler'
         conn.execute("UPDATE company_reports SET status=?, finished_at=datetime('now') WHERE id=?", (state, rid))
         conn.execute('INSERT INTO activities(lead_id, activity_type, detail) VALUES (?,?,?)',
@@ -306,7 +372,11 @@ def run_report(db_path, rid):
             from .today import RESEARCH_RE
             lead = conn.execute('SELECT next_step FROM leads WHERE id=?', (rep['lead_id'],)).fetchone()
             if lead and (not lead['next_step'] or RESEARCH_RE.search(lead['next_step'])):
-                conn.execute("UPDATE leads SET next_step='Kontaktweg klären (Firmen-Bericht liegt vor)', next_date='' WHERE id=?", (rep['lead_id'],))
+                has_web = conn.execute("SELECT website<>'' FROM leads WHERE id=?", (rep['lead_id'],)).fetchone()[0]
+                sug = json.loads(conn.execute('SELECT refs_json FROM company_reports WHERE id=?', (rid,)).fetchone()['refs_json']).get('website_suggestion')
+                step = ('Kontaktweg klären (Firmen-Bericht liegt vor)' if has_web else
+                        'Website-Vorschlag im Firmen-Bericht prüfen' if sug else 'Website der Firma recherchieren (Bericht ohne Website)')
+                conn.execute("UPDATE leads SET next_step=?, next_date='' WHERE id=?", (step, rep['lead_id']))
         conn.commit()
 
 
@@ -368,9 +438,70 @@ def report_view(conn, rid=None, lead_id=None):
     from .sales_integration import stored_recommendations
     out['offers'] = [{'package': r['package'], 'title': r['title'], 'status': r['status'], 'hints': r['hints'][:3], 'confirmed': r['confirmed'][:3]}
                      for r in stored_recommendations(conn, lid)][:5]
+    out['website_suggestion'] = refs.get('website_suggestion') if not lead['website'] else None
+    out['summary'] = summary(row, out, lead)
     out['notice'] = ('Hinweise mit Fundstelle, keine Tatsachen über Bedarf oder Kaufbereitschaft. Pakete sind unverbindlich bis zur '
                      'dokumentierten Bedarfsklärung. Ein Fund ist keine Kontakterlaubnis.')
     return out
+
+
+CORE = (('legal_name', 'Offizieller Name'), ('street', 'Anschrift'), ('register_number', 'Registernummer'),
+        ('business_phone', 'Telefon (allgemein)'), ('business_email', 'E-Mail (allgemein)'))
+PERMISSION = {'unbekannt': 'Kontakterlaubnis ungeklärt – keine Ansprache ohne Prüfung', 'opt_in': 'Einwilligung dokumentiert',
+              'bestandskunde_pruefen': 'Bestandskunde – Voraussetzungen prüfen', 'telefon_einzelfall': 'Telefon – Einzelfallprüfung',
+              'nicht_kontaktieren': 'GESPERRT – nicht kontaktieren'}
+REGISTERED = re.compile(r'\b(gmbh|ug|ag|kg|ohg|e\.\s?k\.?|se|eg|partg)\b', re.I)
+
+
+def summary(row, out, lead):
+    """„Auf einen Blick“ (2.0.0-dev66): Kernfakten mit Herkunft, wichtigste Hinweise, Lücken und Aktualität.
+    Nur lesend – ändert keine Firmendaten. „Gefunden“ und „erlaubt“ bleiben getrennt."""
+    import datetime as dt
+    imp = (out.get('imprint') or {}).get('fields', {})
+    facts = []
+    for key, label in CORE:
+        value = lead[key] if key != 'street' else ' '.join(x for x in (lead['street'], lead['zip'], lead['city']) if x)
+        if value:
+            src = 'Impressum' if (imp.get(key) or {}).get('value') else 'Firmendaten'
+            facts.append({'key': key, 'label': label, 'value': value, 'source': src})
+    steps = json.loads(row['steps_json'])
+    gaps = []
+    if not lead['website']:
+        gaps.append('Keine bestätigte Website' + (' – Vorschlag liegt vor, bitte prüfen' if out.get('website_suggestion') else ''))
+    for key, st in steps.items():
+        if st.get('status') == 'fehler':
+            gaps.append(f"{st.get('label', key)}: {st.get('detail') or 'fehlgeschlagen'}")
+    if lead['website'] and not lead['register_number'] and REGISTERED.search(' '.join((lead['company'] or '', lead['legal_form'] or '', lead['legal_name'] or ''))):
+        gaps.append('Registernummer fehlt, obwohl die Rechtsform eine Eintragung erwarten lässt')
+    w = out.get('website')
+    if w:
+        if w.get('renderer') == 'html':
+            gaps.append('Website ohne Browser bewertet – Gestaltung und Screenshots fehlen')
+        cov = (w.get('scores') or {}).get('coverage')
+        if cov is not None and cov < 50:
+            gaps.append(f'Belegabdeckung der Website-Bewertung niedrig ({cov} %)')
+    if not out.get('candidates') and not out.get('contacts'):
+        gaps.append('Keine Ansprechpartner gefunden – Team-Seite oder Geschäftsführung im Impressum prüfen')
+    if lead['permission'] in ('unbekannt', ''):
+        gaps.append('Kontakterlaubnis ungeklärt – ein gefundener Kontaktweg ist keine Erlaubnis')
+    highlights = []
+    for f in ((out.get('inhalte') or {}).get('findings') or [])[:3]:
+        if f.get('hypothesis'):
+            highlights.append({'text': f['hypothesis'], 'evidence': (f.get('evidence') or '')[:160], 'source_url': f.get('source_url') or ''})
+    for o in (w or {}).get('observations', [])[:max(0, 3 - len(highlights))]:
+        highlights.append({'text': o.get('issue') or o.get('label') or '', 'evidence': (o.get('evidence') or '')[:160], 'source_url': o.get('source_url') or ''})
+    done = (row['finished_at'] or row['created_at'] or '')[:10]
+    try:
+        age = (dt.date.today() - dt.date.fromisoformat(done)).days
+    except ValueError:
+        age = None
+    total = len(steps)
+    return {'facts': facts, 'facts_total': len(CORE), 'gaps': gaps[:8], 'highlights': highlights,
+            'score': (w or {}).get('scores', {}).get('overall'), 'coverage': (w or {}).get('scores', {}).get('coverage'),
+            'signals': len((out.get('dossier') or {}).get('signals') or []),
+            'steps_ok': sum(1 for st in steps.values() if st.get('status') == 'fertig'), 'steps_total': total,
+            'permission': PERMISSION.get(lead['permission'], lead['permission']), 'blocked': lead['permission'] == 'nicht_kontaktieren' or lead['stage'] == 'gesperrt',
+            'age_days': age, 'stale': age is not None and age > STALE_DAYS}
 
 
 def report_rows(conn, limit=60):

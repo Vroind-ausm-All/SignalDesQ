@@ -2,7 +2,7 @@
 
 Automatisch erzeugt mit `tools/sql_inventory.py` aus dem Quelltext (SDQ-010). Nicht von Hand ändern.
 
-1434 SQL-Aufrufe in 69 Modulen: 1274 mit festem SQL-Text, 123 aus festen Teilen zusammengesetzt, 34 über eine Hilfsfunktion, 3 Hilfsfunktionen, die SQL nur weiterreichen, und 0 nicht statisch lesbar. 83 von 83 Tabellen der Hauptdatenbank werden im Quelltext namentlich angesprochen, dazu die Tabellen des Offline-Firmenkatalogs und des Mandantenverzeichnisses (je eigene Datei).
+1449 SQL-Aufrufe in 70 Modulen: 1289 mit festem SQL-Text, 123 aus festen Teilen zusammengesetzt, 34 über eine Hilfsfunktion, 3 Hilfsfunktionen, die SQL nur weiterreichen, und 0 nicht statisch lesbar. 83 von 83 Tabellen der Hauptdatenbank werden im Quelltext namentlich angesprochen, dazu die Tabellen des Offline-Firmenkatalogs und des Mandantenverzeichnisses (je eigene Datei).
 
 Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufbewahrung): `sales_tool/data_map.py`. „nur lesen“ nennt Module, die eine Tabelle lesen, aber nicht schreiben.
 
@@ -30,7 +30,7 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `care_contracts` | Angebote und Projekte | organisation | nein | fachlich | – | care.py |
 | `change_events` | Recherche | organisation | nein | fachlich | research_center.py | quality.py |
 | `company_facts` | Recherche | organisation | nein | fachlich | research_center.py, workday.py | company_data.py, quality.py |
-| `company_reports` | Recherche | organisation | nein | kurz | research_center.py, today.py, workday.py | report.py |
+| `company_reports` | Recherche | organisation | nein | kurz | lead_imprint.py, research/homepage.py, research_center.py, today.py, workday.py | report.py |
 | `company_settings` | Rechnung und Steuer | organisation | ja | gobd | company_data.py, lead_finder.py | accounting.py |
 | `contact_candidates` | Firmen und Kontakt | organisation | ja | fachlich | research_center.py | public_contacts.py, quickscan.py, report.py |
 | `contact_research_runs` | Firmen und Kontakt | organisation | nein | kurz | research_center.py | public_contacts.py, quickscan.py, report.py, server.py |
@@ -39,7 +39,7 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `decision_contacts` | Firmen und Kontakt | organisation | ja | fachlich | messages.py, qualification.py, report.py, research_center.py | decision_finder.py, imprint_batch.py, public_contacts.py, quality.py, sales_integration.py, server.py |
 | `directory_settings` | Mandantenverzeichnis (eigene Datei) | installation | nein | fachlich | – | accounts.py |
 | `discovery` | Bedarf und Chancen | organisation | nein | fachlich | ai_lab.py, briefing.py, chances.py, qualification.py, research_center.py, sales_integration.py, today.py | server.py, workday.py |
-| `discovery_candidates` | Firmenfindung | organisation | nein | kurz | company_data.py, lead_imprint.py, pilot.py, qualification.py, research/catalog.py, research_center.py, today.py, workday.py | lead_finder.py, quality.py, sweep.py |
+| `discovery_candidates` | Firmenfindung | organisation | nein | kurz | company_data.py, lead_imprint.py, pilot.py, qualification.py, research/catalog.py, research/homepage.py, research_center.py, today.py, workday.py | lead_finder.py, quality.py, sweep.py |
 | `discovery_dismissed` | Firmenfindung | organisation | nein | fachlich | – | sweep.py |
 | `discovery_keys` | Firmenfindung | organisation | nein | kurz | research/catalog.py | quality.py, sweep.py |
 | `discovery_not_same` | Firmenfindung | organisation | nein | fachlich | – | sweep.py |
@@ -149,7 +149,7 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `imprint_batch.py` | 45 | 0 | 5 |
 | `kickoff.py` | 16 | 0 | 5 |
 | `lead_finder.py` | 25 | 0 | 6 |
-| `lead_imprint.py` | 12 | 0 | 5 |
+| `lead_imprint.py` | 14 | 0 | 6 |
 | `learning.py` | 5 | 0 | 2 |
 | `mailer.py` | 3 | 0 | 1 |
 | `messages.py` | 19 | 0 | 7 |
@@ -167,11 +167,12 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `quality.py` | 58 | 0 | 18 |
 | `quickscan.py` | 12 | 0 | 6 |
 | `reach.py` | 15 | 0 | 5 |
-| `report.py` | 46 | 0 | 14 |
+| `report.py` | 55 | 0 | 14 |
 | `research/benchmark.py` | 2 | 0 | 0 |
 | `research/catalog.py` | 22 | 0 | 6 |
+| `research/homepage.py` | 2 | 0 | 2 |
 | `research/jobs.py` | 34 | 0 | 2 |
-| `research/osm_local.py` | 20 | 0 | 2 |
+| `research/osm_local.py` | 21 | 0 | 2 |
 | `research_center.py` | 50 | 0 | 25 |
 | `revisions.py` | 7 | 0 | 3 |
 | `sales_integration.py` | 42 | 0 | 11 |
@@ -179,7 +180,7 @@ Einordnung der Tabellen (Organisation, Installation, Zugang; Personenbezug; Aufb
 | `search.py` | 4 | 0 | 4 |
 | `server.py` | 62 | 0 | 17 |
 | `studies.py` | 26 | 0 | 6 |
-| `sweep.py` | 125 | 0 | 10 |
+| `sweep.py` | 126 | 0 | 10 |
 | `tenancy.py` | 11 | 0 | 3 |
 | `today.py` | 26 | 0 | 11 |
 | `website_scorer.py` | 38 | 0 | 8 |

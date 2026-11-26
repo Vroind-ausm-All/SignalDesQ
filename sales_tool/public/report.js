@@ -19,16 +19,38 @@
     return `<section class="panel rp-sec"><div class="studio-section-head"><div><span class="eyebrow">${esc(eyebrow)}</span><h2>${esc(title)}</h2></div>${extra}</div>${body}</section>`;
   }
 
+  function glanceHtml(d) {
+    const sm = d.summary;
+    if (!sm) return '';
+    const sug = d.website_suggestion;
+    const age = sm.age_days == null ? '' : sm.age_days === 0 ? 'heute' : `vor ${sm.age_days} Tag${sm.age_days === 1 ? '' : 'en'}`;
+    return `<section class="panel rp-sec rp-glance" data-rp-glance><div class="studio-section-head"><div><span class="eyebrow">AUF EINEN BLICK</span><h2>Kurzfazit</h2></div>
+      <small class="${sm.stale ? 'late' : 'muted'}">Stand ${esc(age)}${sm.stale ? ' – älter als 90 Tage, bitte neu erstellen' : ''}</small></div>
+      ${sug ? `<div class="rp-suggest" data-rp-suggestion><b>Website-Vorschlag: ${link(sug.url)}</b><small>${esc(sug.evidence)}${sug.imprint_url ? ' · ' + link(sug.imprint_url, 'Impressum') : ''}</small>
+        <div class="acc-btn-group"><button type="button" class="btn btn-primary" data-rp-suggest="bestaetigen">Passt – Website übernehmen</button><button type="button" class="btn btn-ghost" data-rp-suggest="ablehnen">Passt nicht</button></div>
+        <small class="muted">Erst nach deiner Bestätigung wird die Website eingetragen und geprüft.</small></div>` : ''}
+      <div class="rp-scores">
+        <div><small>Kernfakten</small><b>${sm.facts.length} von ${sm.facts_total}</b></div>
+        <div><small>Geprüfte Schritte</small><b>${sm.steps_ok} von ${sm.steps_total}</b></div>
+        <div><small>Akquise-Priorität (Website)</small><b>${sm.score == null ? 'unbekannt' : esc(sm.score)}</b></div>
+        <div><small>Belegabdeckung</small><b>${sm.coverage == null ? 'unbekannt' : esc(sm.coverage) + ' %'}</b></div>
+        <div><small>Kaufsignale</small><b>${esc(sm.signals)}</b></div></div>
+      ${sm.facts.length ? `<ul class="rp-list rp-facts">${sm.facts.map(f => `<li><small>${esc(f.label)}</small> <b>${esc(f.value)}</b> <small class="muted">(${esc(f.source)})</small></li>`).join('')}</ul>` : ''}
+      ${sm.highlights.length ? `<h4>Wichtigste Hinweise (Interpretation mit Beleg)</h4><ul class="rp-list">${sm.highlights.map(h => `<li><b>${esc(h.text)}</b>${h.evidence ? `<br><small>„${esc(h.evidence)}“ ${link(h.source_url, 'Fundstelle')}</small>` : ''}</li>`).join('')}</ul>` : ''}
+      ${sm.gaps.length ? `<h4>Lücken – was noch fehlt</h4><ul class="rp-list rp-gaps">${sm.gaps.map(g => `<li>${esc(g)}</li>`).join('')}</ul>` : '<p class="rp-auto">✓ Keine offenen Lücken erkannt.</p>'}
+      <p class="${sm.blocked ? 'late' : 'muted'}"><b>Kontakt:</b> ${esc(sm.permission)}</p></section>`;
+  }
+
   function render(d) {
     const rep = d.report, lead = d.lead || {}, ds = d.dossier || {};
     const running = rep && ['queued', 'running'].includes(rep.status);
     const head = `<div class="eyebrow">FIRMEN-BERICHT${rep ? ' · ' + esc(fmtDate((rep.finished_at || rep.created_at).slice(0, 10))) : ''}</div>
-      <div class="page-title"><div><h1>${esc(lead.company || ds.company || 'Firma')}</h1><p>${link(lead.website || ds.website)} ${ds.priority != null ? `· Recherchepriorität <b>${ds.priority}</b>` : '· Datenlage noch unzureichend'} · Recherchestand ${esc(ds.readiness_pct ?? 0)} %</p></div>
+      <div class="page-title"><div><h1>${esc(lead.company || ds.company || 'Firma')}</h1><p>${link(lead.website || ds.website) || '<span class="muted">keine bestätigte Website</span>'} ${ds.priority != null ? `· Recherchepriorität <b>${ds.priority}</b>` : '· Datenlage noch unzureichend'} · Recherchestand ${esc(ds.readiness_pct ?? 0)} %</p></div>
       <div class="acc-btn-group"><button type="button" class="btn btn-primary" data-rp-run="${d.lead_id}" ${running ? 'disabled' : ''}>${rep ? 'Bericht neu erstellen' : 'Bericht erstellen'} ▶</button>
       <button type="button" class="btn btn-ghost" data-rc-lead="${d.lead_id}">Firma öffnen</button>
       <a class="btn btn-ghost" href="/api/research-center/leads/${d.lead_id}/dossier.md" download>Dossier (.md) ↓</a></div></div>`;
     if (!rep) {
-      $('#rpBody').innerHTML = head + `<div class="panel rp-sec"><p>Für diese Firma gibt es noch keinen Bericht. Ein Klick erledigt Impressum, Website-Bewertung, Website-Inhalte & Ansprechpartner, Karriereseite & Kaufsignale und die Paketempfehlung.</p></div>`;
+      $('#rpBody').innerHTML = head + `<div class="panel rp-sec"><p>Für diese Firma gibt es noch keinen Bericht. Ein Klick erledigt – falls nötig – die Website-Suche, Impressum, Website-Bewertung, Website-Inhalte & Ansprechpartner, Karriereseite & Kaufsignale und die Paketempfehlung.</p></div>`;
       return;
     }
     const imp = d.imprint;
@@ -61,7 +83,7 @@
     const hyp = ds.hypotheses?.length ? `<h4>Verknüpfte Hypothesen</h4><ul class="rp-list">${ds.hypotheses.map(h => `<li><b>${esc(h.hypothesis)}</b> <small>(${esc(h.strength)})</small>${h.counter.length ? `<br><small>Dagegen spricht: ${h.counter.map(esc).join('; ')}</small>` : ''}${h.missing.length ? `<br><small>Fehlt noch: ${h.missing.map(esc).join('; ')}</small>` : ''}</li>`).join('')}</ul>` : '';
     const qs = (ds.questions || []).slice(0, 6);
     const offers = d.offers.length ? `<ul class="rp-list">${d.offers.map(o => `<li><b>${esc(o.title)}</b> <span class="si-status ${esc(o.status)}">${o.status === 'angebotsgrundlage' ? 'Angebotsgrundlage' : 'unverbindlich'}</span>${o.hints.length ? `<br><small>${o.hints.map(h => esc(h.source + ': ' + h.text)).join(' · ')}</small>` : ''}</li>`).join('')}</ul>` : '<div class="empty">Noch keine Paketempfehlung.</div>';
-    $('#rpBody').innerHTML = head + `<div class="panel rp-sec"><div class="studio-section-head"><div><span class="eyebrow">ABLAUF</span><h2>${running ? 'Bericht wird erstellt …' : 'Was geprüft wurde'}</h2></div></div>${stepsHtml(rep)}</div>`
+    $('#rpBody').innerHTML = head + glanceHtml(d) + `<div class="panel rp-sec"><div class="studio-section-head"><div><span class="eyebrow">ABLAUF</span><h2>${running ? 'Bericht wird erstellt …' : 'Was geprüft wurde'}</h2></div></div>${stepsHtml(rep)}</div>`
       + `<div class="rp-cols">` + section('Firmendaten & Impressum', '1 · FAKTEN MIT FUNDSTELLE', impBody)
       + section('Ansprechpartner', '2 · PERSONEN (FUNKTION ≠ BEFUGNIS)', (cand + known) || '<div class="empty">Keine Ansprechpartner auf der Website gefunden. Tipp: Team-Seite oder Impressum (Geschäftsführung) prüfen.</div>') + `</div>`
       + section('Website-Bewertung', '3 · GEMESSEN', webBody)
@@ -135,6 +157,15 @@
       if (c) {
         try { await api(`/contact-candidates/${c.dataset.rpCand}/review`, 'POST', {decision: c.dataset.d}); toast(c.dataset.d === 'accept' ? 'Ansprechpartner übernommen – Funktion und Befugnis noch prüfen' : 'Verworfen'); load(current); }
         catch (err) { toast(err.message, true); }
+        return;
+      }
+      const sg = e.target.closest('[data-rp-suggest]');
+      if (sg) {
+        try {
+          const r = await api(`/leads/${current}/website-suggestion`, 'POST', {decision: sg.dataset.rpSuggest});
+          if (r.decision === 'bestaetigen') { toast('Website übernommen – Bericht wird neu erstellt'); if (typeof reload === 'function') reload(); return window.openReport(current, {create: true}); }
+          toast('Vorschlag verworfen – die Domain wird nicht erneut vorgeschlagen'); load(current);
+        } catch (err) { toast(err.message, true); }
         return;
       }
       const a = e.target.closest('[data-rp-audit]');
