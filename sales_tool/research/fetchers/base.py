@@ -10,7 +10,7 @@ from ...website_analyzer import CrawlError
 
 
 class FetchError(CrawlError):
-    """Abruf gescheitert. ``kind``: robots, ssrf, redirect, size, timeout, http, content_type, network, encoding."""
+    """Abruf gescheitert. ``kind``: robots, ssrf, redirect, size, timeout, http, content_type, network, encoding, offline, source (Source Registry)."""
 
     def __init__(self, message, kind='network', status=None, retry_after=None):
         super().__init__(message)

@@ -83,7 +83,7 @@ def geocode(conn, text, ua=None):
         q['postalcode'] = p['postcode']
     if p['city']:
         q['city'] = p['city']
-    data = lf.FETCH(NOMINATIM + urllib.parse.urlencode(q), ua or lf._user_agent(conn))
+    data = lf.fetch_source(NOMINATIM + urllib.parse.urlencode(q), ua or lf._user_agent(conn))
     if not isinstance(data, list) or not data:
         raise ValueError(f'„{text}“ wurde nicht gefunden. Bitte Ort oder fünfstellige PLZ prüfen.')
     hit = data[0]

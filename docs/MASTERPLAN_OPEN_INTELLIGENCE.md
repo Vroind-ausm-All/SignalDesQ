@@ -9,7 +9,7 @@
 
 **Wirtschaftlicher Kernindikator.** Kosten und Zeit je korrekt identifiziertem, relevantem und überprüftem Ansprechpartner. **Priorisierung:** Zuerst richtig finden, dann richtig zuordnen, erst danach visualisieren.
 
-**Stand aller 56 Arbeitspakete:** 19 offen · 20 teilweise · 8 erledigt · 9 blockiert.
+**Stand aller 56 Arbeitspakete:** 16 offen · 19 teilweise · 12 erledigt · 9 blockiert.
 
 ## Inhalt
 
@@ -65,7 +65,7 @@ flowchart LR
 | Phase | Name | Aufwand* | Beginnt nach | Ziel | Abnahme (Gate) | Pakete |
 |---|---|---|---|---|---|---|
 | **R0** | Baseline & Governance | 1–2 Wochen | – | Reproduzierbare Ausgangslage, eine Versionswahrheit, verbindliche Regeln, Skills und Sicherheits-Gates, bevor neue Recherchefunktionen entstehen. | Reproduzierbare Baseline (Unit, Browser, Python 3.10/3.13, CI-Matrix) mit Commit dokumentiert<br>Je Befund F01–F12 ein Verantwortlicher und ein Nachweisweg<br>README/ROADMAP/Einschränkungen nennen die aktuelle Version | 8 erledigt |
-| **R1** | Quellen, Discovery & Identität | 2–3 Wochen | R0 | Nur erlaubte Quellen, gezielte Seitensuche auf bekannten Websites, verlässliche Firmenidentität und eine unabhängige Referenzliste. | Source Registry sperrt ungeprüfte Quellen<br>Domain-Referenztest auf der Referenzliste gemessen (Company Match Precision)<br>Keine Regression im Abruf (Benchmark tools/bench_fetch.py) | 3 offen · 3 teilweise · 1 blockiert |
+| **R1** | Quellen, Discovery & Identität | 2–3 Wochen | R0 | Nur erlaubte Quellen, gezielte Seitensuche auf bekannten Websites, verlässliche Firmenidentität und eine unabhängige Referenzliste. | Source Registry sperrt ungeprüfte Quellen<br>Domain-Referenztest auf der Referenzliste gemessen (Company Match Precision)<br>Keine Regression im Abruf (Benchmark tools/bench_fetch.py) | 2 teilweise · 4 erledigt · 1 blockiert |
 | **R2** | Extraktion & Kandidaten-Sichtung | 2–3 Wochen | R1 | Personen und Rollen aus strukturierten und unstrukturierten Seiten mit vollständigem Beleg; Sichtung ohne automatische CRM-Übernahme. | Präzision und Recall der Rollen auf der Referenzliste gemessen<br>Sperren erreichen Kandidaten<br>Kein Kandidat gelangt ohne menschliche Freigabe ins CRM | 3 offen · 3 teilweise |
 | **R3** | Dokumente & Konzernbeziehungen | 2–3 Wochen | R1 | PDF/XML/CSV sicher und isoliert auswerten; GLEIF-Level-2-Beziehungen als belegte Konzernkanten. Läuft parallel nach R1; nicht auf dem kritischen Pfad. | Dokumentgrenzen (Größe, Zeit, Seiten) erzwungen<br>Jeder Wert mit Seiten- bzw. Feldbeleg<br>Parser ohne Netz- und Dateisystemzugriff außerhalb seines Arbeitsordners | 4 offen · 1 teilweise |
 | **R4** | Organisationsgraph, Buying Center & Dossier | 2–3 Wochen | R2 | Belegte Rollen-, Abteilungs- und Konzernbeziehungen in der Firmenakte; Buying Center und Sales-Dossier mit getrennten Bewertungen. | Null unbelegte bestätigte Kanten<br>UX-Test der Graph-Ansicht<br>Fit, Quellenqualität, Rollenrelevanz und bestätigter Bedarf getrennt | 5 offen · 2 teilweise |
@@ -131,31 +131,33 @@ flowchart LR
 
 | ID | Paket | Prio | Status | Verantwortlich | Abhängig von | Abnahme |
 |---|---|---|---|---|---|---|
-| **R1.1** | Source Registry als zwingende Sperre | P0 | teilweise | Engineering | R0.3 | Abruf einer nicht freigegebenen Quelle wird serverseitig abgewiesen (Test)<br>Quellenstatus in Einstellungen → Datenquellen |
-| **R1.2** | Skill research-source-policy | P0 | offen | Engineering | R0.4 | Auslöser, Prüfpunkte und Beispiel wie bei den bestehenden Skills |
-| **R1.3** | Discovery auf bekannten Websites | P0 | offen | Engineering | R1.1, R1.4 | Benchmark: mehr relevante Seiten bei gleichem Seitenbudget<br>XML ohne externe Entitäten (Test mit XXE-Beispiel) |
+| **R1.1** | Source Registry als zwingende Sperre | P0 | erledigt | Engineering | R0.3 | Abruf einer nicht freigegebenen Quelle wird serverseitig abgewiesen (Test)<br>Quellenstatus in Einstellungen → Datenquellen |
+| **R1.2** | Skill research-source-policy | P0 | erledigt | Engineering | R0.4 | Auslöser, Prüfpunkte und Beispiel wie bei den bestehenden Skills |
+| **R1.3** | Discovery auf bekannten Websites | P0 | erledigt | Engineering | R1.1, R1.4 | Benchmark: mehr relevante Seiten bei gleichem Seitenbudget<br>XML ohne externe Entitäten (Test mit XXE-Beispiel) |
 | **R1.4** | Recherchemodi und Jobbudgets | P0 | teilweise | Engineering | – | Budgetüberschreitung bricht sauber ab und zeigt Teilergebnis (Test)<br>Keine unendlichen Wiederholungen |
 | **R1.5** | Firmenidentität: Rechtsträger, Marke, Domain | P0 | teilweise | Engineering | – | Company Match Precision ≥ 95 % auf der Referenzliste<br>Konfliktfälle bleiben getrennt (Regressionstests) |
 | **R1.6** | Referenzliste und Recherche-Benchmark (≥ 100 Firmen) | P0 | blockiert | Eigentümer | – | Zähler/Nenner, Fehlklassifikationen und Stichprobenunsicherheit dokumentiert |
-| **R1.7** | Skill research-benchmark | P1 | offen | Engineering | R0.4 | Skill verlangt Messung vor Freigabe einer neuen Extraktionsregel |
+| **R1.7** | Skill research-benchmark | P1 | erledigt | Engineering | R0.4 | Skill verlangt Messung vor Freigabe einer neuen Extraktionsregel |
 
 - **R1.1 Source Registry als zwingende Sperre.** Je Quelle: ID, Betreiber, Zweck, Zugriffsart, erlaubte Felder, Lizenz/Nutzungsbedingungen, Prüfdatum, Freigabe, Rate/TTL, Speicher- und Exportrechte, Rechtsgrundlage, Verantwortlicher. Ungeprüfte Quellen standardmäßig aus; Abrufstatus, Datenalter und Nichtverfügbarkeit sichtbar.
   Baut auf: `sales_tool/lead_finder.py` (SOURCES, SDQ-008), `sales_tool/research/settings.py`, `sales_tool/netpolicy.py`, `sales_tool/research/policy.py`.
   Neu: `sales_tool/research/sources.py` (SourceRegistry), Tabelle source_policies.
-  Stand: Provider-Beschreibung je Quelle seit dev58 (SDQ-008), noch keine Sperre.
+  Stand: 2.0.0-dev69: sales_tool/research/sources.py (Registry mit allen Pflichtfeldern, Sperre an lead_finder.fetch_source, research.fetchers.fetch und website_analyzer.public_url; nicht eingetragene und gesperrte Hosts nie abgerufen; je Organisation ausschaltbar, Einstellung source_policies statt eigener Tabelle), Einstellungen → Datenquellen → Freigaben, tests/test_r1_source_registry.py; E2 am 26.11.2026 entschieden: alle sechs abgerufenen Quellen freigegeben.
 - **R1.2 Skill research-source-policy.** Prüfliste für neue Quellen und Abruflogik: Rechte, Limits, SSRF, Offline, Registry-Eintrag.
   Neu: `.claude/skills/research-source-policy/SKILL.md`.
+  Stand: 2.0.0-dev69: .claude/skills/research-source-policy/SKILL.md, tests/test_skills_registry.py.
 - **R1.3 Discovery auf bekannten Websites.** robots.txt, Sitemap und RSS/Atom aus bereits abgerufenen Bytes (defusedxml, feedparser); interne Links priorisieren: Impressum, Management, Team, Presse, Kontakt, Karriere, Berichte vor Produktseiten. Keine Voll-Scans.
   Baut auf: `sales_tool/imprint.py` (find_imprint_links), `sales_tool/website_analyzer.py` (crawl_site), `sales_tool/research/fetchers/http.py`.
   Neu: `sales_tool/research/discovery.py`.
+  Stand: 2.0.0-dev69: sales_tool/research/discovery.py – Kandidaten aus Startseiten-Links, /sitemap.xml (höchstens eine Unter-Sitemap) und einem verlinkten RSS/Atom-Feed, jeder Abruf über research.fetchers.fetch (Registry, robots.txt, Budget); Reihenfolge Impressum, Management, Team, Presse, Kontakt, Karriere, Berichte vor Produktseiten. XML mit der Standardbibliothek, jede DTD wird abgewiesen (XXE- und Entitäten-Bomben-Test in tests/test_r1_discovery.py) – defusedxml/feedparser dadurch nicht nötig. Messung tools/bench_discovery.py → docs/bench/r1.3-discovery.json: sechs erfundene Websites, gleiches Seitenbudget, relevante Seiten 5 → 14, keine Website schlechter. Synthetisch; Lauf auf echten Websites mit der Referenzliste (R1.6). Sitemap-Zeilen aus robots.txt werden nicht ausgewertet..
 - **R1.4 Recherchemodi und Jobbudgets.** Quick/Deep/Org mit 10/30/50 Seiten als Obergrenze; zusätzlich Zeit-, Byte-, Host- und Mandantenbudget; Drosselung, Retry-After, ETag/Last-Modified, Abbruch und Fortschritt; Fehler als Teilergebnis.
   Baut auf: `sales_tool/research/jobs.py`, `sales_tool/research/policy.py`, `sales_tool/bg_jobs.py`.
   Neu: Budget-Objekt je research_run.
-  Stand: Abruflimits je Anfrage und persistente Aufträge seit v1.15/v1.16; kein globales Jobbudget.
+  Stand: 2.0.0-dev69: sales_tool/research/budget.py (Quick/Deep/Org = 10/30/50 Seiten, dazu Zeit-, Byte- und Hostgrenze je Auftragsschritt, gezählt in research.fetchers.fetch), research.jobs: aufgebrauchtes Budget endet mit Teilergebnis und wird nie wiederholt, Modus im Firmen-Bericht (mode); Modusauswahl unter „Website-Abruf & Auswertung“ als Vorgabe je Organisation; tests/test_r1_budget.py; offen: Mandantenbudget (zusammen mit Kontingenten), ETag/Last-Modified.
 - **R1.5 Firmenidentität: Rechtsträger, Marke, Domain.** Identität über LEI, Registergericht+Nummer, Domain+Adresse; Marke und Rechtsträger getrennt; kein Merge bei Konflikt; unbekannte Domain manuell klären.
   Baut auf: `sales_tool/research/identity.py`, `sales_tool/research/homepage.py`, `sales_tool/sweep.py` (counter_evidence), `sales_tool/duplicates.py`.
   Neu: organization_ref (siehe R4.1).
-  Stand: dev59 Identitätsstufen (SDQ-007); dev66 Mehr-Merkmal-Abgleich und Marke ↔ Firmenname (tests/test_v2_website_matching.py).
+  Stand: dev59 Identitätsstufen (SDQ-007); dev66 Mehr-Merkmal-Abgleich und Marke ↔ Firmenname (tests/test_v2_website_matching.py); 2.0.0-dev69 Konflikt-Regressionstests tests/test_r1_identity_conflicts.py: gleiche Registernummer an verschiedenen Registergerichten bleibt getrennt, gleiche Domain mit anderem Namen wird nur „möglich“, „AG“ (Amtsgericht) ist kein Nummernzusatz – drei Fehler gefunden und behoben; offen: Precision ≥ 95 % braucht die Referenzliste (R1.6).
 - **R1.6 Referenzliste und Recherche-Benchmark (≥ 100 Firmen).** Stratifiziert: Handwerk, Dienstleistung, Industrie; klein/mittel/groß; bekannte und unbekannte Domains. Manuell erstellte Referenz, getrennte Abstimm- und Testmenge; keine echten Personendaten im öffentlichen Repo.
   Baut auf: `tools/research_benchmark.py` (SDQ-006, SDQ-029), `sales_tool/pilot.py` (M21-Stichprobe), `docs/RECHERCHE_BENCHMARK.md`.
   Neu: private Referenzliste außerhalb des Repos.
@@ -163,6 +165,7 @@ flowchart LR
 - **R1.7 Skill research-benchmark.** Neue Extraktion oder Zuordnung → reproduzierbarer Vergleich vor/nach auf derselben Testmenge.
   Baut auf: `tools/research_benchmark.py`.
   Neu: `.claude/skills/research-benchmark/SKILL.md`.
+  Stand: 2.0.0-dev69: .claude/skills/research-benchmark/SKILL.md, tests/test_skills_registry.py.
 
 ### R2 – Extraktion & Kandidaten-Sichtung
 
@@ -458,8 +461,8 @@ Skills steuern die Arbeit von Claude Code; sie sind keine Laufzeitfunktion und k
 | privacy-and-contact-guardrails | vorhanden | Kontaktwege, Personen, Sperren, Importe, Entwürfe | R0.4 |
 | qa-release-gate | vorhanden | vor jedem Commit oder Release | R0.4 |
 | dependency-security | vorhanden | neue Pakete oder Lockfile-Änderungen → SBOM, Advisory, Lizenz | R0.4 |
-| research-source-policy | offen | neue Quelle oder Abruflogik → Rechte, Limits, SSRF, Offline | R1.2 |
-| research-benchmark | offen | neue Extraktion → reproduzierbarer Vergleich | R1.7 |
+| research-source-policy | vorhanden | neue Quelle oder Abruflogik → Rechte, Limits, SSRF, Offline | R1.2 |
+| research-benchmark | vorhanden | neue Extraktion → reproduzierbarer Vergleich | R1.7 |
 | contact-entity-evidence | offen | Person/Rolle → Identität, Beleg, Kandidatenstatus | R2.6 |
 | document-intelligence | offen | PDF/XML/CSV → Isolation, Limits, Fundstellen | R3.5 |
 | organization-graph | offen | Beziehung → Typ, Beleg, Status, Zyklen, Export | R4.7 |
@@ -470,7 +473,7 @@ Skills steuern die Arbeit von Claude Code; sie sind keine Laufzeitfunktion und k
 | ID | Verantwortlich | Entscheidung / Nachweis | Benötigt für |
 |---|---|---|---|
 | E1 | Eigentümer | Zielgruppen, Tarif und Zahlungsweg | R7.2 |
-| E2 | Eigentümer | Zulässige Quellen (Freigaben in der Source Registry) | R1.1 |
+| E2 | Eigentümer | Zulässige Quellen (Freigaben in der Source Registry) – entschieden 26.11.2026: Wikidata, OpenStreetMap/Overpass, Nominatim, GLEIF, TED und öffentliche Firmen-Websites freigegeben | R1.1 |
 | E3 | Eigentümer | Referenz- und Pilotliste (≥ 100 Firmen, ≥ 5 Pilotnutzer) | R1.6 |
 | E4 | Eigentümer | Nutzen-Gates: Zielwerte der Kennzahlen bestätigen | R5.1 |
 | E5 | Eigentümer | Python-Support (3.10 behalten oder streichen) | R6.3 |

@@ -106,7 +106,7 @@
     const r = await api('/research/settings');
     const f = $('#rtForm').elements;
     f.fetcher.value = r.settings.fetcher; f.parser.value = r.settings.parser; f.browser_fallback.value = String(r.settings.browser_fallback);
-    f.content.value = r.settings.content || 'stdlib';
+    f.content.value = r.settings.content || 'stdlib'; if (f.mode) f.mode.value = r.settings.mode || 'deep';
     $('#rtNotice').textContent = r.notice;
     $('#rtStatus').textContent = `In Benutzung: Auswertung ${r.parser_in_use === 'scrapling' ? 'Scrapling ' + r.scrapling.version : 'eingebaut'}`
       + ` · Scrapling ${r.scrapling.installed ? 'installiert' : 'nicht installiert (optional: requirements-research.txt)'}`
@@ -227,7 +227,7 @@
     $('#rtForm')?.addEventListener('submit', e => {
       e.preventDefault();
       const f = e.target.elements;
-      act(() => api('/research/settings', 'POST', {fetcher: f.fetcher.value, parser: f.parser.value, content: f.content.value, browser_fallback: f.browser_fallback.value === 'true'}),
+      act(() => api('/research/settings', 'POST', {fetcher: f.fetcher.value, parser: f.parser.value, content: f.content.value, browser_fallback: f.browser_fallback.value === 'true', mode: f.mode.value}),
         'Recherche-Technik gespeichert');
     });
     $('#serviceProfileForm')?.addEventListener('submit', e => {

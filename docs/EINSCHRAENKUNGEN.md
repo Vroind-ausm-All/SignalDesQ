@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev68)
+# Bekannte Einschränkungen (Stand 2.0.0-dev69)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -388,3 +388,34 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Den Hinweis auf das Ende von Python 3.10 gibt es nur im Fenster bzw. Protokoll des Servers, nicht in der Oberfläche.
 - Python 3.10 wird im nächsten Release gestrichen (angekündigt). Python 3.14 ist in der CI (Windows, Linux) geprüft. Python 3.15 lief lokal mit 3.15.0b4 grün, ist aber nicht zugesagt: Die
   Recherche-Variante ist dort nicht installierbar (rapidfuzz 3.14.5 ohne Pakete für 3.15; die nächste Version unterstützt 3.10 nicht).
+
+## Source Registry (2.0.0-dev69, Plan R1.1)
+
+- Die sechs Quellen, die SignalDesk selbst abruft (Wikidata, OpenStreetMap/Overpass, Nominatim, GLEIF, TED, öffentliche
+  Firmen-Websites), hat der Eigentümer am 26.11.2026 freigegeben (E2). Die Lizenz- und Limitangaben im Eintrag sind Stand 2026-11
+  und nicht live bei den Anbietern geprüft; ändern sich Nutzungsbedingungen, merkt SignalDesk das nicht von selbst.
+- Die Sperre greift an den Abrufwegen (`lead_finder.fetch_source`, `research.fetchers.fetch`, `website_analyzer.public_url`).
+  Lokale Dateiimporte (GLEIF-Golden-Copy, OSM-Auszug, eigene Listen) rufen nichts ab und stehen deshalb nicht in der Registry.
+- Ausschalten wirkt je Organisation sofort für neue Abrufe; ein Abruf, der schon läuft, wird nicht abgebrochen.
+- Die Ausschalt-Einstellung liegt in `app_settings` (`source_policies`) statt in einer eigenen Tabelle; das Schema bleibt bei 49.
+  Eine Wiederherstellung bringt den Stand der Sicherung zurück.
+
+## Recherchemodi und Jobbudgets (2.0.0-dev69, Plan R1.4)
+
+- Das Budget gilt je Auftragsschritt (eine Firma, eine Quelle), nicht je Organisation; ein Mandantenbudget fehlt noch (R6.6).
+- Gezählt werden Website-Abrufe über `research.fetchers.fetch`; robots.txt-Abrufe und offene Schnittstellen zählen nicht mit
+  (für Schnittstellen gelten Abstand, Tageslimit und Cache des Lead-Finders).
+- Eine Zeitgrenze bricht keinen laufenden Abruf ab; sie greift vor dem nächsten. ETag/Last-Modified werden noch nicht genutzt.
+- Den Modus wählt die Organisation unter „Website-Abruf & Auswertung“ als Vorgabe; je Bericht abweichend nur über die Schnittstelle (`mode`).
+
+## Discovery auf bekannten Websites (2.0.0-dev69, Plan R1.3)
+
+- Gelesen werden nur `/sitemap.xml`, höchstens eine Unter-Sitemap und ein auf der Startseite verlinkter Feed; `Sitemap:`-Zeilen in
+  robots.txt werden nicht ausgewertet. XML mit DTD wird abgewiesen, auch harmlose.
+- Die Messung (14 statt 5 relevante Seiten) stammt von erfundenen Websites; ein Lauf an echten Firmen folgt mit der Referenzliste (R1.6).
+- Die Zuordnung zu Bereichen (Impressum, Team, Presse …) beruht auf Wörtern in Pfad und Linktext, nicht auf dem Seiteninhalt.
+
+## Firmenidentität (2.0.0-dev69, Plan R1.5)
+
+- Die Abnahme „Precision ≥ 95 % auf der Referenzliste“ steht aus, bis die Referenzliste vorliegt (R1.6).
+- Das Registergericht wird nur aus Text wie „Amtsgericht Stuttgart“ oder „AG Stuttgart“ erkannt; fehlt es auf einer Seite, gilt die Nummer allein.

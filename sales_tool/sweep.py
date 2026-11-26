@@ -138,7 +138,7 @@ def keys_for(item):
 def _ident_item(r, website_ok=True):
     keys = r.keys() if hasattr(r, 'keys') else r
     g = (lambda k: (r[k] if k in keys else '') or '')
-    return {'name': g('name') or g('company'), 'lei': g('lei'), 'register_id': g('register_id') or g('register_number'),
+    return {'name': g('name') or g('company'), 'lei': g('lei'), 'register_id': g('register_id') or g('register_number'), 'register_court': g('register_court'),
             'website': g('website') if website_ok else '', 'zip': g('zip'), 'city': g('city'), 'legal_form': g('legal_form')}
 
 

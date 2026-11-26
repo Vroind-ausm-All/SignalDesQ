@@ -34,8 +34,14 @@ def public_url(url: str) -> str:
     Seit v1.15 verbindet der HTTP-Abruf sich zusätzlich genau mit der hier geprüften Adresse (IP-Pinning), sodass eine
     zweite DNS-Antwort nicht mehr auf ein internes Ziel zeigen kann. Für den Team-Betrieb bleibt ein Netzwerkfilter sinnvoll.
     """
+    from .research import sources
     from .research.safe_urls import public_url as _public_url
-    return _public_url(url)
+    norm = _public_url(url)
+    try:
+        sources.check_url(norm)  # R1.1: Source Registry – gesperrte oder ausgeschaltete Quellen nie abrufen
+    except sources.SourceBlocked as exc:
+        raise CrawlError(str(exc)) from exc
+    return norm
 
 
 def same_company_host(a: str, b: str) -> bool:
@@ -183,7 +189,13 @@ def light_crawl(url: str, purpose: str = "website") -> dict:
                           "raw_text": text[:MAX_TEXT] if purpose in ("contacts", "full") else "",
                           "headings": parsed["headings"], "form_count": parsed["forms"], "parser": parsed["engine"]})
             if len(pages) == 1:
-                queue.extend(derive_links(final, links, purpose))
+                found = derive_links(final, links, purpose)
+                queue.extend(found)
+                if purpose in ("contacts", "full") and len(found) < MAX_PAGES - 1:
+                    # R1.3: fehlen auf der Startseite Links zu Team, Management, Presse …, gezielt Sitemap/Feed lesen
+                    from .research import discovery
+                    extra, _ = discovery.discover(final, links, lambda u, o=final: imprint.FETCH(u, o), MAX_PAGES - 1 - len(found))
+                    queue.extend(u for u in extra if u not in found and u != final and discovery.category(u))  # nur gezielte Bereiche
         except Exception as exc:
             errors.append(f"{requested}: {str(exc)[:160]}")
     if not pages:
