@@ -34,6 +34,15 @@
 - **Skill `contact-entity-evidence` (Plan R2.6):** Prüfliste für Personen, Rollen, Belege, Kandidatenstatus und Sperren.
 - **Schema 50:** neue Spalten an `contact_candidates` (Rolle, Abteilung, Methode, Arbeitgeber, Belege, Frist) und
   `decision_contacts.evidence_json`; alte Status werden abgebildet (ungeprueft → kandidat, freigegeben → bestätigt, abgelehnt → verworfen).
+- **Entwicklung – Code-Graph mit Graphify (Plan R0.4, Wunsch des Eigentümers vom 26.11.2026):** `tools/code_graph.py` baut mit
+  Graphify 0.9.106 (Apache-2.0, `tools/requirements-lock-graphify.txt` mit Prüfsummen, eigene Variante in `tools/make_lock.py`)
+  einen Graphen aus dem Quelltext und beantwortet `explain`, `affected`, `path`, `query` – z. B. alle Aufrufer von
+  `workday.assert_contact_allowed`. Nur Code, `GRAPHIFY_BACKEND=none`, keine API-Keys im Prozess; `install`, `hook` und `watch`
+  sind gesperrt, weil sie Hooks und einen Block in `CLAUDE.md` anlegen. Ausgabe `graphify-out/` wird nicht eingecheckt; nicht im
+  Release, nicht in der SBOM; pip-audit prüft den Lock in der CI. Entfernen: Lock, `tools/code_graph.py` und den Test löschen.
+- **Entwicklung – Skill `ponytail` (externes Original, MIT):** Arbeitsweise „kleinste vollständige Änderung“, Original unverändert in
+  `.claude/skills/ponytail/ORIGINAL.md` (Commit und SHA-256 im Skills-Register, `tests/test_skills_registry.py` prüft die
+  Prüfsumme), deutscher Rahmen mit den Regeln aus `CLAUDE.md`. Ohne Plugin, Hooks, Statuszeile und Webhook.
 - **Offen:** Messung auf der Referenzliste (R1.6, E3) für R2.1, R2.2 und R2.5; Rechte an den Trainingsdaten des NLP-Modells (E8).
 
 ## 2.0.0-dev69 – R1: Source Registry als Sperre, Discovery, Jobbudgets, Identitätskonflikte, Skills für Quellen und Messung

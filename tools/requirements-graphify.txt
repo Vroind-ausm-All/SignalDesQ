@@ -1,0 +1,4 @@
+# Lokales Entwicklungswerkzeug „Graphify“ (Code-Graph aus dem Quelltext) – nicht Teil von SignalDesk, nicht im Release.
+# Aufruf nur über tools/code_graph.py (ohne KI-Backend, nur Code, keine Hooks). Lock: tools/requirements-lock-graphify.txt
+# (python tools/make_lock.py --variants graphify). Original: github.com/Graphify-Labs/graphify, Apache-2.0.
+graphifyy==0.9.106  # neueste Version vor der 14-Tage-Wartezeit (Stand 26.11.2026); Graphify veröffentlicht fast täglich
