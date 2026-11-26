@@ -25,6 +25,8 @@ Skill unter `.claude/skills/` hier steht und das vorgeschriebene Format hat.
 | `research-benchmark` | neue Extraktion oder Zuordnung | `tools/research_benchmark.py`, `tests/test_sdq006_research_benchmark.py` | R1.7 | vorhanden (dev69) |
 | `contact-entity-evidence` | Person/Rolle → Identität, Beleg, Kandidatenstatus, Sperren | `tests/test_r2_candidates.py`, `tests/test_r2_persons.py`, `tests/test_r2_evidence.py` | R2.6 | vorhanden (dev70) |
 | `document-intelligence` | PDF/XML/CSV/ZIP lesen, Werte aus Dokumenten | `tests/test_r3_documents.py` (isolierter Parser, Fundstellen) | R3.5 | vorhanden (dev71) |
+| `ponytail` | jede Code-Änderung, Fehlerbehebung, Paketwahl; „einfachste Lösung“ | `tests/test_skills_registry.py` (Format, Pin des Originals); Regeln selbst über die Gate-Tests aus `CLAUDE.md` | R0.4 | vorhanden (dev70, externes Original) |
+| `document-intelligence` | PDF/XML/CSV | isolierter Parser | R3.5 | geplant |
 | `organization-graph` | Beziehungen, Graph | Invarianten R4.2 | R4.7 | geplant |
 | `saas-operations` | Deployment, Betrieb | Restore-, Mandanten-, Sicherheitstests | R6.11 | geplant |
 
@@ -36,6 +38,18 @@ Skill unter `.claude/skills/` hier steht und das vorgeschriebene Format hat.
 | Ruff | github.com/astral-sh/ruff | `tools/requirements-lock-dev.txt` (Hashes) | MIT | Fehlerklassen E9, F63, F7, F82 | CI-Job „audit“ |
 | Gitleaks | github.com/gitleaks/gitleaks | 8.28.0, SHA-256 im Workflow | MIT | Geheimnisse in Code und Historie (`.gitleaks.toml`) | CI-Job „audit“ |
 | Playwright | github.com/microsoft/playwright-python | `requirements-lock-browser.txt` (Hashes) | Apache-2.0 | Browser-Tests, Variante „browser“ | CI-Job „e2e“ |
+| Graphify | github.com/Graphify-Labs/graphify | 0.9.106, `tools/requirements-lock-graphify.txt` (Hashes) | Apache-2.0 | Code-Graph: Aufrufer, Auswirkungen, Pfade (nur Quelltext, ohne KI) | lokal, nur über `tools/code_graph.py` |
+
+## Externe Originale (Ausführungsrechte)
+
+| Original | Pin | Prüfsumme (SHA-256) | Lizenz | Im Repository | Ausführungsrechte |
+|---|---|---|---|---|---|
+| github.com/DietrichGebert/ponytail | Commit `ebd8654c2c627f721eb8f9c0d1bd4090a29f9e10` (5.3.3), Datei `skills/ponytail/SKILL.md` | `9badd22a32e19cb884e46dfa8d3aae82bb81dfa5484105b8b4f0262df823a509` | MIT | `.claude/skills/ponytail/ORIGINAL.md` (unverändert), `LICENSE`; deutscher Rahmen in `SKILL.md` | nur Text. **Nicht** übernommen: Plugin, Hooks (SessionStart, UserPromptSubmit, Stop), Statuszeile, Kosten-Tabelle unter `~/.config/ponytail/`, Webhook |
+| github.com/Graphify-Labs/graphify | PyPI `graphifyy==0.9.106` mit Hashes; geprüft am Quelltext von Commit `02c27dc246cd7bc359d0f4acaf53a3fce595bc1e` (0.9.120) und am installierten Paket 0.9.106 | je Datei in `tools/requirements-lock-graphify.txt` | Apache-2.0 | `tools/requirements-graphify.txt`, Lock, `tools/code_graph.py` | liest den Quelltext, schreibt nur `graphify-out/` (in `.gitignore`); kein Netz im Code-Pfad. `code_graph.py` sperrt `install`/`hook`/`watch` (Hooks auf Bash/Grep/Read/Glob, Block in `CLAUDE.md`), setzt `GRAPHIFY_BACKEND=none` und `--code-only` und gibt keine API-Keys an den Prozess weiter |
+
+Geprüft und **nicht** aufgenommen (26.11.2026): github.com/JuliusBrussee/caveman (Telemetrie standardmäßig an, Installer greift
+auf Agenten-Logins zu, Hooks, englischer Telegrammstil gegen „Antworten auf Deutsch“) und github.com/morluto/rea (Reverse
+Engineering fremder Software und Websites, kein Bezug zu SignalDesk, widerspricht Regel 7).
 
 ## Kandidaten (nicht installiert)
 

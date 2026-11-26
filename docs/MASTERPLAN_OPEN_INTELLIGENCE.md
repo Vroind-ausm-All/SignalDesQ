@@ -107,7 +107,7 @@ flowchart LR
 - **R0.4 Skills-Register und Skill dependency-security.** docs/SKILLS_REGISTRY.md: Auswahl externer Skills (Original-Repo, gepinnter Commit, Lizenz, Ausführungsrechte, Zweck); keine blind installierten Marketplaces, Hooks oder MCP-Server. Projekt-Skill dependency-security.
   Baut auf: `.claude/skills/`.
   Neu: `docs/SKILLS_REGISTRY.md`, `.claude/skills/dependency-security/SKILL.md`, `tests/test_skills_registry.py`.
-  Stand: 2.0.0-dev67: docs/SKILLS_REGISTRY.md (Projekt-Skills, Werkzeuge mit Pin und Lizenz, Kandidaten nicht installiert), Skill dependency-security; tests/test_skills_registry.py prüft Format und Registrierung.
+  Stand: 2.0.0-dev67: docs/SKILLS_REGISTRY.md (Projekt-Skills, Werkzeuge mit Pin und Lizenz, Kandidaten nicht installiert), Skill dependency-security; tests/test_skills_registry.py prüft Format und Registrierung. 2.0.0-dev70: externes Original Ponytail (MIT, Commit und SHA-256 gepinnt, nur Text, ohne Hooks) als Skill ponytail; Entwicklungswerkzeug Graphify 0.9.106 mit Hashes (tools/requirements-lock-graphify.txt) nur über tools/code_graph.py; Prüfung tests/test_code_graph_tool.py.
 - **R0.5 Dependency- und Code-Gates in CI.** pip-audit bzw. OSV-Scanner gegen die Lockfiles, Gitleaks, Ruff (nur Fehlerklassen), Ergebnisse in CI; BESTANDTEILE.md um Advisory-Status ergänzen.
   Baut auf: `tools/make_lock.py`, `tools/make_sbom.py`, `docs/BESTANDTEILE.md`.
   Neu: `.github/workflows/tests.yml` (Job audit), `tools/requirements-lock-dev.txt`, .gitleaks.toml, `tests/test_ci_gates.py`.
@@ -453,6 +453,7 @@ Kandidaten, keine Installationsliste. Jede neue Abhängigkeit braucht Lizenz-, S
 | HypothesisWorks/hypothesis | Property-Tests für Parser, Identität, Graph (Dev) | P0 | R4.2 |
 | pypa/pip-audit, google/osv-scanner | Abhängigkeits- und Advisory-Checks (Dev/CI) | P0 | R0.5 |
 | gitleaks/gitleaks, astral-sh/ruff | Secret-Scan und Codequalität (Dev/CI) | P0 | R0.5 |
+| Graphify-Labs/graphify | Code-Graph für Reviews und Auswirkungsanalyse (Dev, lokal, nur Quelltext, ohne KI-Backend und Hooks; tools/code_graph.py) | P1 | R0.4 |
 | microsoft/playwright, zaproxy/zaproxy | E2E vorhanden; ZAP nur gegen eigene Staging-Systeme | P1 | R6.9 |
 
 Bereits geprüft und verworfen bzw. optional: Scrapling und Trafilatura (optional, im Benchmark langsamer), Extruct (Installationsproblem unter Python 3.13), DuckDB (schnellerer Import, deutlich mehr Speicher). Änderung nur mit neuer Messung.
@@ -469,7 +470,8 @@ Skills steuern die Arbeit von Claude Code; sie sind keine Laufzeitfunktion und k
 | research-source-policy | vorhanden | neue Quelle oder Abruflogik → Rechte, Limits, SSRF, Offline | R1.2 |
 | research-benchmark | vorhanden | neue Extraktion → reproduzierbarer Vergleich | R1.7 |
 | contact-entity-evidence | vorhanden | Person/Rolle → Identität, Beleg, Kandidatenstatus, Sperren | R2.6 |
-| document-intelligence | vorhanden | PDF/XML/CSV → Isolation, Limits, Fundstellen | R3.5 |
+| ponytail | vorhanden | Code-Änderung, Fehlerbehebung, Paketwahl → kleinste vollständige Änderung (externes Original, gepinnt, ohne Hooks) | R0.4 |
+| document-intelligence | offen | PDF/XML/CSV → Isolation, Limits, Fundstellen | R3.5 |
 | organization-graph | offen | Beziehung → Typ, Beleg, Status, Zyklen, Export | R4.7 |
 | saas-operations | offen | Deployment → SBOM, Security, Restore, Mandantentests | R6.11 |
 

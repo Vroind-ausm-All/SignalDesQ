@@ -15,3 +15,6 @@ zugangsdaten.json
 
 # Release-Pakete entstehen mit tools/build_release.py und werden nicht eingecheckt
 dist/
+
+# Entwicklungswerkzeug Graphify (tools/code_graph.py): erzeugter Code-Graph wird nicht eingecheckt
+graphify-out/

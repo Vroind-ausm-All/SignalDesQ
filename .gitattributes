@@ -3,3 +3,5 @@
 *.sh text eol=lf
 tests/fixtures/web/** -text
 sales_tool/data/*.json -text
+# Externe Originale byte-genau wie gepinnt (SHA-256 im Skills-Register), keine Zeilenende-Umwandlung unter Windows
+.claude/skills/*/ORIGINAL.md -text
