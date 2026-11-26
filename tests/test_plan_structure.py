@@ -82,6 +82,7 @@ class ValidatorCatchesErrorsTests(unittest.TestCase):
     def test_done_without_evidence(self):
         p = self.pkg('R1.3')
         p['status'] = 'erledigt'
+        p.pop('nachweis', None)
         self.assertError(r'R1\.3: Status erledigt ohne Nachweis')
         p['nachweis'] = 'irgendwie fertig'
         self.assertError(r'R1\.3: erledigt ohne Version im Nachweis')

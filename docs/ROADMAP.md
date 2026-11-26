@@ -39,12 +39,12 @@ bestehen; neue Funktionen dürfen weder die Zahl der Menüpunkte noch die Länge
 
 ## Open-Intelligence-Plan R0–R7 (ab 2.0.0-dev66)
 
-Phasenplan aus dem Architektur- und Masterplan vom 25.11.2026. Vollständige Pakete, Abnahmen und Zuordnungen: [MASTERPLAN_OPEN_INTELLIGENCE.md](MASTERPLAN_OPEN_INTELLIGENCE.md); Status wird in [`plan/open_intelligence.json`](plan/open_intelligence.json) gepflegt. Stand aller 56 Pakete: 17 offen · 19 teilweise · 11 erledigt · 9 blockiert.
+Phasenplan aus dem Architektur- und Masterplan vom 25.11.2026. Vollständige Pakete, Abnahmen und Zuordnungen: [MASTERPLAN_OPEN_INTELLIGENCE.md](MASTERPLAN_OPEN_INTELLIGENCE.md); Status wird in [`plan/open_intelligence.json`](plan/open_intelligence.json) gepflegt. Stand aller 56 Pakete: 16 offen · 19 teilweise · 12 erledigt · 9 blockiert.
 
 | Phase | Name | Beginnt nach | Pakete | Startbereit (Abhängigkeiten erledigt, P0 zuerst) | Gate |
 |---|---|---|---|---|---|
 | **R0** | Baseline & Governance | – | 8 erledigt | – (wartet auf Vorphasen) | Reproduzierbare Baseline (Unit, Browser, Python 3.10/3.13, CI-Matrix) mit Commit dokumentiert |
-| **R1** | Quellen, Discovery & Identität | R0 | 1 offen · 2 teilweise · 3 erledigt · 1 blockiert | R1.4 Recherchemodi und Jobbudgets, R1.5 Firmenidentität: Rechtsträger, Marke, Domain | Source Registry sperrt ungeprüfte Quellen |
+| **R1** | Quellen, Discovery & Identität | R0 | 2 teilweise · 4 erledigt · 1 blockiert | R1.4 Recherchemodi und Jobbudgets, R1.5 Firmenidentität: Rechtsträger, Marke, Domain | Source Registry sperrt ungeprüfte Quellen |
 | **R2** | Extraktion & Kandidaten-Sichtung | R1 | 3 offen · 3 teilweise | R2.3 Evidence-Vertrag v2, R2.6 Skill contact-entity-evidence | Präzision und Recall der Rollen auf der Referenzliste gemessen |
 | **R3** | Dokumente & Konzernbeziehungen | R1 | 4 offen · 1 teilweise | R3.1 Isolierter Dokument-Parser, R3.5 Skill document-intelligence | Dokumentgrenzen (Größe, Zeit, Seiten) erzwungen |
 | **R4** | Organisationsgraph, Buying Center & Dossier | R2 | 5 offen · 2 teilweise | R4.7 Skill organization-graph | Null unbelegte bestätigte Kanten |

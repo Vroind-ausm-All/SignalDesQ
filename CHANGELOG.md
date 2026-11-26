@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0-dev69 – R1: Source Registry als Sperre, Jobbudgets, Skills für Quellen und Messung
+## 2.0.0-dev69 – R1: Source Registry als Sperre, Discovery, Jobbudgets, Identitätskonflikte, Skills für Quellen und Messung
 
 - **Neu – Source Registry (Plan R1.1):** `sales_tool/research/sources.py` beschreibt jede Quelle, die SignalDesk selbst abruft, mit
   Betreiber, Zweck, Zugriffsart, Hosts, erlaubten Feldern, Lizenz, Nutzungsbedingungen, Prüfdatum, Prüfstand, Rate/TTL, Speicher- und
@@ -15,12 +15,23 @@
 - **Neu – Recherchemodi und Jobbudgets (Plan R1.4):** `sales_tool/research/budget.py`. Jeder Auftragsschritt hat ein Budget:
   Quick 10, Deep 30 (Standard), Org 50 Seiten, dazu Zeit (180/600/900 s), Bytes (20/60/100 MB) und verschiedene Hosts (10/20/30).
   Gezählt wird in `research.fetchers.fetch`. Ist das Budget aufgebraucht, endet der Schritt mit Teilergebnis und Hinweis
-  „Budget … erreicht – Teilergebnis“; er wird nie mit frischem Budget wiederholt. Der Firmen-Bericht nimmt `mode` (quick, deep, org).
+  „Budget … erreicht – Teilergebnis“; er wird nie mit frischem Budget wiederholt. Der Firmen-Bericht nimmt `mode` (quick, deep, org);
+  ohne Angabe gilt die Vorgabe der Organisation unter Einstellungen → Datenquellen → „Website-Abruf & Auswertung“ („Recherchemodus“).
+- **Neu – Discovery auf bekannten Websites (Plan R1.3):** `sales_tool/research/discovery.py`. Findet die Startseite zu wenige Unterseiten,
+  kommen Kandidaten aus `/sitemap.xml` (höchstens eine Unter-Sitemap) und einem verlinkten RSS/Atom-Feed – jeder Abruf über dieselbe
+  Sperre und dasselbe Budget. Reihenfolge: Impressum, Management, Team, Presse, Kontakt, Karriere, Berichte vor Produktseiten; kein Voll-Scan.
+  XML liest die Standardbibliothek, jede DTD wird abgewiesen (kein XXE, keine Entitäten-Bombe), gzip mit Größenbremse.
+  Messung `tools/bench_discovery.py` → `docs/bench/r1.3-discovery.json`: auf sechs erfundenen Websites bei gleichem Seitenbudget
+  14 statt 5 relevante Seiten, keine Website schlechter. Keine Messung an echten Firmen.
+- **Behoben – Firmenidentität (Plan R1.5):** Gleiche Registernummer an verschiedenen Registergerichten galt als dieselbe Firma; jetzt
+  „verschieden“. Marke und Rechtsträger mit gleicher Domain und gleichem Ort wurden automatisch zusammengelegt; bei abweichendem Namen
+  jetzt nur „möglich“ (menschliche Prüfung). „HRB 123 AG Stuttgart“ las „AG“ (Amtsgericht) als Nummernzusatz. Gefunden durch neue
+  Konflikt-Regressionstests.
 - **Skills (Plan R1.2, R1.7):** `research-source-policy` (Prüfliste für neue Quellen und Abruflogik) und `research-benchmark`
   (Messung vor und nach jeder neuen Extraktions- oder Zuordnungsregel); im Skills-Register eingetragen.
 - **Tests:** `tests/test_r1_source_registry.py` (16 Fälle: vollständige Einträge, jede genutzte Adresse eingetragen, Sperre vor jeder
-  Verbindung, 403 vom Server, Rollen, Mandantengrenze, Neustart), `tests/test_r1_budget.py` (8 Fälle) und
-  `tests/e2e/test_r1_source_registry_browser.py`.
+  Verbindung, 403 vom Server, Rollen, Mandantengrenze, Neustart), `tests/test_r1_budget.py` (9 Fälle),
+  `tests/test_r1_discovery.py`, `tests/test_r1_identity_conflicts.py` und `tests/e2e/test_r1_source_registry_browser.py`.
 
 ## 2.0.0-dev68 – Passwortregel, zweiter Faktor empfohlen, TOTP-Geheimnisse verschlüsselt, signierte Sicherungen, Python 3.14
 

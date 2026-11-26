@@ -1,0 +1,83 @@
+{
+  "version": "2.0.0-dev69",
+  "note": "erfundene Websites, keine Messung an echten Firmen",
+  "max_pages": 5,
+  "sites": [
+    {
+      "site": "handwerk",
+      "links_only": {
+        "pages": 2,
+        "relevant": 1
+      },
+      "with_discovery": {
+        "pages": 4,
+        "relevant": 3
+      }
+    },
+    {
+      "site": "kanzlei",
+      "links_only": {
+        "pages": 1,
+        "relevant": 1
+      },
+      "with_discovery": {
+        "pages": 3,
+        "relevant": 3
+      }
+    },
+    {
+      "site": "industrie",
+      "links_only": {
+        "pages": 3,
+        "relevant": 0
+      },
+      "with_discovery": {
+        "pages": 4,
+        "relevant": 1
+      }
+    },
+    {
+      "site": "dienstleister",
+      "links_only": {
+        "pages": 4,
+        "relevant": 3
+      },
+      "with_discovery": {
+        "pages": 4,
+        "relevant": 3
+      }
+    },
+    {
+      "site": "agentur",
+      "links_only": {
+        "pages": 1,
+        "relevant": 0
+      },
+      "with_discovery": {
+        "pages": 1,
+        "relevant": 0
+      }
+    },
+    {
+      "site": "mittelstand",
+      "links_only": {
+        "pages": 0,
+        "relevant": 0
+      },
+      "with_discovery": {
+        "pages": 4,
+        "relevant": 4
+      }
+    }
+  ],
+  "links_only": {
+    "pages": 11,
+    "relevant": 5
+  },
+  "with_discovery": {
+    "pages": 20,
+    "relevant": 14
+  },
+  "pages_budget_same": true,
+  "not_worse_anywhere": true
+}

@@ -379,7 +379,7 @@
       "id": "R1.3",
       "titel": "Discovery auf bekannten Websites",
       "prio": "P0",
-      "status": "offen",
+      "status": "erledigt",
       "verantwortlich": "Engineering",
       "inhalt": "robots.txt, Sitemap und RSS/Atom aus bereits abgerufenen Bytes (defusedxml, feedparser); interne Links priorisieren: Impressum, Management, Team, Presse, Kontakt, Karriere, Berichte vor Produktseiten. Keine Voll-Scans.",
       "basis": [
@@ -397,7 +397,8 @@
       "abnahme": [
         "Benchmark: mehr relevante Seiten bei gleichem Seitenbudget",
         "XML ohne externe Entitäten (Test mit XXE-Beispiel)"
-      ]
+      ],
+      "nachweis": "2.0.0-dev69: sales_tool/research/discovery.py – Kandidaten aus Startseiten-Links, /sitemap.xml (höchstens eine Unter-Sitemap) und einem verlinkten RSS/Atom-Feed, jeder Abruf über research.fetchers.fetch (Registry, robots.txt, Budget); Reihenfolge Impressum, Management, Team, Presse, Kontakt, Karriere, Berichte vor Produktseiten. XML mit der Standardbibliothek, jede DTD wird abgewiesen (XXE- und Entitäten-Bomben-Test in tests/test_r1_discovery.py) – defusedxml/feedparser dadurch nicht nötig. Messung tools/bench_discovery.py → docs/bench/r1.3-discovery.json: sechs erfundene Websites, gleiches Seitenbudget, relevante Seiten 5 → 14, keine Website schlechter. Synthetisch; Lauf auf echten Websites mit der Referenzliste (R1.6). Sitemap-Zeilen aus robots.txt werden nicht ausgewertet."
     },
     {
       "id": "R1.4",
@@ -419,7 +420,7 @@
         "Budgetüberschreitung bricht sauber ab und zeigt Teilergebnis (Test)",
         "Keine unendlichen Wiederholungen"
       ],
-      "nachweis": "2.0.0-dev69: sales_tool/research/budget.py (Quick/Deep/Org = 10/30/50 Seiten, dazu Zeit-, Byte- und Hostgrenze je Auftragsschritt, gezählt in research.fetchers.fetch), research.jobs: aufgebrauchtes Budget endet mit Teilergebnis und wird nie wiederholt, Modus im Firmen-Bericht (mode), tests/test_r1_budget.py; offen: Mandantenbudget, ETag/Last-Modified, Modusauswahl in der Oberfläche"
+      "nachweis": "2.0.0-dev69: sales_tool/research/budget.py (Quick/Deep/Org = 10/30/50 Seiten, dazu Zeit-, Byte- und Hostgrenze je Auftragsschritt, gezählt in research.fetchers.fetch), research.jobs: aufgebrauchtes Budget endet mit Teilergebnis und wird nie wiederholt, Modus im Firmen-Bericht (mode); Modusauswahl unter „Website-Abruf & Auswertung“ als Vorgabe je Organisation; tests/test_r1_budget.py; offen: Mandantenbudget (zusammen mit Kontingenten), ETag/Last-Modified"
     },
     {
       "id": "R1.5",
@@ -442,7 +443,7 @@
         "Company Match Precision ≥ 95 % auf der Referenzliste",
         "Konfliktfälle bleiben getrennt (Regressionstests)"
       ],
-      "nachweis": "dev59 Identitätsstufen (SDQ-007); dev66 Mehr-Merkmal-Abgleich und Marke ↔ Firmenname (tests/test_v2_website_matching.py)"
+      "nachweis": "dev59 Identitätsstufen (SDQ-007); dev66 Mehr-Merkmal-Abgleich und Marke ↔ Firmenname (tests/test_v2_website_matching.py); 2.0.0-dev69 Konflikt-Regressionstests tests/test_r1_identity_conflicts.py: gleiche Registernummer an verschiedenen Registergerichten bleibt getrennt, gleiche Domain mit anderem Namen wird nur „möglich“, „AG“ (Amtsgericht) ist kein Nummernzusatz – drei Fehler gefunden und behoben; offen: Precision ≥ 95 % braucht die Referenzliste (R1.6)"
     },
     {
       "id": "R1.6",

@@ -34,7 +34,9 @@ def lead_item(r, name=None):
     loc = (r['location'] or '').strip()
     zip_ = r['zip'] or (re.search(r'\b\d{5}\b', loc).group(0) if re.search(r'\b\d{5}\b', loc) else '')
     city = r['city'] or re.sub(r'^\d{5}\s*', '', loc).strip()
-    return {'name': name or r['legal_name'] or r['company'], 'register_id': r['register_number'], 'website': r['website'],
+    court = r['register_court'] if 'register_court' in r.keys() else ''
+    return {'name': name or r['legal_name'] or r['company'], 'register_id': r['register_number'], 'register_court': court or '',
+            'website': r['website'],
             'zip': zip_, 'city': city, 'legal_form': r['legal_form'], 'lei': ''}
 
 

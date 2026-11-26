@@ -406,4 +406,16 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 - Gezählt werden Website-Abrufe über `research.fetchers.fetch`; robots.txt-Abrufe und offene Schnittstellen zählen nicht mit
   (für Schnittstellen gelten Abstand, Tageslimit und Cache des Lead-Finders).
 - Eine Zeitgrenze bricht keinen laufenden Abruf ab; sie greift vor dem nächsten. ETag/Last-Modified werden noch nicht genutzt.
-- Den Modus wählt bisher nur die Schnittstelle (`mode` beim Firmen-Bericht); die Oberfläche nutzt den Standard „Deep“.
+- Den Modus wählt die Organisation unter „Website-Abruf & Auswertung“ als Vorgabe; je Bericht abweichend nur über die Schnittstelle (`mode`).
+
+## Discovery auf bekannten Websites (2.0.0-dev69, Plan R1.3)
+
+- Gelesen werden nur `/sitemap.xml`, höchstens eine Unter-Sitemap und ein auf der Startseite verlinkter Feed; `Sitemap:`-Zeilen in
+  robots.txt werden nicht ausgewertet. XML mit DTD wird abgewiesen, auch harmlose.
+- Die Messung (14 statt 5 relevante Seiten) stammt von erfundenen Websites; ein Lauf an echten Firmen folgt mit der Referenzliste (R1.6).
+- Die Zuordnung zu Bereichen (Impressum, Team, Presse …) beruht auf Wörtern in Pfad und Linktext, nicht auf dem Seiteninhalt.
+
+## Firmenidentität (2.0.0-dev69, Plan R1.5)
+
+- Die Abnahme „Precision ≥ 95 % auf der Referenzliste“ steht aus, bis die Referenzliste vorliegt (R1.6).
+- Das Registergericht wird nur aus Text wie „Amtsgericht Stuttgart“ oder „AG Stuttgart“ erkannt; fehlt es auf einer Seite, gilt die Nummer allein.

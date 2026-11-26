@@ -75,7 +75,9 @@ def create_reports(conn, data, db_path, start=True):
     if not isinstance(data, dict) or set(data) - {'lead_ids', 'url', 'mode'} or not (data.get('lead_ids') or data.get('url')):
         raise ValueError('Erwartet: {lead_ids: [...]} oder {url}, optional mode (quick, deep, org).')
     from .research import budget
-    mode = budget.validate_mode(data.get('mode'))  # R1.4: Recherchemodus = Budget je Firma
+    from .research import settings as research_settings
+    # R1.4: Recherchemodus = Budget je Firma; ohne Angabe gilt die Einstellung der Organisation
+    mode = budget.validate_mode(data.get('mode') or research_settings.get_setting_safe(conn).get('mode'))  # Vorgabe der eigenen Organisation
     created_lead = None
     if data.get('url'):
         if not isinstance(data['url'], str):

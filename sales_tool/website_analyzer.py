@@ -189,7 +189,13 @@ def light_crawl(url: str, purpose: str = "website") -> dict:
                           "raw_text": text[:MAX_TEXT] if purpose in ("contacts", "full") else "",
                           "headings": parsed["headings"], "form_count": parsed["forms"], "parser": parsed["engine"]})
             if len(pages) == 1:
-                queue.extend(derive_links(final, links, purpose))
+                found = derive_links(final, links, purpose)
+                queue.extend(found)
+                if purpose in ("contacts", "full") and len(found) < MAX_PAGES - 1:
+                    # R1.3: fehlen auf der Startseite Links zu Team, Management, Presse …, gezielt Sitemap/Feed lesen
+                    from .research import discovery
+                    extra, _ = discovery.discover(final, links, lambda u, o=final: imprint.FETCH(u, o), MAX_PAGES - 1 - len(found))
+                    queue.extend(u for u in extra if u not in found and u != final and discovery.category(u))  # nur gezielte Bereiche
         except Exception as exc:
             errors.append(f"{requested}: {str(exc)[:160]}")
     if not pages:

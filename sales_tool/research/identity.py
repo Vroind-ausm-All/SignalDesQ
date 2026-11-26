@@ -144,7 +144,8 @@ def norm_domain(url):
 
 @functools.lru_cache(maxsize=50_000)
 def norm_register(reg):
-    m = re.search(r'\b(HRA|HRB|GNR|GSR|PR|VR)\s*[-.:]?\s*(\d{1,7})\s?([A-Z]{0,2})\b', (reg or '').upper())
+    # Zusatz wie „B“ (Berlin) oder „HB“ (Bremen) gehört zur Nummer, „AG“ (Amtsgericht) nicht (R1.5)
+    m = re.search(r'\b(HRA|HRB|GNR|GSR|PR|VR)\s*[-.:]?\s*(\d{1,7})\s?(?!AG\b)([A-Z]{0,2})\b', (reg or '').upper())
     return f'{m.group(1)}{m.group(2)}{m.group(3)}' if m else ''
 
 
@@ -153,6 +154,22 @@ def norm_city(city):
     t = translit(city)
     t = re.sub(r'\s+(am|an der|an den|bei|im|in der|ob der)\s.*$|\s*\(.*$', '', t)
     return re.sub(r'[^a-z]+', ' ', t).strip().split(' ')[0] if t.strip() else ''
+
+
+_COURT_RX = re.compile(r'(?:amtsgericht|ag|registergericht)\s+([a-z][a-z .\-]+?)(?=\s*(?:,|\(|hr[ab]\b|gnr\b|gsr\b|pr\b|vr\b|$))')
+
+
+@functools.lru_cache(maxsize=50_000)
+def norm_court(text):
+    """Registergericht aus „HRB 123 Amtsgericht Stuttgart“ oder einem eigenen Feld → 'stuttgart' ('' wenn unbekannt)."""
+    t = translit(text)
+    m = _COURT_RX.search(t)
+    core = m.group(1) if m else ('' if re.search(r'\d', t) else t)
+    return norm_city(core) if core.strip() else ''
+
+
+def _court(item):
+    return norm_court(item.get('register_court') or '') or norm_court(item.get('register_id') or '')
 
 
 def _location(a, b):
@@ -179,6 +196,9 @@ def decide(a, b):
     if ra and rb:
         if ra != rb:
             return 'different', 0.0, 'verschiedene Registernummer'
+        ca, cb = _court(a), _court(b)
+        if ca and cb and ca != cb:  # R1.5: Registernummern sind nur je Registergericht eindeutig
+            return 'different', 0.0, f'gleiche Nummer, verschiedene Registergerichte ({ca} / {cb})'
         if loc != 'different':
             return 'same', 1.0, f'gleiche Registernummer {a.get("register_id")}'
     fa, fb = family_of(a), family_of(b)
@@ -186,9 +206,11 @@ def decide(a, b):
         return 'different', 0.0, f'verschiedene Rechtsform ({fa} / {fb})'
     da, db = norm_domain(a.get('website') or ''), norm_domain(b.get('website') or '')
     if da and db and da == db:
-        if loc == 'same' or name_similarity(a.get('name'), b.get('name'), 0.6) >= 0.6:
+        # R1.5: Marke und Rechtsträger getrennt – gleiche Website und gleicher Ort reichen ohne ähnlichen Namen nicht
+        # (eine Marke „Sonnenschein Kita“ und ihr Träger „Kinderhaus gGmbH“ sind zu prüfen, nicht automatisch eins).
+        if name_similarity(a.get('name'), b.get('name'), 0.6) >= 0.6:
             return 'same', 1.0, f'gleiche Website {da}'
-        return 'possible', 0.8, f'gleiche Website {da}, aber andere Namen'
+        return 'possible', 0.8, f'gleiche Website {da}, aber andere Namen' + (' · gleicher Ort' if loc == 'same' else '')
     if loc == 'different':
         return 'different', 0.0, 'verschiedene Orte'
     sim = name_similarity(a.get('name'), b.get('name'), 0.85)  # erst hier rechnen – vorher entscheiden harte Merkmale

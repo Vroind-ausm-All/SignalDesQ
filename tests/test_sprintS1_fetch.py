@@ -249,9 +249,12 @@ class SettingsTests(unittest.TestCase):
             settings.save(self.conn, {'fetcher': 'scrapling'})
         with self.assertRaises(ValueError):
             settings.save(self.conn, {'tarnung': True})
-        settings.save(self.conn, {'parser': 'stdlib', 'browser_fallback': False})
+        with self.assertRaises(ValueError):
+            settings.save(self.conn, {'mode': 'alles'})
+        settings.save(self.conn, {'parser': 'stdlib', 'browser_fallback': False, 'mode': 'quick'})
         settings.reset()
-        self.assertEqual(settings.load(self.conn), {'fetcher': 'http', 'parser': 'stdlib', 'browser_fallback': False, 'content': 'stdlib'})
+        self.assertEqual(settings.load(self.conn), {'fetcher': 'http', 'parser': 'stdlib', 'browser_fallback': False, 'content': 'stdlib',
+                                                    'mode': 'quick'})
         st = settings.status()
         self.assertEqual(st['parser_in_use'], 'stdlib')
         self.assertIn('Tarnung', st['notice'])

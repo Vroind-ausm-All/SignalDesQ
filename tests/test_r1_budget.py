@@ -148,6 +148,17 @@ class JobBudgetTests(unittest.TestCase):
             params = json.loads(conn.execute('SELECT params_json FROM research_jobs WHERE id=?', (out['job_id'],)).fetchone()[0])
         self.assertEqual(params['mode'], 'quick')
 
+    def test_report_without_mode_uses_the_org_setting(self):
+        from sales_tool.research import settings as research_settings
+        with connect(self.db) as conn:
+            research_settings.save(conn, {'mode': 'org'})
+            lid = conn.execute("INSERT INTO leads(company, website) VALUES ('Fiktiv Vorgabe GmbH', 'https://vorgabe-fiktiv.example')").lastrowid
+            conn.commit()
+            out = rp.create_reports(conn, {'lead_ids': [lid]}, self.db, start=False)
+            params = json.loads(conn.execute('SELECT params_json FROM research_jobs WHERE id=?', (out['job_id'],)).fetchone()[0])
+        research_settings.reset()
+        self.assertEqual(params['mode'], 'org')
+
 
 if __name__ == '__main__':
     unittest.main()
