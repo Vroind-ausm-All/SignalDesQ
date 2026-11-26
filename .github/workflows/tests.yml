@@ -125,7 +125,7 @@ jobs:
         run: python -m pip install --require-hashes -r tools/requirements-lock-dev.txt
       - name: Bekannte Schwachstellen in allen Lockdateien (pip-audit)
         run: |
-          for f in requirements-lock-*.txt tools/requirements-lock-dev.txt; do
+          for f in requirements-lock-*.txt tools/requirements-lock-dev.txt tools/requirements-lock-graphify.txt; do
             echo "== $f"
             pip-audit --require-hashes --disable-pip --progress-spinner off -r "$f"
           done

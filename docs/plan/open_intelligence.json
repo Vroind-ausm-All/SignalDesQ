@@ -232,7 +232,7 @@
         "Jeder Skill mit Auslöser, Ein-/Ausgabe, Abnahmetest und Grenzen",
         "Externe Originale mit Commit gepinnt"
       ],
-      "nachweis": "2.0.0-dev67: docs/SKILLS_REGISTRY.md (Projekt-Skills, Werkzeuge mit Pin und Lizenz, Kandidaten nicht installiert), Skill dependency-security; tests/test_skills_registry.py prüft Format und Registrierung"
+      "nachweis": "2.0.0-dev67: docs/SKILLS_REGISTRY.md (Projekt-Skills, Werkzeuge mit Pin und Lizenz, Kandidaten nicht installiert), Skill dependency-security; tests/test_skills_registry.py prüft Format und Registrierung. 2.0.0-dev70: externes Original Ponytail (MIT, Commit und SHA-256 gepinnt, nur Text, ohne Hooks) als Skill ponytail; Entwicklungswerkzeug Graphify 0.9.106 mit Hashes (tools/requirements-lock-graphify.txt) nur über tools/code_graph.py; Prüfung tests/test_code_graph_tool.py"
     },
     {
       "id": "R0.5",
@@ -1805,6 +1805,12 @@
       "paket": "R0.5"
     },
     {
+      "repo": "Graphify-Labs/graphify",
+      "zweck": "Code-Graph für Reviews und Auswirkungsanalyse (Dev, lokal, nur Quelltext, ohne KI-Backend und Hooks; tools/code_graph.py)",
+      "prio": "P1",
+      "paket": "R0.4"
+    },
+    {
       "repo": "microsoft/playwright, zaproxy/zaproxy",
       "zweck": "E2E vorhanden; ZAP nur gegen eigene Staging-Systeme",
       "prio": "P1",
@@ -1847,6 +1853,12 @@
       "status": "vorhanden",
       "paket": "R2.6",
       "ausloeser": "Person/Rolle → Identität, Beleg, Kandidatenstatus, Sperren"
+    },
+    {
+      "name": "ponytail",
+      "status": "vorhanden",
+      "paket": "R0.4",
+      "ausloeser": "Code-Änderung, Fehlerbehebung, Paketwahl → kleinste vollständige Änderung (externes Original, gepinnt, ohne Hooks)"
     },
     {
       "name": "document-intelligence",

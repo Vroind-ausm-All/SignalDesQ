@@ -1,0 +1,233 @@
+{
+ "cutoff": "2026-11-12T00:00:00",
+ "pythons": [
+  "3.12",
+  "3.13"
+ ],
+ "platforms": [
+  "windows",
+  "linux"
+ ],
+ "variants": {
+  "graphify": {
+   "graphifyy": {
+    "version": "0.9.106",
+    "uploaded": "2026-11-10",
+    "targets": 4,
+    "license": "Apache-2.0"
+   },
+   "networkx": {
+    "version": "3.7",
+    "uploaded": "2026-09-21",
+    "targets": 4,
+    "license": "BSD-3-Clause"
+   },
+   "numpy": {
+    "version": "2.5.4",
+    "uploaded": "2026-10-10",
+    "targets": 4,
+    "license": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0"
+   },
+   "pyyaml": {
+    "version": "6.0.3",
+    "uploaded": "2025-09-25",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "rapidfuzz": {
+    "version": "3.14.6",
+    "uploaded": "2026-08-30",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter": {
+    "version": "0.25.2",
+    "uploaded": "2025-09-25",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-bash": {
+    "version": "0.25.1",
+    "uploaded": "2025-12-02",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-c": {
+    "version": "0.24.2",
+    "uploaded": "2026-04-22",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-c-sharp": {
+    "version": "0.23.5",
+    "uploaded": "2026-04-14",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-cpp": {
+    "version": "0.23.4",
+    "uploaded": "2024-11-11",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-elixir": {
+    "version": "0.3.5",
+    "uploaded": "2026-03-02",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-fortran": {
+    "version": "0.6.0",
+    "uploaded": "2026-04-24",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-go": {
+    "version": "0.25.0",
+    "uploaded": "2025-08-29",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-groovy": {
+    "version": "0.1.2",
+    "uploaded": "2024-11-19",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-java": {
+    "version": "0.23.5",
+    "uploaded": "2024-12-21",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-javascript": {
+    "version": "0.25.0",
+    "uploaded": "2025-09-01",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-json": {
+    "version": "0.24.8",
+    "uploaded": "2024-11-11",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-julia": {
+    "version": "0.23.1",
+    "uploaded": "2024-11-11",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-kotlin": {
+    "version": "1.1.0",
+    "uploaded": "2025-01-09",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-lua": {
+    "version": "0.5.0",
+    "uploaded": "2026-02-26",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-objc": {
+    "version": "3.0.2",
+    "uploaded": "2024-12-16",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-php": {
+    "version": "0.24.1",
+    "uploaded": "2025-08-16",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-powershell": {
+    "version": "0.26.4",
+    "uploaded": "2026-05-04",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-python": {
+    "version": "0.25.0",
+    "uploaded": "2025-09-11",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-ruby": {
+    "version": "0.23.1",
+    "uploaded": "2024-11-11",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-rust": {
+    "version": "0.24.2",
+    "uploaded": "2026-03-27",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-scala": {
+    "version": "0.26.12",
+    "uploaded": "2026-11-11",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-swift": {
+    "version": "0.7.4",
+    "uploaded": "2026-10-04",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-typescript": {
+    "version": "0.23.2",
+    "uploaded": "2024-11-11",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-verilog": {
+    "version": "1.0.3",
+    "uploaded": "2024-11-10",
+    "targets": 4,
+    "license": "MIT"
+   },
+   "tree-sitter-zig": {
+    "version": "1.1.2",
+    "uploaded": "2024-12-22",
+    "targets": 4,
+    "license": "MIT"
+   }
+  }
+ },
+ "rounds": [
+  {
+   "variant": "graphify",
+   "round": 1,
+   "constraints": {
+    "numpy": "<2.5.5",
+    "pyyaml": "<6.0.4",
+    "tree-sitter-c-sharp": "<0.24.0",
+    "tree-sitter-scala": "<0.26.14"
+   }
+  },
+  {
+   "variant": "graphify",
+   "round": 2,
+   "constraints": {
+    "numpy": "<2.5.5",
+    "pyyaml": "<6.0.4",
+    "tree-sitter-c-sharp": "<0.24.0",
+    "tree-sitter-scala": "<0.26.13"
+   }
+  },
+  {
+   "variant": "graphify",
+   "round": 3,
+   "constraints": {
+    "numpy": "<2.5.5",
+    "pyyaml": "<6.0.4",
+    "tree-sitter-c-sharp": "<0.24.0",
+    "tree-sitter-scala": "<0.26.13"
+   }
+  }
+ ]
+}

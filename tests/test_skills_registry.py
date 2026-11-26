@@ -40,6 +40,20 @@ class SkillFormatTests(unittest.TestCase):
             with self.subTest(r[:30]):
                 self.assertRegex(r, r'Hashes|SHA-256', 'Version mit Prüfsumme gepinnt')
 
+    def test_external_originals_match_pinned_checksum(self):
+        """2.0.0-dev70: Ein externes Original liegt unverändert im Repository; ein Update braucht neuen Pin und neue Prüfsumme."""
+        import hashlib
+        block = REGISTRY.split('## Externe Originale', 1)[1].split('\n## ', 1)[0]
+        for d in SKILLS:
+            original = d / 'ORIGINAL.md'
+            if not original.exists():
+                continue
+            with self.subTest(d.name):
+                digest = hashlib.sha256(original.read_bytes()).hexdigest()
+                self.assertIn(f'`{digest}`', block, 'Prüfsumme des Originals im Register')
+                self.assertTrue((d / 'LICENSE').exists(), 'Lizenztext des Originals liegt bei')
+                self.assertRegex(block, r'Commit `[0-9a-f]{40}`')
+
 
 if __name__ == '__main__':
     unittest.main()
