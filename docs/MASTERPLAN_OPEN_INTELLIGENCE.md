@@ -471,7 +471,7 @@ Skills steuern die Arbeit von Claude Code; sie sind keine Laufzeitfunktion und k
 | research-benchmark | vorhanden | neue Extraktion → reproduzierbarer Vergleich | R1.7 |
 | contact-entity-evidence | vorhanden | Person/Rolle → Identität, Beleg, Kandidatenstatus, Sperren | R2.6 |
 | ponytail | vorhanden | Code-Änderung, Fehlerbehebung, Paketwahl → kleinste vollständige Änderung (externes Original, gepinnt, ohne Hooks) | R0.4 |
-| document-intelligence | offen | PDF/XML/CSV → Isolation, Limits, Fundstellen | R3.5 |
+| document-intelligence | vorhanden | PDF/XML/CSV → Isolation, Limits, Fundstellen | R3.5 |
 | organization-graph | offen | Beziehung → Typ, Beleg, Status, Zyklen, Export | R4.7 |
 | saas-operations | offen | Deployment → SBOM, Security, Restore, Mandantentests | R6.11 |
 
