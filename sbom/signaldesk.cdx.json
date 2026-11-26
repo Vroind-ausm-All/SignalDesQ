@@ -1,7 +1,7 @@
 {
  "bomFormat": "CycloneDX",
  "specVersion": "1.5",
- "serialNumber": "urn:uuid:f352fe45-0074-5cca-a79f-1a56ca4dcf48",
+ "serialNumber": "urn:uuid:3d6f5602-fd8a-5086-8153-767d262456ff",
  "version": 1,
  "metadata": {
   "tools": {
@@ -4477,6 +4477,10 @@
    ],
    "properties": [
     {
+     "name": "signaldesk:marker",
+     "value": "python_version < \"3.11\""
+    },
+    {
      "name": "signaldesk:released",
      "value": "2026-07-02"
     },
@@ -4487,6 +4491,10 @@
     {
      "name": "signaldesk:variant",
      "value": "research"
+    },
+    {
+     "name": "signaldesk:variant",
+     "value": "team"
     }
    ],
    "externalReferences": [

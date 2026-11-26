@@ -7,6 +7,11 @@ Gewählt wird je Paket eine Version, die auf ALLEN Zielen installierbar ist, und
 `--cooldown-days` Tage alt sind (Schutz vor frisch kompromittierten Releases). In die Lockdatei kommen die
 SHA-256-Prüfsummen aller Dateien dieser Version (pip prüft beim Installieren mit --require-hashes).
 Ergebnis: requirements-lock-<variante>.txt im Projektordner + docs/bench/lock-resolution.json (Protokoll).
+
+2.0.0-dev67: Jede Python-Version wird mit einem Interpreter GENAU dieser Version aufgelöst. pip wertet Bedingungen wie
+`python_version < "3.11"` für den laufenden Interpreter aus, nicht für `--python-version` – unter 3.13 aufgelöst fehlte
+z. B. typing-extensions, das cryptography unter Python 3.10 braucht (Variante „team“ war dort nicht installierbar).
+Interpreter: `--interpreter 3.10=/pfad/python` oder automatisch über `uv python find` (mit pip versorgt per `uv venv --seed`).
 """
 from __future__ import annotations
 
@@ -89,11 +94,39 @@ def vkey(v):
     return out
 
 
+INTERPRETERS = {}
+_VENVS = tempfile.TemporaryDirectory(prefix='signaldesk-lock-')
+
+
+def _has_pip(exe):
+    return subprocess.run([exe, '-m', 'pip', '--version'], capture_output=True).returncode == 0
+
+
+def interpreter_for(python):
+    """Interpreter der Zielversion mit pip – sonst Abbruch (lieber kein Lock als ein falsches)."""
+    if python in INTERPRETERS:
+        return INTERPRETERS[python]
+    if f'{sys.version_info.major}.{sys.version_info.minor}' == python:
+        INTERPRETERS[python] = sys.executable
+        return sys.executable
+    venv = Path(_VENVS.name) / f'py{python}'
+    try:
+        subprocess.run(['uv', 'venv', '-q', '--seed', '--python', python, str(venv)], check=True, capture_output=True)
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise SystemExit(f'Kein Python {python} gefunden – mit „--interpreter {python}=/pfad/python“ angeben '
+                         f'oder „uv python install {python}“ ausführen. ({exc})')
+    exe = str(venv / ('Scripts/python.exe' if sys.platform == 'win32' else 'bin/python'))
+    if not _has_pip(exe):
+        raise SystemExit(f'Python {python} ohne pip: {exe}')
+    INTERPRETERS[python] = exe
+    return exe
+
+
 def resolve(req_files, constraints, platform, python):
     with tempfile.TemporaryDirectory() as tmp:
         report, cons = Path(tmp) / 'r.json', Path(tmp) / 'c.txt'
         cons.write_text('\n'.join(f'{k}{v}' for k, v in sorted(constraints.items())) + '\n', encoding='utf-8')
-        cmd = [sys.executable, '-m', 'pip', 'install', '-q', '--dry-run', '--ignore-installed', '--report', str(report),
+        cmd = [interpreter_for(python), '-m', 'pip', 'install', '-q', '--dry-run', '--ignore-installed', '--report', str(report),
                '--python-version', python, '--implementation', 'cp', '--only-binary=:all:', '-c', str(cons)]
         for p in PLATFORMS[platform]:
             cmd += ['--platform', p]
@@ -189,7 +222,13 @@ def main(argv=None):
     ap.add_argument('--cooldown-days', type=int, default=14)
     ap.add_argument('--variants', default=','.join(v for v in VARIANTS if v not in DEV_VARIANTS))
     ap.add_argument('--today', default=dt.date.today().isoformat())
+    ap.add_argument('--interpreter', action='append', default=[], help='VERSION=PFAD, z. B. 3.10=/usr/bin/python3.10 (mit pip)')
     a = ap.parse_args(argv)
+    for item in a.interpreter:
+        ver, _, path = item.partition('=')
+        if not _has_pip(path):
+            raise SystemExit(f'--interpreter {item}: kein pip')
+        INTERPRETERS[ver] = path
     cutoff = (dt.date.fromisoformat(a.today) - dt.timedelta(days=a.cooldown_days)).isoformat() + 'T00:00:00'
     names = a.variants.split(',')
     for res_path in dict.fromkeys(resolution_path(n) for n in names):  # Produkt- und Prüfwerkzeug-Varianten getrennt protokollieren

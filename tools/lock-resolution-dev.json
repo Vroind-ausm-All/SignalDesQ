@@ -178,6 +178,12 @@
     "targets": 4,
     "license": "MIT"
    },
+   "typing-extensions": {
+    "version": "4.16.0",
+    "uploaded": "2026-07-02",
+    "targets": 2,
+    "license": "PSF-2.0"
+   },
    "urllib3": {
     "version": "2.8.0",
     "uploaded": "2026-09-15",

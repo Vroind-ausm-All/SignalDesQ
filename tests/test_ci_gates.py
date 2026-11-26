@@ -37,6 +37,15 @@ class CiGateTests(unittest.TestCase):
         self.assertNotIn('|| true', audit, 'Funde dürfen den Job nicht still bestehen lassen')
         self.assertNotIn('continue-on-error', audit)
 
+    def test_every_lock_installs_on_every_unit_target(self):
+        """dev67: Variante „team“ war unter Python 3.10 nicht installierbar (typing-extensions fehlte) – die CI prüfte nur 3.12."""
+        unit = job('unit')
+        self.assertIn('os: [windows-latest, ubuntu-latest]', unit)
+        self.assertIn('python: ["3.10", "3.13"]', unit)
+        self.assertRegex(unit, r'for f in requirements-lock-\*\.txt; do')
+        self.assertIn('pip install --dry-run --ignore-installed --require-hashes', unit)
+        self.assertLess(unit.index('--dry-run'), unit.index('unittest discover'))
+
     def test_gitleaks_download_is_pinned_and_verified(self):
         audit = job('audit')
         self.assertRegex(audit, r'GITLEAKS_VERSION: "\d+\.\d+\.\d+"')

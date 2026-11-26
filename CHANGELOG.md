@@ -19,6 +19,7 @@
   Die Werkzeuge kommen aus `tools/requirements-lock-dev.txt` (Hashes) bzw. als Download mit fester Version und SHA-256; sie gelangen
   weder ins Release-Paket noch in die SBOM. Der erste Lauf fand 17 bekannte Schwachstellen in filelock 4.1.0, das die Werkzeug-Lock
   wegen Python 3.10 gewählt hatte – Prüfwerkzeuge werden jetzt nur für Python 3.12–3.13 aufgelöst (filelock 4.2.10, kein Fund).
+- **Fehlerbehebung – Variante „team“ unter Python 3.10 nicht installierbar:** `tools/make_lock.py` löste alle Python-Versionen mit dem laufenden Interpreter auf; pip wertet Bedingungen wie `python_version < "3.11"` aber für diesen aus. So fehlte `typing-extensions`, das `cryptography` unter 3.10 braucht – die Installation brach ab. Jetzt wird jede Version mit einem Interpreter genau dieser Version aufgelöst; die Team-Lock enthält `typing-extensions` (nur Python 3.10). Neu in jedem Unit-Job der CI (Windows/Linux, 3.10/3.13): Probe-Installation aller Lockdateien. Lokal geprüft unter 3.10, 3.11, 3.12 und 3.13.
 - **CLAUDE.md (R0.3):** elf verbindliche Regeln, jede mit der Stelle im Code und dem Test, der sie durchsetzt; `tests/test_claude_rules.py`
   prüft die Verweise und dass kein Versand-Code existiert.
 - **Skills-Register (R0.4):** [SKILLS_REGISTRY.md](docs/SKILLS_REGISTRY.md) mit Projekt-Skills, Werkzeugen (Pin, Lizenz) und Kandidaten;

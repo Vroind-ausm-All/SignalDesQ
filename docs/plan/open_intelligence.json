@@ -259,7 +259,7 @@
         "CI rot bei bekannter Schwachstelle oder Geheimnis (Code und Historie)",
         "Keine ungeprüften Downloads: Werkzeuge nur mit Hash bzw. SHA-256"
       ],
-      "nachweis": "2.0.0-dev67: CI-Job „audit“ (pip-audit über alle Lockdateien, Ruff E9/F63/F7/F82, Gitleaks über Code und Historie mit Versions- und SHA-256-Pin); Werkzeuge aus tools/requirements-lock-dev.txt mit Hashes; tests/test_ci_gates.py. Erster Lauf fand filelock 4.1.0 mit 17 Schwachstellen in der Werkzeug-Lock → behoben (Python 3.12–3.13, filelock 4.2.10)"
+      "nachweis": "2.0.0-dev67: CI-Job „audit“ (pip-audit über alle Lockdateien, Ruff E9/F63/F7/F82, Gitleaks über Code und Historie mit Versions- und SHA-256-Pin); Werkzeuge aus tools/requirements-lock-dev.txt mit Hashes; tests/test_ci_gates.py. Erster Lauf fand filelock 4.1.0 mit 17 Schwachstellen in der Werkzeug-Lock → behoben (Python 3.12–3.13, filelock 4.2.10). CI-Lauf 220 fand im Audit-Job ein fehlendes typing-extensions (Auflösung unter falscher Python-Version); dieselbe Ursache machte die Variante „team“ unter Python 3.10 uninstallierbar → make_lock löst je Version mit passendem Interpreter auf; Probe-Installation aller Lockdateien in jedem Unit-Job"
     },
     {
       "id": "R0.6",
