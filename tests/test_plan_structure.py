@@ -3,6 +3,7 @@
 Planquelle: docs/plan/open_intelligence.json, Werkzeug: tools/plan_status.py.
 """
 import copy
+import os
 import re
 import sys
 import unittest
@@ -119,11 +120,13 @@ class GeneratedDocsTests(unittest.TestCase):
         reports = sorted((ROOT / 'docs').glob('BASELINE_*.md'))
         if r01['status'] != 'erledigt':
             self.skipTest('R0.1 noch nicht erledigt')
+        if os.environ.get('SIGNALDESK_BASELINE_RUN'):
+            self.skipTest('läuft innerhalb von tools/baseline.py – der Bericht entsteht erst am Ende dieses Laufs')
         self.assertTrue(reports, 'docs/BASELINE_<version>.md fehlt (python tools/baseline.py)')
         text = reports[-1].read_text(encoding='utf-8')
         for part in ('Commit `', '## Testläufe', '## Übersprungene Tests mit Grund', '## CI', '## Planstand'):
             self.assertIn(part, text)
-        self.assertRegex(text, r'\| Unit \(`tests/`\) \| 3\.\d+')
+        self.assertRegex(text, r'\| Unit \(`tests/`, Python 3\.\d+')
 
     def test_status_sources_name_current_version(self):
         """R0.2 Versionswahrheit: Statusquellen nennen die Version aus sales_tool/__init__.py."""

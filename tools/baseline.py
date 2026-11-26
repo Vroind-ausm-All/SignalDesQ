@@ -36,7 +36,8 @@ print(json.dumps({'found': suite.countTestCases(), 'run': res.testsRun, 'failure
 
 def run_suite(python, start, env_extra=None):
     code = CHILD.replace('ROOT', repr(str(ROOT))).replace('START', repr(str(start)))
-    env = {**os.environ, 'PYTHONUTF8': '1', **(env_extra or {})}
+    # Der Test auf den Baseline-Bericht kann während dessen Erzeugung nicht bestehen – er überspringt dann mit Grund
+    env = {**os.environ, 'PYTHONUTF8': '1', 'SIGNALDESK_BASELINE_RUN': '1', **(env_extra or {})}
     p = subprocess.run([python, '-c', code], cwd=str(ROOT), capture_output=True, text=True, errors='replace', env=env)
     line = next((l for l in reversed(p.stdout.splitlines()) if l.startswith('{')), None)
     if not line:
@@ -73,9 +74,9 @@ def report(data):
          f"> Erzeugt mit `python tools/baseline.py` am {data['date']}. Commit `{data['commit']}`"
          f"{' (Arbeitsbaum mit Änderungen)' if data['dirty'] else ''}, {data['system']}.", '',
          'Was hier steht, ist in diesem Lauf ausgeführt worden. CI-Ergebnis nur, wenn mit `--ci` angegeben.', '',
-         '## Testläufe', '', '| Suite | Python | gefunden | gelaufen | übersprungen | Ergebnis | Dauer |', '|---|---|---|---|---|---|---|']
+         '## Testläufe', '', '| Suite | gefunden | gelaufen | übersprungen | Ergebnis | Dauer |', '|---|---|---|---|---|---|']
     for name, r, strict in data['suites']:
-        L.append(f"| {name} | {r['python']} | {r['found']} | {r['run']} | {len(r['skipped'])} | {_status(r, strict)} | {r['seconds']} s |")
+        L.append(f"| {name} | {r['found']} | {r['run']} | {len(r['skipped'])} | {_status(r, strict)} | {r['seconds']} s |")
     L += ['', '## Übersprungene Tests mit Grund', '']
     skips = [(name, t, why) for name, r, _ in data['suites'] for t, why in r['skipped']]
     L += [f'- {name}: `{t}` – {why}' for name, t, why in skips] or ['- keine']
@@ -104,11 +105,11 @@ def main(argv=None):
     started = time.monotonic()
     for py in [sys.executable] + a.python:
         r = run_suite(py, ROOT / 'tests')
-        suites.append((f'Unit (`tests/`)', r, False))
+        suites.append((f"Unit (`tests/`, Python {r['python']})", r, False))
         print(f"Unit {r['python']}: {r['run']} gelaufen, {len(r['skipped'])} übersprungen, {len(r['failures']) + len(r['errors'])} nicht bestanden, {r['seconds']} s", flush=True)
     if not a.no_browser:
         r = run_suite(sys.executable, ROOT / 'tests' / 'e2e')
-        suites.append(('Browser (`tests/e2e/`)', r, True))
+        suites.append((f"Browser (`tests/e2e/`, Python {r['python']})", r, True))
         print(f"Browser: {r['run']} gelaufen, {len(r['skipped'])} übersprungen, {len(r['failures']) + len(r['errors'])} nicht bestanden, {r['seconds']} s", flush=True)
     data = {'date': dt.date.today().isoformat(), 'commit': git('rev-parse', '--short=12', 'HEAD') or 'unbekannt',
             'dirty': bool(git('status', '--porcelain', '--untracked-files=no')),
