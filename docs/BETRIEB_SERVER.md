@@ -23,14 +23,14 @@ von Hand durchspielen, externe Prüfung.
 
 ```
 sudo useradd --system --home /opt/signaldesk --shell /usr/sbin/nologin signaldesk
-sudo mkdir -p /opt/signaldesk /srv/signaldesk /var/log/signaldesk /var/backups/signaldesk /etc/signaldesk
+sudo mkdir -p /opt/signaldesk /srv/signaldesk /srv/signaldesk.schluessel /var/log/signaldesk /var/backups/signaldesk /etc/signaldesk
 # Release entpacken nach /opt/signaldesk, dann:
 cd /opt/signaldesk && sudo python3 -m venv .venv && sudo .venv/bin/pip install --require-hashes -r requirements-lock-team.txt
 sudo cp deploy/umgebung.beispiel /etc/signaldesk/umgebung        # Hostnamen eintragen
 sudo install -m 0640 -o root -g signaldesk /dev/null /etc/signaldesk/sicherung.geheim
 sudoedit /etc/signaldesk/sicherung.geheim                           # SIGNALDESK_SICHERUNG_PASSWORT=… (mind. 12 Zeichen)
-sudo chown -R signaldesk:signaldesk /srv/signaldesk /var/log/signaldesk /var/backups/signaldesk
-sudo chmod 0700 /srv/signaldesk /var/backups/signaldesk
+sudo chown -R signaldesk:signaldesk /srv/signaldesk /srv/signaldesk.schluessel /var/log/signaldesk /var/backups/signaldesk
+sudo chmod 0700 /srv/signaldesk /srv/signaldesk.schluessel /var/backups/signaldesk
 sudo cp deploy/signaldesk-*.service deploy/signaldesk-sicherung.timer /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now signaldesk-mandanten signaldesk-sicherung.timer
@@ -38,6 +38,19 @@ sudo systemctl enable --now signaldesk-mandanten signaldesk-sicherung.timer
 
 Das Passwort der Sicherung **zusätzlich getrennt vom Server aufbewahren** (Passwort-Manager, Tresor). Ohne es ist keine
 Sicherung wiederherstellbar.
+
+**Schlüsselordner (ab dev68):** `/srv/signaldesk.schluessel` liegt neben dem Datenordner, nie darin (anderer Ort:
+`SIGNALDESK_SCHLUESSEL_ORDNER`). Darin legt SignalDesk beim ersten Bedarf an:
+
+- `mfa.key` – Server-Schlüssel der TOTP-Geheimnisse. Die Geheimnisse stehen nur verschlüsselt im Verzeichnis; eine Kopie der
+  Datenbank oder eines Sicherungssatzes reicht nicht, um Codes zu erzeugen. Ältere Klartext-Einträge werden beim ersten Start
+  verschlüsselt.
+- `sicherung-ed25519.key` / `.pub` – Signaturschlüssel der Sicherungssätze (Paket `cryptography`, Variante „team“).
+
+`betreiber … schluessel` zeigt Ordner und Kennungen. Den Ordner **getrennt vom Server verwahren** (wie das Passwort der
+Sicherung) und den öffentlichen Schlüssel zusätzlich beim Protokoll-Anker ablegen. Ohne `mfa.key` müssen alle Konten den
+zweiten Faktor neu einrichten (`zwei-faktor-zuruecksetzen`); der Dienst startet dann nicht und nennt den fehlenden Schlüssel.
+SignalDesk legt einen fehlenden Schlüssel nie still neu an, solange verschlüsselte Geheimnisse da sind.
 
 Proxy: `deploy/Caddyfile.beispiel` nach `/etc/caddy/Caddyfile` (oder die nginx-Datei) und Hostnamen anpassen. Der Proxy
 muss den Host-Header unverändert weiterreichen und `X-Forwarded-Proto: https` setzen; Caddy macht beides von selbst.
@@ -129,6 +142,13 @@ Der **Wiederherstellungstest** (`--pruefen` bzw. `sicherung-pruefen NAME`) entsc
 temporären Ordner, prüft Prüfsumme, `integrity_check` und alle Zeilenzahlen gegen das Manifest und migriert eine Kopie
 auf das aktuelle Schema. Das Ergebnis steht in `pruefung.json` und im Protokoll.
 
+**Signatur (ab dev68):** Jeder Satz bekommt `manifest.sig`, eine Ed25519-Signatur über `manifest.json` (das die Prüfsummen
+aller Dateien enthält). Prüfen, Zurückspielen und `gesamt-wiederherstellen` verlangen eine gültige Signatur des eigenen
+Schlüssels. Eine falsche Signatur wird nie angenommen. Ein Satz ohne Signatur (vor dev68 angelegt) nur mit
+`--unsigniert-zulassen`; das steht im Protokoll. Ein anderer vertrauenswürdiger Schlüssel: `--oeffentlicher-schluessel DATEI`.
+Ohne `cryptography` (Variante „basis“) entstehen unsignierte Sätze; solange die Installation keinen Schlüssel hat, gelten sie
+wie bisher.
+
 Eine Organisation zurückspielen (die anderen bleiben unberührt):
 
 ```
@@ -146,6 +166,10 @@ zweiten Ort holen und in einen **leeren** Ordner wiederherstellen:
 SIGNALDESK_SICHERUNG_PASSWORT=… sudo -E -u signaldesk … betreiber --root /srv/signaldesk-neu \
     gesamt-wiederherstellen /mnt/zweiter-ort/20261124-021500 --ja
 ```
+
+Vorher die verwahrte Kopie des Schlüsselordners als `/srv/signaldesk-neu.schluessel` zurücklegen (öffentlicher Schlüssel für
+die Signatur, `mfa.key` für die Zwei-Faktor-Anmeldung) – oder nur den öffentlichen Schlüssel mit
+`--oeffentlicher-schluessel DATEI` angeben.
 
 `gesamt-wiederherstellen` prüft zuerst alle Prüfsummen, legt Verzeichnis und Organisationen (auch archivierte) an ihren
 Platz, prüft `integrity_check` und Zeilenzahlen gegen das Manifest und migriert jede Organisation. Ein nicht leerer Ordner

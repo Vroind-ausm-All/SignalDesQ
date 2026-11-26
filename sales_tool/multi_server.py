@@ -23,6 +23,7 @@ import ipaddress
 import json
 import secrets
 import signal
+import sys
 import threading
 import time
 from http.server import BaseHTTPRequestHandler
@@ -493,6 +494,10 @@ def main(argv=None):
         if args.host not in ('0.0.0.0', '::'):
             allowed.add(args.host)
     orgs = prepare_all(directory)
+    try:  # dev68 (F09): verschlüsselte TOTP-Geheimnisse brauchen den Server-Schlüssel – sonst gleich hier eine klare Meldung
+        accounts.check_mfa_key(directory)
+    except (RuntimeError, ValueError) as exc:
+        raise SystemExit(f'Abbruch: {exc}') from exc
     handler = make_multi_handler(directory, allowed, scheduler=not args.no_scheduler, logger=logger, backup_target=args.backup_dir,
                                  trusted_proxies=args.vertrauter_proxy)
     server, port = bind_server(handler, args.port, attempts=1, host=args.host)  # Dienst: fester Port, kein Ausweichen
@@ -505,6 +510,10 @@ def main(argv=None):
     signal.signal(signal.SIGTERM, stop)
     logger.info('start', extra={'fields': {'port': port, 'organizations': len(orgs), 'version': ops.__version__}})
     print(f'SignalDesk (Mehrmandanten) läuft: http://127.0.0.1:{port}/anmelden  |  {len(orgs)} Organisationen in {directory.root}')
+    from .python_support import notice as python_notice
+    if python_notice():  # dev68: Ende von Python 3.10 ankündigen
+        print(python_notice())
+        logger.warning('python_veraltet', extra={'fields': {'python': '.'.join(map(str, sys.version_info[:3]))}})
     try:
         server.serve_forever()
     except KeyboardInterrupt:

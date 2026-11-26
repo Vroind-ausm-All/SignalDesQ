@@ -19,6 +19,9 @@ Betrieb
   ... sichern [--ziel ORDNER] [--verschluesselt] [--pruefen]   (Passwort: SIGNALDESK_SICHERUNG_PASSWORT oder Abfrage)
   ... sicherungen   |   sicherung-pruefen 20261124-020000   |   zurueckspielen 20261124-020000 studio-nord --ja
   ... sicherungen-aufraeumen --behalten 14       (löscht ältere Sätze – nur auf ausdrücklichen Aufruf)
+  ... schluessel                                 (Schlüsselordner, Kennungen von TOTP- und Signaturschlüssel)
+  Sätze werden signiert (Ed25519, Variante „team“); Prüfen und Zurückspielen verlangen eine gültige Signatur.
+  --oeffentlicher-schluessel DATEI: anderer vertrauenswürdiger Schlüssel; --unsigniert-zulassen: alter Satz ohne Signatur.
   ... protokoll [--anzahl 50] [--konto erika]   |   protokoll-pruefen [--anker DATEI]   |   protokoll-anker
 
 Die lokale Einzelplatz-Installation braucht das nicht. Organisationen werden nie gelöscht: Archivieren sperrt eine
@@ -100,6 +103,7 @@ def _parser():
     z.add_argument('slug')
     z.add_argument('--ziel')
     z.add_argument('--ja', action='store_true', help='Bestätigung: aktueller Stand wird ersetzt (vorher gesichert)')
+    sub.add_parser('schluessel', help='Schlüsselordner und Kennungen der Schlüssel anzeigen')
     kp = sub.add_parser('sicherung-kopieren', help='Satz an einen zweiten Ort kopieren und Prüfsummen nachrechnen')
     kp.add_argument('name')
     kp.add_argument('--nach', required=True, help='Ordner am zweiten Ort (anderer Datenträger, eingehängter Speicher)')
@@ -107,6 +111,10 @@ def _parser():
     gw = sub.add_parser('gesamt-wiederherstellen', help='ganze Installation aus einem Satz in den (leeren) --root-Ordner')
     gw.add_argument('satz', help='Pfad des Sicherungssatzes')
     gw.add_argument('--ja', action='store_true', help='Bestätigung')
+    for parser in (sp, z, gw):  # dev68 (F06): Signatur der Sätze
+        parser.add_argument('--oeffentlicher-schluessel', dest='oeffentlich', help='vertrauenswürdiger öffentlicher Schlüssel (Datei)')
+        parser.add_argument('--unsigniert-zulassen', dest='unsigniert', action='store_true',
+                            help='Satz ohne Signatur annehmen (nur nach Prüfung der Herkunft; steht im Protokoll)')
     pr = sub.add_parser('sicherungen-aufraeumen')
     pr.add_argument('--behalten', type=int, required=True)
     pr.add_argument('--ziel')
@@ -190,13 +198,26 @@ def run(args, d):  # noqa: C901 – eine Verzweigung je Befehl
     if cmd == 'sicherung-pruefen':
         folder = ops.backup_root(d, args.ziel) / args.name
         encrypted = (folder / 'manifest.json').exists() and json.loads((folder / 'manifest.json').read_text(encoding='utf-8'))['encrypted']
-        out = ops.verify_backup(d, args.name, args.ziel, password=_set_password(args.name) if encrypted else None, actor=actor)
+        out = ops.verify_backup(d, args.name, args.ziel, password=_set_password(args.name) if encrypted else None, actor=actor,
+                                public_key_path=args.oeffentlich, allow_unsigned=args.unsigniert)
         return out, 0 if out['ok'] else 1
     if cmd == 'zurueckspielen':
         folder = ops.backup_root(d, args.ziel) / args.name
         encrypted = (folder / 'manifest.json').exists() and json.loads((folder / 'manifest.json').read_text(encoding='utf-8'))['encrypted']
         return ops.restore_org(d, args.name, args.slug, args.ziel, password=_set_password(args.name) if encrypted else None,
-                               confirm=args.ja, actor=actor), 0
+                               confirm=args.ja, actor=actor, public_key_path=args.oeffentlich, allow_unsigned=args.unsigniert), 0
+    if cmd == 'schluessel':
+        from . import schluessel
+        accounts.check_mfa_key(d)  # verschlüsselte Geheimnisse ohne passenden Schlüssel → Fehlermeldung, Rückgabewert 1
+        folder = schluessel.key_dir(d.root)
+        mfa = folder / schluessel.MFA_KEY_FILE
+        pub = schluessel.public_key(d.root)
+        return {'ordner': str(folder), 'mfa_schluessel': str(mfa) if mfa.exists() else 'noch nicht angelegt',
+                'mfa_kennung': schluessel.mfa_key(d.root, create=False)[0] if mfa.exists() else '',
+                'signatur_oeffentlich': str(folder / schluessel.SIGN_PUB_FILE) if pub else 'noch nicht angelegt',
+                'signatur_kennung': pub[0] if pub else '', 'signatur_moeglich': schluessel.signing_available(),
+                'hinweis': 'Ordner getrennt vom Server verwahren (z. B. Passwort-Manager). Ohne mfa.key müssen alle Konten den '
+                           'zweiten Faktor neu einrichten; den öffentlichen Schlüssel zusätzlich beim Protokoll-Anker ablegen.'}, 0
     if cmd == 'sicherung-kopieren':
         return ops.copy_backup(d, args.name, args.nach, target=args.ziel, actor=actor), 0
     if cmd == 'sicherungen-aufraeumen':
@@ -221,10 +242,11 @@ def main(argv=None):
             manifest = Path(args.satz).expanduser() / 'manifest.json'
             encrypted = manifest.exists() and json.loads(manifest.read_text(encoding='utf-8')).get('encrypted')
             pw = _secret('SIGNALDESK_SICHERUNG_PASSWORT', 'Passwort der Sicherung: ', confirm=False) if encrypted else None
-            out, code = ops.restore_installation(args.satz, args.root, password=pw or None, confirm=args.ja), 0
+            out, code = ops.restore_installation(args.satz, args.root, password=pw or None, confirm=args.ja,
+                                                 public_key_path=args.oeffentlich, allow_unsigned=args.unsigniert), 0
         else:
             out, code = run(args, tenancy.Directory(args.root))
-    except (tenancy.TenantError, LookupError, ValueError, PermissionError) as exc:
+    except (tenancy.TenantError, LookupError, ValueError, PermissionError, RuntimeError) as exc:
         print('FEHLER:', exc)
         return 1
     print(json.dumps(out, ensure_ascii=False, indent=1, default=str))

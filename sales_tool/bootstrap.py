@@ -261,6 +261,13 @@ def main(argv=None):
 
     if sys.version_info < MIN_PYTHON:
         raise SystemExit(f'SignalDesk benötigt Python {MIN_PYTHON[0]}.{MIN_PYTHON[1]} oder neuer (gefunden: {sys.version.split()[0]}).')
+    try:  # dev68: Ende von Python 3.10 ankündigen (eigene Datei, nur Standardbibliothek)
+        sys.path.insert(0, str(ROOT))
+        from sales_tool.python_support import notice as python_notice
+        if python_notice():
+            say(python_notice())
+    except ImportError:
+        pass
     if is_inside_zip_preview(ROOT):
         raise SystemExit('Bitte die ZIP-Datei zuerst entpacken (Rechtsklick → „Alle extrahieren…“) und dann im entpackten Ordner starten.')
 

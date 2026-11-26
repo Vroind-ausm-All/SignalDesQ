@@ -8,6 +8,8 @@ Konten und Mitgliedschaften liegen im Verzeichnis (``organisationen.sqlite3``), 
   wie weit die Anmeldung ist: ``zweitfaktor`` (Passwort stimmt, Code fehlt), ``einrichtung`` (zweiter Faktor ist Pflicht,
   aber noch nicht eingerichtet) oder ``voll``. Nur ``voll`` darf eine Organisation betreten.
 - ``account_mfa`` / ``account_recovery_codes``: zweiter Faktor (TOTP nach RFC 6238) und Wiederherstellungscodes (nur Hash).
+  Das TOTP-Geheimnis steht nur verschlüsselt darin (dev68, F09): Schlüssel ``mfa.key`` im getrennten Schlüsselordner
+  (``schluessel.py``). Ältere Klartext-Einträge werden beim ersten Zugriff verschlüsselt.
 - ``login_failures``: Fehlversuche der letzten Minuten – die Sperre gilt auch nach einem Neustart des Servers.
 - ``directory_settings``: Einstellungen der Installation (``require_2fa``).
 
@@ -26,7 +28,7 @@ import hashlib
 import re
 import secrets
 
-from . import audit_trail, auth, tenancy, totp
+from . import audit_trail, auth, schluessel, tenancy, totp
 from .model import connect
 
 CENTRAL_COOKIE = 'sd_konto'
@@ -72,6 +74,29 @@ def init(directory: tenancy.Directory):
         if 'sec_stamp' not in {r['name'] for r in conn.execute('PRAGMA table_info(accounts)')}:  # dev65: Widerrufsstand (F02)
             conn.execute("ALTER TABLE accounts ADD COLUMN sec_stamp TEXT NOT NULL DEFAULT ''")
         audit_trail.init(conn)
+        _seal_plain_secrets(directory, conn)
+
+
+def _seal_plain_secrets(directory, conn):
+    """dev68: TOTP-Geheimnisse aus früheren Versionen (Klartext) mit dem Server-Schlüssel verschlüsseln."""
+    rows = conn.execute("SELECT account_id, secret FROM account_mfa WHERE secret NOT LIKE ?", (schluessel.MFA_PREFIX + '%',)).fetchall()
+    for r in rows:
+        conn.execute('UPDATE account_mfa SET secret=? WHERE account_id=?', (schluessel.seal(directory.root, r['account_id'], r['secret']), r['account_id']))
+
+
+def check_mfa_key(directory):
+    """Beim Start: Sind verschlüsselte Geheimnisse da, muss der passende Schlüssel da sein (sonst klare Meldung statt
+    fehlschlagender Anmeldungen)."""
+    init(directory)
+    with directory._connect() as conn:
+        row = conn.execute('SELECT account_id, secret FROM account_mfa LIMIT 1').fetchone()
+    if row:
+        schluessel.unseal(directory.root, row['account_id'], row['secret'])
+    return schluessel.key_dir(directory.root) / schluessel.MFA_KEY_FILE
+
+
+def _mfa_secret(directory, mfa):
+    return schluessel.unseal(directory.root, mfa['account_id'], mfa['secret'])
 
 
 def _account(conn, username):
@@ -448,7 +473,7 @@ def second_factor(directory, token, code, client=''):
             raise auth.Throttled('Zu viele falsche Codes – bitte 15 Minuten warten und neu anmelden.')
         mfa = conn.execute('SELECT * FROM account_mfa WHERE account_id=? AND active=1', (acc['id'],)).fetchone()
         used = None
-        hit = totp.match(mfa['secret'], code, last_step=mfa['last_step']) if mfa else None
+        hit = totp.match(_mfa_secret(directory, mfa), code, last_step=mfa['last_step']) if mfa else None
         if hit is not None:
             conn.execute('UPDATE account_mfa SET last_step=? WHERE account_id=?', (hit, acc['id']))
             used = 'App'
@@ -484,7 +509,8 @@ def mfa_start(directory, token, password):
         if _mfa_active(conn, acc['id']):
             raise ValueError('Der zweite Faktor ist schon eingerichtet.')
         conn.execute('''INSERT INTO account_mfa(account_id, secret, active) VALUES (?,?,0)
-                        ON CONFLICT(account_id) DO UPDATE SET secret=excluded.secret, active=0, last_step=-1''', (acc['id'], secret))
+                        ON CONFLICT(account_id) DO UPDATE SET secret=excluded.secret, active=0, last_step=-1''',
+                     (acc['id'], schluessel.seal(directory.root, acc['id'], secret)))
     return {'secret': ' '.join(secret[i:i + 4] for i in range(0, len(secret), 4)), 'uri': totp.uri(secret, acc['username']),
             'notice': 'In der Authenticator-App „Konto hinzufügen“ → Schlüssel eingeben (zeitbasiert). Dann den angezeigten Code bestätigen.'}
 
@@ -498,7 +524,7 @@ def mfa_confirm(directory, token, code, client=''):
         mfa = conn.execute('SELECT * FROM account_mfa WHERE account_id=? AND active=0', (acc['id'],)).fetchone()
         if not mfa:
             raise ValueError('Zuerst die Einrichtung starten.')
-        hit = totp.match(mfa['secret'], code)
+        hit = totp.match(_mfa_secret(directory, mfa), code)
         if hit is None:
             raise PermissionError('Code stimmt nicht – Uhrzeit des Telefons prüfen und den aktuellen Code eingeben.')
         conn.execute("UPDATE account_mfa SET active=1, last_step=?, confirmed_at=datetime('now') WHERE account_id=?", (hit, acc['id']))
@@ -530,7 +556,7 @@ def mfa_disable(directory, token, password, code, client=''):
         mfa = conn.execute('SELECT * FROM account_mfa WHERE account_id=? AND active=1', (acc['id'],)).fetchone()
         if not mfa:
             raise ValueError('Kein zweiter Faktor eingerichtet.')
-        if totp.match(mfa['secret'], code, last_step=mfa['last_step']) is None:
+        if totp.match(_mfa_secret(directory, mfa), code, last_step=mfa['last_step']) is None:
             raise PermissionError('Code stimmt nicht.')
         conn.execute('DELETE FROM account_mfa WHERE account_id=?', (acc['id'],))
         conn.execute('DELETE FROM account_recovery_codes WHERE account_id=?', (acc['id'],))
