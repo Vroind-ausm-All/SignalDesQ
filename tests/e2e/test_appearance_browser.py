@@ -50,7 +50,7 @@ class AppearanceBrowserTests(unittest.TestCase):
                         page.goto(base)
                         page.wait_for_load_state('networkidle')
                         self.assertEqual((_root(page, 'theme'), _root(page, 'mode')), ('professionell', 'light'))
-                        self.assertEqual(_bg(page), 'rgb(250, 250, 248)')  # 2.0.0-dev71: Professionell hell (#FAFAF8) ist Standard
+                        self.assertEqual(_bg(page), 'rgb(250, 250, 248)')  # 2.0.0-dev72: Professionell hell (#FAFAF8) ist Standard
 
                         # 2.0.0-dev50: Hell/Dunkel nicht mehr in der Kopfzeile, sondern unter Einstellungen → Darstellung
                         page.locator('.sidebar [data-view="settings"]').click()  # 2.0.0-dev14: eigener Bereich Einstellungen

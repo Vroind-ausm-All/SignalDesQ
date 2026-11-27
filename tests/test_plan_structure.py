@@ -102,7 +102,7 @@ class ValidatorCatchesErrorsTests(unittest.TestCase):
         self.assertError(r'R3\.1: Abhängigkeit R3\.99 unbekannt')
 
     def test_ux_program_errors(self):
-        """dev71: UX-Programm U1–U10 – gleiche Statusregeln, Bezüge nur auf bekannte R-Pakete."""
+        """dev72: UX-Programm U1–U10 – gleiche Statusregeln, Bezüge nur auf bekannte R-Pakete."""
         ux = self.plan['ux_programm']['pakete']
         ux[3]['bezug'].append('R9.1')
         ux[4]['status'] = 'erledigt'

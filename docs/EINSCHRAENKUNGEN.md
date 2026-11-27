@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev71)
+# Bekannte Einschränkungen (Stand 2.0.0-dev72)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -74,7 +74,7 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 
 - Die Darstellung gilt für die ganze Installation, nicht je Nutzer: Im Team-Betrieb sehen alle dasselbe Theme. „Klassisch“ ist nicht pixelgleich mit dem Stand davor; Grautöne und Linien sind leicht vereinheitlicht, graue Nebentexte für bessere Lesbarkeit etwas dunkler. Durchscheinende Schatten sind im Dunkelmodus kaum sichtbar. Ausdrucke bleiben hell. Die Dichte „Kompakt“ blendet die Erklärtexte unter den Seitenüberschriften aus. Ohne Unterstützung für `color-mix()` (Browser vor etwa 2023) ist die Kopfleiste deckend statt leicht durchscheinend.
 
-## Designsystem „Professionell“ (2.0.0-dev71, UX-Programm U2)
+## Designsystem „Professionell“ (2.0.0-dev72, UX-Programm U2)
 
 - **Nur für neue Installationen Standard.** Eine gespeicherte Wahl (z. B. „Klassisch“) bleibt; „Professionell“ lässt sich unter Einstellungen → Darstellung wählen.
 - **Nicht vollständig umgesetzt (U2 „teilweise“):** Im Stylesheet stehen noch 47 Regeln mit 9–10 px Schrift, Radien von 7–12 px und 40 px sowie 22 Schatten als feste Werte. Das Theme setzt Grundschrift (13 px), Radius (6 px) für Bedienelemente, Karten und Pillen sowie Tabellenzeilen über Tokens; Altwerte an anderen Stellen bleiben, bis sie einzeln umgestellt und angesehen sind.
@@ -447,3 +447,23 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
   nicht belegt (Vertrauensbereiche überlappen). Die Rechte an den Trainingsdaten des Modells (TIGER, WikiNER) für gewerblichen
   Einsatz sind ungeklärt (E8). Im Server für mehrere Organisationen ist das Profil gesperrt. GLiNER wurde nicht geprüft.
 - Ein separat erwähnter „person_jsonld“-Prototyp lag nicht vor; die JSON-LD-Auswertung ist eine eigene Implementierung.
+
+## Tagesbudget und bedingte Abrufe (2.0.0-dev71, Plan R1.4)
+
+- Das Tagesbudget zählt Seiten und Bytes je Organisation und Kalendertag (Ortszeit des Rechners). Abrufe außerhalb von Aufträgen
+  werden im Speicher gezählt und mit dem nächsten Auftragsschritt oder beim Speichern der Einstellungen festgehalten; ein Absturz
+  dazwischen kann diese Seiten vergessen.
+- Schnittstellen-Abrufe (z. B. Wikidata, OpenStreetMap über `lead_finder`) zählen nicht zum Tagesbudget; sie haben eigene Bremsen.
+- Ein Schritt, der am Tagesbudget scheitert, beginnt am nächsten Tag von vorn (bereits gelesene Seiten werden erneut abgerufen,
+  wenn möglich bedingt).
+- Die Zwischenablage für bedingte Abrufe liegt nur im Arbeitsspeicher; nach einem Neustart wird jede Seite einmal vollständig geladen.
+  Seiten mit Weiterleitung werden nicht zwischengespeichert.
+
+## Dokumente (2.0.0-dev71, Plan R3)
+
+- Der Dokument-Parser nutzt nur die Standardbibliothek: PDF-Text aus Schriften mit eigener Kodierung (CID, Hex-Strings) und
+  gescannte PDFs bleiben leer und müssen manuell geprüft werden. Tabellen in PDFs werden als Zeilen gelesen, nicht als Tabellen.
+- Unter Windows gibt es keine Speichergrenze für den Parser-Prozess (nur Zeit- und Größengrenzen); unter Linux/macOS 768 MB.
+- Der Prüf-Hook im Parser-Prozess ist eine zusätzliche Bremse, keine vollständige Sandbox.
+- CSV/ZIP-Kataloge (Leadquellen-Import) laufen noch nicht über den isolierten Parser.
+- Ein Upload von Registerdokumenten in die Firmenakte (R3.4) und Konzernbeziehungen aus GLEIF Level 2 (R3.3) fehlen noch.

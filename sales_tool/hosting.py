@@ -22,7 +22,8 @@ CALDAV_PORTS = (443,)
 IMAP_PORTS = (993,)
 
 
-LIMITS = {'fetcher': ('http',), 'browser_fallback': (False,), 'nlp': (False,)}  # R2.5: kein Sprachmodell im Server für mehrere Organisationen
+LIMITS = {'fetcher': ('http',), 'browser_fallback': (False,), 'nlp': (False,),  # R2.5: kein Sprachmodell im Server für mehrere Organisationen
+          'daily_pages': (1000, 200, 5000)}  # R1.4: Tagesbudget Pflicht, Vorgabe 1000 Seiten je Organisation
 
 
 def register(db_path):

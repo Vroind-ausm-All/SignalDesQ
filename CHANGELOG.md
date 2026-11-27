@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0-dev71 – UX-Programm U1/U2: Bestandsaufnahme mit Funktionsmatrix, Designsystem „Professionell“ (hell/dunkel), lokale Schriften, drei Dichten
+## 2.0.0-dev72 – UX-Programm U1/U2: Bestandsaufnahme mit Funktionsmatrix, Designsystem „Professionell“ (hell/dunkel), lokale Schriften, drei Dichten
 
 - **Neu – UX-Bestandsaufnahme (UX-Programm U1):** `docs/UX_BESTANDSAUFNAHME.md` zählt Ansichten, Skripte, Schriftgrößen, Radien,
   Schatten, Schnittstellen und Tests aus dem Code, bewertet die 13 Zielansichten (vorhanden/teilweise/fehlt, Contact Explorer und
@@ -26,6 +26,34 @@
   der Darstellung erwartet „Professionell“ als Standard; `tests/test_plan_structure.py` prüft das UX-Programm.
 - **Offen (ehrlich):** Altwerte im Stylesheet (≤ 10 px Schrift, Radien, Schatten, 3 Animationen) sind nicht umgestellt; keine
   visuelle Regression mit Bildvergleich; Einstellungen gelten weiter je Installation. Siehe `docs/EINSCHRAENKUNGEN.md`.
+## 2.0.0-dev71 – R1.4 abgeschlossen (Tagesbudget je Organisation, ETag/Last-Modified), R3: isolierter Dokument-Parser mit Fundstellen
+
+- **Neu – Tagesbudget je Organisation (Plan R1.4, Mandantenbudget):** Einstellung „Tagesbudget der Organisation“ unter
+  „Website-Abruf & Auswertung“ (keine Grenze, 200, 1000 oder 5000 Seiten je Tag; Bytegrenze 1 MB je Seite). Im Server für
+  mehrere Organisationen ist eine Grenze Pflicht (Vorgabe 1000). Gezählt wird jeder Website-Abruf der Organisation in
+  `research.fetchers.fetch`, auch außerhalb von Aufträgen; der Stand steht in `app_settings` (`research_usage`) und übersteht
+  einen Neustart. Ist das Budget erreicht, scheitert der Abruf mit Teilergebnis, wartende Website-Aufträge starten erst am
+  nächsten Tag, und ein unterbrochener Schritt wird auf morgen verschoben, ohne dass der Versuch zählt.
+- **Neu – bedingte Abrufe (Plan R1.4):** `sales_tool/research/pagecache.py` merkt sich je Organisation im Speicher (höchstens
+  200 Seiten, 30 MB, 24 Stunden) Seiten mit `ETag` oder `Last-Modified`; der nächste Abruf fragt mit `If-None-Match` bzw.
+  `If-Modified-Since`. Bei HTTP 304 kommt die letzte Fassung zurück (gleicher Inhalts-Hash, Hinweis „unverändert“), ohne dass
+  Bytes übertragen werden. Offline-Schalter, Source Registry, robots.txt, IP-Pinning und Budgets gelten vorher unverändert;
+  Prüfmerkmale mit Zeilenumbruch werden nicht gesendet.
+- **Neu – isolierter Dokument-Parser (Plan R3.1):** `sales_tool/research/documents.py` liest PDF, XML, CSV, Text und ZIP in einem
+  eigenen Prozess (`python -I -S sales_tool/docparse.py`, leere Umgebung, Bytes nur über stdin, Zeitgrenze 30 s). Im Kindprozess
+  sperrt ein Prüf-Hook Netz, neue Prozesse und Schreibzugriffe; unter Linux/macOS gelten zusätzlich Speicher- und CPU-Grenzen.
+  Abgewiesen werden XML mit DTD (XXE, Entitäten-Bomben), Flate- und ZIP-Bomben, ZIP-Pfade mit `..`/absolutem Pfad/Laufwerk,
+  verschlüsselte PDFs und ZIP im ZIP; JavaScript und Aktionen in PDFs werden nie ausgeführt, nur gemeldet.
+- **Behoben – PDF-Impressum ohne Größengrenze:** `imprint.pdf_to_text` entpackte Flate-Ströme mit `zlib.decompress` ohne Grenze
+  (ein kleines PDF konnte den Speicher füllen). Es liest jetzt über den isolierten Parser.
+- **Neu – Fundstellen in Dokumenten (Plan R3.2):** Jeder Abschnitt trägt PDF-Seite (über den Seitenbaum, auch in Objektströmen),
+  XML-Pfad (mit Position und Attribut), CSV-Zeile und Spalte oder Textzeile, im ZIP zusätzlich den Eintrag.
+  `documents.document_ref` erzeugt daraus einen Beleg v2, `verify_document_ref` prüft ihn gegen dasselbe Dokument (SHA-256);
+  `research.evidence.check_ref` kennt die Fundstellenarten `xml`, `csv` und `doc_text`. Ein PDF ohne Seitenbaum ergibt keinen
+  Seitenbeleg.
+- **Skill `document-intelligence` (Plan R3.5):** Prüfliste für Dokumente: ein Weg, Isolation, Grenzen, Angriffsmuster, Fundstellen.
+- **Offen:** R3.2 PDF-Texte mit eingebetteten Schriften (pypdf im Parser-Prozess), Tabellen; R3.3 GLEIF Level 2; R3.4 Upload von
+  Registerdokumenten in die Firmenakte; CSV/ZIP-Katalogimport über den Parser.
 
 ## 2.0.0-dev70 – R2: Personen mit Beleg aus strukturierten Seiten, Rollen normalisiert, Kandidaten-Sichtung getrennt vom CRM, optionales NLP-Profil
 

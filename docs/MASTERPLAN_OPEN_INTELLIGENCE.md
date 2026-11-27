@@ -9,7 +9,7 @@
 
 **Wirtschaftlicher Kernindikator.** Kosten und Zeit je korrekt identifiziertem, relevantem und überprüftem Ansprechpartner. **Priorisierung:** Zuerst richtig finden, dann richtig zuordnen, erst danach visualisieren.
 
-**Stand aller 56 Arbeitspakete:** 13 offen · 19 teilweise · 15 erledigt · 9 blockiert.
+**Stand aller 56 Arbeitspakete:** 11 offen · 18 teilweise · 18 erledigt · 9 blockiert.
 
 ## Inhalt
 
@@ -66,9 +66,9 @@ flowchart LR
 | Phase | Name | Aufwand* | Beginnt nach | Ziel | Abnahme (Gate) | Pakete |
 |---|---|---|---|---|---|---|
 | **R0** | Baseline & Governance | 1–2 Wochen | – | Reproduzierbare Ausgangslage, eine Versionswahrheit, verbindliche Regeln, Skills und Sicherheits-Gates, bevor neue Recherchefunktionen entstehen. | Reproduzierbare Baseline (Unit, Browser, Python 3.10/3.13, CI-Matrix) mit Commit dokumentiert<br>Je Befund F01–F12 ein Verantwortlicher und ein Nachweisweg<br>README/ROADMAP/Einschränkungen nennen die aktuelle Version | 8 erledigt |
-| **R1** | Quellen, Discovery & Identität | 2–3 Wochen | R0 | Nur erlaubte Quellen, gezielte Seitensuche auf bekannten Websites, verlässliche Firmenidentität und eine unabhängige Referenzliste. | Source Registry sperrt ungeprüfte Quellen<br>Domain-Referenztest auf der Referenzliste gemessen (Company Match Precision)<br>Keine Regression im Abruf (Benchmark tools/bench_fetch.py) | 2 teilweise · 4 erledigt · 1 blockiert |
+| **R1** | Quellen, Discovery & Identität | 2–3 Wochen | R0 | Nur erlaubte Quellen, gezielte Seitensuche auf bekannten Websites, verlässliche Firmenidentität und eine unabhängige Referenzliste. | Source Registry sperrt ungeprüfte Quellen<br>Domain-Referenztest auf der Referenzliste gemessen (Company Match Precision)<br>Keine Regression im Abruf (Benchmark tools/bench_fetch.py) | 1 teilweise · 5 erledigt · 1 blockiert |
 | **R2** | Extraktion & Kandidaten-Sichtung | 2–3 Wochen | R1 | Personen und Rollen aus strukturierten und unstrukturierten Seiten mit vollständigem Beleg; Sichtung ohne automatische CRM-Übernahme. | Präzision und Recall der Rollen auf der Referenzliste gemessen<br>Sperren erreichen Kandidaten<br>Kein Kandidat gelangt ohne menschliche Freigabe ins CRM | 3 teilweise · 3 erledigt |
-| **R3** | Dokumente & Konzernbeziehungen | 2–3 Wochen | R1 | PDF/XML/CSV sicher und isoliert auswerten; GLEIF-Level-2-Beziehungen als belegte Konzernkanten. Läuft parallel nach R1; nicht auf dem kritischen Pfad. | Dokumentgrenzen (Größe, Zeit, Seiten) erzwungen<br>Jeder Wert mit Seiten- bzw. Feldbeleg<br>Parser ohne Netz- und Dateisystemzugriff außerhalb seines Arbeitsordners | 4 offen · 1 teilweise |
+| **R3** | Dokumente & Konzernbeziehungen | 2–3 Wochen | R1 | PDF/XML/CSV sicher und isoliert auswerten; GLEIF-Level-2-Beziehungen als belegte Konzernkanten. Läuft parallel nach R1; nicht auf dem kritischen Pfad. | Dokumentgrenzen (Größe, Zeit, Seiten) erzwungen<br>Jeder Wert mit Seiten- bzw. Feldbeleg<br>Parser ohne Netz- und Dateisystemzugriff außerhalb seines Arbeitsordners | 2 offen · 1 teilweise · 2 erledigt |
 | **R4** | Organisationsgraph, Buying Center & Dossier | 2–3 Wochen | R2 | Belegte Rollen-, Abteilungs- und Konzernbeziehungen in der Firmenakte; Buying Center und Sales-Dossier mit getrennten Bewertungen. | Null unbelegte bestätigte Kanten<br>UX-Test der Graph-Ansicht<br>Fit, Quellenqualität, Rollenrelevanz und bestätigter Bedarf getrennt | 5 offen · 2 teilweise |
 | **R5** | Lokaler Pilot (M21) | 2–3 Wochen | R4 | Messung an mindestens 100 Firmen und mit echten Pilotaufgaben; Fehler beheben; Kernabläufe regressionsgeprüft. | Referenzmessung an ≥ 100 Firmen gegen die Zielwerte<br>≥ 80 % der Pilotaufgaben ohne Hilfe, keine Datenverluste<br>Restore und fachliche Exporte (Angebot, Rechnung) regressionsgeprüft | 1 offen · 2 teilweise · 3 blockiert |
 | **R6** | Staging & Sicherheit | 2–4 Wochen | R0 | Isoliertes Staging, Betriebs- und Sicherheitsmaßnahmen F05–F12, unabhängige Nachprüfung, geschlossene Beta. Betriebsmaßnahmen beginnen früh parallel; die Freigabe (Gate) liegt vor R7. | Unabhängige Security-Nachprüfung je Commit/Artefaktdigest bestanden<br>Restore auf leerem System geübt<br>Geschlossene Beta nur nach Freigabe | 2 offen · 8 teilweise · 2 blockiert |
@@ -135,7 +135,7 @@ flowchart LR
 | **R1.1** | Source Registry als zwingende Sperre | P0 | erledigt | Engineering | R0.3 | Abruf einer nicht freigegebenen Quelle wird serverseitig abgewiesen (Test)<br>Quellenstatus in Einstellungen → Datenquellen |
 | **R1.2** | Skill research-source-policy | P0 | erledigt | Engineering | R0.4 | Auslöser, Prüfpunkte und Beispiel wie bei den bestehenden Skills |
 | **R1.3** | Discovery auf bekannten Websites | P0 | erledigt | Engineering | R1.1, R1.4 | Benchmark: mehr relevante Seiten bei gleichem Seitenbudget<br>XML ohne externe Entitäten (Test mit XXE-Beispiel) |
-| **R1.4** | Recherchemodi und Jobbudgets | P0 | teilweise | Engineering | – | Budgetüberschreitung bricht sauber ab und zeigt Teilergebnis (Test)<br>Keine unendlichen Wiederholungen |
+| **R1.4** | Recherchemodi und Jobbudgets | P0 | erledigt | Engineering | – | Budgetüberschreitung bricht sauber ab und zeigt Teilergebnis (Test)<br>Keine unendlichen Wiederholungen |
 | **R1.5** | Firmenidentität: Rechtsträger, Marke, Domain | P0 | teilweise | Engineering | – | Company Match Precision ≥ 95 % auf der Referenzliste<br>Konfliktfälle bleiben getrennt (Regressionstests) |
 | **R1.6** | Referenzliste und Recherche-Benchmark (≥ 100 Firmen) | P0 | blockiert | Eigentümer | – | Zähler/Nenner, Fehlklassifikationen und Stichprobenunsicherheit dokumentiert |
 | **R1.7** | Skill research-benchmark | P1 | erledigt | Engineering | R0.4 | Skill verlangt Messung vor Freigabe einer neuen Extraktionsregel |
@@ -154,7 +154,7 @@ flowchart LR
 - **R1.4 Recherchemodi und Jobbudgets.** Quick/Deep/Org mit 10/30/50 Seiten als Obergrenze; zusätzlich Zeit-, Byte-, Host- und Mandantenbudget; Drosselung, Retry-After, ETag/Last-Modified, Abbruch und Fortschritt; Fehler als Teilergebnis.
   Baut auf: `sales_tool/research/jobs.py`, `sales_tool/research/policy.py`, `sales_tool/bg_jobs.py`.
   Neu: Budget-Objekt je research_run.
-  Stand: 2.0.0-dev69: sales_tool/research/budget.py (Quick/Deep/Org = 10/30/50 Seiten, dazu Zeit-, Byte- und Hostgrenze je Auftragsschritt, gezählt in research.fetchers.fetch), research.jobs: aufgebrauchtes Budget endet mit Teilergebnis und wird nie wiederholt, Modus im Firmen-Bericht (mode); Modusauswahl unter „Website-Abruf & Auswertung“ als Vorgabe je Organisation; tests/test_r1_budget.py; offen: Mandantenbudget (zusammen mit Kontingenten), ETag/Last-Modified.
+  Stand: 2.0.0-dev69: sales_tool/research/budget.py (Quick/Deep/Org = 10/30/50 Seiten, dazu Zeit-, Byte- und Hostgrenze je Auftragsschritt, gezählt in research.fetchers.fetch), research.jobs: aufgebrauchtes Budget endet mit Teilergebnis und wird nie wiederholt, Modus im Firmen-Bericht (mode); Modusauswahl unter „Website-Abruf & Auswertung“ als Vorgabe je Organisation; tests/test_r1_budget.py. 2.0.0-dev71: Tagesbudget je Organisation (Mandantenbudget, Einstellung daily_pages, im Server für mehrere Organisationen Pflicht mit Vorgabe 1000 Seiten; Stand in app_settings research_usage, übersteht Neustart); aufgebraucht → Website-Aufträge warten bis morgen, ein unterbrochener Schritt wird ohne Versuchszählung verschoben; bedingte Abrufe mit ETag/Last-Modified (sales_tool/research/pagecache.py, nur im Speicher je Organisation, 304 → letzte Fassung, keine übertragenen Bytes); tests/test_r1_conditional_daily.py. Kontingente für Import, Speicher und Jobs bleiben bei R6.6.
 - **R1.5 Firmenidentität: Rechtsträger, Marke, Domain.** Identität über LEI, Registergericht+Nummer, Domain+Adresse; Marke und Rechtsträger getrennt; kein Merge bei Konflikt; unbekannte Domain manuell klären.
   Baut auf: `sales_tool/research/identity.py`, `sales_tool/research/homepage.py`, `sales_tool/sweep.py` (counter_evidence), `sales_tool/duplicates.py`.
   Neu: organization_ref (siehe R4.1).
@@ -211,18 +211,19 @@ flowchart LR
 
 | ID | Paket | Prio | Status | Verantwortlich | Abhängig von | Abnahme |
 |---|---|---|---|---|---|---|
-| **R3.1** | Isolierter Dokument-Parser | P0 | offen | Engineering | R1.1 | Angriffsbeispiele (XXE, Bombe, Pfad) werden abgewiesen (Test) |
+| **R3.1** | Isolierter Dokument-Parser | P0 | erledigt | Engineering | R1.1 | Angriffsbeispiele (XXE, Bombe, Pfad) werden abgewiesen (Test) |
 | **R3.2** | PDF, XML und CSV mit Fundstellen | P0 | teilweise | Engineering | R3.1, R2.3 | Korrekte Seiten-/Feldbelege auf Testdokumenten |
 | **R3.3** | GLEIF Level 2 (direkte und oberste Mutter) | P1 | offen | Engineering | R3.1 | Beziehungen mit Quelle und Stand; Ausnahmen sichtbar |
 | **R3.4** | Registerdokumente per Upload | P1 | offen | Engineering | R3.2 | Upload landet nur im Parser-Prozess; Belege mit Seite |
-| **R3.5** | Skill document-intelligence | P1 | offen | Engineering | R0.4 | Prüfpunkte mit Angriffsbeispielen |
+| **R3.5** | Skill document-intelligence | P1 | erledigt | Engineering | R0.4 | Prüfpunkte mit Angriffsbeispielen |
 
 - **R3.1 Isolierter Dokument-Parser.** Eigener Prozess mit Zeit-, Größen-, Seiten- und Speicherlimits; keine externen Entitäten, kein Netz, keine aktiven Inhalte; Schutz vor PDF-/ZIP-Bomben und Pfadmanipulation.
   Baut auf: `sales_tool/imprint.py` (impressum_pdf), `sales_tool/sweep.py` (CSV/ZIP-Import).
   Neu: `sales_tool/research/documents.py`.
+  Stand: 2.0.0-dev71: sales_tool/research/documents.py startet je Dokument einen eigenen Prozess (python -I -S sales_tool/docparse.py, leere Umgebung, leeres Arbeitsverzeichnis, Bytes nur über stdin, Zeitgrenze 30 s); im Kindprozess sperrt ein Prüf-Hook Netz, Prozesse und Schreibzugriffe, Speicher- und CPU-Grenze über resource unter Linux/macOS (Windows: nur Zeit- und Größengrenzen); Grenzen für Eingabe, entpackte Bytes, Seiten, Abschnitte, Elemente, Zeilen, ZIP-Einträge und Packrate; Angriffsbeispiele XXE, Entitäten-Bombe, Flate-Bombe, ZIP-Bombe, ZIP-Pfadmanipulation, verschlüsseltes PDF, aktive Inhalte, Zeitüberschreitung in tests/test_r3_documents.py. PDF-Impressum (imprint.pdf_to_text) liest jetzt über den Parser – vorher Flate ohne Größengrenze. Offen: CSV/ZIP-Katalogimport (sweep, research.catalog) noch nicht über den Parser.
 - **R3.2 PDF, XML und CSV mit Fundstellen.** pypdf für Text, pdfplumber nur bei Tabellen-Mehrwert, defusedxml für XML; jeder Wert mit Seite bzw. Feldpfad.
   Baut auf: `sales_tool/imprint.py`, `sales_tool/research/catalog.py`.
-  Stand: PDF-Impressum und große CSV/ZIP-Kataloge vorhanden (v1.14, v1.17); keine Isolation.
+  Stand: PDF-Impressum und große CSV/ZIP-Kataloge vorhanden (v1.14, v1.17). 2.0.0-dev71: Abschnitte mit Fundstelle (PDF-Seite über den Seitenbaum inkl. Objektströme, XML-Pfad mit Position und Attribut, CSV-Zeile und Spalte, ZIP-Eintrag); Beleg v2 über documents.document_ref, Gegenprüfung documents.verify_document_ref, neue Fundstellenarten xml/csv/doc_text in research.evidence.check_ref; tests/test_r3_documents.py::LocatorTests. Offen: Texte mit eingebetteten Schriften/Hex-Kodierung (pypdf im Parser-Prozess, neue Abhängigkeit), Tabellen (pdfplumber), Belege in der Firmenakte mit R3.4.
 - **R3.3 GLEIF Level 2 (direkte und oberste Mutter).** RR-CDF aus dem Golden-Copy-Download samt Meldeausnahmen; nur tatsächlich gemeldete Konsolidierung, kein vollständiges Eigentum unterstellen.
   Baut auf: `sales_tool/research/catalog.py` (GLEIF Level 1).
   Neu: relation_claim direct_parent/ultimate_parent.
@@ -230,6 +231,7 @@ flowchart LR
   Neu: Upload in Firmenakte → Dokumente.
 - **R3.5 Skill document-intelligence.** PDF/XML/CSV → Isolation, Limits, Fundstellen.
   Neu: `.claude/skills/document-intelligence/SKILL.md`.
+  Stand: 2.0.0-dev71: .claude/skills/document-intelligence/SKILL.md (Prüfliste mit Angriffsbeispielen), tests/test_skills_registry.py.
 
 ### R4 – Organisationsgraph, Buying Center & Dossier
 
@@ -470,7 +472,7 @@ Skills steuern die Arbeit von Claude Code; sie sind keine Laufzeitfunktion und k
 | research-benchmark | vorhanden | neue Extraktion → reproduzierbarer Vergleich | R1.7 |
 | contact-entity-evidence | vorhanden | Person/Rolle → Identität, Beleg, Kandidatenstatus, Sperren | R2.6 |
 | ponytail | vorhanden | Code-Änderung, Fehlerbehebung, Paketwahl → kleinste vollständige Änderung (externes Original, gepinnt, ohne Hooks) | R0.4 |
-| document-intelligence | offen | PDF/XML/CSV → Isolation, Limits, Fundstellen | R3.5 |
+| document-intelligence | vorhanden | PDF/XML/CSV → Isolation, Limits, Fundstellen | R3.5 |
 | organization-graph | offen | Beziehung → Typ, Beleg, Status, Zyklen, Export | R4.7 |
 | saas-operations | offen | Deployment → SBOM, Security, Restore, Mandantentests | R6.11 |
 
@@ -521,10 +523,10 @@ Stand aller 10 UX-Pakete: 2 offen · 7 teilweise · 1 erledigt.
 
 - **U1 Bestandsaufnahme und Funktionsmatrix.** Architektur, Designsystem, Navigation, Schnittstellen und Tests gezählt; Funktionsmatrix der 13 Zielansichten (vorhanden/teilweise/fehlt); Konflikte mit bestehenden Entscheidungen und Vorschlag zur Auflösung.
   Baut auf: `docs/UX_BESTANDSAUFNAHME.md`.
-  Stand: 2.0.0-dev71: docs/UX_BESTANDSAUFNAHME.md; tests/test_plan_structure.py prüft, dass das Dokument existiert.
+  Stand: 2.0.0-dev72: docs/UX_BESTANDSAUFNAHME.md; tests/test_plan_structure.py prüft, dass das Dokument existiert.
 - **U2 Designsystem Professional Light / Research Dark.** Theme „Professionell“ (Primär #2447A8, Navigation #14161A, Hintergrund #FAFAF8, Linien #E3E2DC, Positiv #1D7A4C, Kritisch #A32B2B, Warnung #B4610E, Neutral #6B7280), Radius 6 px, Geist und JetBrains Mono lokal mit Prüfsumme, Dichten Kompakt 32 / Standard 40 / Komfort 52 px, hell/dunkel/System, Kontrast je Theme geprüft. Offen: Altwerte direkt im CSS (≤ 10-px-Schriften, 9 Radien, 22 Schatten, 3 Animationen).
   Baut auf: `sales_tool/public/style.css`, `sales_tool/appearance.py`, `sales_tool/public/fonts/fonts.json`.
-  Stand: 2.0.0-dev71: Theme, Schriften, Dichten und Rolle „positiv“; tests/test_ux_design_system.py, tests/test_v2_appearance.py, tests/e2e/test_appearance_browser.py. Altwerte im CSS noch offen.
+  Stand: 2.0.0-dev72: Theme, Schriften, Dichten und Rolle „positiv“; tests/test_ux_design_system.py, tests/test_v2_appearance.py, tests/e2e/test_appearance_browser.py. Altwerte im CSS noch offen.
 - **U3 Application Shell.** Einklappbare Navigation auf dem Desktop, optionale Filter-Seitenleiste, rechtes Detailpanel (472 px) als Schnellansicht neben Listen – die Firmenakte bleibt die Vollansicht (M07 Variante B) –, Benachrichtigungen neben der Aufträge-Übersicht, Befehle in Strg+K.
   Baut auf: `sales_tool/public/nav.js`, `sales_tool/public/search.js`, `sales_tool/public/jobs.js`.
   Stand: vorhanden: sechs Bereiche mit Reitern, Strg+K-Suche, Aufträge-Übersicht, mobile Schublade (Bestandsaufnahme Abschnitt 2).

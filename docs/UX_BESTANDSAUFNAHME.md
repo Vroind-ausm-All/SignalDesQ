@@ -1,6 +1,6 @@
 # UX-Bestandsaufnahme und Funktionsmatrix (UX-Programm, Phase U1)
 
-Stand 2.0.0-dev71, 26.11.2026. Grundlage: Auftrag „Product Design & UX Architecture 2.0“ (Phasen 1–10) und der Code auf `main`.
+Stand 2.0.0-dev72, 26.11.2026. Grundlage: Auftrag „Product Design & UX Architecture 2.0“ (Phasen 1–10) und der Code auf `main`.
 Alle Zahlen unten sind aus dem Repository gezählt bzw. gemessen; Bewertungen sind als solche gekennzeichnet.
 Der im Auftrag genannte **separate Explorer-Designprompt liegt nicht vor** – visuelle Vorgaben stammen daher nur aus Phase 2 des Auftrags.
 
@@ -78,5 +78,5 @@ kommt als **zusätzliches Theme** – bestehende Themes bleiben wählbar; eine g
 
 Die zehn Phasen des Auftrags sind als Pakete **U1–U10** in der Planquelle [`plan/open_intelligence.json`](plan/open_intelligence.json)
 geführt (Status, Nachweis, Abnahme, Bezug zu R-Paketen) und im [Masterplan](MASTERPLAN_OPEN_INTELLIGENCE.md#ux-programm-u1u10)
-dargestellt. Stand 2.0.0-dev71: U1 erledigt, U2 teilweise (Theme „Professionell“, Schriften, Dichten; Altwerte im CSS offen),
+dargestellt. Stand 2.0.0-dev72: U1 erledigt, U2 teilweise (Theme „Professionell“, Schriften, Dichten; Altwerte im CSS offen),
 U3–U8 teilweise (Grundlagen vorhanden, siehe Abschnitt 2), U9 und U10 offen.

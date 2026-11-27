@@ -28,12 +28,12 @@ from tmpclean import cleanup_tmp  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 PUBLIC = ROOT / 'sales_tool' / 'public'
 CSS = (PUBLIC / 'style.css').read_text(encoding='utf-8')
-THEMES = ('klassisch', 'schiefer', 'sand', 'kontrast', 'professionell')  # dev71: Professionell ist Standard für neue Installationen
+THEMES = ('klassisch', 'schiefer', 'sand', 'kontrast', 'professionell')  # dev72: Professionell ist Standard für neue Installationen
 HEX = re.compile(r'#[0-9a-fA-F]{3,8}\b')
 # 2.0.0-dev49: Maße des UI-Baukastens stehen im Grundblock, sind aber keine Farbrollen – der Dunkelmodus muss sie nicht wiederholen.
 LAYOUT_TOKENS = ('--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--row', '--ctl', '--side', '--ui-cols',  # dev50: Listenspalten
                  '--list',  # dev53: Breite der Abschnittsliste (Maß, keine Farbe)
-                 '--radius', '--table-row')  # dev71: Ecken und Tabellenzeile (Maße)
+                 '--radius', '--table-row')  # dev72: Ecken und Tabellenzeile (Maße)
 
 
 def _strip(css):
@@ -90,7 +90,7 @@ PAIRS = (('ink', 'surface', 7), ('ink', 'bg', 7), ('ink-2', 'surface', 4.5), ('m
          ('info-fg', 'info-bg', 4.5), ('warn-fg', 'surface', 4.5), ('danger-fg', 'surface', 4.5), ('info-fg', 'surface', 4.5),
          ('violet-fg', 'surface', 4.5), ('on-dark', 'nav-bg', 7), ('on-dark-muted', 'nav-bg', 4.5), ('on-dark-faint', 'nav-bg', 4.5),
          ('on-dark-accent', 'nav-bg', 4.5), ('on-dark', 'nav-bg-2', 4.5), ('on-dark', 'toast-error', 4.5),
-         ('ok-fg', 'surface', 4.5), ('ok-fg', 'ok-bg', 4.5), ('ok-strong', 'surface', 3))  # dev71: eigene Rolle „positiv“
+         ('ok-fg', 'surface', 4.5), ('ok-fg', 'ok-bg', 4.5), ('ok-strong', 'surface', 3))  # dev72: eigene Rolle „positiv“
 
 
 class StylesheetTests(unittest.TestCase):

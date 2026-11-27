@@ -108,6 +108,10 @@
     f.fetcher.value = r.settings.fetcher; f.parser.value = r.settings.parser; f.browser_fallback.value = String(r.settings.browser_fallback);
     f.content.value = r.settings.content || 'stdlib'; if (f.mode) f.mode.value = r.settings.mode || 'deep';
     if (f.nlp) f.nlp.value = String(Boolean(r.settings.nlp));
+    if (f.daily_pages) f.daily_pages.value = String(r.settings.daily_pages || 0);
+    if ($('#rtDaily') && r.daily) {  // R1.4: Tagesbudget je Organisation
+      $('#rtDaily').textContent = r.daily.max_pages ? `Heute ${r.daily.pages} von ${r.daily.max_pages} Seiten${r.daily.exhausted ? ' – erreicht, Website-Aufträge warten bis morgen' : ''}` : `Heute ${r.daily.pages} Seiten abgerufen`;
+    }
     $('#rtNotice').textContent = r.notice;
     $('#rtStatus').textContent = `In Benutzung: Auswertung ${r.parser_in_use === 'scrapling' ? 'Scrapling ' + r.scrapling.version : 'eingebaut'}`
       + ` · Scrapling ${r.scrapling.installed ? 'installiert' : 'nicht installiert (optional: requirements-research.txt)'}`
@@ -229,7 +233,7 @@
     $('#rtForm')?.addEventListener('submit', e => {
       e.preventDefault();
       const f = e.target.elements;
-      act(() => api('/research/settings', 'POST', {fetcher: f.fetcher.value, parser: f.parser.value, content: f.content.value, browser_fallback: f.browser_fallback.value === 'true', mode: f.mode.value, ...(f.nlp ? {nlp: f.nlp.value === 'true'} : {})}),
+      act(() => api('/research/settings', 'POST', {fetcher: f.fetcher.value, parser: f.parser.value, content: f.content.value, browser_fallback: f.browser_fallback.value === 'true', mode: f.mode.value, ...(f.daily_pages ? {daily_pages: Number(f.daily_pages.value)} : {}), ...(f.nlp ? {nlp: f.nlp.value === 'true'} : {})}),
         'Recherche-Technik gespeichert');
     });
     $('#serviceProfileForm')?.addEventListener('submit', e => {

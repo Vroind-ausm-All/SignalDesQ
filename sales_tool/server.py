@@ -229,7 +229,7 @@ def validate(fields: dict, partial=False):
 
 
 STATIC_FILES = {"/": ("index.html", "text/html"),
-    # 2.0.0-dev71: lokale Schriften des Themes „Professionell“ (OFL-1.1, Prüfsummen in public/fonts/fonts.json)
+    # 2.0.0-dev72: lokale Schriften des Themes „Professionell“ (OFL-1.1, Prüfsummen in public/fonts/fonts.json)
     "/fonts/geist-400.woff2": ("fonts/geist-400.woff2", "font/woff2"), "/fonts/geist-500.woff2": ("fonts/geist-500.woff2", "font/woff2"), "/fonts/geist-600.woff2": ("fonts/geist-600.woff2", "font/woff2"), "/fonts/jetbrains-mono-400.woff2": ("fonts/jetbrains-mono-400.woff2", "font/woff2"), "/fonts/jetbrains-mono-500.woff2": ("fonts/jetbrains-mono-500.woff2", "font/woff2"), 
     "/app.js": ("app.js", "text/javascript"),
     "/style.css": ("style.css", "text/css"), "/theme.js": ("theme.js", "text/javascript"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),

@@ -1,4 +1,4 @@
-"""UX-Programm U2 (2.0.0-dev71): Designsystem „Professionell“ (Professional Light / Research Dark).
+"""UX-Programm U2 (2.0.0-dev72): Designsystem „Professionell“ (Professional Light / Research Dark).
 
 Geprüft wird, was sich ohne Browser prüfen lässt:
 - Schriften liegen im Repository mit Lizenz und passender Prüfsumme und werden lokal ausgeliefert (kein CDN);

@@ -28,7 +28,7 @@ OWNERS = ('Engineering', 'Eigentümer', 'Betrieb', 'Extern', 'Recht', 'Steuerber
 PACKAGE_KEYS = {'id', 'titel', 'prio', 'status', 'verantwortlich', 'inhalt', 'basis', 'neu', 'abhaengig_von', 'abnahme'}
 OPTIONAL_KEYS = {'nachweis', 'weich_abhaengig_von'}
 PATH_PREFIXES = ('sales_tool/', 'tools/', 'tests/', 'docs/', '.claude/', '.github/', 'deploy/')
-# 2.0.0-dev71: UX-Programm U1–U10 neben R1–R7 (Auftrag „Product Design & UX Architecture 2.0“)
+# 2.0.0-dev72: UX-Programm U1–U10 neben R1–R7 (Auftrag „Product Design & UX Architecture 2.0“)
 UX_IDS = [f'U{i}' for i in range(1, 11)]
 UX_KEYS = {'id', 'titel', 'status', 'inhalt', 'basis', 'bezug', 'abnahme'}
 
@@ -385,7 +385,7 @@ def render_roadmap_section(plan):
           'Kein öffentlicher Start vor bestandener R6-Nachprüfung.', '',
           '**Wartet auf Entscheidungen oder Nachweise außerhalb des Engineerings:** '
           + '; '.join(f"{p['id']} ({p['verantwortlich']})" for p in blocked) + '.', '',
-          f"**UX-Programm U1–U10 (ab 2.0.0-dev71):** {_count_text(counts(plan['ux_programm']['pakete']))} – Pakete und Abnahmen im "
+          f"**UX-Programm U1–U10 (ab 2.0.0-dev72):** {_count_text(counts(plan['ux_programm']['pakete']))} – Pakete und Abnahmen im "
           '[Masterplan](MASTERPLAN_OPEN_INTELLIGENCE.md#ux-programm-u1u10), Bestandsaufnahme in [UX_BESTANDSAUFNAHME.md](UX_BESTANDSAUFNAHME.md).', '', END]
     return '\n'.join(L)
 

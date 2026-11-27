@@ -93,7 +93,7 @@ def build(version=None):
                     'licenses': [{'expression': 'CC-BY-4.0'}] if 'CC BY 4.0' in head.get('license', '') else [{'license': {'name': head.get('license', 'NOASSERTION')}}],
                     'hashes': [{'alg': 'SHA-256', 'content': hashlib.sha256(f.read_bytes()).hexdigest()}],
                     'properties': [{'name': 'signaldesk:attribution', 'value': head.get('license', '')}]})
-    fonts = ROOT / 'sales_tool' / 'public' / 'fonts' / 'fonts.json'  # 2.0.0-dev71: lokal ausgelieferte Schriften (Theme „Professionell“)
+    fonts = ROOT / 'sales_tool' / 'public' / 'fonts' / 'fonts.json'  # 2.0.0-dev72: lokal ausgelieferte Schriften (Theme „Professionell“)
     for f in (json.loads(fonts.read_text(encoding='utf-8'))['files'] if fonts.exists() else []):
         out.append({'type': 'file', 'bom-ref': f"font:{f['file']}", 'name': f"{f['family']} {f['weight']} ({f['file']})", 'version': f['version'],
                     'description': f"{f['package']} {f['version']}, {f['source_path']}", 'scope': 'required',

@@ -8,6 +8,8 @@ Je Schritt (auch nach jeder Weiterleitung):
 4. Weiterleitungen selbst auswerten: höchstens 5, nur dieselbe Firma, jede neu geprüft.
 5. Grenzen: Inhaltstyp, Content-Length, gestreamtes Lesen mit Höchstgröße, Gesamtzeit, gzip/deflate nur mit
    Größenbremse (gzip-Bomben). Kein Tarnen, keine Proxys, keine Wiederholungsschleifen.
+6. Bedingter Abruf (R1.4): liegt eine frühere Fassung vor, gehen ETag/Last-Modified als If-None-Match/If-Modified-Since mit;
+   HTTP 304 liefert ein Ergebnis ohne Inhalt, das ``research.fetchers.fetch`` aus dem Zwischenspeicher ergänzt.
 """
 from __future__ import annotations
 
@@ -49,8 +51,9 @@ def _now():
     return dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
-def _single(url, policy, deadline, accept, limit_for):
-    """Ein Abruf ohne Weiterleitung. Gibt (status, headers, body, ip) zurück."""
+def _single(url, policy, deadline, accept, limit_for, conditional=None):
+    """Ein Abruf ohne Weiterleitung. Gibt (status, headers, body, ip) zurück. ``conditional``: Prüfmerkmale einer früheren
+    Fassung (``etag``, ``last_modified``) → bedingter Abruf, der Server antwortet bei unveränderter Seite mit 304 ohne Inhalt."""
     p = urlsplit(url)
     port = p.port or (443 if p.scheme == 'https' else 80)
     ips = resolve_public(p.hostname, port)
@@ -61,11 +64,16 @@ def _single(url, policy, deadline, accept, limit_for):
     conn = cls(p.hostname, port, ips[0], min(policy.timeout, remaining))
     path = (p.path or '/') + (f'?{p.query}' if p.query else '')
     try:
-        conn.request('GET', path, headers={'User-Agent': policy.user_agent, 'Accept': accept, 'Accept-Encoding': 'gzip, deflate',
-                                           'Accept-Language': 'de,en;q=0.5', 'Connection': 'close'})
+        headers = {'User-Agent': policy.user_agent, 'Accept': accept, 'Accept-Encoding': 'gzip, deflate',
+                   'Accept-Language': 'de,en;q=0.5', 'Connection': 'close'}
+        for key, name in (('etag', 'If-None-Match'), ('last_modified', 'If-Modified-Since')):
+            value = (conditional or {}).get(key) or ''
+            if value and '\r' not in value and '\n' not in value and len(value) <= 200:
+                headers[name] = value
+        conn.request('GET', path, headers=headers)
         resp = conn.getresponse()
         status, headers = resp.status, {k.lower(): v for k, v in resp.getheaders()}
-        if 300 <= status < 400:
+        if 300 <= status < 400:  # Weiterleitung oder 304 „unverändert“: kein Inhalt lesen
             return status, headers, b'', ips[0]
         ctype = (headers.get('content-type') or '').split(';')[0].strip().lower()
         limit = limit_for(ctype)
@@ -144,7 +152,7 @@ def robots_check(url, policy=pol.DEFAULT_POLICY):
 def _robots_policy(policy):
     from dataclasses import replace
     return replace(policy, respect_robots=False, max_html=policy.max_robots, allowed_types=policy.allowed_types + ('',),
-                   extra={**policy.extra, 'robots': True})
+                   extra={**{k: v for k, v in policy.extra.items() if k != 'conditional'}, 'robots': True})
 
 
 def fetch(url, policy=pol.DEFAULT_POLICY, origin=None):
@@ -156,6 +164,7 @@ def fetch(url, policy=pol.DEFAULT_POLICY, origin=None):
     redirects, robots_note = [], 'nicht geprüft'
     accept = 'text/html,application/xhtml+xml,application/pdf;q=0.9,*/*;q=0.5'
     is_robots = policy.extra.get('robots')
+    conditional = policy.extra.get('conditional') or None  # R1.4: nur für die Start-URL, nie nach einer Weiterleitung
 
     def limit_for(ctype):
         return policy.max_pdf if ctype == 'application/pdf' else policy.max_html
@@ -168,8 +177,15 @@ def fetch(url, policy=pol.DEFAULT_POLICY, origin=None):
             if not ok:
                 raise FetchError('robots.txt untersagt den Abruf dieser Seite.' + (f' ({reason})' if reason != 'robots.txt' else ''), 'robots')
             robots_note = 'erlaubt'
-        status, headers, body, ip = _single(current, policy, deadline, accept, limit_for)
-        if 300 <= status < 400 and status != 304:
+        status, headers, body, ip = _single(current, policy, deadline, accept, limit_for, conditional if hop == 0 else None)
+        if status == 304:
+            if not (conditional and hop == 0):
+                raise FetchError('HTTP 304 ohne bedingte Anfrage.', 'http', status=304)
+            return FetchResult(source_url=url, final_url=current, status=304, content_type='', body=b'', fetched_at=_now(),
+                               fetcher=NAME, redirects=redirects, robots=robots_note if not is_robots else 'robots.txt', peer_ip=ip,
+                               elapsed_ms=int((time.monotonic() - started) * 1000), etag=headers.get('etag', ''),
+                               last_modified=headers.get('last-modified', ''))
+        if 300 <= status < 400:
             loc = headers.get('location')
             if not loc:
                 raise FetchError(f'Weiterleitung (HTTP {status}) ohne Ziel.', 'redirect')
@@ -197,5 +213,6 @@ def fetch(url, policy=pol.DEFAULT_POLICY, origin=None):
             charset = ctype_full.lower().split('charset=', 1)[1].split(';')[0].strip(' "\'')
         return FetchResult(source_url=url, final_url=current, status=status, content_type=ctype, body=body, fetched_at=_now(),
                            fetcher=NAME, charset=charset, redirects=redirects, robots=robots_note if not is_robots else 'robots.txt',
-                           peer_ip=ip, elapsed_ms=int((time.monotonic() - started) * 1000))
+                           peer_ip=ip, elapsed_ms=int((time.monotonic() - started) * 1000), etag=headers.get('etag', ''),
+                           last_modified=headers.get('last-modified', ''))
     raise FetchError('Zu viele Weiterleitungen.', 'redirect')

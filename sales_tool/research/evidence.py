@@ -111,7 +111,7 @@ def structured_evidence(org, source_url, source_html, checked_at=''):
 # Wortlaut ergeben bzw. derselbe JSON-Pfad denselben Wert.
 
 EVIDENCE_VERSION = 2
-LOCATOR_KINDS = ('text', 'json', 'pdf')
+LOCATOR_KINDS = ('text', 'json', 'pdf', 'xml', 'csv', 'doc_text')  # R3.2: XML-Pfad, CSV-Zeile/Spalte, Textzeile eines Dokuments
 REVIEW_STATES = ('ungeprueft', 'bestaetigt', 'verworfen')
 
 
@@ -197,6 +197,17 @@ def check_ref(ref):
     elif kind == 'pdf':
         if not (isinstance(loc.get('page'), int) and loc['page'] >= 1 and loc.get('quote')):
             errors.append('PDF-Seite oder Wortlaut fehlt')
+    elif kind == 'xml':
+        if not (str(loc.get('path') or '').startswith('/') and loc.get('quote')):
+            errors.append('XML-Pfad oder Wortlaut fehlt')
+    elif kind == 'csv':
+        if not (isinstance(loc.get('row'), int) and loc['row'] >= 1 and str(loc.get('column') or '').strip() and loc.get('quote')):
+            errors.append('CSV-Zeile, Spalte oder Wortlaut fehlt')
+    elif kind == 'doc_text':
+        if not (isinstance(loc.get('line'), int) and loc['line'] >= 1 and loc.get('quote')):
+            errors.append('Zeile oder Wortlaut fehlt')
+    if kind in ('pdf', 'xml', 'csv', 'doc_text') and loc.get('quote') and str(ref.get('value', '')) not in loc['quote']:
+        errors.append('Wortlaut passt nicht zum Wert')
     if ref.get('review_status', 'ungeprueft') not in REVIEW_STATES:
         errors.append('Prüfstatus ungültig')
     return errors

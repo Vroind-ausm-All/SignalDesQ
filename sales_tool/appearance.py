@@ -13,7 +13,7 @@ THEMES = (
     {'id': 'schiefer', 'label': 'Schiefer', 'hint': 'Kühles Grau mit blauem Akzent, sehr ruhig.'},
     {'id': 'sand', 'label': 'Sand', 'hint': 'Warme Erdtöne mit Terrakotta-Akzent.'},
     {'id': 'kontrast', 'label': 'Kontrast', 'hint': 'Kräftige Linien, keine Pastelltöne – für helle Räume und müde Augen.'},
-    # 2.0.0-dev71 (UX-Programm U2): Standard für neue Installationen; eine gespeicherte Wahl bleibt unverändert
+    # 2.0.0-dev72 (UX-Programm U2): Standard für neue Installationen; eine gespeicherte Wahl bleibt unverändert
     {'id': 'professionell', 'label': 'Professionell', 'hint': 'Blau auf hellem Grund, Schrift Geist, 6 px Ecken – hell „Professional Light“, dunkel „Research Dark“.'},
 )
 MODES = (
