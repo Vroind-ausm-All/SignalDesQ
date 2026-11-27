@@ -116,7 +116,7 @@ def make_multi_handler(directory: tenancy.Directory, allowed_hosts=None, schedul
         def _file(self, name, mime):
             data = (PUBLIC / name).read_bytes()
             self.send_response(200)
-            self.send_header('Content-Type', mime + '; charset=utf-8')
+            self.send_header('Content-Type', mime if mime.startswith('font/') else mime + '; charset=utf-8')  # Schriften: binär
             self.send_header('Content-Length', str(len(data)))
             self._headers()
             self.end_headers()

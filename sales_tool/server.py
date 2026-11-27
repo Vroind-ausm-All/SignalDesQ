@@ -228,7 +228,10 @@ def validate(fields: dict, partial=False):
     return out
 
 
-STATIC_FILES = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
+STATIC_FILES = {"/": ("index.html", "text/html"),
+    # 2.0.0-dev71: lokale Schriften des Themes „Professionell“ (OFL-1.1, Prüfsummen in public/fonts/fonts.json)
+    "/fonts/geist-400.woff2": ("fonts/geist-400.woff2", "font/woff2"), "/fonts/geist-500.woff2": ("fonts/geist-500.woff2", "font/woff2"), "/fonts/geist-600.woff2": ("fonts/geist-600.woff2", "font/woff2"), "/fonts/jetbrains-mono-400.woff2": ("fonts/jetbrains-mono-400.woff2", "font/woff2"), "/fonts/jetbrains-mono-500.woff2": ("fonts/jetbrains-mono-500.woff2", "font/woff2"), 
+    "/app.js": ("app.js", "text/javascript"),
     "/style.css": ("style.css", "text/css"), "/theme.js": ("theme.js", "text/javascript"), "/workspace.js": ("workspace.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
     "/accounting.js": ("accounting.js", "text/javascript"), "/assessment.js": ("assessment.js", "text/javascript"), "/reach.js": ("reach.js", "text/javascript"), "/postcalc.js": ("postcalc.js", "text/javascript"), "/care.js": ("care.js", "text/javascript"), "/messages.js": ("messages.js", "text/javascript"), "/kurzbericht.js": ("kurzbericht.js", "text/javascript"), "/search.js": ("search.js", "text/javascript"), "/aktepage.js": ("aktepage.js", "text/javascript"), "/calendar.js": ("calendar.js", "text/javascript"), "/pilot.js": ("pilot.js", "text/javascript"), "/fachreview.js": ("fachreview.js", "text/javascript"), "/studies.js": ("studies.js", "text/javascript"), "/osmlocal.js": ("osmlocal.js", "text/javascript"), "/finden.js": ("finden.js", "text/javascript"), "/angebote.js": ("angebote.js", "text/javascript"), "/leadfinder.js": ("leadfinder.js", "text/javascript"), "/datacheck.js": ("datacheck.js", "text/javascript"), "/scoring.js": ("scoring.js", "text/javascript"), "/signals.js": ("signals.js", "text/javascript"), "/center.js": ("center.js", "text/javascript"), "/salesint.js": ("salesint.js", "text/javascript"), "/quality.js": ("quality.js", "text/javascript"), "/today.js": ("today.js", "text/javascript"), "/sweep.js": ("sweep.js", "text/javascript"), "/report.js": ("report.js", "text/javascript"), "/quotes.js": ("quotes.js", "text/javascript"), "/offerflow.js": ("offerflow.js", "text/javascript"), "/chances.js": ("chances.js", "text/javascript"), "/tasks.js": ("tasks.js", "text/javascript"), "/pipeline.js": ("pipeline.js", "text/javascript"), "/jobs.js": ("jobs.js", "text/javascript"), "/catalog.js": ("catalog.js", "text/javascript"), "/akte.js": ("akte.js", "text/javascript"), "/formguard.js": ("formguard.js", "text/javascript"), "/nav.js": ("nav.js", "text/javascript"), "/einstellungen.js": ("einstellungen.js", "text/javascript"), "/leadlist.js": ("leadlist.js", "text/javascript"), "/uikit.js": ("uikit.js", "text/javascript"), "/workday.js": ("workday.js", "text/javascript"), "/invoice.css": ("invoice.css", "text/css"), "/offer.css": ("offer.css", "text/css"), "/print.js": ("print.js", "text/javascript"), "/sources.js": ("sources.js", "text/javascript")}
 
@@ -940,7 +943,7 @@ def make_handler(db_path, allowed_hosts=None):
             path, mime = mapping[route]
             payload = (PUBLIC / path).read_bytes()
             self.send_response(200)
-            self.send_header("Content-Type", mime + "; charset=utf-8")
+            self.send_header("Content-Type", mime if mime.startswith("font/") else mime + "; charset=utf-8")  # Schriften: binär, ohne Zeichensatz
             self.send_header("Content-Length", str(len(payload)))
             self._security_headers()
             self.end_headers()

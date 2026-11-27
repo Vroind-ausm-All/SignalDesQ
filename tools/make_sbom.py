@@ -93,6 +93,12 @@ def build(version=None):
                     'licenses': [{'expression': 'CC-BY-4.0'}] if 'CC BY 4.0' in head.get('license', '') else [{'license': {'name': head.get('license', 'NOASSERTION')}}],
                     'hashes': [{'alg': 'SHA-256', 'content': hashlib.sha256(f.read_bytes()).hexdigest()}],
                     'properties': [{'name': 'signaldesk:attribution', 'value': head.get('license', '')}]})
+    fonts = ROOT / 'sales_tool' / 'public' / 'fonts' / 'fonts.json'  # 2.0.0-dev71: lokal ausgelieferte Schriften (Theme „Professionell“)
+    for f in (json.loads(fonts.read_text(encoding='utf-8'))['files'] if fonts.exists() else []):
+        out.append({'type': 'file', 'bom-ref': f"font:{f['file']}", 'name': f"{f['family']} {f['weight']} ({f['file']})", 'version': f['version'],
+                    'description': f"{f['package']} {f['version']}, {f['source_path']}", 'scope': 'required',
+                    'licenses': [{'expression': f['license']}], 'hashes': [{'alg': 'SHA-256', 'content': f['sha256']}],
+                    'externalReferences': [{'type': 'distribution', 'url': f"https://www.npmjs.com/package/{f['package']}/v/{f['version']}"}]})
     out += [comps[k] for k in sorted(comps)]
     refs = [c['bom-ref'] for c in out]
     lic_text = (ROOT / 'LICENSE').read_text(encoding='utf-8')
@@ -122,7 +128,7 @@ def markdown(bom):
             '## Laufzeit und mitgelieferte Daten', '', '| Bestandteil | Version | Lizenz | Nötig? | Hinweis |', '|---|---|---|---|---|']
     lic = lambda c: c['licenses'][0].get('expression') or c['licenses'][0].get('license', {}).get('id') or c['licenses'][0].get('license', {}).get('name')
     for c in bom['components']:
-        if c['type'] in ('platform', 'application', 'data', 'machine-learning-model'):
+        if c['type'] in ('platform', 'application', 'data', 'machine-learning-model', 'file'):
             rows.append(f"| {c['name']} | {c['version']} | {lic(c)} | {'ja' if c['scope'] == 'required' else 'optional'} | {c.get('description', '')} |")
     rows += ['', '## Python-Pakete je Installationsvariante', '',
              'Feste Versionen mit SHA-256-Prüfsummen in `requirements-lock-*.txt`; installiert nur, wenn die Variante es verlangt.', '',

@@ -1,5 +1,32 @@
 # Changelog
 
+## 2.0.0-dev71 – UX-Programm U1/U2: Bestandsaufnahme mit Funktionsmatrix, Designsystem „Professionell“ (hell/dunkel), lokale Schriften, drei Dichten
+
+- **Neu – UX-Bestandsaufnahme (UX-Programm U1):** `docs/UX_BESTANDSAUFNAHME.md` zählt Ansichten, Skripte, Schriftgrößen, Radien,
+  Schatten, Schnittstellen und Tests aus dem Code, bewertet die 13 Zielansichten (vorhanden/teilweise/fehlt, Contact Explorer und
+  Company Compare fehlen) und benennt Konflikte mit bestehenden Entscheidungen (13 Ansichten als Reiter statt neuer Hauptnavigation;
+  Detailpanel als Schnellansicht, die Firmenakte bleibt eigene Seite; Darstellung je Installation; Kartenkacheln erst nach
+  Quellen-Freigabe).
+- **Neu – UX-Programm U1–U10 in der Planquelle:** `docs/plan/open_intelligence.json` führt die zehn UX-Pakete mit Status, Nachweis,
+  Abnahme und Bezug zu den R-Paketen; `tools/plan_status.py` prüft sie wie die R-Pakete und erzeugt den Abschnitt im Masterplan und
+  in der ROADMAP. Stand: 1 erledigt, 7 teilweise, 2 offen.
+- **Neu – Theme „Professionell“ (U2):** Professional Light und Research Dark mit den Farben der Vorgabe (Primär #2447A8,
+  Navigation #14161A, Hintergrund #FAFAF8, Linien #E3E2DC, Positiv #1D7A4C, Kritisch #A32B2B, Warnung #B4610E, Neutral #6B7280),
+  Radius 6 px, ohne Schatten an Karten, Grundschrift 13 px. Standard für **neue** Installationen; eine gespeicherte Wahl bleibt.
+- **Neu – Rolle „positiv“:** Erledigt-, OK- und Gewonnen-Zustände (14 Regeln) nutzen eigene Tokens `--ok-*` statt der Akzentfarbe.
+  In den bisherigen Themes tragen sie die alten Akzentwerte (keine sichtbare Änderung); im blauen Theme bleibt „positiv“ grün.
+  Kontrast je Theme und Modus geprüft.
+- **Neu – Schriften Geist und JetBrains Mono lokal:** fünf WOFF2-Dateien (Fontsource 5.3.0, Zeichensatz „latin“, OFL-1.1) unter
+  `sales_tool/public/fonts/` mit Lizenztext, SHA-256 und npm-Integrität in `fonts.json`; ausgeliefert vom eigenen Server
+  (`font/woff2`), kein CDN. Technische Werte in Tabellen mit gleich breiten Ziffern. SBOM und `docs/BESTANDTEILE.md` führen die Dateien.
+- **Neu – Dichte „Komfort“:** Tabellenzeilen im Theme „Professionell“ Kompakt 32 / Standard 40 / Komfort 52 px.
+- **Tests:** `tests/test_ux_design_system.py` (Prüfsummen und Lizenzen der Schriften, Auslieferung ohne Zeichensatz-Angabe, nur
+  lokale Schrift-URLs, Farben der Vorgabe, Dichten, Standard für neue Installationen, neue Regeln nur im Theme, keine Verläufe,
+  kein Glaseffekt, kein CDN); `tests/test_v2_appearance.py` prüft das fünfte Theme und die Rolle „positiv“ mit; der Browser-Test
+  der Darstellung erwartet „Professionell“ als Standard; `tests/test_plan_structure.py` prüft das UX-Programm.
+- **Offen (ehrlich):** Altwerte im Stylesheet (≤ 10 px Schrift, Radien, Schatten, 3 Animationen) sind nicht umgestellt; keine
+  visuelle Regression mit Bildvergleich; Einstellungen gelten weiter je Installation. Siehe `docs/EINSCHRAENKUNGEN.md`.
+
 ## 2.0.0-dev70 – R2: Personen mit Beleg aus strukturierten Seiten, Rollen normalisiert, Kandidaten-Sichtung getrennt vom CRM, optionales NLP-Profil
 
 - **Neu – Evidence-Vertrag v2 (Plan R2.3):** `sales_tool/research/evidence.py` beschreibt jeden Beleg mit Originalwert,

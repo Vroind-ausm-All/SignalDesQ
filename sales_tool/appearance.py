@@ -13,6 +13,8 @@ THEMES = (
     {'id': 'schiefer', 'label': 'Schiefer', 'hint': 'Kühles Grau mit blauem Akzent, sehr ruhig.'},
     {'id': 'sand', 'label': 'Sand', 'hint': 'Warme Erdtöne mit Terrakotta-Akzent.'},
     {'id': 'kontrast', 'label': 'Kontrast', 'hint': 'Kräftige Linien, keine Pastelltöne – für helle Räume und müde Augen.'},
+    # 2.0.0-dev71 (UX-Programm U2): Standard für neue Installationen; eine gespeicherte Wahl bleibt unverändert
+    {'id': 'professionell', 'label': 'Professionell', 'hint': 'Blau auf hellem Grund, Schrift Geist, 6 px Ecken – hell „Professional Light“, dunkel „Research Dark“.'},
 )
 MODES = (
     {'id': 'system', 'label': 'Wie System'},
@@ -21,9 +23,10 @@ MODES = (
 )
 DENSITIES = (
     {'id': 'normal', 'label': 'Normal'},
-    {'id': 'kompakt', 'label': 'Kompakt', 'hint': 'Weniger Abstand, mehr Zeilen auf dem Bildschirm.'},
+    {'id': 'kompakt', 'label': 'Kompakt', 'hint': 'Weniger Abstand, mehr Zeilen auf dem Bildschirm (Tabellenzeile 32 px im Theme Professionell).'},
+    {'id': 'komfort', 'label': 'Komfort', 'hint': 'Mehr Luft für längeres Lesen (Tabellenzeile 52 px im Theme Professionell).'},
 )
-DEFAULT = {'theme': 'klassisch', 'mode': 'system', 'density': 'normal'}
+DEFAULT = {'theme': 'professionell', 'mode': 'system', 'density': 'normal'}
 _ALLOWED = {'theme': {t['id'] for t in THEMES}, 'mode': {m['id'] for m in MODES},
             'density': {d['id'] for d in DENSITIES}}
 

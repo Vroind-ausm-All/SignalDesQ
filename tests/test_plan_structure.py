@@ -101,6 +101,19 @@ class ValidatorCatchesErrorsTests(unittest.TestCase):
         self.pkg('R3.1')['abhaengig_von'].append('R3.99')
         self.assertError(r'R3\.1: Abhängigkeit R3\.99 unbekannt')
 
+    def test_ux_program_errors(self):
+        """dev71: UX-Programm U1–U10 – gleiche Statusregeln, Bezüge nur auf bekannte R-Pakete."""
+        ux = self.plan['ux_programm']['pakete']
+        ux[3]['bezug'].append('R9.1')
+        ux[4]['status'] = 'erledigt'
+        ux[4]['nachweis'] = 'fertig'
+        ux[8].pop('abnahme')
+        self.assertError(r'U4: Bezug R9\.1 unbekannt')
+        self.assertError(r'U5: erledigt ohne Version im Nachweis')
+        self.assertError(r'U9: fehlende Felder')
+        del ux[9]
+        self.assertError(r'UX-Programm muss genau U1–U10')
+
 
 class GeneratedDocsTests(unittest.TestCase):
     def test_generated_documents_are_current(self):
@@ -114,6 +127,13 @@ class GeneratedDocsTests(unittest.TestCase):
         for pid in ('R0.1', 'R4.2', 'R6.10', 'R7.5'):
             self.assertIn(f'**{pid}**', master)
         self.assertTrue((ROOT / ps.load()['quelle']).exists(), 'Quell-PDF des Plans liegt im Repository')
+
+    def test_ux_program_is_in_plan_and_documents(self):
+        ux = ps.load()['ux_programm']
+        self.assertEqual([p['id'] for p in ux['pakete']], ps.UX_IDS)
+        self.assertTrue((ROOT / 'docs' / 'UX_BESTANDSAUFNAHME.md').exists(), 'U1: Bestandsaufnahme liegt im Repository')
+        self.assertIn('## UX-Programm U1–U10', ps.MASTERPLAN.read_text(encoding='utf-8'))
+        self.assertIn('UX-Programm U1–U10', ps.ROADMAP.read_text(encoding='utf-8'))
 
     def test_baseline_report_exists_when_r01_done(self):
         """R0.1: ein Baseline-Bericht mit Commit, Testläufen, Überspringungen mit Grund und Planstand."""

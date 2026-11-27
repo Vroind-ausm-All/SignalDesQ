@@ -1,6 +1,6 @@
 # Bestandteile und Lizenzen (SBOM)
 
-Automatisch erzeugt mit `tools/make_sbom.py` für SignalDesk 2.0.0-dev70 (maschinenlesbar: `sbom/signaldesk.cdx.json`, CycloneDX 1.5). Nicht von Hand ändern.
+Automatisch erzeugt mit `tools/make_sbom.py` für SignalDesk 2.0.0-dev71 (maschinenlesbar: `sbom/signaldesk.cdx.json`, CycloneDX 1.5). Nicht von Hand ändern.
 
 **SignalDesk selbst:** MIT-Lizenz, Kern ohne Fremdpakete (nur Python-Standardbibliothek).
 
@@ -12,6 +12,11 @@ Automatisch erzeugt mit `tools/make_sbom.py` für SignalDesk 2.0.0-dev70 (maschi
 | Chromium (Playwright-Download) | zur Playwright-Version passend | BSD-3-Clause | optional | Nur Variante browser/team/voll: Browser für JavaScript-Seiten, lädt `playwright install chromium` |
 | de_core_news_sm (spaCy-Modell) | 3.8.0 | MIT | optional | Nur Profil „nlp“ (R2.5): requirements-nlp-model.txt mit SHA-256; Trainingsdaten TIGER, Tiger2Dep, WikiNER – Rechte für gewerblichen Einsatz ungeklärt (E8) |
 | gemeinden_de.json | 2026-11-06 | CC-BY-4.0 | ja | GeoNames Postal Codes DE (https://download.geonames.org/export/zip/) |
+| Geist 400 (geist-400.woff2) | 5.3.0 | OFL-1.1 | ja | @fontsource/geist-sans 5.3.0, files/geist-sans-latin-400-normal.woff2 |
+| Geist 500 (geist-500.woff2) | 5.3.0 | OFL-1.1 | ja | @fontsource/geist-sans 5.3.0, files/geist-sans-latin-500-normal.woff2 |
+| Geist 600 (geist-600.woff2) | 5.3.0 | OFL-1.1 | ja | @fontsource/geist-sans 5.3.0, files/geist-sans-latin-600-normal.woff2 |
+| JetBrains Mono 400 (jetbrains-mono-400.woff2) | 5.3.0 | OFL-1.1 | ja | @fontsource/jetbrains-mono 5.3.0, files/jetbrains-mono-latin-400-normal.woff2 |
+| JetBrains Mono 500 (jetbrains-mono-500.woff2) | 5.3.0 | OFL-1.1 | ja | @fontsource/jetbrains-mono 5.3.0, files/jetbrains-mono-latin-500-normal.woff2 |
 
 ## Python-Pakete je Installationsvariante
 

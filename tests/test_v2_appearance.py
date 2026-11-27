@@ -28,11 +28,12 @@ from tmpclean import cleanup_tmp  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 PUBLIC = ROOT / 'sales_tool' / 'public'
 CSS = (PUBLIC / 'style.css').read_text(encoding='utf-8')
-THEMES = ('klassisch', 'schiefer', 'sand', 'kontrast')
+THEMES = ('klassisch', 'schiefer', 'sand', 'kontrast', 'professionell')  # dev71: Professionell ist Standard für neue Installationen
 HEX = re.compile(r'#[0-9a-fA-F]{3,8}\b')
 # 2.0.0-dev49: Maße des UI-Baukastens stehen im Grundblock, sind aber keine Farbrollen – der Dunkelmodus muss sie nicht wiederholen.
 LAYOUT_TOKENS = ('--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--row', '--ctl', '--side', '--ui-cols',  # dev50: Listenspalten
-                 '--list')  # dev53: Breite der Abschnittsliste (Maß, keine Farbe)
+                 '--list',  # dev53: Breite der Abschnittsliste (Maß, keine Farbe)
+                 '--radius', '--table-row')  # dev71: Ecken und Tabellenzeile (Maße)
 
 
 def _strip(css):
@@ -88,7 +89,8 @@ PAIRS = (('ink', 'surface', 7), ('ink', 'bg', 7), ('ink-2', 'surface', 4.5), ('m
          ('on-dark', 'accent-hover', 4.5), ('accent-strong', 'surface', 3), ('warn-fg', 'warn-bg', 4.5), ('danger-fg', 'danger-bg', 4.5),
          ('info-fg', 'info-bg', 4.5), ('warn-fg', 'surface', 4.5), ('danger-fg', 'surface', 4.5), ('info-fg', 'surface', 4.5),
          ('violet-fg', 'surface', 4.5), ('on-dark', 'nav-bg', 7), ('on-dark-muted', 'nav-bg', 4.5), ('on-dark-faint', 'nav-bg', 4.5),
-         ('on-dark-accent', 'nav-bg', 4.5), ('on-dark', 'nav-bg-2', 4.5), ('on-dark', 'toast-error', 4.5))
+         ('on-dark-accent', 'nav-bg', 4.5), ('on-dark', 'nav-bg-2', 4.5), ('on-dark', 'toast-error', 4.5),
+         ('ok-fg', 'surface', 4.5), ('ok-fg', 'ok-bg', 4.5), ('ok-strong', 'surface', 3))  # dev71: eigene Rolle „positiv“
 
 
 class StylesheetTests(unittest.TestCase):
@@ -169,7 +171,7 @@ class SettingTests(unittest.TestCase):
         cleanup_tmp(self.tmp)
 
     def test_defaults_save_and_validation(self):
-        self.assertEqual(appearance.load(self.conn), {'theme': 'klassisch', 'mode': 'system', 'density': 'normal'})
+        self.assertEqual(appearance.load(self.conn), {'theme': 'professionell', 'mode': 'system', 'density': 'normal'})
         self.assertEqual(appearance.save(self.conn, {'theme': 'Sand', 'mode': 'dunkel'}),
                          {'theme': 'sand', 'mode': 'dunkel', 'density': 'normal'})
         self.assertEqual(appearance.save(self.conn, {'density': 'kompakt'})['theme'], 'sand')  # Teiländerung behält den Rest
@@ -189,7 +191,7 @@ class SettingTests(unittest.TestCase):
 
     def test_unknown_stored_values_fall_back(self):
         put_setting(self.conn, appearance.KEY, {'theme': 'aus-zukunft', 'mode': 'hell', 'density': 7})
-        self.assertEqual(appearance.load(self.conn), {'theme': 'klassisch', 'mode': 'hell', 'density': 'normal'})
+        self.assertEqual(appearance.load(self.conn), {'theme': 'professionell', 'mode': 'hell', 'density': 'normal'})
         put_setting(self.conn, appearance.KEY, 'kaputt')
         self.assertEqual(appearance.load(self.conn), appearance.DEFAULT)
 
@@ -218,7 +220,7 @@ class HttpTests(unittest.TestCase):
 
     def test_roundtrip_and_static_file(self):
         st, d, _ = self.call('GET', '/api/ui/appearance')
-        self.assertEqual((st, d['appearance']['theme'], len(d['themes']), len(d['modes'])), (200, 'klassisch', 4, 3))
+        self.assertEqual((st, d['appearance']['theme'], len(d['themes']), len(d['modes'])), (200, 'professionell', 5, 3))
         st, d, _ = self.call('PUT', '/api/ui/appearance', {'theme': 'kontrast', 'mode': 'hell'})
         self.assertEqual((st, d['appearance']['theme'], d['appearance']['mode']), (200, 'kontrast', 'hell'))
         self.assertEqual(self.call('PUT', '/api/ui/appearance', {'theme': '<script>'})[0], 400)
