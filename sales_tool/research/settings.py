@@ -6,15 +6,18 @@
 - content: Haupttext-Leser 'stdlib' (Standard) oder 'trafilatura' (optional, requirements-research.txt)
 - mode: Recherchemodus der Organisation (R1.4): 'quick', 'deep' (Standard) oder 'org' – Budget je Auftragsschritt
 - nlp: Personennamen zusätzlich mit spaCy vorschlagen (R2.5, Standard aus, requirements-nlp.txt) – nie bestätigt, immer mit Beleg
+- daily_pages: Tagesbudget der Organisation für Website-Abrufe (R1.4, Mandantenbudget); 0 = keine Grenze (nur Einzelplatz)
 """
 from __future__ import annotations
 
 import threading
 
-DEFAULTS = {'fetcher': 'http', 'parser': 'stdlib', 'browser_fallback': True, 'content': 'stdlib', 'mode': 'deep', 'nlp': False}  # Messung S1: Scrapling ohne Vorteil, 2,4× langsamer
+DEFAULTS = {'fetcher': 'http', 'parser': 'stdlib', 'browser_fallback': True, 'content': 'stdlib', 'mode': 'deep', 'nlp': False,
+            'daily_pages': 0}  # Messung S1: Scrapling ohne Vorteil, 2,4× langsamer
 CHOICES = {'fetcher': ('http', 'legacy'), 'parser': ('auto', 'scrapling', 'stdlib'), 'browser_fallback': (True, False),
            'content': ('stdlib', 'trafilatura'), 'mode': ('quick', 'deep', 'org'),  # mode: R1.4, Budget je Auftragsschritt
-           'nlp': (False, True)}  # R2.5: optionales Profil „nlp“ (spaCy), Standard aus
+           'nlp': (False, True),  # R2.5: optionales Profil „nlp“ (spaCy), Standard aus
+           'daily_pages': (0, 200, 1000, 5000)}  # R1.4: Tagesbudget (Seiten je Tag und Organisation), 0 = keine Grenze
 KEY = 'research_settings'
 _LOCK = threading.Lock()
 # SDQ-036 (Prüfbericht F04): Schalter je Organisation. _BY_DB hält sie je Datenbank (wie der Offline-Schalter); _CURRENT gilt
@@ -89,6 +92,8 @@ def save(conn, data):
     validate(data, key)
     merged = {**DEFAULTS, **get_setting_safe(conn), **data}  # Ausgangspunkt ist der Eintrag dieser Datenbank, nie ein fremder
     put_setting(conn, KEY, merged)
+    from .budget import save_usage
+    save_usage(conn)
     conn.commit()
     with _LOCK:
         _BY_DB[key] = dict(merged)
@@ -115,9 +120,11 @@ def status():
             version = scrapling.__version__
         except Exception:  # noqa: BLE001
             version = '?'
-    from .budget import modes
+    from .budget import daily_usage, modes
     from .extractors import nlp
-    return {'settings': get(), 'modes': modes(), 'parser_in_use': engine(), 'scrapling': {'installed': bool(version), 'version': version},
+    from .pagecache import stats as cache_stats
+    return {'settings': get(), 'modes': modes(), 'daily': daily_usage(), 'daily_choices': list(CHOICES['daily_pages']),
+            'page_cache': cache_stats(), 'parser_in_use': engine(), 'scrapling': {'installed': bool(version), 'version': version},
             'browser': {'installed': browser.available()}, 'trafilatura': {'installed': trafilatura_available()},
             'nlp': {'installed': nlp.available(), 'model': nlp.MODEL},
             'notice': 'Abruf immer mit IP-Pinning, robots.txt (RFC 9309) und Größenbremsen. Scrapling dient nur der HTML-Auswertung; '

@@ -10,7 +10,8 @@ from ...website_analyzer import CrawlError
 
 
 class FetchError(CrawlError):
-    """Abruf gescheitert. ``kind``: robots, ssrf, redirect, size, timeout, http, content_type, network, encoding, offline, source (Source Registry)."""
+    """Abruf gescheitert. ``kind``: robots, ssrf, redirect, size, timeout, http, content_type, network, encoding, offline, source (Source Registry),
+    budget (Auftrags- oder Tagesbudget der Organisation)."""
 
     def __init__(self, message, kind='network', status=None, retry_after=None):
         super().__init__(message)
@@ -32,6 +33,9 @@ class FetchResult:
     peer_ip: str = ''
     elapsed_ms: int = 0
     warnings: list = field(default_factory=list)
+    etag: str = ''            # R1.4: Prüfmerkmale für bedingte Abrufe (If-None-Match / If-Modified-Since)
+    last_modified: str = ''
+    revalidated: bool = False  # True: Server meldete „unverändert“ (HTTP 304), Inhalt aus dem Zwischenspeicher dieser Organisation
 
     @property
     def content_hash(self):

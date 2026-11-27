@@ -13,7 +13,6 @@ import datetime as dt
 import html
 import re
 import time
-import zlib
 from html.parser import HTMLParser
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin, urlsplit, urlunsplit
@@ -115,66 +114,20 @@ def html_to_text(raw: bytes):
     return '\n'.join(l for l in lines if l), parser.links, parser.mailtos
 
 
-# ---------------------------------------------------------------- PDF (einfach, ohne Abhängigkeiten)
-
-def _pdf_string(s: bytes) -> str:
-    out, i = bytearray(), 0
-    esc = {b'n': b'\n', b'r': b'\r', b't': b'\t', b'b': b'\b', b'f': b'\f', b'(': b'(', b')': b')', b'\\': b'\\'}
-    while i < len(s):
-        c = s[i:i + 1]
-        if c == b'\\' and i + 1 < len(s):
-            nxt = s[i + 1:i + 2]
-            if nxt in esc:
-                out += esc[nxt]
-                i += 2
-                continue
-            m = re.match(rb'[0-7]{1,3}', s[i + 1:i + 4])
-            if m:
-                out.append(int(m.group(0), 8) & 0xFF)
-                i += 1 + len(m.group(0))
-                continue
-            i += 1
-            continue
-        out += c
-        i += 1
-    try:
-        return out.decode('utf-8')
-    except UnicodeDecodeError:
-        return out.decode('cp1252', 'replace')
-
+# ---------------------------------------------------------------- PDF (isolierter Dokument-Parser, R3.1)
 
 def pdf_to_text(raw: bytes) -> str:
-    """Best effort: liest Text aus unkomprimierten und Flate-komprimierten Inhaltsströmen.
+    """Best effort: Text eines PDF-Impressums – gelesen im isolierten Dokument-Parser (R3.1, research.documents).
 
-    PDFs mit eingebetteten CID-Schriften/Subset-Kodierungen liefern oft keinen lesbaren Text –
-    dann bleibt das Ergebnis leer und das Impressum muss manuell geprüft werden.
+    Flate-Ströme mit Größenbremse (PDF-Bomben), Seitenbaum, keine aktiven Inhalte. PDFs mit eingebetteten CID-Schriften/
+    Subset-Kodierungen liefern oft keinen lesbaren Text – dann bleibt das Ergebnis leer und das Impressum muss manuell
+    geprüft werden. Ein abgewiesenes PDF ergibt ebenfalls leeren Text (Hinweis im Protokoll des Aufrufers).
     """
-    chunks = []
-    for m in re.finditer(rb'<<(.*?)>>\s*stream\r?\n(.*?)\r?\nendstream', raw, re.S):
-        head, body = m.group(1), m.group(2)
-        if b'/FlateDecode' in head:
-            try:
-                body = zlib.decompress(body)
-            except zlib.error:
-                continue
-        elif b'/Filter' in head:
-            continue
-        if b'BT' not in body:
-            continue
-        lines, current = [], []
-        for tok in re.finditer(rb'\((?:\\.|[^\\)])*\)|\[(?:[^\]]*)\]\s*TJ|T\*|Td|TD|ET|\'|"', body, re.S):
-            t = tok.group(0)
-            if t.startswith(b'('):
-                current.append(_pdf_string(t[1:-1]))
-            elif t.startswith(b'['):
-                current.append(''.join(_pdf_string(x[1:-1]) for x in re.findall(rb'\((?:\\.|[^\\)])*\)', t)))
-            elif current:
-                lines.append(''.join(current))
-                current = []
-        if current:
-            lines.append(''.join(current))
-        chunks.extend(l.strip() for l in lines if l.strip())
-    text = '\n'.join(chunks)
+    from .research import documents
+    try:
+        text = documents.parse(raw, 'pdf').text
+    except documents.DocumentRejected:
+        return ''
     letters = sum(ch.isalpha() for ch in text)
     return text if text and letters / max(1, len(text)) > 0.5 else ''
 

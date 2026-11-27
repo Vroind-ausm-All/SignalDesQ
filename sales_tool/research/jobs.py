@@ -228,6 +228,10 @@ def claim(conn, kinds=None):
         if netpolicy.offline(tenancy.conn_key(conn)):  # v1.19: Aufträge mit Internetbedarf warten im Offline-Modus
             sql += f" AND t.kind NOT IN ({','.join('?' * len(netpolicy.NETWORK_KINDS))})"
             args += list(netpolicy.NETWORK_KINDS)
+        from . import budget
+        if budget.daily_exhausted(tenancy.conn_key(conn)):  # R1.4: Tagesbudget aufgebraucht → Website-Aufträge warten bis morgen
+            sql += f" AND t.kind NOT IN ({','.join('?' * len(WEB_KINDS))})"
+            args += list(WEB_KINDS)
         row = conn.execute(sql + ' ORDER BY j.priority, t.id LIMIT 1', args).fetchone()
         if not row:
             conn.commit()
@@ -289,6 +293,8 @@ LEAD_OF = {'website_audit': 'audit_id', 'career_scan': 'scan_id', 'ki_analyse': 
            'ansprechpartner': 'run_id', 'lead_imprint': 'lead_id'}
 # Der Firmen-Bericht prüft die Sperre je Schritt selbst und zeigt „übersprungen“ (report.run_report).
 UNGUARDED = {'report', 'sweep_source', 'sweep_finish', 'osm_import', 'catalog_import'}
+# R1.4: Auftragsarten, die Websites abrufen und deshalb warten, solange das Tagesbudget der Organisation aufgebraucht ist.
+WEB_KINDS = ('website', 'report', 'lead_imprint', 'website_audit', 'career_scan', 'schnellpruefung', 'ansprechpartner')
 
 
 def _lead_of(conn, kind, ref):
@@ -390,7 +396,12 @@ def _run_one(db_path, kinds=None):
         status, error = 'skipped', str(exc)
     except Exception as exc:  # noqa: BLE001 – ein Schritt darf den Auftrag nie stoppen
         status, error = 'failed', f'{exc.__class__.__name__}: {exc}'
-    if spent.exhausted:
+    daily_postponed = False
+    if spent.daily_refused and status != 'done':
+        # R1.4: Tagesbudget der Organisation erreicht – der Schritt ist nicht gescheitert, er läuft morgen weiter (der Versuch zählt nicht).
+        status, delay, daily_postponed = 'retry', budget.seconds_until_tomorrow(), True
+        error = 'Tagesbudget der Organisation erreicht – Schritt läuft morgen weiter.'
+    elif spent.exhausted:
         # Ein aufgebrauchtes Budget wird nicht wiederholt (sonst endlose Versuche mit frischem Budget); das Teilergebnis bleibt.
         if status == 'retry':
             status, delay = 'failed', None
@@ -398,6 +409,9 @@ def _run_one(db_path, kinds=None):
         error = f'{error} · {note}' if error else note
         result = {**(result if isinstance(result, dict) else {}), 'budget': spent.summary()}
     with connect(db_path) as conn:
+        if daily_postponed:
+            conn.execute('UPDATE research_tasks SET attempts=MAX(attempts-1, 0) WHERE id=?', (task['id'],))
+        budget.save_usage(conn)  # R1.4: Tagesstand der Organisation festhalten (übersteht einen Neustart)
         _finish(conn, conn.execute('SELECT * FROM research_tasks WHERE id=?', (task['id'],)).fetchone(), status, result, error, delay)
     return True
 
