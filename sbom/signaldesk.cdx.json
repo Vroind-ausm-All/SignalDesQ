@@ -1,7 +1,7 @@
 {
  "bomFormat": "CycloneDX",
  "specVersion": "1.5",
- "serialNumber": "urn:uuid:6b3cb3aa-f68a-5a51-9c49-c4e9e4b208ab",
+ "serialNumber": "urn:uuid:e30bea96-efc7-57c8-9af3-9d7fb2b2d1e2",
  "version": 1,
  "metadata": {
   "tools": {
@@ -9,7 +9,7 @@
     {
      "type": "application",
      "name": "tools/make_sbom.py",
-     "version": "2.0.0-dev71"
+     "version": "2.0.0-dev72"
     }
    ]
   },
@@ -17,7 +17,7 @@
    "type": "application",
    "bom-ref": "signaldesk",
    "name": "SignalDesk",
-   "version": "2.0.0-dev71",
+   "version": "2.0.0-dev72",
    "licenses": [
     {
      "license": {
@@ -96,6 +96,131 @@
     {
      "name": "signaldesk:attribution",
      "value": "CC BY 4.0 – Ortsdaten: GeoNames (www.geonames.org)"
+    }
+   ]
+  },
+  {
+   "type": "file",
+   "bom-ref": "font:geist-400.woff2",
+   "name": "Geist 400 (geist-400.woff2)",
+   "version": "5.3.0",
+   "description": "@fontsource/geist-sans 5.3.0, files/geist-sans-latin-400-normal.woff2",
+   "scope": "required",
+   "licenses": [
+    {
+     "expression": "OFL-1.1"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "e6ef6abb39c762ed2259cc814e6f16888c540cd84835962227b56ab2354f27f1"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://www.npmjs.com/package/@fontsource/geist-sans/v/5.3.0"
+    }
+   ]
+  },
+  {
+   "type": "file",
+   "bom-ref": "font:geist-500.woff2",
+   "name": "Geist 500 (geist-500.woff2)",
+   "version": "5.3.0",
+   "description": "@fontsource/geist-sans 5.3.0, files/geist-sans-latin-500-normal.woff2",
+   "scope": "required",
+   "licenses": [
+    {
+     "expression": "OFL-1.1"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "40073e90816315c92e4f4381bd50b6fdc950b22b0dd010a4179046cf588d4f12"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://www.npmjs.com/package/@fontsource/geist-sans/v/5.3.0"
+    }
+   ]
+  },
+  {
+   "type": "file",
+   "bom-ref": "font:geist-600.woff2",
+   "name": "Geist 600 (geist-600.woff2)",
+   "version": "5.3.0",
+   "description": "@fontsource/geist-sans 5.3.0, files/geist-sans-latin-600-normal.woff2",
+   "scope": "required",
+   "licenses": [
+    {
+     "expression": "OFL-1.1"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "9d99fbd791968493fa507ac846de561cee47b00f8100c23cad333b3cb78392d6"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://www.npmjs.com/package/@fontsource/geist-sans/v/5.3.0"
+    }
+   ]
+  },
+  {
+   "type": "file",
+   "bom-ref": "font:jetbrains-mono-400.woff2",
+   "name": "JetBrains Mono 400 (jetbrains-mono-400.woff2)",
+   "version": "5.3.0",
+   "description": "@fontsource/jetbrains-mono 5.3.0, files/jetbrains-mono-latin-400-normal.woff2",
+   "scope": "required",
+   "licenses": [
+    {
+     "expression": "OFL-1.1"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "14425ba9c695763c1547f48a206b7aa60350a33ae23de09f0407877f3fcd89eb"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://www.npmjs.com/package/@fontsource/jetbrains-mono/v/5.3.0"
+    }
+   ]
+  },
+  {
+   "type": "file",
+   "bom-ref": "font:jetbrains-mono-500.woff2",
+   "name": "JetBrains Mono 500 (jetbrains-mono-500.woff2)",
+   "version": "5.3.0",
+   "description": "@fontsource/jetbrains-mono 5.3.0, files/jetbrains-mono-latin-500-normal.woff2",
+   "scope": "required",
+   "licenses": [
+    {
+     "expression": "OFL-1.1"
+    }
+   ],
+   "hashes": [
+    {
+     "alg": "SHA-256",
+     "content": "cb182feeed4d798ff6961d3c79f7026279448fca0676438aaecb21f3fc39553a"
+    }
+   ],
+   "externalReferences": [
+    {
+     "type": "distribution",
+     "url": "https://www.npmjs.com/package/@fontsource/jetbrains-mono/v/5.3.0"
     }
    ]
   },
@@ -9974,6 +10099,11 @@
     "runtime:chromium",
     "runtime:de_core_news_sm",
     "data:gemeinden_de.json",
+    "font:geist-400.woff2",
+    "font:geist-500.woff2",
+    "font:geist-600.woff2",
+    "font:jetbrains-mono-400.woff2",
+    "font:jetbrains-mono-500.woff2",
     "pkg:pypi/annotated-doc@0.0.6",
     "pkg:pypi/annotated-types@0.8.0",
     "pkg:pypi/anyio@4.16.0",

@@ -23,7 +23,8 @@
 8. [Skills](#skills)
 9. [Entscheidungen außerhalb des Engineerings](#entscheidungen-außerhalb-des-engineerings)
 10. [Bezug zur bisherigen Roadmap](#bezug-zur-bisherigen-roadmap)
-11. [So wird der Plan gepflegt](#so-wird-der-plan-gepflegt)
+11. [UX-Programm U1–U10](#ux-programm-u1u10)
+12. [So wird der Plan gepflegt](#so-wird-der-plan-gepflegt)
 
 ## Unverhandelbare Regeln
 
@@ -500,6 +501,54 @@ Skills steuern die Arbeit von Claude Code; sie sind keine Laufzeitfunktion und k
 | SDQ-008 Provider-Beschreibung | R1.1 |
 | SDQ-033 bis SDQ-043 (Prüfbericht 24.11.) | R0.6, R6.1, R6.2, R6.3, R6.4, R6.5, R6.6, R6.7, R6.8 |
 | „Später – SaaS“ | R6, R7 |
+
+## UX-Programm U1–U10
+
+Quelle: Auftrag „Product Design & UX Architecture 2.0“ (26.11.2026), Bestandsaufnahme docs/UX_BESTANDSAUFNAHME.md. Läuft neben R1–R7 und ändert deren Abnahmen nicht. Der im Auftrag genannte separate Explorer-Designprompt liegt nicht vor; visuelle Vorgaben stammen nur aus U2. Neue Hauptnavigation erst nach Pilot-Test (R5.2) – die 13 Arbeitsansichten kommen als Reiter in die sechs Bereiche.
+
+Stand aller 10 UX-Pakete: 2 offen · 7 teilweise · 1 erledigt.
+
+| ID | Paket | Status | Bezug zu R | Abnahme |
+|---|---|---|---|---|
+| **U1** | Bestandsaufnahme und Funktionsmatrix | erledigt | R0.8 | Jede Zielansicht mit Stand, Datei und Lücke<br>Konflikte mit ROADMAP und M07 benannt |
+| **U2** | Designsystem Professional Light / Research Dark | teilweise | – | Tokens der Vorgabe in hell und dunkel, Kontrast AA je Theme<br>Keine Schrift unter 11 px, Radien und Schatten nur über Tokens<br>Keine Abrufe nach außen für Schriften |
+| **U3** | Application Shell | teilweise | – | Panel und Navigation per Tastatur bedienbar, Fokus kehrt zurück<br>Bei 390 px kein seitliches Scrollen |
+| **U4** | Arbeitsansichten (13) als Reiter in den sechs Bereichen | teilweise | R2.4, R4.3, R5.5, R1.1 | Contact Explorer und Company Compare vorhanden<br>Jede Ansicht hat Lade-, Leer-, Teil-, Fehler-, Offline-, Rechte- und Veraltet-Zustand |
+| **U5** | Persönliche Ansichten je Nutzer und Workspace | teilweise | R6.7 | Einstellungen eines Kontos wirken nicht bei einem anderen<br>Geteilte Ansicht enthält keine Daten, nur Filter und Spalten |
+| **U6** | Sales Intelligence: vier erklärte Dimensionen | teilweise | R4.4 | Jede Dimension mit Begründung und Lücken<br>Kontaktierbarkeit hebt nie die Kontaktsperre auf |
+| **U7** | Source Intelligence: Metadaten je Feld | teilweise | R1.1, R2.3 | Feld ohne Fundstelle wird nicht angezeigt<br>Lizenz „unklar“ ist sichtbar markiert |
+| **U8** | Suche und Akquise-Ablauf | teilweise | – | Jeder erkannte Filter ist sichtbar und entfernbar<br>Kontaktaufnahme nur nach Sperrprüfung (Regel 1) |
+| **U9** | Zustände, Barrierefreiheit, Leistung und Sicherheit | offen | R5.4, R6.7 | Firmenliste mit 5.000 Firmen in Seiten<br>Automatische WCAG-Prüfung in der CI |
+| **U10** | Tests und Bewertung je Ansicht | offen | R5.2 | Jede Ansicht mit Bewertung und Nachweis<br>Restschwächen in EINSCHRAENKUNGEN |
+
+- **U1 Bestandsaufnahme und Funktionsmatrix.** Architektur, Designsystem, Navigation, Schnittstellen und Tests gezählt; Funktionsmatrix der 13 Zielansichten (vorhanden/teilweise/fehlt); Konflikte mit bestehenden Entscheidungen und Vorschlag zur Auflösung.
+  Baut auf: `docs/UX_BESTANDSAUFNAHME.md`.
+  Stand: 2.0.0-dev72: docs/UX_BESTANDSAUFNAHME.md; tests/test_plan_structure.py prüft, dass das Dokument existiert.
+- **U2 Designsystem Professional Light / Research Dark.** Theme „Professionell“ (Primär #2447A8, Navigation #14161A, Hintergrund #FAFAF8, Linien #E3E2DC, Positiv #1D7A4C, Kritisch #A32B2B, Warnung #B4610E, Neutral #6B7280), Radius 6 px, Geist und JetBrains Mono lokal mit Prüfsumme, Dichten Kompakt 32 / Standard 40 / Komfort 52 px, hell/dunkel/System, Kontrast je Theme geprüft. Offen: Altwerte direkt im CSS (≤ 10-px-Schriften, 9 Radien, 22 Schatten, 3 Animationen).
+  Baut auf: `sales_tool/public/style.css`, `sales_tool/appearance.py`, `sales_tool/public/fonts/fonts.json`.
+  Stand: 2.0.0-dev72: Theme, Schriften, Dichten und Rolle „positiv“; tests/test_ux_design_system.py, tests/test_v2_appearance.py, tests/e2e/test_appearance_browser.py. Altwerte im CSS noch offen.
+- **U3 Application Shell.** Einklappbare Navigation auf dem Desktop, optionale Filter-Seitenleiste, rechtes Detailpanel (472 px) als Schnellansicht neben Listen – die Firmenakte bleibt die Vollansicht (M07 Variante B) –, Benachrichtigungen neben der Aufträge-Übersicht, Befehle in Strg+K.
+  Baut auf: `sales_tool/public/nav.js`, `sales_tool/public/search.js`, `sales_tool/public/jobs.js`.
+  Stand: vorhanden: sechs Bereiche mit Reitern, Strg+K-Suche, Aufträge-Übersicht, mobile Schublade (Bestandsaufnahme Abschnitt 2).
+- **U4 Arbeitsansichten (13) als Reiter in den sechs Bereichen.** Company und Contact Explorer, Research Workspace, Signal Intelligence, Smart Search, Watchlists, Outreach- und Call Workspace, Geo Explorer, Company Compare, Data & Source Intelligence, Analytics, Administration. Tabelle als zentrale Fläche; Kanban nur für Vertriebsphasen, Karte nur für Geo (Kacheln erst nach Quellen-Freigabe), Diagramme nur für echte Auswertungen.
+  Baut auf: `sales_tool/public/leadlist.js`, `sales_tool/candidates.py`.
+  Stand: 11 von 13 Ansichten teilweise vorhanden, Contact Explorer und Company Compare fehlen (Bestandsaufnahme Abschnitt 2).
+- **U5 Persönliche Ansichten je Nutzer und Workspace.** Ein Ansichtszustand für Spalten, Breiten, fixierte Spalten, Zeilenhöhe, Sortierung, Gruppierung, Filter, Standardansicht, geteilte Listen, Theme und Panel; im Team- und Mehrmandantenbetrieb je Konto. Ansichtswechsel verliert keine Arbeit.
+  Baut auf: `sales_tool/focus.py`, `sales_tool/appearance.py`, `sales_tool/public/formguard.js`.
+  Stand: vorhanden: gespeicherte Arbeitsansichten und Darstellung je Installation (nicht je Nutzer).
+- **U6 Sales Intelligence: vier erklärte Dimensionen.** Zielkunden-Fit, Signalrelevanz, Datenqualität und Kontaktierbarkeit getrennt und erklärt; Fakt, beobachtete Änderung, technische Analyse, Schätzung, KI-Hypothese, Empfehlung und im Gespräch bestätigter Bedarf getrennt; fehlende Daten nie negativ; Zielprofile konfigurierbar.
+  Baut auf: `sales_tool/qualification.py`, `sales_tool/report.py`.
+  Stand: vorhanden: Passung A/B/C mit Begründung, Trennung Fakt/Hypothese/bestätigter Bedarf im Bericht und in der Akte.
+- **U7 Source Intelligence: Metadaten je Feld.** Je Feld Quelle, Abrufdatum, Ereignisdatum, Lizenz, Prüfstatus, Aktualität, Methode, Widersprüche, manuelle Änderungen und Konfidenz sichtbar; unklare Nutzungsrechte gekennzeichnet; nichts erfunden.
+  Baut auf: `sales_tool/research/evidence.py`, `sales_tool/research/sources.py`.
+  Stand: vorhanden: Evidence-Vertrag v2 und Source Registry; Anzeige je Feld fehlt.
+- **U8 Suche und Akquise-Ablauf.** Natürlichsprachliche Suche wird in sichtbare, änderbare Filter übersetzt; Ablauf Recherche → Qualifizierung → Ansprechpartner → Bedarfsanalyse → Prüfung Kontaktweg → Kontaktaufnahme → Gespräch → Wiedervorlage → Angebot; keine automatische Kontaktaufnahme.
+  Baut auf: `sales_tool/public/search.js`, `sales_tool/workday.py`.
+  Stand: vorhanden: Strg+K-Suche, Suchprofile mit Budget, Ablauf-Schritte in der Firmenakte.
+- **U9 Zustände, Barrierefreiheit, Leistung und Sicherheit.** Lade-, Leer-, Teil-, Fehler- (mit Wiederholen), Offline-, Rechte- und Veraltet-Zustand je Ansicht; WCAG 2.2 AA und Tastaturbedienung; Seiten/Virtualisierung und abbrechbare Abfragen für die Firmenliste; Prüfung gespeicherter Ansichten, Exporte, Mandantentrennung, Rollen und XSS.
+  Baut auf: `sales_tool/public/leadlist.js`.
+- **U10 Tests und Bewertung je Ansicht.** Visuelle Regression und Browser-Tests je Ansicht; Bewertung 0–100 je Ansicht mit prüfbarem Nachweis; verbleibende Schwächen dokumentiert, keine Behauptung vollständiger Marktreife.
+  Baut auf: `tools/run_e2e.py`.
 
 ## So wird der Plan gepflegt
 

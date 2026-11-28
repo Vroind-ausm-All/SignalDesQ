@@ -1,4 +1,4 @@
-# Bekannte Einschränkungen (Stand 2.0.0-dev71)
+# Bekannte Einschränkungen (Stand 2.0.0-dev72)
 
 **Ergänzung für 2.0.0-dev1:** Eine übereinstimmende Registernummer ohne Vergleich des Registergerichts gilt nur noch als Vorschlag. Die folgenden Aussagen dokumentieren den früheren Stand. Der aktuelle Entwicklungsstand und offene Prüfungen stehen in `V2_ENTWICKLUNGSSTAND.md` und `UEBERGABE_FABLE.md`.
 
@@ -73,6 +73,15 @@ Ausweg. Sie wird mit jeder Version aktualisiert.
 ## Darstellung (2.0.0-dev11)
 
 - Die Darstellung gilt für die ganze Installation, nicht je Nutzer: Im Team-Betrieb sehen alle dasselbe Theme. „Klassisch“ ist nicht pixelgleich mit dem Stand davor; Grautöne und Linien sind leicht vereinheitlicht, graue Nebentexte für bessere Lesbarkeit etwas dunkler. Durchscheinende Schatten sind im Dunkelmodus kaum sichtbar. Ausdrucke bleiben hell. Die Dichte „Kompakt“ blendet die Erklärtexte unter den Seitenüberschriften aus. Ohne Unterstützung für `color-mix()` (Browser vor etwa 2023) ist die Kopfleiste deckend statt leicht durchscheinend.
+
+## Designsystem „Professionell“ (2.0.0-dev72, UX-Programm U2)
+
+- **Nur für neue Installationen Standard.** Eine gespeicherte Wahl (z. B. „Klassisch“) bleibt; „Professionell“ lässt sich unter Einstellungen → Darstellung wählen.
+- **Nicht vollständig umgesetzt (U2 „teilweise“):** Im Stylesheet stehen noch 47 Regeln mit 9–10 px Schrift, Radien von 7–12 px und 40 px sowie 22 Schatten als feste Werte. Das Theme setzt Grundschrift (13 px), Radius (6 px) für Bedienelemente, Karten und Pillen sowie Tabellenzeilen über Tokens; Altwerte an anderen Stellen bleiben, bis sie einzeln umgestellt und angesehen sind.
+- **„13/16“ ausgelegt als** 13 px Grundschrift und 16 px Zeilenhöhe in Tabellenzellen; Fließtext hat Zeilenhöhe 1,45. Tabellenzeilen 32/40/52 px sind Mindesthöhen – zweizeilige Zellen (Name und Branche) werden höher.
+- **Schriften nur Zeichensatz „latin“** (Fontsource 5.3.0; enthält ä, ö, ü, ß). Andere Schriftsysteme fallen auf die Systemschrift zurück.
+- **Der im Auftrag genannte Explorer-Designprompt liegt nicht vor.** Visuelle Vorgaben stammen nur aus dem Auftrag selbst; Ansichten werden nicht gegen ein Zielbild geprüft.
+- **Keine visuelle Regression mit Bildvergleich** und keine automatische WCAG-Prüfung; Kontraste werden je Theme aus den Tokens berechnet (`tests/test_v2_appearance.py`), Bildschirmfotos werden von Hand angesehen.
 
 ## Eingabeschutz und Bewertung (2.0.0-dev13)
 

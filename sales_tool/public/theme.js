@@ -3,7 +3,7 @@
    Server (/api/ui/appearance); localStorage ist nur die schnelle Kopie für den Seitenstart. */
 (function(){
   const KEY='signaldesk.appearance';
-  const DEFAULT={theme:'klassisch',mode:'system',density:'normal'};
+  const DEFAULT={theme:'professionell',mode:'system',density:'normal'};
   const root=document.documentElement;
   const media=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
   let current=Object.assign({},DEFAULT,readLocal());

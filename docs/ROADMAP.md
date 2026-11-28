@@ -1,6 +1,6 @@
 # Roadmap
 
-Stand 2.0.0-dev71. **Ab dev66 gilt für die Weiterentwicklung der Open-Intelligence-Plan mit den Phasen R0–R7** (Architektur- und
+Stand 2.0.0-dev72. **Ab dev66 gilt für die Weiterentwicklung der Open-Intelligence-Plan mit den Phasen R0–R7** (Architektur- und
 Masterplan vom 25.11.2026, [`MASTERPLAN_OPEN_INTELLIGENCE.md`](MASTERPLAN_OPEN_INTELLIGENCE.md)); sein Status wird in
 [`plan/open_intelligence.json`](plan/open_intelligence.json) gepflegt und unten als Abschnitt erzeugt. Die Maßnahmen M01–M39
 stammen aus dem externen Produktreview vom 13.11.2026 (geprüft auf dev11, Etappen A–E) und seinen zwei Ergänzungen
@@ -55,6 +55,8 @@ Phasenplan aus dem Architektur- und Masterplan vom 25.11.2026. Vollständige Pak
 Kritischer Pfad: R0 → R1 → R2 → R4 → R5 → Freigabe. R3 läuft nach R1 parallel, R6-Betriebsmaßnahmen beginnen früh. Kein öffentlicher Start vor bestandener R6-Nachprüfung.
 
 **Wartet auf Entscheidungen oder Nachweise außerhalb des Engineerings:** R1.6 (Eigentümer); R5.1 (Eigentümer); R5.2 (Eigentümer); R5.6 (Steuerberatung); R6.10 (Extern); R6.12 (Eigentümer); R7.2 (Eigentümer); R7.3 (Recht); R7.5 (Eigentümer).
+
+**UX-Programm U1–U10 (ab 2.0.0-dev72):** 2 offen · 7 teilweise · 1 erledigt – Pakete und Abnahmen im [Masterplan](MASTERPLAN_OPEN_INTELLIGENCE.md#ux-programm-u1u10), Bestandsaufnahme in [UX_BESTANDSAUFNAHME.md](UX_BESTANDSAUFNAHME.md).
 
 <!-- plan:roadmap:end -->
 

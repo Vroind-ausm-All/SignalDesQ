@@ -28,6 +28,9 @@ OWNERS = ('Engineering', 'Eigentümer', 'Betrieb', 'Extern', 'Recht', 'Steuerber
 PACKAGE_KEYS = {'id', 'titel', 'prio', 'status', 'verantwortlich', 'inhalt', 'basis', 'neu', 'abhaengig_von', 'abnahme'}
 OPTIONAL_KEYS = {'nachweis', 'weich_abhaengig_von'}
 PATH_PREFIXES = ('sales_tool/', 'tools/', 'tests/', 'docs/', '.claude/', '.github/', 'deploy/')
+# 2.0.0-dev72: UX-Programm U1–U10 neben R1–R7 (Auftrag „Product Design & UX Architecture 2.0“)
+UX_IDS = [f'U{i}' for i in range(1, 11)]
+UX_KEYS = {'id', 'titel', 'status', 'inhalt', 'basis', 'bezug', 'abnahme'}
 
 
 def load(path=SOURCE):
@@ -181,6 +184,37 @@ def validate(plan):
     for r in plan.get('roadmap_bezug', []):
         if any(x not in known and x not in PHASE_ORDER for x in r.get('jetzt', [])):
             err.append(f"Roadmap-Bezug {r.get('bisher')}: unbekanntes Ziel")
+    err += validate_ux(plan.get('ux_programm', {}), known)
+    return err
+
+
+def validate_ux(ux, known):
+    """UX-Programm: genau U1–U10, gleiche Statusregeln wie die R-Pakete, Bezüge nur auf bekannte R-Pakete."""
+    err = []
+    pkgs = ux.get('pakete', [])
+    if [p.get('id') for p in pkgs] != UX_IDS:
+        err.append(f'UX-Programm muss genau {UX_IDS[0]}–{UX_IDS[-1]} in dieser Reihenfolge enthalten')
+    for p in pkgs:
+        pid = p.get('id', '?')
+        missing, extra = UX_KEYS - set(p), set(p) - UX_KEYS - {'nachweis'}
+        if missing or extra:
+            err.append(f'{pid}: fehlende Felder {sorted(missing)} / unbekannte Felder {sorted(extra)}')
+            continue
+        if p['status'] not in STATUS:
+            err.append(f"{pid}: Status {p['status']!r} unbekannt")
+        if not p['abnahme']:
+            err.append(f'{pid}: keine Abnahme')
+        if p['status'] in ('erledigt', 'teilweise') and not p.get('nachweis'):
+            err.append(f"{pid}: Status {p['status']} ohne Nachweis")
+        if p['status'] == 'erledigt' and not re.search(r'\d+\.\d+\.\d+-dev\d+', p.get('nachweis', '')):
+            err.append(f'{pid}: erledigt ohne Version im Nachweis')
+        for ref in p['bezug']:
+            if ref not in known:
+                err.append(f'{pid}: Bezug {ref} unbekannt')
+        for entry in p['basis']:
+            path = _path_of(entry)
+            if path and not (ROOT / path).exists():
+                err.append(f'{pid}: Grundlage {path} existiert nicht')
     return err
 
 
@@ -249,7 +283,8 @@ def render_masterplan(plan):
          '3. [Arbeitspakete je Phase](#arbeitspakete-je-phase)', '4. [Sicherheitsbefunde F01–F12](#sicherheitsbefunde-f01f12)',
          '5. [Kennzahlen und Gates](#kennzahlen-und-gates)', '6. [Reifeprofil](#reifeprofil)', '7. [Technologieregister](#technologieregister)',
          '8. [Skills](#skills)', '9. [Entscheidungen außerhalb des Engineerings](#entscheidungen-außerhalb-des-engineerings)',
-         '10. [Bezug zur bisherigen Roadmap](#bezug-zur-bisherigen-roadmap)', '11. [So wird der Plan gepflegt](#so-wird-der-plan-gepflegt)', '',
+         '10. [Bezug zur bisherigen Roadmap](#bezug-zur-bisherigen-roadmap)', '11. [UX-Programm U1–U10](#ux-programm-u1u10)',
+         '12. [So wird der Plan gepflegt](#so-wird-der-plan-gepflegt)', '',
          '## Unverhandelbare Regeln', '']
     L += [f'{i}. {r}' for i, r in enumerate(plan['regeln'], 1)]
     L += ['', '## Phasen und kritischer Pfad', '',
@@ -308,6 +343,7 @@ def render_masterplan(plan):
     L += [f"| {d['id']} | {d['verantwortlich']} | {_cell(d['thema'])} | {d['benoetigt_fuer']} |" for d in plan['entscheidungen']]
     L += ['', '## Bezug zur bisherigen Roadmap', '', '| Bisher | Jetzt |', '|---|---|']
     L += [f"| {_cell(r['bisher'])} | {', '.join(r['jetzt'])} |" for r in plan['roadmap_bezug']]
+    L += render_ux(plan['ux_programm'])
     L += ['', '## So wird der Plan gepflegt', '',
           '1. Status, Nachweis oder Abhängigkeit nur in `docs/plan/open_intelligence.json` ändern.',
           '2. `python tools/plan_status.py --write` erzeugt diese Datei und den Plan-Abschnitt in `docs/ROADMAP.md` neu.',
@@ -315,6 +351,22 @@ def render_masterplan(plan):
           'F01–F12-Abdeckung, Skills, Versionsangaben und ob die erzeugten Dokumente aktuell sind.',
           '4. „erledigt“ verlangt einen Nachweis mit Version und Test; „teilweise“ einen Nachweis, was schon da ist.', '']
     return '\n'.join(L)
+
+
+def render_ux(ux):
+    pkgs = ux['pakete']
+    L = ['', '## UX-Programm U1–U10', '', f"Quelle: {_cell(ux['quelle'])}. {_cell(ux['hinweis'])}", '',
+         f"Stand aller {len(pkgs)} UX-Pakete: {_count_text(counts(pkgs))}.", '',
+         '| ID | Paket | Status | Bezug zu R | Abnahme |', '|---|---|---|---|---|']
+    L += [f"| **{p['id']}** | {_cell(p['titel'])} | {p['status']} | {', '.join(p['bezug']) or '–'} | {_join(p['abnahme'])} |" for p in pkgs]
+    L.append('')
+    for p in pkgs:
+        L.append(f"- **{p['id']} {_cell(p['titel'])}.** {_cell(p['inhalt'])}")
+        if p['basis']:
+            L.append(f"  Baut auf: {', '.join(_ref(b) for b in p['basis'])}.")
+        if p.get('nachweis'):
+            L.append(f"  Stand: {_cell(p['nachweis'])}.")
+    return L
 
 
 def render_roadmap_section(plan):
@@ -332,7 +384,9 @@ def render_roadmap_section(plan):
     L += ['', 'Kritischer Pfad: R0 → R1 → R2 → R4 → R5 → Freigabe. R3 läuft nach R1 parallel, R6-Betriebsmaßnahmen beginnen früh. '
           'Kein öffentlicher Start vor bestandener R6-Nachprüfung.', '',
           '**Wartet auf Entscheidungen oder Nachweise außerhalb des Engineerings:** '
-          + '; '.join(f"{p['id']} ({p['verantwortlich']})" for p in blocked) + '.', '', END]
+          + '; '.join(f"{p['id']} ({p['verantwortlich']})" for p in blocked) + '.', '',
+          f"**UX-Programm U1–U10 (ab 2.0.0-dev72):** {_count_text(counts(plan['ux_programm']['pakete']))} – Pakete und Abnahmen im "
+          '[Masterplan](MASTERPLAN_OPEN_INTELLIGENCE.md#ux-programm-u1u10), Bestandsaufnahme in [UX_BESTANDSAUFNAHME.md](UX_BESTANDSAUFNAHME.md).', '', END]
     return '\n'.join(L)
 
 
@@ -372,6 +426,7 @@ def main(argv=None):
             return 1
     c = counts(plan['pakete'])
     print(f"{len(plan['pakete'])} Pakete in {len(plan['phasen'])} Phasen: {_count_text(c)}")
+    print(f"UX-Programm: {len(plan['ux_programm']['pakete'])} Pakete: {_count_text(counts(plan['ux_programm']['pakete']))}")
     return 0
 
 

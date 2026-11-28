@@ -1,0 +1,70 @@
+{
+ "note": "Schriften lokal ausgeliefert (kein CDN). Quelle: npm-Registry, Paket-Integrität (sha512) am 26.11.2026 geprüft. Zeichensatz „latin“ von Fontsource (enthält ä ö ü ß).",
+ "files": [
+  {
+   "file": "geist-400.woff2",
+   "family": "Geist",
+   "weight": 400,
+   "package": "@fontsource/geist-sans",
+   "version": "5.3.0",
+   "source_path": "files/geist-sans-latin-400-normal.woff2",
+   "npm_integrity": "sha512-AmG7cE1AvE4NHROPaOl1sN+a02cB5xy6pA/ZV76HXqWTCsJTV2SCBc9DTFHfJqnVOODm7HhXIYtUIb75NP5QXQ==",
+   "license": "OFL-1.1",
+   "license_file": "LICENSE-Geist.txt",
+   "sha256": "e6ef6abb39c762ed2259cc814e6f16888c540cd84835962227b56ab2354f27f1",
+   "bytes": 33400
+  },
+  {
+   "file": "geist-500.woff2",
+   "family": "Geist",
+   "weight": 500,
+   "package": "@fontsource/geist-sans",
+   "version": "5.3.0",
+   "source_path": "files/geist-sans-latin-500-normal.woff2",
+   "npm_integrity": "sha512-AmG7cE1AvE4NHROPaOl1sN+a02cB5xy6pA/ZV76HXqWTCsJTV2SCBc9DTFHfJqnVOODm7HhXIYtUIb75NP5QXQ==",
+   "license": "OFL-1.1",
+   "license_file": "LICENSE-Geist.txt",
+   "sha256": "40073e90816315c92e4f4381bd50b6fdc950b22b0dd010a4179046cf588d4f12",
+   "bytes": 34716
+  },
+  {
+   "file": "geist-600.woff2",
+   "family": "Geist",
+   "weight": 600,
+   "package": "@fontsource/geist-sans",
+   "version": "5.3.0",
+   "source_path": "files/geist-sans-latin-600-normal.woff2",
+   "npm_integrity": "sha512-AmG7cE1AvE4NHROPaOl1sN+a02cB5xy6pA/ZV76HXqWTCsJTV2SCBc9DTFHfJqnVOODm7HhXIYtUIb75NP5QXQ==",
+   "license": "OFL-1.1",
+   "license_file": "LICENSE-Geist.txt",
+   "sha256": "9d99fbd791968493fa507ac846de561cee47b00f8100c23cad333b3cb78392d6",
+   "bytes": 35292
+  },
+  {
+   "file": "jetbrains-mono-400.woff2",
+   "family": "JetBrains Mono",
+   "weight": 400,
+   "package": "@fontsource/jetbrains-mono",
+   "version": "5.3.0",
+   "source_path": "files/jetbrains-mono-latin-400-normal.woff2",
+   "npm_integrity": "sha512-fqDfB5I9f1p1TV486aUgB9t8zP84P0O1FtQR5Ol9vjwPy+S+EIGlVYm1cvj2W5shcZMTg2nZFdVMoH5wFu8a1A==",
+   "license": "OFL-1.1",
+   "license_file": "LICENSE-JetBrainsMono.txt",
+   "sha256": "14425ba9c695763c1547f48a206b7aa60350a33ae23de09f0407877f3fcd89eb",
+   "bytes": 21168
+  },
+  {
+   "file": "jetbrains-mono-500.woff2",
+   "family": "JetBrains Mono",
+   "weight": 500,
+   "package": "@fontsource/jetbrains-mono",
+   "version": "5.3.0",
+   "source_path": "files/jetbrains-mono-latin-500-normal.woff2",
+   "npm_integrity": "sha512-fqDfB5I9f1p1TV486aUgB9t8zP84P0O1FtQR5Ol9vjwPy+S+EIGlVYm1cvj2W5shcZMTg2nZFdVMoH5wFu8a1A==",
+   "license": "OFL-1.1",
+   "license_file": "LICENSE-JetBrainsMono.txt",
+   "sha256": "cb182feeed4d798ff6961d3c79f7026279448fca0676438aaecb21f3fc39553a",
+   "bytes": 21832
+  }
+ ]
+}
